@@ -8,15 +8,15 @@ Creare una libreria C++ che offra una sintassi il più possibile identica e intu
 ## 🏗 Fase 1: Strutture Dati Core
 - [x] Implementazione della classe `Graph` (Grafo non orientato).
 - [x] Implementazione della classe `DiGraph` (Grafo orientato).
-- [ ] Implementazione delle classi `MultiGraph` e `MultiDiGraph`.
+- [x] Implementazione delle classi `MultiGraph` e `MultiDiGraph`.
 - [x] Supporto per identificatori di nodi generici (es. interi, stringhe) tramite template o tipi flessibili.
-- [ ] Metodi fondamentali identici a NetworkX: `add_node`, `add_nodes_from`, `add_edge`, `add_edges_from`, `remove_node`, `remove_edge`, `clear`.
+- [x] Metodi fondamentali identici a NetworkX: `add_node`, `add_nodes_from`, `add_edge`, `add_edges_from`, `remove_node`, `remove_edge`, `clear`.
 - [ ] Supporto per attributi personalizzati su nodi e archi.
 
 ## 🐍 Fase 2: Wrappers API e Sintassi Python-like
 - [x] Overload degli operatori per replicare l'accesso a dizionario (es. `G[u][v]`).
-- [ ] Viste e iteratori C++11/C++20 per simulare `G.nodes()`, `G.edges()`, `G.neighbors(n)`.
-- [ ] Gestione degli errori intuitiva (simulazione di eccezioni come `NetworkXError`, `NodeNotFound`).
+- [x] Viste e iteratori C++11/C++20 per simulare `G.nodes()`, `G.edges()`, `G.neighbors(n)`.
+- [x] Gestione degli errori intuitiva (simulazione di eccezioni come `NetworkXError`, `NodeNotFound`).
 
 ## ⚙️ Fase 3: Algoritmi Fondamentali (Porting & Integrazione BGL)
 Integrazione e wrapping degli algoritmi della BGL per matcha le signature di NetworkX:

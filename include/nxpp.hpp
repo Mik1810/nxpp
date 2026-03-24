@@ -40,11 +40,11 @@ inline void print(First&& first, Rest&&... rest) {
 
 // Core Graph Class
 
-template <typename NodeID = std::string, typename EdgeWeight = double, bool Directed = false>
+template <typename NodeID = std::string, typename EdgeWeight = double, bool Directed = false, bool Multi = false>
 class Graph {
 public:
     using NodeType = NodeID;
-    using DirectedSelector = typename std::conditional<Directed, boost::directedS, boost::undirectedS>::type;
+    using DirectedSelector = typename std::conditional<Directed, boost::bidirectionalS, boost::undirectedS>::type;
     using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, DirectedSelector,
                                             boost::no_property, boost::property<boost::edge_weight_t, EdgeWeight>>;
     using VertexDesc = typename boost::graph_traits<GraphType>::vertex_descriptor;
@@ -87,6 +87,15 @@ public:
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
+        
+        if constexpr (!Multi) {
+            auto [e, exists] = boost::edge(bu, bv, g);
+            if (exists) {
+                weight_map[e] = w;
+                return;
+            }
+        }
+        
         auto [e, added] = boost::add_edge(bu, bv, g);
         weight_map[e] = w;
     }
@@ -101,6 +110,58 @@ public:
         for (const auto& edge : edges) {
             add_edge(edge.first, edge.second, 1.0);
         }
+    }
+
+    void clear() {
+        g = GraphType();
+        id_to_bgl.clear();
+        bgl_to_id.clear();
+        weight_map = boost::get(boost::edge_weight, g);
+    }
+
+    void remove_edge(const NodeID& u, const NodeID& v) {
+        auto it_u = id_to_bgl.find(u);
+        auto it_v = id_to_bgl.find(v);
+        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
+            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+        }
+        boost::remove_edge(it_u->second, it_v->second, g);
+    }
+
+    void remove_node(const NodeID& u) {
+        auto it = id_to_bgl.find(u);
+        if (it == id_to_bgl.end()) {
+            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+        }
+        VertexDesc v = it->second;
+        
+        // Boost graph pulisce tutti gli archi entranti/uscenti e rimuove il nodo
+        boost::clear_vertex(v, g);
+        boost::remove_vertex(v, g);
+        
+        id_to_bgl.erase(it);
+
+        // Se non era l'ultimo nodo, BGL (con vecS) fa uno swap interno per colmare il buco
+        // Dobbiamo aggiornare le mappe posizionali con il nodo spostato!
+        size_t last_v_index = bgl_to_id.size() - 1;
+        if (v != last_v_index) {
+            NodeID moved_node_id = bgl_to_id[last_v_index];
+            bgl_to_id[v] = moved_node_id;
+            id_to_bgl[moved_node_id] = v;
+        }
+        bgl_to_id.pop_back();
+    }
+
+    std::vector<NodeID> neighbors(const NodeID& u) const {
+        auto it = id_to_bgl.find(u);
+        if (it == id_to_bgl.end()) {
+            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+        }
+        std::vector<NodeID> res;
+        for (auto [e, eend] = boost::out_edges(it->second, g); e != eend; ++e) {
+            res.push_back(bgl_to_id[boost::target(*e, g)]);
+        }
+        return res;
     }
 
     bool has_node(const NodeID& u) const {
@@ -185,13 +246,20 @@ public:
 
 // NetworkX-style Aliases
 
-// Supporta la creazione nativa stile NetworkX: nxpp::DiGraph G;
+// Aliases per grafi Base
 template <typename NodeID = std::string, typename EdgeWeight = double>
-using DiGraph = Graph<NodeID, EdgeWeight, true>;
+using DiGraph = Graph<NodeID, EdgeWeight, true, false>;
+
+// Aliases per MultiGraph
+template <typename NodeID = std::string, typename EdgeWeight = double>
+using MultiGraph = Graph<NodeID, EdgeWeight, false, true>;
+
+template <typename NodeID = std::string, typename EdgeWeight = double>
+using MultiDiGraph = Graph<NodeID, EdgeWeight, true, true>;
 
 // Ereditarietà per la retrocompatibilità
 using DiGraphStr = DiGraph<std::string, double>;
-using GraphStr = Graph<std::string, double>;
+using GraphStr = Graph<std::string, double, false, false>;
 
 
 // Algorithms: Traversals

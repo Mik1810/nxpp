@@ -33,3 +33,14 @@
 4. **Simulatore I/O e Python Parity**:
    - Aggiunto `nxpp::print()` variadico globale e rimossi i commenti stile AI.
    - Allineato al 100% `main.cpp` e `main.py` per una dimostrazione architetturale esatta.
+
+## Traguardo 3: Distruzione, MultiGraph e Parità Definitiva
+1. **Algoritmi di Distruzione (Fase 3)**:
+   - Implementati `clear()`, `remove_edge()`, `remove_node()`.
+   - Introdotto *Memory Swap* in C++ `vecS` O(1) di Boost per evitare Memory Corruptions dopo l'eliminazione di nodi.
+2. **Architetture Parallele (Fase 1.5)**:
+   - Risolto bug sul grafo normale disabilitando l'aggiunta di spigoli ombra (auto-overwrite come da intent Python).
+   - Implementato template booleano `Multi` per sbloccare i NetworkX `MultiGraph` e `MultiDiGraph`.
+3. **Documentazione**:
+   - Riscritto integralmente il `README.md` (in forma tecnica e tradotto in inglese formale).
+   - Aggiornato meticolosamente il `ROADMAP.md` validando formalmente le Fasi 1 e 2.

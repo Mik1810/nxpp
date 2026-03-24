@@ -82,8 +82,68 @@ void test_integer_nodes() {
     print("\n");
 }
 
+void test_destruction() {
+    auto G = DiGraph();
+
+    G.add_edges_from({
+        {"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}, {"D", "E"}
+    });
+
+    print("Neighbors di A:");
+    for (const auto& n : G.neighbors("A")) {
+        print("-", n);
+    }
+    print("\n");
+
+    print("Grafo iniziale:");
+    for (const auto& n : G.nodes()) print(n);
+    print("\n");
+
+    G.remove_node("B");
+    print("Dopo aver rimosso B:");
+    for (const auto& n : G.nodes()) print(n);
+    print("\n");
+
+    G.remove_edge("C", "D");
+
+    print("Dopo aver rimosso C->D, l'albero BFS da A esplora:");
+    auto edges = bfs_edges(G, string("A"));
+    for (const auto& e : edges) {
+        print(" (", e.first, "->", e.second, ")");
+    }
+    print("\n\n");
+
+    G.clear();
+    print("Dopo clear(), quanti nodi rimangono?", G.nodes().size(), "\n");
+}
+
+void test_multigraph() {
+    print("=== NXPP (C++) - MultiGraph Test ===\n");
+    auto MG = MultiDiGraph();
+    MG.add_edge("Milano", "Roma", 5.0);
+    MG.add_edge("Milano", "Roma", 2.5);
+
+    auto G = DiGraph();
+    G.add_edge("Milano", "Roma", 5.0);
+    G.add_edge("Milano", "Roma", 2.5);
+
+    print("Archi in MultiDiGraph:");
+    for (const auto& edge : MG.edges()) {
+        print(" (", std::get<0>(edge), "->", std::get<1>(edge), ") peso:", std::get<2>(edge));
+    }
+    print("\n");
+
+    print("Archi in DiGraph (Standard):");
+    for (const auto& edge : G.edges()) {
+        print(" (", std::get<0>(edge), "->", std::get<1>(edge), ") peso:", std::get<2>(edge));
+    }
+    print("\n");
+}
+
 int main() {
     test_dijkstra_scc();
     test_integer_nodes();
+    test_destruction();
+    test_multigraph();
     return 0;
 }

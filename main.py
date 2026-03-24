@@ -66,7 +66,60 @@ def test_integer_nodes():
             print("  *", n)
     print("\n")
 
+def test_destruction():
+    G = nx.DiGraph()
+
+    G.add_edges_from([
+        ("A", "B"), ("A", "C"), ("B", "D"), ("C", "D"), ("D", "E")
+    ])
+
+    print("Neighbors di A:")
+    for n in G.neighbors("A"):
+        print("-", n)
+    print("\n")
+
+    print("Grafo iniziale:")
+    for n in G.nodes(): print(n)
+    print("\n")
+
+    G.remove_node("B")
+    print("Dopo aver rimosso B:")
+    for n in G.nodes(): print(n)
+    print("\n")
+
+    G.remove_edge("C", "D")
+
+    print("Dopo aver rimosso C->D, l'albero BFS da A esplora:")
+    edges = list(nx.bfs_edges(G, "A"))
+    for u, v in edges:
+        print(" (", u, "->", v, ")")
+    print("\n\n")
+
+    G.clear()
+    print("Dopo clear(), quanti nodi rimangono?", len(list(G.nodes())), "\n")
+
+def test_multigraph():
+    print("=== NETWORKX (Python) - MultiGraph Test ===\n")
+    MG = nx.MultiDiGraph()
+    MG.add_edge("Milano", "Roma", weight=5.0)
+    MG.add_edge("Milano", "Roma", weight=2.5)
+
+    G = nx.DiGraph()
+    G.add_edge("Milano", "Roma", weight=5.0)
+    G.add_edge("Milano", "Roma", weight=2.5) # Sovrascrive
+
+    print("Archi in MultiDiGraph:")
+    for u, v, data in MG.edges(data=True):
+        print(" (", u, "->", v, ") peso:", data["weight"])
+    print("\n")
+
+    print("Archi in DiGraph (Standard):")
+    for u, v, data in G.edges(data=True):
+        print(" (", u, "->", v, ") peso:", data["weight"])
+    print("\n")
 
 if __name__ == "__main__":
     test_dijkstra_scc()
     test_integer_nodes()
+    test_destruction()
+    test_multigraph()
