@@ -5,6 +5,8 @@
 It was born with a single goal: offering a strictly "1-to-1" continuous interface for complex networks, allowing researchers and developers to natively prototype algorithms in Python and compile the exact mirror topology in C++ with virtually zero cognitive overhead.
 
 
+---
+
 
 ## Prerequisites & Installation
 
@@ -110,6 +112,8 @@ int pop = G.node("Rome")["population"];
 ```
 
 
+
+---
 
 
 ### Critical Under-the-Hood Differences
