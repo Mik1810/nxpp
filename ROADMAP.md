@@ -3,7 +3,7 @@
 ## Objective
 Create a C++ library that offers a syntax as identical and intuitive as possible to the Python library `networkx`, while maintaining high performance and minimizing *bloat*. The project will internally leverage efficient data structures and algorithms (such as those from the Boost Graph Library - BGL), while exposing a clean and user-friendly API.
 
----
+
 
 ## Phase 1: Core Data Structures
 - [x] Implementation of the `Graph` class (Undirected simple graph).

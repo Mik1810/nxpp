@@ -4,7 +4,7 @@
 
 It was born with a single goal: offering a strictly "1-to-1" continuous interface for complex networks, allowing researchers and developers to natively prototype algorithms in Python and compile the exact mirror topology in C++ with virtually zero cognitive overhead.
 
----
+
 
 ## Prerequisites & Installation
 
@@ -97,24 +97,20 @@ for (const auto& node : G.neighbors("Rome")) {
 }
 
 // Shortest Pathfinding Algorithm
-// Shortest Pathfinding Algorithm
 auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
 
-// ---------------------------------------------------------
-// NEW: Topological Generators (Phase 3)
-// ---------------------------------------------------------
+// Topological Generators (Phase 3)
 auto K5 = nxpp::complete_graph(5); // Returns Graph<int> by default
 auto P4 = nxpp::path_graph<nxpp::DiGraph>(4); // Path 0->1->2->3 as DiGraph
 
-// ---------------------------------------------------------
-// NEW: Custom Node/Edge Attributes (std::any)
-// ---------------------------------------------------------
+// Custom Node/Edge Attributes (std::any)
 G.node("Rome")["population"] = 2800000;
 G["Rome"]["Naples"]["km"] = 220;
 int pop = G.node("Rome")["population"];
 ```
 
----
+
+
 
 ### Critical Under-the-Hood Differences
 

@@ -331,7 +331,7 @@ public:
     }
 };
 
-// --- Generators ---
+// Generators
 
 template <typename GraphType = Graph<int>>
 GraphType complete_graph(size_t n) {
