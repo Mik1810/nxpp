@@ -20,3 +20,16 @@
 
 4. **Astrazione Python-equivalente degli Snippet BGL**:
    - Creati 10 snippet in `py_snippet/graph_operations/` e `py_snippet/flow/` per validare sintatticamente le stesse identiche pre-condizioni ed output fornite in origine dai file `.cpp`. Questo servirà come "golden rule" architetturale per i design del backend in C++.
+
+## Traguardo 2: Generics & Header-Only Refactoring
+1. **Unificazione Libreria (Single-Header)**: 
+   - Eliminato tutto l'albero obsoleto di subdirectory e incorporato template, moduli algoritmi e utility in un solo `include/nxpp.hpp`.
+2. **Generics C++ (NodeID)**:
+   - Sostituito il BGL Graph hardcodato con la classe template `nxpp::Graph<NodeID>`. 
+   - Implementato mapping Hash automatico tra ID Generici e gli indici di allocazione Boost. 
+   - Aggiunti User-Alias `nxpp::DiGraph` (con default stringhe) per l'istanziazione nativa in memoria stile Python.
+3. **API Dictionary-like**:
+   - Creati *EdgeProxy* per consentire l'overload `G["Sorgente"]["Destinazione"] = peso` simulando l'accessor Python.
+4. **Simulatore I/O e Python Parity**:
+   - Aggiunto `nxpp::print()` variadico globale e rimossi i commenti stile AI.
+   - Allineato al 100% `main.cpp` e `main.py` per una dimostrazione architetturale esatta.

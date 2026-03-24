@@ -6,15 +6,15 @@ Creare una libreria C++ che offra una sintassi il più possibile identica e intu
 ---
 
 ## 🏗 Fase 1: Strutture Dati Core
-- [ ] Implementazione della classe `Graph` (Grafo non orientato).
-- [ ] Implementazione della classe `DiGraph` (Grafo orientato).
+- [x] Implementazione della classe `Graph` (Grafo non orientato).
+- [x] Implementazione della classe `DiGraph` (Grafo orientato).
 - [ ] Implementazione delle classi `MultiGraph` e `MultiDiGraph`.
-- [ ] Supporto per identificatori di nodi generici (es. interi, stringhe) tramite template o tipi flessibili.
+- [x] Supporto per identificatori di nodi generici (es. interi, stringhe) tramite template o tipi flessibili.
 - [ ] Metodi fondamentali identici a NetworkX: `add_node`, `add_nodes_from`, `add_edge`, `add_edges_from`, `remove_node`, `remove_edge`, `clear`.
 - [ ] Supporto per attributi personalizzati su nodi e archi.
 
 ## 🐍 Fase 2: Wrappers API e Sintassi Python-like
-- [ ] Overload degli operatori per replicare l'accesso a dizionario (es. `G[u][v]`).
+- [x] Overload degli operatori per replicare l'accesso a dizionario (es. `G[u][v]`).
 - [ ] Viste e iteratori C++11/C++20 per simulare `G.nodes()`, `G.edges()`, `G.neighbors(n)`.
 - [ ] Gestione degli errori intuitiva (simulazione di eccezioni come `NetworkXError`, `NodeNotFound`).
 
@@ -39,5 +39,5 @@ Integrare le funzionalità più complesse basate sugli snippet BGL forniti:
 - [ ] Benchmarking completo per comparare le performance (tempo di esecuzione, utilizzo memoria, tempo di compilazione) tra `nxpp` e `networkx`.
 
 ## 🔮 Orizzonti Futuri e Distribuzione
-- [ ] Refactoring per rendere la libreria "Header-only" (studiando il trade-off sui tempi di compilazione).
+- [x] Refactoring per rendere la libreria "Header-only" (studiando il trade-off sui tempi di compilazione).
 - [ ] (Opzionale) Sviluppo di binding Python (es. tramite pybind11) in modo che la libreria possa essere usata in Python come backend drop-in ad altissime performance per NetworkX.
