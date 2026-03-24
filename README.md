@@ -7,6 +7,8 @@ It was born with a single goal: offering a strictly "1-to-1" continuous interfac
 
 ---
 
+---
+
 
 ## Prerequisites & Installation
 
@@ -110,6 +112,8 @@ G.node("Rome")["population"] = 2800000;
 G["Rome"]["Naples"]["km"] = 220;
 int pop = G.node("Rome")["population"];
 ```
+---
+
 
 
 
