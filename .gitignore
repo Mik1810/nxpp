@@ -1,11 +1,11 @@
 .vscode/
-*
-!*.*
-!*/
 main
+./main
 *.exe
 *.out
 *.app
 .vscode
-.*
 old/
+
+.venv/
+.venv

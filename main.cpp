@@ -1,130 +1,89 @@
 #include <iostream>
-#include <vector>
+#include <string>
+
 #include "include/nxpp.hpp"
 
-int simple_undirected_graph() {
-    // Istanzio un grafo non diretto e non pesato
-    SimpleGraph g;
-    g.add_edges_from({{0, 1}, {1, 2}, {2, 3}, {3, 0}});
+using namespace nxpp;
+using namespace std;
 
-    // Stampo i nodi e gli archi del grafo
-    std::cout << "Nodi del grafo: ";
-    for (auto node : g.nodes()) {
-        std::cout << node << " " << std::endl;
+void test_dijkstra_scc() {
+    // 1. Inizializza un grafo diretto con chiavi testuali
+    auto G = DiGraph();
+
+    // 2. Popolamento
+    G.add_edge("Milano", "Roma", 5.0);
+    G.add_edge("Roma", "Napoli", 2.5);
+    G.add_edge("Venezia", "Milano", 2.0);
+    G.add_edge("Napoli", "Roma", 3.0); 
+
+    // 3. Stampa dei Nodi
+    print("Nodi:");
+    for (const auto& n : G.nodes()) {
+        print("-", n);
     }
+    print("\n");
 
-    std::cout << std::endl;
+    // Stampa di un peso salvato
+    print("Peso Milano -> Roma:", G.get_edge_weight("Milano", "Roma"), "\n");
 
-    std::cout << "Archi del grafo: ";
-    for (auto edge : g.edges()) {
-        std::cout << "(" << edge.first << ", " << edge.second << ") " << std::endl;
+    // 4. Dijkstra Shortest Path
+    print("Dijkstra (Venezia -> Napoli):");
+    auto path = dijkstra_path(G, string("Venezia"), string("Napoli"));
+    for (const auto& n : path) {
+        print("->", n);
     }
+    print("\n");
 
-    return 0;
+    // 5. Componenti Fortemente Connesse (SCC)
+    print("Componenti Fortemente Connesse (SCC):");
+    auto sccs = strongly_connected_components(G);
+    for (size_t i = 0; i < sccs.size(); ++i) {
+        print("SCC", i + 1, ":");
+        for (const auto& n : sccs[i]) {
+            print("  *", n);
+        }
+    }
+    print("\n");
 }
 
-int simple_directed_graph() {
-    // Istanzio un grafo diretto
-    SimpleDirectedGraph g;
-    g.add_edges_from({
-        {0, 1}, 
-        {1, 2}, 
-        {2, 3}, 
-        {1, 3}
+void test_integer_nodes() {
+    // 1. Inizializza un grafo NON orientato con chiavi Intere
+    Graph<int> G;
+
+    // 2. Aggiunge più archi in blocco
+    G.add_edges_from({
+        {1, 2}, {2, 3}, {3, 4},
+        {5, 6}, {6, 7} // Un'isola disconnessa
     });
 
-    // Stampo i nodi e gli archi del grafo
-    std::cout << "Nodi del grafo: ";
-    for (auto node : g.nodes()) {
-        std::cout << node << " " << std::endl;
+    print("Nodi (Interi):");
+    for (const auto& n : G.nodes()) {
+        print("-", n);
     }
+    print("\n");
 
-    std::cout << std::endl;
-
-    std::cout << "Archi del grafo: ";
-    for (auto edge : g.edges()) {
-        std::cout << "(" << edge.first << ", " << edge.second << ") " << std::endl;
+    // 3. Esegue una visita BFS in ampiezza dal nodo 1
+    print("Albero BFS (partendo dal nodo 1):");
+    auto edges = bfs_edges(G, 1);
+    for (const auto& e : edges) {
+        print(" (", e.first, "->", e.second, ")");
     }
+    print("\n\n");
 
-    // Eseguo un ordinamento topologico
-    std::cout << "Nodi ordinati: ";
-    for (auto node : g.topological_sort()) {
-        std::cout << node << " " << std::endl;
+    // 4. Trova le Componenti Connesse generiche (CC)
+    print("Componenti Connesse (Undirected):");
+    auto ccs = connected_components(G);
+    for (size_t i = 0; i < ccs.size(); ++i) {
+        print("CC", i + 1, ":");
+        for (const auto& n : ccs[i]) {
+            print("  *", n);
+        }
     }
-
-    return 0;
-}
-
-int simple_weighted_directed_graph() {
-    // Istanzio un grafo diretto e pesato
-    SimpleWeightedDirectedGraph g;
-    g.add_edges_from({
-        {0, 1, 5}, 
-        {1, 2, 10}, 
-        {2, 3, 15}, 
-        {1, 3, 20}
-    });
-
-    // Stampo i nodi e gli archi del grafo
-    std::cout << "Nodi del grafo: ";
-    for (auto node : g.nodes()) {
-        std::cout << node << " " << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "Archi del grafo: ";
-    for (auto edge : g.edges()) {
-        std::cout << "(" << edge.first << ", " << edge.second << ") con peso " << edge.weight << std::endl;
-    }
-
-    // Eseguo un ordinamento topologico
-    std::cout << "Nodi ordinati: ";
-    for (auto node : g.topological_sort()) {
-        std::cout << node << " " << std::endl;
-    }
-
-    return 0;
-}
-
-int simple_weighted_undirected_graph() {
-    // Istanzio un grafo non diretto e pesato
-    SimpleWeightedUndirectedGraph g;
-    g.add_edges_from({{0, 1, 5}, {1, 2, 10}, {2, 3, 15}, {3, 0, 20}});
-
-    // Stampo i nodi e gli archi del grafo
-    std::cout << "Nodi del grafo: ";
-    for (auto node : g.nodes()) {
-        std::cout << node << " " << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "Archi del grafo: ";
-    for (auto edge : g.edges()) {
-        std::cout << "(" << edge.first << ", " << edge.second << ") con peso " << edge.weight << std::endl;
-    }
-
-    return 0;
+    print("\n");
 }
 
 int main() {
-
-    // Esempio di utilizzo della classe SimpleUndirectedGraph
-    std::cout << "Esempio di grafo non diretto e non pesato:" << std::endl;
-    simple_undirected_graph();
-
-    // Esempio di utilizzo della classe SimpleDirectedGraph
-    std::cout << "Esempio di grafo diretto:" << std::endl;
-    simple_directed_graph();
-
-    // Esempio di utilizzo della classe SimpleWeightedDirectedGraph
-    std::cout << "Esempio di grafo diretto e pesato:" << std::endl;
-    simple_weighted_directed_graph();
-
-    // Esempio di utilizzo della classe SimpleWeightedUndirectedGraph
-    std::cout << "Esempio di grafo non diretto e pesato:" << std::endl;
-    simple_weighted_undirected_graph();
-
+    test_dijkstra_scc();
+    test_integer_nodes();
     return 0;
 }
