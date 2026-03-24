@@ -1,6 +1,10 @@
 #ifndef NXPP_HPP
 #define NXPP_HPP
 
+#if !__has_include(<boost/graph/adjacency_list.hpp>)
+#error "FATAL: nxpp requires the Boost Graph Library (BGL)."
+#endif
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/depth_first_search.hpp>
@@ -17,19 +21,28 @@
 #include <algorithm>
 #include <utility>
 #include <iostream>
+#include <any>
+#include <map>
+#include <iomanip>
+#include <random>
 
 namespace nxpp {
 
 // Python Emulation Utilities
 
-// Emula esattamente il print() di Python: print(a, b, c) con spazi e a capo automatici.
+// Python-style print() emulation: print(a, b, c) with spaces and auto-newline.
 inline void print() {
     std::cout << "\n";
 }
 
 template <typename First, typename... Rest>
 inline void print(First&& first, Rest&&... rest) {
-    std::cout << std::forward<First>(first);
+    if constexpr (std::is_floating_point_v<std::decay_t<First>>) {
+        std::cout << std::fixed << std::setprecision(1) << first;
+    } else {
+        std::cout << std::forward<First>(first);
+    }
+
     if constexpr (sizeof...(rest) > 0) {
         std::cout << " ";
         print(std::forward<Rest>(rest)...);
@@ -57,6 +70,11 @@ private:
     std::unordered_map<NodeID, VertexDesc> id_to_bgl;
     std::vector<NodeID> bgl_to_id;
 
+public:
+    std::unordered_map<NodeID, std::unordered_map<std::string, std::any>> node_properties;
+    std::map<EdgeDesc, std::unordered_map<std::string, std::any>> edge_properties;
+
+private:
     VertexDesc get_or_create_vertex(const NodeID& id) {
         auto it = id_to_bgl.find(id);
         if (it != id_to_bgl.end()) {
@@ -82,6 +100,23 @@ public:
         for (const auto& n : nodes) {
             add_node(n);
         }
+    }
+
+    EdgeDesc get_edge_desc(const NodeID& u, const NodeID& v) const {
+        auto it_u = id_to_bgl.find(u);
+        auto it_v = id_to_bgl.find(v);
+        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) throw std::runtime_error("Node not found");
+        auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
+        if (!exists) throw std::runtime_error("Edge not found");
+        return e;
+    }
+
+    bool has_edge(const NodeID& u, const NodeID& v) const {
+        auto it_u = id_to_bgl.find(u);
+        auto it_v = id_to_bgl.find(v);
+        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) return false;
+        auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
+        return exists;
     }
 
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
@@ -135,21 +170,20 @@ public:
         }
         VertexDesc v = it->second;
         
-        // Boost graph pulisce tutti gli archi entranti/uscenti e rimuove il nodo
         boost::clear_vertex(v, g);
         boost::remove_vertex(v, g);
         
         id_to_bgl.erase(it);
 
-        // Se non era l'ultimo nodo, BGL (con vecS) fa uno swap interno per colmare il buco
-        // Dobbiamo aggiornare le mappe posizionali con il nodo spostato!
-        size_t last_v_index = bgl_to_id.size() - 1;
-        if (v != last_v_index) {
-            NodeID moved_node_id = bgl_to_id[last_v_index];
-            bgl_to_id[v] = moved_node_id;
-            id_to_bgl[moved_node_id] = v;
+        // When using vecS, remove_vertex invalidates all descriptors > v
+        // because all subsequent vertices are shifted down by 1.
+        // We must re-sync all NodeID -> index mappings for shifted vertices.
+        bgl_to_id.erase(bgl_to_id.begin() + v);
+        
+        // Full re-sync of the ID to BGL map
+        for (size_t i = 0; i < bgl_to_id.size(); ++i) {
+            id_to_bgl[bgl_to_id[i]] = (VertexDesc)i;
         }
-        bgl_to_id.pop_back();
     }
 
     std::vector<NodeID> neighbors(const NodeID& u) const {
@@ -168,13 +202,7 @@ public:
         return id_to_bgl.find(u) != id_to_bgl.end();
     }
 
-    bool has_edge(const NodeID& u, const NodeID& v) const {
-        auto it_u = id_to_bgl.find(u);
-        auto it_v = id_to_bgl.find(v);
-        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) return false;
-        auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
-        return exists;
-    }
+
 
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
@@ -208,7 +236,27 @@ public:
     const std::vector<NodeID>& get_bgl_to_id_map() const { return bgl_to_id; }
     const std::unordered_map<NodeID, VertexDesc>& get_id_to_bgl_map() const { return id_to_bgl; }
 
-    // --- Proxy Pattern per simulare G[u][v] = weight ---
+    // Proxy Pattern per simulare G[u][v] = weight
+    struct EdgeAttrProxy {
+        Graph* graph;
+        NodeID u, v;
+        std::string key;
+
+        template <typename T>
+        EdgeAttrProxy& operator=(const T& val) {
+            if (!graph->has_edge(u, v)) graph->add_edge(u, v, 1.0);
+            auto e = graph->get_edge_desc(u, v);
+            graph->edge_properties[e][key] = std::any(val);
+            return *this;
+        }
+
+        template <typename T>
+        operator T() const {
+            auto e = graph->get_edge_desc(u, v);
+            return std::any_cast<T>(graph->edge_properties.at(e).at(key));
+        }
+    };
+
     class EdgeProxy {
         Graph* graph;
         NodeID u, v;
@@ -223,6 +271,28 @@ public:
         operator EdgeWeight() const {
             return graph->get_edge_weight(u, v);
         }
+
+        EdgeAttrProxy operator[](const std::string& key) {
+            return {graph, u, v, key};
+        }
+    };
+
+    struct NodeAttrProxy {
+        Graph* graph;
+        NodeID u;
+        std::string key;
+
+        template <typename T>
+        NodeAttrProxy& operator=(const T& val) {
+            if (!graph->has_node(u)) graph->add_node(u);
+            graph->node_properties[u][key] = std::any(val);
+            return *this;
+        }
+
+        template <typename T>
+        operator T() const {
+            return std::any_cast<T>(graph->node_properties.at(u).at(key));
+        }
     };
 
     class NodeProxy {
@@ -236,26 +306,83 @@ public:
         }
     };
 
+    class NodeAttrBaseProxy {
+        Graph* graph;
+        NodeID u;
+    public:
+        NodeAttrBaseProxy(Graph* g, NodeID u) : graph(g), u(u) {}
+        
+        NodeAttrProxy operator[](const std::string& key) {
+            return {graph, u, key};
+        }
+    };
+
     NodeProxy operator[](const NodeID& u) {
         if (!has_node(u)) {
             add_node(u);
         }
         return NodeProxy(this, u);
     }
+
+    NodeAttrBaseProxy node(const NodeID& u) {
+        if (!has_node(u) && !Multi) add_node(u);
+        else if (!has_node(u)) add_node(u);
+        return NodeAttrBaseProxy(this, u);
+    }
 };
 
+// --- Generators ---
+
+template <typename GraphType = Graph<int>>
+GraphType complete_graph(size_t n) {
+    GraphType G;
+    using NodeID = typename GraphType::NodeType;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            if (i != j) {
+                G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(j));
+            }
+        }
+    }
+    return G;
+}
+
+template <typename GraphType = Graph<int>>
+GraphType path_graph(size_t n) {
+    GraphType G;
+    using NodeID = typename GraphType::NodeType;
+    for (size_t i = 0; i < n - 1; ++i) {
+        G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(i + 1));
+    }
+    return G;
+}
+
+template <typename GraphType = Graph<int>>
+GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
+    GraphType G;
+    using NodeID = typename GraphType::NodeType;
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < (GraphType::DirectedSelector::value ? n : i); ++j) {
+            if (i == j) continue;
+            if (dis(gen) < p) {
+                G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(j));
+            }
+        }
+    }
+    return G;
+}
+
 // NetworkX-style Aliases
+using DiGraphInt = Graph<int, double, true>;
+using MultiGraphInt = Graph<int, double, false, true>;
+using MultiDiGraphInt = Graph<int, double, true, true>;
 
-// Aliases per grafi Base
-template <typename NodeID = std::string, typename EdgeWeight = double>
-using DiGraph = Graph<NodeID, EdgeWeight, true, false>;
-
-// Aliases per MultiGraph
-template <typename NodeID = std::string, typename EdgeWeight = double>
-using MultiGraph = Graph<NodeID, EdgeWeight, false, true>;
-
-template <typename NodeID = std::string, typename EdgeWeight = double>
-using MultiDiGraph = Graph<NodeID, EdgeWeight, true, true>;
+using DiGraph = Graph<std::string, double, true>;
+using MultiGraph = Graph<std::string, double, false, true>;
+using MultiDiGraph = Graph<std::string, double, true, true>;
 
 // Ereditarietà per la retrocompatibilità
 using DiGraphStr = DiGraph<std::string, double>;

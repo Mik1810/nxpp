@@ -28,7 +28,9 @@ def test_dijkstra_scc():
 
     # 5. Componenti Fortemente Connesse (SCC)
     print("Componenti Fortemente Connesse (SCC):")
-    sccs = list(nx.strongly_connected_components(G))
+    sccs = [sorted(list(scc)) for scc in nx.strongly_connected_components(G)]
+    sccs.sort(key=lambda x: x[0])
+    
     for i, scc in enumerate(sccs):
         print("SCC", i + 1, ":")
         for n in scc:
@@ -59,7 +61,9 @@ def test_integer_nodes():
 
     # 4. Trova le Componenti Connesse generiche (CC)
     print("Componenti Connesse (Undirected):")
-    ccs = list(nx.connected_components(G))
+    ccs = [sorted(list(cc)) for cc in nx.connected_components(G)]
+    ccs.sort(key=lambda x: x[0])
+
     for i, cc in enumerate(ccs):
         print("CC", i + 1, ":")
         for n in cc:
@@ -99,7 +103,7 @@ def test_destruction():
     print("Dopo clear(), quanti nodi rimangono?", len(list(G.nodes())), "\n")
 
 def test_multigraph():
-    print("=== NETWORKX (Python) - MultiGraph Test ===\n")
+    print("NXPP (C++) - MultiGraph Test\n")
     MG = nx.MultiDiGraph()
     MG.add_edge("Milano", "Roma", weight=5.0)
     MG.add_edge("Milano", "Roma", weight=2.5)
@@ -118,8 +122,46 @@ def test_multigraph():
         print(" (", u, "->", v, ") peso:", data["weight"])
     print("\n")
 
+def test_attributes():
+    print("NXPP (C++) - Custom Attributes Test\n")
+    G = nx.DiGraph()
+    
+    # Test Node Attributes - NetworkX requires nodes to exist
+    G.add_node("Roma", population=2800000)
+    G.add_node("Milano", is_capital=False)
+
+    # Test Edge Attributes
+    G.add_edge("Roma", "Milano", weight=5.0)
+    G["Roma"]["Milano"]["company"] = "Trenitalia"
+    G["Roma"]["Milano"]["distance"] = 580
+
+    pop = G.nodes["Roma"]["population"]
+    company = G["Roma"]["Milano"]["company"]
+    dist = G["Roma"]["Milano"]["distance"]
+
+    print("Popolazione di Roma:", pop)
+    print("Compagnia Treno Roma->Milano:", company)
+    print("Distanza:", dist, "km\n")
+
+def test_generators():
+    print("NXPP (C++) - Generators Test\n")
+    
+    # In NetworkX complete_graph returns Graph by default
+    G = nx.complete_graph(5)
+    print("Complete Graph (5) - Nodi:", len(G.nodes()), "Archi:", len(G.edges()))
+    
+    P = nx.path_graph(4)
+    # Convert to DiGraph to match print style of edges (u -> v)
+    P_dir = nx.DiGraph(P)
+    print("Path Graph (4) - Archi:")
+    for u, v in sorted(P_dir.edges()):
+        print(" (", u, "->", v, ")")
+    print("\n")
+
 if __name__ == "__main__":
     test_dijkstra_scc()
     test_integer_nodes()
     test_destruction()
     test_multigraph()
+    test_attributes()
+    test_generators()

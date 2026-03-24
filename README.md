@@ -6,6 +6,31 @@ It was born with a single goal: offering a strictly "1-to-1" continuous interfac
 
 ---
 
+## Prerequisites & Installation
+
+**nxpp** is a pure header-only library, which means there are absolutely no `.cpp` object files to compile or link. You simply `#include "nxpp.hpp"` in your architecture.
+
+However, `nxpp` is a highly-optimized structural wrapper and strictly requires the **Boost Graph Library (BGL)** to function.
+
+**Ubuntu / Debian:**
+```bash
+sudo apt-get install libboost-graph-dev
+```
+
+**macOS (Homebrew):**
+```bash
+brew install boost
+```
+
+**Windows (vcpkg):**
+```bash
+vcpkg install boost-graph
+```
+
+*Note: The `nxpp.hpp` header inherently utilizes a compile-time safety check (`__has_include`). If Boost is missing or incorrectly linked in your standard include directories, the C++ compiler will safely halt and boldly alert you immediately.*
+
+---
+
 ## Graph Topologies & Theory
 
 In mathematical graph theory, the semantics of connections dictate the solution space. `nxpp` faithfully implements and maps the 4 core architectures defining NetworkX:
@@ -72,7 +97,21 @@ for (const auto& node : G.neighbors("Rome")) {
 }
 
 // Shortest Pathfinding Algorithm
+// Shortest Pathfinding Algorithm
 auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
+
+// ---------------------------------------------------------
+// NEW: Topological Generators (Phase 3)
+// ---------------------------------------------------------
+auto K5 = nxpp::complete_graph(5); // Returns Graph<int> by default
+auto P4 = nxpp::path_graph<nxpp::DiGraph>(4); // Path 0->1->2->3 as DiGraph
+
+// ---------------------------------------------------------
+// NEW: Custom Node/Edge Attributes (std::any)
+// ---------------------------------------------------------
+G.node("Rome")["population"] = 2800000;
+G["Rome"]["Naples"]["km"] = 220;
+int pop = G.node("Rome")["population"];
 ```
 
 ---
@@ -85,9 +124,9 @@ While perfectly emulating NetworkX—such as reproducing built-in node destructi
    In interpreted Python, a careless engineer might insert an integer into a graph layout, and subsequently assign an arbitrary floating-point edge mixed with textual boolean comparisons (`G.add_node(1); G.add_node("A");`). 
    In **nxpp**, the node identifier type is securely locked down by the compiler Template directly on line one. If you compile an `nxpp::DiGraph` (or explicitly declare `nxpp::Graph<std::string>`), the *Hash* Map keys will strictly resolve to `std::string`. Zero structural ambiguity translates to incredible runtime stability and mathematically non-existent debug tracking.
 
-2. **Property Dictionaries vs Native Fixed Edge Weights**:
-   In NetworkX, traversing every edge pulls a large sluggish underlying dictionary housing a plethora of string-based parameters (`cap=10, speed=130`).
-   Currently, **nxpp** outright rejects this memory dispersion to honor the fundamental laws of high-performance computing, offering uninterrupted bare-metal CPU throughput. Every BGL edge intrinsically supports a primary hard-coded structural property denoted as `weight` (`EdgeWeight = double`). This constraint allows proxy-based iterative access protocols to execute completely clean mathematical overwrites without ever getting bogged down in dictionary allocations (`G["A"]["B"] = 5.0`).
+2. **Custom Attributes via `std::any`**:
+   NetworkX is famous for its "attribute dictionaries" on nodes and edges.
+   **nxpp** implements this same flexibility using `std::any`. You can store strings, integers, or even custom structs directly inside `G.node(u)["key"]` or `G[u][v]["key"]`. Retrieval is type-safe via implicit or explicit casting, providing Python-like dynamism with C++ type integrity.
 
 3. **Solid Data Structures (Vectors) vs Lazy Generators (Python Yield)**:
    In Python, commands corresponding to `edges()`, `nodes()` or `nx.bfs_edges` exclusively spit out *Lazy Generators* sequentially to compensate for horrendous dynamic execution times and stave off garbage collector memory exhaustion limits.

@@ -37,6 +37,11 @@ void test_dijkstra_scc() {
     // 5. Componenti Fortemente Connesse (SCC)
     print("Componenti Fortemente Connesse (SCC):");
     auto sccs = strongly_connected_components(G);
+    for (auto& scc : sccs) std::sort(scc.begin(), scc.end());
+    std::sort(sccs.begin(), sccs.end(), [](const auto& a, const auto& b) {
+        return a[0] < b[0];
+    });
+
     for (size_t i = 0; i < sccs.size(); ++i) {
         print("SCC", i + 1, ":");
         for (const auto& n : sccs[i]) {
@@ -73,6 +78,11 @@ void test_integer_nodes() {
     // 4. Trova le Componenti Connesse generiche (CC)
     print("Componenti Connesse (Undirected):");
     auto ccs = connected_components(G);
+    for (auto& cc : ccs) std::sort(cc.begin(), cc.end());
+    std::sort(ccs.begin(), ccs.end(), [](const auto& a, const auto& b) {
+        return a[0] < b[0];
+    });
+
     for (size_t i = 0; i < ccs.size(); ++i) {
         print("CC", i + 1, ":");
         for (const auto& n : ccs[i]) {
@@ -118,7 +128,7 @@ void test_destruction() {
 }
 
 void test_multigraph() {
-    print("=== NXPP (C++) - MultiGraph Test ===\n");
+    print("NXPP (C++) - MultiGraph Test\n");
     auto MG = MultiDiGraph();
     MG.add_edge("Milano", "Roma", 5.0);
     MG.add_edge("Milano", "Roma", 2.5);
@@ -140,10 +150,48 @@ void test_multigraph() {
     print("\n");
 }
 
+void test_attributes() {
+    print("NXPP (C++) - Custom Attributes Test\n");
+    auto G = DiGraph();
+    
+    // Test Node Attributes
+    G.node("Roma")["population"] = 2800000;
+    G.node("Milano")["is_capital"] = false;
+
+    // Test Edge Attributes
+    G["Roma"]["Milano"] = 5.0; // Peso predefinito
+    G["Roma"]["Milano"]["company"] = std::string("Trenitalia");
+    G["Roma"]["Milano"]["distance"] = 580;
+
+    int pop = G.node("Roma")["population"];
+    std::string company = G["Roma"]["Milano"]["company"];
+    int dist = G["Roma"]["Milano"]["distance"];
+
+    print("Popolazione di Roma:", pop);
+    print("Compagnia Treno Roma->Milano:", company);
+    print("Distanza:", dist, "km\n");
+}
+
+void test_generators() {
+    print("NXPP (C++) - Generators Test\n");
+    
+    auto G = nxpp::complete_graph(5);
+    print("Complete Graph (5) - Nodi:", G.nodes().size(), "Archi:", G.edges().size());
+    
+    auto P = nxpp::path_graph(4);
+    print("Path Graph (4) - Archi:");
+    for (const auto& e : P.edges()) {
+        print(" (", std::get<0>(e), "->", std::get<1>(e), ")");
+    }
+    print("\n");
+}
+
 int main() {
     test_dijkstra_scc();
     test_integer_nodes();
     test_destruction();
     test_multigraph();
+    test_attributes();
+    test_generators();
     return 0;
 }
