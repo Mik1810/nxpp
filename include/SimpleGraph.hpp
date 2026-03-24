@@ -52,6 +52,8 @@ public:
         return result;
     }
 
+    const GraphType& get_impl() const { return g; }
+
 protected:
     GraphType g;
 };

@@ -57,6 +57,9 @@ public:
         return result;
     }
 
+    const GraphType& get_impl() const { return g; }
+    const WeightMap& get_weight_map() const { return weight_map; }
+
 protected:
     GraphType g;
     WeightMap weight_map;

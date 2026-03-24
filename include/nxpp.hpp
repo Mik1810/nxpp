@@ -7,4 +7,9 @@
 #include "SimpleWeightedDirectedGraph.hpp"
 #include "SimpleWeightedUndirectedGraph.hpp"
 
+// Include gli algoritmi
+#include "algorithms/traversals.hpp"
+#include "algorithms/shortest_paths.hpp"
+#include "algorithms/components.hpp"
+
 #endif // NXPP_HPP
