@@ -26,6 +26,7 @@ For the Python parity baseline in `test_suite/`, `networkx` must also be availab
 The project now treats the local snippet sets as the primary source of priority:
 
 - `snippet/` contains the C++ BGL reference algorithms
+- `snippet/` now also contains colocated Python `networkx` translations beside each `.cpp` snippet
 - `py_snippet/` contains the Python/NetworkX reference behavior
 - functions present in those folders are considered the essential core surface
 - functions not represented there should go into `TODO.md` and should not outrank snippet-backed essentials

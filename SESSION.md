@@ -147,6 +147,12 @@
    - The wrapper computes max flow, explores the residual graph from the source, and returns the cut value, partition, and crossing edges.
    - Added a small `main.cpp` exercise and updated `README.md` and `ROADMAP.md` so the network-flow block is documented as present.
 
+19. **Colocated Python Snippets Added**:
+   - Created Python `networkx` translations directly beside every `.cpp` file under `snippet/`.
+   - Matched each translation to the intent and output style of the local C++ snippet as closely as practical.
+   - Verified syntax for all newly created Python files with `python3 -m py_compile`.
+   - Updated `README.md` and `ROADMAP.md` to record that `snippet/` now carries side-by-side C++ and Python references.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.
