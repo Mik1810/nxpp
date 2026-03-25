@@ -31,11 +31,11 @@ These are the functions and algorithm families that should drive implementation 
   Reference: `snippet/dag_sp/dag_sp.cpp`
 - [x] `floyd_warshall_all_pairs_shortest_paths`
   Reference: `snippet/floyd_warshall/floyd_warshall.cpp`
-- [ ] `max_flow_min_cost` / min-cost max-flow wrappers
+- [x] `max_flow_min_cost` / min-cost max-flow wrappers
   Reference: `snippet/mcmf_cc/mcmf_cc.cpp`, `snippet/mcmf_spp/mcmf_ssp.cpp`, `py_snippet/flow/mcmf_cc.py`, `py_snippet/flow/mcmf_ssp.py`
 - [x] `two_sat_satisfiable` or equivalent 2-SAT helper
   Reference: `snippet/2sat/2sat.cpp`
-- [ ] SCC representative/root-map style helper
+- [x] SCC representative/root-map style helper
   Reference: `snippet/scc_named/scc_named.cpp`
 
 ## Outside Current Snippet Scope

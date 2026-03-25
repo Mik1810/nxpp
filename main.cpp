@@ -312,6 +312,42 @@ void test_snippet_backed_essentials() {
     print("2-SAT satisfiable:", sat, "\n");
 }
 
+void test_remaining_snippet_essentials() {
+    print("NXPP (C++) - Remaining Snippet Essentials Test\n");
+
+    DiGraphInt flow_g;
+    flow_g.add_edge(0, 1, 2.0);
+    flow_g.add_edge(0, 3, 3.0);
+    flow_g.add_edge(1, 2, 5.0);
+    flow_g.add_edge(1, 4, 1.0);
+    flow_g.add_edge(2, 5, 3.0);
+    flow_g.add_edge(3, 1, 1.0);
+    flow_g.add_edge(3, 2, 6.0);
+    flow_g.add_edge(4, 5, 1.0);
+
+    flow_g[0][1]["capacity"] = 1L;
+    flow_g[0][3]["capacity"] = 2L;
+    flow_g[1][2]["capacity"] = 3L;
+    flow_g[1][4]["capacity"] = 4L;
+    flow_g[2][5]["capacity"] = 2L;
+    flow_g[3][1]["capacity"] = 1L;
+    flow_g[3][2]["capacity"] = 2L;
+    flow_g[4][5]["capacity"] = 2L;
+
+    auto mcmf_cc = nxpp::max_flow_min_cost_cycle_canceling(flow_g, 0, 5);
+    auto mcmf_ssp = nxpp::max_flow_min_cost_successive_shortest_path(flow_g, 0, 5);
+    print("Cycle-canceling flow:", mcmf_cc.value, "cost:", mcmf_cc.cost);
+    print("SSP flow:", mcmf_ssp.value, "cost:", mcmf_ssp.cost);
+
+    DiGraphInt sccg;
+    sccg.add_edges_from({
+        {0, 2}, {1, 0}, {1, 4}, {2, 1}, {2, 3}, {3, 2}, {3, 4}
+    });
+    auto roots = nxpp::strongly_connected_component_roots(sccg);
+    print("SCC representative for 0:", roots.at(0));
+    print("SCC representative for 4:", roots.at(4), "\n");
+}
+
 int main() {
     test_dijkstra_scc();
     test_integer_nodes();
@@ -323,5 +359,6 @@ int main() {
     test_directed_neighbors_api();
     test_missing_algorithm_wrappers();
     test_snippet_backed_essentials();
+    test_remaining_snippet_essentials();
     return 0;
 }

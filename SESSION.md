@@ -126,6 +126,12 @@
    - Added a usage block in `main.cpp` that exercises the newly added snippet-backed APIs.
    - Updated `TODO.md`, `README.md`, and `ROADMAP.md` so the missing essentials list now reflects the newly implemented functions.
 
+15. **Remaining Snippet Essentials Closed**:
+   - Added min-cost max-flow wrappers for both cycle-canceling and successive-shortest-path variants.
+   - Added `strongly_connected_component_roots()` to expose the SCC representative/root-map behavior shown in the named SCC snippet.
+   - Extended `main.cpp` with a small runtime exercise for the new flow and SCC-root helpers.
+   - Updated `TODO.md`, `README.md`, and `ROADMAP.md` so the snippet-backed essentials list is now fully checked off.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

@@ -18,6 +18,10 @@
 #include <boost/graph/dag_shortest_paths.hpp>
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/edmonds_karp_max_flow.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+#include <boost/graph/cycle_canceling.hpp>
+#include <boost/graph/find_flow_cost.hpp>
+#include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 #include <unordered_map>
 #include <vector>
 #include <stdexcept>
@@ -360,6 +364,10 @@ public:
     }
 
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
+        if (key == "weight") {
+            return static_cast<double>(get_edge_weight(u, v));
+        }
+
         auto e = get_edge_desc(u, v);
         auto edge_it = edge_properties.find(get_edge_id(e));
         if (edge_it == edge_properties.end()) {
@@ -562,6 +570,13 @@ using MultiDiGraph = Graph<std::string, double, true, true>;
 template <typename NodeID>
 struct MaximumFlowResult {
     long value = 0;
+    std::map<std::pair<NodeID, NodeID>, long> flow;
+};
+
+template <typename NodeID>
+struct MinCostMaxFlowResult {
+    long value = 0;
+    long cost = 0;
     std::map<std::pair<NodeID, NodeID>, long> flow;
 };
 
@@ -1017,6 +1032,29 @@ auto strongly_connected_components(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
+auto strongly_connected_component_roots(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& g = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+    const int n = static_cast<int>(boost::num_vertices(g));
+
+    std::vector<int> comp(n);
+    std::vector<typename GraphWrapper::VertexDesc> roots(n);
+    boost::strong_components(
+        g,
+        boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)),
+        boost::root_map(boost::make_iterator_property_map(roots.begin(), boost::get(boost::vertex_index, g)))
+    );
+
+    std::unordered_map<NodeID, NodeID> result;
+    for (int i = 0; i < n; ++i) {
+        result[bgl_to_id[i]] = bgl_to_id[roots[i]];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
 auto topological_sort(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
@@ -1142,6 +1180,175 @@ auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& 
 
     MaximumFlowResult<NodeID> result;
     result.value = flow_value;
+    for (const auto& [key, edge_desc] : original_edges) {
+        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_weight_t,
+            long,
+            boost::property<
+                boost::edge_capacity_t,
+                long,
+                boost::property<
+                    boost::edge_residual_capacity_t,
+                    long,
+                    boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+                >
+            >
+        >
+    >;
+
+    using WeightMap = typename boost::property_map<FlowGraph, boost::edge_weight_t>::type;
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    WeightMap weight = boost::get(boost::edge_weight, flow_graph);
+    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
+    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+
+    const auto nodes = G.nodes();
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(flow_graph);
+        node_to_index[nodes[i]] = i;
+    }
+
+    std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
+        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        weight[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, weight_attr));
+        weight[rev] = -weight[e];
+        capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[rev] = 0;
+        reverse[e] = rev;
+        reverse[rev] = e;
+        original_edges[{u, v}] = e;
+    }
+
+    const long flow_value = boost::push_relabel_max_flow(
+        flow_graph,
+        node_to_index.at(source_id),
+        node_to_index.at(target_id)
+    );
+    boost::cycle_canceling(flow_graph);
+    const long cost = boost::find_flow_cost(flow_graph);
+
+    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    MinCostMaxFlowResult<NodeID> result;
+    result.value = flow_value;
+    result.cost = cost;
+    for (const auto& [key, edge_desc] : original_edges) {
+        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_weight_t,
+            long,
+            boost::property<
+                boost::edge_capacity_t,
+                long,
+                boost::property<
+                    boost::edge_residual_capacity_t,
+                    long,
+                    boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+                >
+            >
+        >
+    >;
+
+    using WeightMap = typename boost::property_map<FlowGraph, boost::edge_weight_t>::type;
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    WeightMap weight = boost::get(boost::edge_weight, flow_graph);
+    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
+    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+
+    const auto nodes = G.nodes();
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(flow_graph);
+        node_to_index[nodes[i]] = i;
+    }
+
+    std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
+        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        weight[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, weight_attr));
+        weight[rev] = -weight[e];
+        capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[rev] = 0;
+        reverse[e] = rev;
+        reverse[rev] = e;
+        original_edges[{u, v}] = e;
+    }
+
+    boost::successive_shortest_path_nonnegative_weights(
+        flow_graph,
+        node_to_index.at(source_id),
+        node_to_index.at(target_id)
+    );
+
+    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    long flow_value = 0;
+    for (auto [eit, eend] = boost::out_edges(node_to_index.at(source_id), flow_graph); eit != eend; ++eit) {
+        flow_value += capacity[*eit] - residual[*eit];
+    }
+
+    const long cost = boost::find_flow_cost(flow_graph);
+
+    MinCostMaxFlowResult<NodeID> result;
+    result.value = flow_value;
+    result.cost = cost;
     for (const auto& [key, edge_desc] : original_edges) {
         result.flow[key] = capacity[edge_desc] - residual[edge_desc];
     }

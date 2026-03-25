@@ -61,6 +61,7 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] Distance-returning shortest-path helpers now follow the same weighted vs unweighted split as the path-returning helpers.
 - [x] Project priority is now explicitly re-anchored to the local `snippet/` and `py_snippet/` reference functions, with out-of-scope work tracked in `TODO.md`.
 - [x] A first major batch of snippet-backed essentials is now implemented: `topological_sort`, `kruskal_minimum_spanning_tree`, `prim_minimum_spanning_tree`, `maximum_flow`, `dag_shortest_paths`, `floyd_warshall_all_pairs_shortest_paths`, and `two_sat_satisfiable`.
+- [x] The remaining snippet-backed essentials are now covered as well: min-cost max-flow wrappers and SCC representative/root-map helper.
 - [ ] Phase 5 is partially started: `degree_centrality` exists, while `maximum_flow`, `minimum_cut`, `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
 - [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 
