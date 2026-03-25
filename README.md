@@ -299,6 +299,12 @@ A small shell harness now lives at `scripts/test_snippets.sh`.
 At the moment it covers `2sat`, `bellman_ford`, `bfs`, and `cc`, compiling the Boost and nxpp C++ snippets, running the Python translation, measuring compile/run times, and writing a live report both to the terminal and to a timestamped log file under `logs/`.
 To keep the report readable, the script currently compiles the non-nxpp reference snippets with warnings silenced, while nxpp snippet builds still use the normal warning set.
 
+Current snippet progress checkpoint:
+
+- reviewed and cleaned through `2sat`, `bellman_ford`, `bfs`, and `cc`
+- current harness coverage also stops at `cc`
+- the next snippet planned for cleanup/alignment is `dag_sp`
+
 For traversal and shortest-path examples, `nxpp` now supports both styles:
 
 - Boost-like visitor-object style for event-driven snippets:

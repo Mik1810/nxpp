@@ -186,6 +186,11 @@
    - Updated `connected_component_map()` and `strongly_connected_component_map()` to return this wrapper instead of a raw `std::unordered_map`.
    - Restored `comp_index[i]` syntax in the `cc` and `scc` nxpp snippets without requiring `.at(...)`.
 
+26. **Snippet Progress Checkpoint**:
+   - Snippet cleanup, API shaping, and parity work have now been reviewed through `2sat`, `bellman_ford`, `bfs`, and `cc`.
+   - The shell harness coverage currently matches that checkpoint and stops at `cc`.
+   - The next snippet queued for the same pass is `dag_sp`.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.
