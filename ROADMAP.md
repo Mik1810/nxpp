@@ -55,6 +55,7 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] `README.md` now documents the actual architecture and invariants of `include/nxpp.hpp`, including current caveats around descriptor-backed state and attribute handling.
 - [x] The core header no longer stores edge metadata keyed by fragile `EdgeDesc`; stable internal edge IDs now back `edge_properties`, and destructive operations clean metadata explicitly.
 - [x] Directed adjacency semantics are now clearer in the public API through explicit `successors()` and `predecessors()` helpers.
+- [x] Common public aliases now cover both integer and string simple-graph defaults (`GraphInt`, `GraphStr`) in addition to the directed and multigraph forms.
 - [x] Attribute access is now less fragile through explicit checked getters and optional-return helpers layered on top of the existing proxy syntax.
 - [x] The algorithm wrapper layer now includes the documented basic names `bfs_tree`, `dfs_tree`, `shortest_path`, and `bellman_ford_path`, though the API surface remains intentionally minimal.
 - [x] `shortest_path()` semantics are now closer to NetworkX: default calls are unweighted, while weighted dispatch is explicit through the `"weight"` parameter.
@@ -66,7 +67,10 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] GCC false-positive warnings from Boost min-cost-flow internals are now locally contained so core builds remain readable.
 - [x] Each C++ snippet in `snippet/` now has a colocated Python `networkx` counterpart to support side-by-side algorithm comparison.
 - [x] Each snippet folder now also has an `*_nxpp.cpp` counterpart using `include/nxpp.hpp`, and the local examples have been aligned so Boost C++, NetworkX Python, and nxpp C++ produce matching outputs.
-- [x] Traversal and single-source shortest-path APIs now cover both Boost-like and NetworkX-like usage styles, reducing the amount of snippet-local reconstruction code needed in nxpp examples.
+- [x] Traversal and single-source shortest-path APIs now cover both Boost-like and NetworkX-like usage styles, including visitor-object traversal entry points for snippet parity.
+- [x] Traversal snippets now build on a single generic `nxpp` visitor base class instead of ad-hoc callback lambdas or snippet-local freeform visitor conventions.
+- [x] Component algorithms now expose both grouped outputs and `node -> component_id` map helpers, reducing flattening boilerplate in snippet-style code.
+- [x] A first shell-based snippet harness now exists for `2sat`, `bellman_ford`, `bfs`, and `cc`, with compile/run timing and tee-style logging to file plus terminal.
 - [ ] Phase 5 is partially started: `degree_centrality` and the network-flow block (`maximum_flow`, `minimum_cut`) exist, while `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
 - [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 

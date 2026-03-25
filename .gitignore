@@ -12,3 +12,4 @@ old/
 .venv
 __pycache__/
 __pycache__
+logs/

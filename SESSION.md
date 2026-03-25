@@ -160,10 +160,25 @@
    - Cleaned out generated `__pycache__` directories and added ignore rules so future snippet verification runs stay cleaner.
 
 21. **Boost-Style and NetworkX-Style APIs Expanded**:
-   - Added `bfs_visit()` and `dfs_visit()` so nxpp can express visitor-style traversal snippets more directly, instead of open-coding queue and recursion logic in the examples.
+   - Added `breadth_first_search()` and `depth_first_search()` visitor-object entry points so nxpp can express traversal snippets in a style much closer to Boost while still hiding BGL descriptor types from the user.
+   - Added `default_graph_visitor<GraphWrapper>` as a generic no-op visitor base class shared by both BFS and DFS examples, so user visitors can derive from one nxpp-owned abstraction instead of raw snippet-local structs.
+   - Kept the lighter callback wrappers (`bfs_visit()` / `dfs_visit()`) as thin adapters on top of the visitor-object traversal layer.
    - Added `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()` for more result-oriented traversal usage closer to NetworkX conventions.
    - Extended `single_source_dijkstra()`, `single_source_bellman_ford()`, and `single_source_dag_shortest_paths()` so they now expose distances, predecessors, and full reconstructed paths together.
    - Simplified the nxpp BFS/DFS/shortest-path snippets to use these higher-level APIs while preserving output parity with the original Boost examples.
+
+22. **Common Graph Aliases Restored**:
+   - Added `GraphInt` and `GraphStr` as public aliases for the common simple-graph defaults with integer and string node IDs.
+   - Kept the existing directed and multigraph aliases alongside them so snippets can prefer readable public type names over local `using` declarations or raw template spellings.
+
+23. **Component Map Helpers Added**:
+   - Added `connected_component_map()` and `strongly_connected_component_map()` so users can obtain `node -> component_id` mappings directly without flattening grouped component results by hand.
+   - Updated the `cc` and `scc` nxpp snippets to use these helpers, which removes repetitive indexing boilerplate and makes the snippets read more like library usage examples.
+
+24. **Initial Shell Snippet Harness Added**:
+   - Fixed the `cc` / `scc` nxpp snippets to use `.at(...)` on const component maps, resolving the editor/compiler complaint caused by `unordered_map::operator[]` on const objects.
+   - Added `scripts/test_snippets.sh` as a first shell harness covering `2sat`, `bellman_ford`, `bfs`, and `cc`.
+   - The script compiles the Boost and nxpp C++ snippets, runs the Python snippet with the repo virtualenv, measures compile and execution times, and writes the report both to the terminal and to a timestamped log under `logs/`.
 
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.

@@ -253,6 +253,16 @@ int pop = G.node("Rome")["population"];
 ```
 ---
 
+### Public Type Aliases
+
+To keep snippets and user code compact, `nxpp` exposes public aliases for common graph shapes:
+
+- `GraphInt` for `Graph<int>`
+- `GraphStr` for `Graph<std::string>`
+- `DiGraphInt` for `Graph<int, double, true>`
+- `DiGraph` for `Graph<std::string, double, true>`
+- `MultiGraphInt`, `MultiDiGraphInt`, `MultiGraph`, and `MultiDiGraph` for the multigraph variants
+
 
 
 
@@ -285,11 +295,22 @@ The `snippet/` tree is now organized as a three-way reference set per algorithm:
 
 The intent is that all three variants produce the same observable result for the same example. Python runs should use the repo virtualenv (`.venv/bin/python -B`) so `networkx` is available and no fresh `__pycache__` files are emitted during checks.
 
+A small shell harness now lives at `scripts/test_snippets.sh`.
+At the moment it covers `2sat`, `bellman_ford`, `bfs`, and `cc`, compiling the Boost and nxpp C++ snippets, running the Python translation, measuring compile/run times, and writing a live report both to the terminal and to a timestamped log file under `logs/`.
+
 For traversal and shortest-path examples, `nxpp` now supports both styles:
 
-- Boost-like callback style for event-driven snippets:
-  `bfs_visit(G, source, on_vertex, on_tree_edge)` and `dfs_visit(G, source, on_tree_edge, on_back_edge)`
+- Boost-like visitor-object style for event-driven snippets:
+  `breadth_first_search(G, source, visitor)` and `depth_first_search(G, source, visitor)`
 - NetworkX-like result style for data-driven snippets:
   `bfs_successors(G, source)`, `dfs_predecessors(G, source)`, `dfs_successors(G, source)`, `single_source_dijkstra(G, source)`, `single_source_bellman_ford(G, source)`, and `single_source_dag_shortest_paths(G, source)`
 
 The single-source shortest-path helpers return distances, predecessors, and full reconstructed paths so snippets can stay close to the corresponding NetworkX examples without rebuilding parent maps by hand.
+For visitor-style traversals, `nxpp` now provides a single generic base class:
+`default_graph_visitor<GraphWrapper>`.
+It exposes no-op `examine_vertex`, `tree_edge`, and `back_edge` hooks, so user code can derive once and override only the callbacks relevant to BFS or DFS.
+
+For component algorithms, `nxpp` now supports both grouped and mapped results:
+
+- `connected_components(G)` / `strongly_connected_components(G)` return vectors of groups
+- `connected_component_map(G)` / `strongly_connected_component_map(G)` return `node -> component_id` maps when that form is more convenient for snippets or diagnostics

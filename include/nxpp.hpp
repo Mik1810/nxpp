@@ -574,7 +574,9 @@ GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
 }
 
 // NetworkX-style Aliases
+using GraphInt = Graph<int>;
 using DiGraphInt = Graph<int, double, true>;
+using GraphStr = Graph<std::string>;
 using MultiGraphInt = Graph<int, double, false, true>;
 using MultiDiGraphInt = Graph<int, double, true, true>;
 
@@ -608,6 +610,16 @@ struct SingleSourceShortestPathResult {
     std::unordered_map<NodeID, double> distance;
     std::unordered_map<NodeID, NodeID> predecessor;
     std::unordered_map<NodeID, std::vector<NodeID>> paths;
+};
+
+template <typename GraphWrapper>
+class default_graph_visitor {
+public:
+    using NodeID = typename GraphWrapper::NodeType;
+
+    void examine_vertex(const NodeID&, const GraphWrapper&) {}
+    void tree_edge(const NodeID&, const NodeID&, const GraphWrapper&) {}
+    void back_edge(const NodeID&, const NodeID&, const GraphWrapper&) {}
 };
 
 
@@ -698,8 +710,49 @@ private:
     OnTreeEdge& on_tree_edge;
 };
 
-template <typename GraphWrapper, typename OnVertex, typename OnTreeEdge>
-void bfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) {
+template <typename Visitor, typename NodeID, typename GraphWrapper>
+void bfs_dispatch_examine_vertex(Visitor& visitor, const NodeID& u, const GraphWrapper& G) {
+    if constexpr (requires { visitor.examine_vertex(u, G); }) {
+        visitor.examine_vertex(u, G);
+    }
+}
+
+template <typename Visitor, typename NodeID, typename GraphWrapper>
+void bfs_dispatch_tree_edge(Visitor& visitor, const NodeID& u, const NodeID& v, const GraphWrapper& G) {
+    if constexpr (requires { visitor.tree_edge(u, v, G); }) {
+        visitor.tree_edge(u, v, G);
+    }
+}
+
+template <typename NodeID, typename Edge, typename GraphWrapper, typename Visitor>
+class GenericBfsObjectVisitor : public boost::default_bfs_visitor {
+public:
+    GenericBfsObjectVisitor(const GraphWrapper& graph_wrapper, Visitor& visitor)
+        : graph_wrapper(graph_wrapper), visitor(visitor) {}
+
+    template <typename G>
+    void examine_vertex(typename boost::graph_traits<G>::vertex_descriptor u, const G&) const {
+        bfs_dispatch_examine_vertex(visitor, graph_wrapper.get_bgl_to_id_map()[u], graph_wrapper);
+    }
+
+    template <typename G>
+    void tree_edge(Edge e, const G& g) const {
+        const auto& bgl_to_id = graph_wrapper.get_bgl_to_id_map();
+        bfs_dispatch_tree_edge(
+            visitor,
+            bgl_to_id[boost::source(e, g)],
+            bgl_to_id[boost::target(e, g)],
+            graph_wrapper
+        );
+    }
+
+private:
+    const GraphWrapper& graph_wrapper;
+    Visitor& visitor;
+};
+
+template <typename GraphWrapper, typename Visitor>
+void breadth_first_search(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, Visitor& visitor) {
     using NodeID = typename GraphWrapper::NodeType;
     using GraphType = typename GraphWrapper::GraphType;
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
@@ -707,12 +760,29 @@ void bfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& sta
     if (!G.has_node(start)) throw std::runtime_error("Start node not found in graph");
     auto start_bgl = G.get_id_to_bgl_map().at(start);
 
+    GenericBfsObjectVisitor<NodeID, EdgeType, GraphWrapper, Visitor> vis(G, visitor);
+    boost::breadth_first_search(G.get_impl(), start_bgl, boost::visitor(vis));
+}
+
+template <typename GraphWrapper, typename OnVertex, typename OnTreeEdge>
+void bfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) {
+    struct callback_visitor {
+        OnVertex& on_vertex;
+        OnTreeEdge& on_tree_edge;
+
+        void examine_vertex(const typename GraphWrapper::NodeType& u, const GraphWrapper&) {
+            on_vertex(u);
+        }
+
+        void tree_edge(const typename GraphWrapper::NodeType& u, const typename GraphWrapper::NodeType& v, const GraphWrapper&) {
+            on_tree_edge(u, v);
+        }
+    };
+
     auto on_vertex_fn = std::forward<OnVertex>(on_vertex);
     auto on_tree_edge_fn = std::forward<OnTreeEdge>(on_tree_edge);
-    GenericBfsVisitVisitor<NodeID, EdgeType, decltype(on_vertex_fn), decltype(on_tree_edge_fn)> vis(
-        G.get_bgl_to_id_map(), on_vertex_fn, on_tree_edge_fn
-    );
-    boost::breadth_first_search(G.get_impl(), start_bgl, boost::visitor(vis));
+    callback_visitor visitor{on_vertex_fn, on_tree_edge_fn};
+    breadth_first_search(G, start, visitor);
 }
 
 template <typename NodeID, typename Edge>
@@ -846,8 +916,55 @@ private:
     OnBackEdge& on_back_edge;
 };
 
-template <typename GraphWrapper, typename OnTreeEdge, typename OnBackEdge>
-void dfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) {
+template <typename Visitor, typename NodeID, typename GraphWrapper>
+void dfs_dispatch_tree_edge(Visitor& visitor, const NodeID& u, const NodeID& v, const GraphWrapper& G) {
+    if constexpr (requires { visitor.tree_edge(u, v, G); }) {
+        visitor.tree_edge(u, v, G);
+    }
+}
+
+template <typename Visitor, typename NodeID, typename GraphWrapper>
+void dfs_dispatch_back_edge(Visitor& visitor, const NodeID& u, const NodeID& v, const GraphWrapper& G) {
+    if constexpr (requires { visitor.back_edge(u, v, G); }) {
+        visitor.back_edge(u, v, G);
+    }
+}
+
+template <typename NodeID, typename Edge, typename GraphWrapper, typename Visitor>
+class GenericDfsObjectVisitor : public boost::default_dfs_visitor {
+public:
+    GenericDfsObjectVisitor(const GraphWrapper& graph_wrapper, Visitor& visitor)
+        : graph_wrapper(graph_wrapper), visitor(visitor) {}
+
+    template <typename G>
+    void tree_edge(Edge e, const G& g) const {
+        const auto& bgl_to_id = graph_wrapper.get_bgl_to_id_map();
+        dfs_dispatch_tree_edge(
+            visitor,
+            bgl_to_id[boost::source(e, g)],
+            bgl_to_id[boost::target(e, g)],
+            graph_wrapper
+        );
+    }
+
+    template <typename G>
+    void back_edge(Edge e, const G& g) const {
+        const auto& bgl_to_id = graph_wrapper.get_bgl_to_id_map();
+        dfs_dispatch_back_edge(
+            visitor,
+            bgl_to_id[boost::source(e, g)],
+            bgl_to_id[boost::target(e, g)],
+            graph_wrapper
+        );
+    }
+
+private:
+    const GraphWrapper& graph_wrapper;
+    Visitor& visitor;
+};
+
+template <typename GraphWrapper, typename Visitor>
+void depth_first_search(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, Visitor& visitor) {
     using NodeID = typename GraphWrapper::NodeType;
     using GraphType = typename GraphWrapper::GraphType;
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
@@ -855,12 +972,29 @@ void dfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& sta
     if (!G.has_node(start)) throw std::runtime_error("Start node not found in graph");
     auto start_bgl = G.get_id_to_bgl_map().at(start);
 
+    GenericDfsObjectVisitor<NodeID, EdgeType, GraphWrapper, Visitor> vis(G, visitor);
+    boost::depth_first_search(G.get_impl(), boost::root_vertex(start_bgl).visitor(vis));
+}
+
+template <typename GraphWrapper, typename OnTreeEdge, typename OnBackEdge>
+void dfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) {
+    struct callback_visitor {
+        OnTreeEdge& on_tree_edge;
+        OnBackEdge& on_back_edge;
+
+        void tree_edge(const typename GraphWrapper::NodeType& u, const typename GraphWrapper::NodeType& v, const GraphWrapper&) {
+            on_tree_edge(u, v);
+        }
+
+        void back_edge(const typename GraphWrapper::NodeType& u, const typename GraphWrapper::NodeType& v, const GraphWrapper&) {
+            on_back_edge(u, v);
+        }
+    };
+
     auto on_tree_edge_fn = std::forward<OnTreeEdge>(on_tree_edge);
     auto on_back_edge_fn = std::forward<OnBackEdge>(on_back_edge);
-    GenericDfsVisitVisitor<NodeID, EdgeType, decltype(on_tree_edge_fn), decltype(on_back_edge_fn)> vis(
-        G.get_bgl_to_id_map(), on_tree_edge_fn, on_back_edge_fn
-    );
-    boost::depth_first_search(G.get_impl(), boost::root_vertex(start_bgl).visitor(vis));
+    callback_visitor visitor{on_tree_edge_fn, on_back_edge_fn};
+    depth_first_search(G, start, visitor);
 }
 
 
@@ -1296,6 +1430,24 @@ auto connected_components(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
+auto connected_component_map(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& g = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    const int n = static_cast<int>(boost::num_vertices(g));
+    std::vector<int> comp(n);
+    boost::connected_components(g, boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)));
+
+    std::unordered_map<NodeID, int> result;
+    for (int i = 0; i < n; ++i) {
+        result[bgl_to_id[i]] = comp[i];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
 auto strongly_connected_components(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
     auto& g = G.get_impl();
@@ -1310,6 +1462,24 @@ auto strongly_connected_components(const GraphWrapper& G) {
         components[comp[i]].push_back(bgl_to_id[i]);
     }
     return components;
+}
+
+template <typename GraphWrapper>
+auto strongly_connected_component_map(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& g = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    const int n = static_cast<int>(boost::num_vertices(g));
+    std::vector<int> comp(n);
+    boost::strong_components(g, boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)));
+
+    std::unordered_map<NodeID, int> result;
+    for (int i = 0; i < n; ++i) {
+        result[bgl_to_id[i]] = comp[i];
+    }
+    return result;
 }
 
 template <typename GraphWrapper>

@@ -5,7 +5,7 @@
 #include "../../include/nxpp.hpp"
 
 int main() {
-    nxpp::Graph<int, double, true> G;
+    nxpp::DiGraphInt G;
     G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);
@@ -16,16 +16,10 @@ int main() {
     G.add_edge(3, 2);
     G.add_edge(3, 4);
 
-    const auto components = nxpp::strongly_connected_components(G);
-    std::unordered_map<int, int> comp_index;
-    for (int i = 0; i < static_cast<int>(components.size()); ++i) {
-        for (const int node : components[i]) {
-            comp_index[node] = i;
-        }
-    }
+    const auto comp_index = nxpp::strongly_connected_component_map(G);
 
     for (int i = 0; i < 5; ++i) {
-        std::cout << "Vertex " << i << " is in component " << comp_index[i] << "\n";
+        std::cout << "Vertex " << i << " is in component " << comp_index.at(i) << "\n";
     }
 
     return EXIT_SUCCESS;
