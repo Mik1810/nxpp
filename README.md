@@ -4,6 +4,130 @@
 
 It was born with a single goal: offering a strictly "1-to-1" continuous interface for complex networks, allowing researchers and developers to natively prototype algorithms in Python and compile the exact mirror topology in C++ with virtually zero cognitive overhead.
 
+## Build
+
+Standard local build command:
+
+```bash
+g++ -std=c++20 -Wall -pedantic -O3 main.cpp -o main
+```
+
+For the Python parity baseline in `test_suite/`, `networkx` must also be available in the active Python environment.
+
+## Current Status
+
+- Phases 1-4 are implemented and verified.
+- Phase 5 is now started: `degree_centrality` is implemented, while `maximum_flow`, `minimum_cut`, `betweenness_centrality`, `pagerank`, and benchmarking remain open.
+- Stale and unused aliases were removed on March 25, 2026 during a repository audit to keep the public API cleaner.
+- Implementation priority is now explicitly aligned to the local reference snippets in `snippet/` and `py_snippet/`.
+
+## Priority Policy
+
+The project now treats the local snippet sets as the primary source of priority:
+
+- `snippet/` contains the C++ BGL reference algorithms
+- `py_snippet/` contains the Python/NetworkX reference behavior
+- functions present in those folders are considered the essential core surface
+- functions not represented there should go into `TODO.md` and should not outrank snippet-backed essentials
+
+The current prioritized backlog is tracked in [TODO.md](/home/mik/github/nxpp/TODO.md).
+
+## How `nxpp.hpp` Works
+
+The single header is organized around one central idea: expose a NetworkX-like API while storing the real graph in BGL.
+
+`nxpp::Graph<NodeID, EdgeWeight, Directed, Multi>` is the core type. User-facing node identifiers remain `NodeID` values such as `std::string` or `int`, but the backend graph is a `boost::adjacency_list` using `boost::vecS` vertex storage.
+
+Because BGL internally works with vertex descriptors rather than arbitrary user IDs, `nxpp` maintains two synchronized translation structures:
+
+- `id_to_bgl`: maps a user node ID to the internal BGL vertex descriptor
+- `bgl_to_id`: maps a BGL vertex descriptor back to the user node ID
+
+This translation layer is what makes the higher-level API possible. Almost every operation in the file follows the same pattern:
+
+1. Convert user node IDs into BGL descriptors.
+2. Invoke the corresponding BGL operation.
+3. Convert results back into `NodeID` values.
+
+### Core Graph Behavior
+
+- `add_node()` and `add_nodes_from()` route through an internal `get_or_create_vertex()` helper that creates the BGL vertex and updates both translation structures.
+- `add_edge()` creates missing endpoints automatically. In simple graphs it overwrites the existing edge weight instead of duplicating the edge. In multigraphs it allows parallel edges.
+- `nodes()`, `edges()`, `neighbors()`, `successors()`, `predecessors()`, and `get_edge_weight()` expose user-facing values by translating BGL descriptors back into `NodeID`.
+- `clear()` resets the underlying BGL graph and descriptor maps.
+
+### Destruction Semantics
+
+`remove_node()` is the most delicate low-level method in the file. Because the graph uses `boost::vecS`, removing a vertex shifts all later vertex descriptors down by one. That means every stored descriptor after the removed vertex becomes stale immediately.
+
+To keep the graph valid, `nxpp` performs a full re-synchronization of the `NodeID -> descriptor` mapping after `boost::remove_vertex()`. This is a critical invariant of the whole design.
+
+Edge attributes are no longer keyed directly by `EdgeDesc`. The header now assigns a stable internal edge ID when an edge is created, and `edge_properties` is keyed by that stable ID instead. This avoids tying application-level metadata to a fragile BGL descriptor.
+
+### NetworkX-like Access Syntax
+
+The Python-like API is implemented with proxy objects rather than real nested dictionaries.
+
+- `G[u][v] = w` works through `NodeProxy` and `EdgeProxy`
+- `G[u][v]["key"] = value` works through `EdgeAttrProxy`
+- `G.node(u)["key"] = value` works through `NodeAttrProxy`
+
+Node and edge attributes are stored separately from the BGL graph:
+
+- node attributes live in `node_properties`
+- edge attributes live in `edge_properties`
+
+Attribute values are stored as `std::any`, which gives Python-like flexibility at the cost of runtime casts on retrieval.
+
+The proxy syntax is still available, but the header now also exposes explicit safer helpers:
+
+- `has_node_attr()` and `has_edge_attr()`
+- `get_node_attr<T>()` and `get_edge_attr<T>()`
+- `try_get_node_attr<T>()` and `try_get_edge_attr<T>()`
+
+These helpers make attribute reads clearer and avoid relying exclusively on implicit proxy conversions.
+
+### Algorithms
+
+The algorithms in the header are wrappers around BGL. The current structure is:
+
+- traversal wrappers: `bfs_edges()`, `bfs_tree()`, `dfs_edges()`, and `dfs_tree()`
+- shortest paths: `shortest_path()`, `shortest_path_length()`, `dijkstra_path()`, `dijkstra_path_length()`, `bellman_ford_path()`, and `bellman_ford_path_length()`
+- components: `connected_components()` and `strongly_connected_components()`
+- generators: `complete_graph()`, `path_graph()`, and `erdos_renyi_graph()`
+- centrality: `degree_centrality()`
+
+Each wrapper translates IDs to descriptors, runs the BGL algorithm, and then converts the output back into `NodeID`-based containers.
+
+`shortest_path()` is now split more explicitly by intent:
+
+- `shortest_path(G, source, target)` uses an unweighted BFS-style path by edge count
+- `shortest_path_length(G, source, target)` returns that unweighted distance
+- `shortest_path(G, source, target, "weight")` routes to the weighted path implementation
+- `shortest_path_length(G, source, target, "weight")` routes to the weighted distance implementation
+- weighted wrappers currently support only the built-in edge weight property named `"weight"`
+
+## Current Design Caveats
+
+These are the main technical constraints and risks currently visible in `include/nxpp.hpp`:
+
+- edge metadata now uses a stable internal edge ID instead of `EdgeDesc`, which removes the worst descriptor-stability issue from the previous design.
+- `clear()` now resets graph structure, node attributes, edge attributes, and internal edge ID state together.
+- `remove_edge()` and `remove_node()` now explicitly clean associated edge metadata before removing graph structure.
+- `neighbors()` remains successor-based for directed graphs, which matches `DiGraph.neighbors()` semantics in NetworkX.
+- `successors()` and `predecessors()` now exist explicitly to make directed traversal intent clearer in user code.
+- The algorithm wrappers are still intentionally thin. Basic missing wrapper names have been filled in, and `shortest_path()` now distinguishes unweighted and weighted calls, but the wider NetworkX option surface is still not implemented.
+- `std::any` still gives flexible attributes, but attribute access is now less fragile because explicit checked getters and optional-return helpers exist alongside the proxy syntax.
+
+## Internal Invariants
+
+The current header depends on a few invariants staying true:
+
+- `id_to_bgl` and `bgl_to_id` must always describe the same graph state
+- every algorithm wrapper assumes those mappings are valid before it calls BGL
+- any operation that changes vertex indices must rebuild the forward mapping immediately
+- user-facing containers should always return `NodeID` values, never raw BGL descriptors
+
 
 ---
 
@@ -106,6 +230,9 @@ auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
 // Topological Generators (Phase 3)
 auto K5 = nxpp::complete_graph(5); // Returns Graph<int> by default
 auto P4 = nxpp::path_graph<nxpp::DiGraph>(4); // Path 0->1->2->3 as DiGraph
+
+// Centrality (Phase 5 kickoff)
+auto centrality = nxpp::degree_centrality(K5);
 
 // Custom Node/Edge Attributes (std::any)
 G.node("Rome")["population"] = 2800000;

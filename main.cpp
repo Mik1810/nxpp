@@ -163,13 +163,16 @@ void test_attributes() {
     G["Roma"]["Milano"]["company"] = std::string("Trenitalia");
     G["Roma"]["Milano"]["distance"] = 580;
 
-    int pop = G.node("Roma")["population"];
-    std::string company = G["Roma"]["Milano"]["company"];
-    int dist = G["Roma"]["Milano"]["distance"];
+    int pop = G.get_node_attr<int>("Roma", "population");
+    std::string company = G.get_edge_attr<std::string>("Roma", "Milano", "company");
+    int dist = G.get_edge_attr<int>("Roma", "Milano", "distance");
 
     print("Popolazione di Roma:", pop);
     print("Compagnia Treno Roma->Milano:", company);
     print("Distanza:", dist, "km\n");
+
+    auto missing_speed = G.try_get_edge_attr<int>("Roma", "Milano", "speed");
+    print("Attributo speed presente?", missing_speed.has_value());
 }
 
 void test_generators() {
@@ -186,6 +189,76 @@ void test_generators() {
     print("\n");
 }
 
+void test_degree_centrality() {
+    print("NXPP (C++) - Degree Centrality Test\n");
+
+    Graph<int> G;
+    G.add_edges_from({
+        {0, 1}, {0, 2}, {1, 2}, {2, 3}
+    });
+
+    auto centrality = nxpp::degree_centrality(G);
+    auto nodes = G.nodes();
+    std::sort(nodes.begin(), nodes.end());
+
+    for (const auto& node : nodes) {
+        print("Node", node, "centrality:", centrality.at(node));
+    }
+    print("\n");
+}
+
+void test_directed_neighbors_api() {
+    print("NXPP (C++) - Directed Neighbor API Test\n");
+
+    auto G = DiGraph();
+    G.add_edges_from({
+        {"A", "B"}, {"C", "B"}, {"B", "D"}
+    });
+
+    print("neighbors(B):");
+    for (const auto& node : G.neighbors("B")) {
+        print("-", node);
+    }
+
+    print("successors(B):");
+    for (const auto& node : G.successors("B")) {
+        print("-", node);
+    }
+
+    print("predecessors(B):");
+    for (const auto& node : G.predecessors("B")) {
+        print("-", node);
+    }
+    print("\n");
+}
+
+void test_missing_algorithm_wrappers() {
+    print("NXPP (C++) - Wrapper Coverage Test\n");
+
+    Graph<int> G;
+    G.add_edges_from({
+        {0, 1}, {1, 2}, {2, 3}
+    });
+
+    auto bfsT = nxpp::bfs_tree(G, 0);
+    auto dfsT = nxpp::dfs_tree(G, 0);
+    auto sp = nxpp::shortest_path(G, 0, 3);
+    auto spl = nxpp::shortest_path_length(G, 0, 3);
+    auto weighted_sp = nxpp::shortest_path(G, 0, 3, "weight");
+    auto weighted_spl = nxpp::shortest_path_length(G, 0, 3, "weight");
+    auto bfp = nxpp::bellman_ford_path(G, 0, 3, "weight");
+    auto bfpl = nxpp::bellman_ford_path_length(G, 0, 3, "weight");
+
+    print("BFS tree edges:", bfsT.edges().size());
+    print("DFS tree edges:", dfsT.edges().size());
+    print("Shortest path length:", sp.size());
+    print("Shortest path distance:", spl);
+    print("Weighted shortest path length:", weighted_sp.size());
+    print("Weighted shortest path distance:", weighted_spl);
+    print("Bellman-Ford path length:", bfp.size());
+    print("Bellman-Ford path distance:", bfpl, "\n");
+}
+
 int main() {
     test_dijkstra_scc();
     test_integer_nodes();
@@ -193,5 +266,8 @@ int main() {
     test_multigraph();
     test_attributes();
     test_generators();
+    test_degree_centrality();
+    test_directed_neighbors_api();
+    test_missing_algorithm_wrappers();
     return 0;
 }

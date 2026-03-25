@@ -3,6 +3,15 @@
 ## Objective
 Create a C++ library that offers a syntax as identical and intuitive as possible to the Python library `networkx`, while maintaining high performance and minimizing *bloat*. The project will internally leverage efficient data structures and algorithms (such as those from the Boost Graph Library - BGL), while exposing a clean and user-friendly API.
 
+## Priority Rule
+
+The local reference snippets now define implementation priority:
+
+- `snippet/` is the primary BGL algorithm source
+- `py_snippet/` is the primary NetworkX behavior source
+- functions represented in those snippet sets are the essential target surface
+- work outside that surface should be tracked in `TODO.md` and should not outrank snippet-backed algorithms
+
 
 
 ## Phase 1: Core Data Structures
@@ -36,7 +45,23 @@ This is a fundamental milestone to guarantee library correctness and mathematica
 Integrate more complex mathematical features based on the provided BGL architectural codebase:
 - [ ] **Network Flow**: `maximum_flow` (e.g. Edmonds-Karp/Push-Relabel algorithm variants), `minimum_cut`.
 - [ ] **Centrality Metrics**: `degree_centrality`, `betweenness_centrality`, `pagerank`.
+  `degree_centrality` is now implemented in `include/nxpp.hpp`; parity verification for the rest of the centrality block is still open.
 - [ ] Comprehensive benchmarking to compare sheer processing performance (execution time, memory usage, compilation time) between `nxpp` and `networkx`.
+
+## Current Status Audit
+- [x] Phases 1-4 are present in code and documented as complete.
+- [x] A compile blocker caused by a stale alias (`DiGraphStr`) in `include/nxpp.hpp` was identified on March 25, 2026 and then resolved by removing the unused alias.
+- [x] Additional unused alias cleanup removed `GraphStr` to keep the public surface smaller and less ambiguous.
+- [x] `README.md` now documents the actual architecture and invariants of `include/nxpp.hpp`, including current caveats around descriptor-backed state and attribute handling.
+- [x] The core header no longer stores edge metadata keyed by fragile `EdgeDesc`; stable internal edge IDs now back `edge_properties`, and destructive operations clean metadata explicitly.
+- [x] Directed adjacency semantics are now clearer in the public API through explicit `successors()` and `predecessors()` helpers.
+- [x] Attribute access is now less fragile through explicit checked getters and optional-return helpers layered on top of the existing proxy syntax.
+- [x] The algorithm wrapper layer now includes the documented basic names `bfs_tree`, `dfs_tree`, `shortest_path`, and `bellman_ford_path`, though the API surface remains intentionally minimal.
+- [x] `shortest_path()` semantics are now closer to NetworkX: default calls are unweighted, while weighted dispatch is explicit through the `"weight"` parameter.
+- [x] Distance-returning shortest-path helpers now follow the same weighted vs unweighted split as the path-returning helpers.
+- [x] Project priority is now explicitly re-anchored to the local `snippet/` and `py_snippet/` reference functions, with out-of-scope work tracked in `TODO.md`.
+- [ ] Phase 5 is partially started: `degree_centrality` exists, while `maximum_flow`, `minimum_cut`, `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
+- [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 
 ## Future Horizons and Distribution
 - [x] Refactoring to enforce a strictly "Header-only" philosophy (evaluating the inherent trade-offs on compilation times regarding deep BGL templates).

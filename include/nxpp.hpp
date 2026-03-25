@@ -25,6 +25,9 @@
 #include <map>
 #include <iomanip>
 #include <random>
+#include <optional>
+#include <limits>
+#include <queue>
 
 namespace nxpp {
 
@@ -58,21 +61,27 @@ class Graph {
 public:
     using NodeType = NodeID;
     using DirectedSelector = typename std::conditional<Directed, boost::bidirectionalS, boost::undirectedS>::type;
+    using EdgeProperty = boost::property<boost::edge_weight_t, EdgeWeight,
+                                         boost::property<boost::edge_index_t, std::size_t>>;
     using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, DirectedSelector,
-                                            boost::no_property, boost::property<boost::edge_weight_t, EdgeWeight>>;
+                                            boost::no_property, EdgeProperty>;
     using VertexDesc = typename boost::graph_traits<GraphType>::vertex_descriptor;
     using EdgeDesc = typename boost::graph_traits<GraphType>::edge_descriptor;
     using WeightMap = typename boost::property_map<GraphType, boost::edge_weight_t>::type;
+    using EdgeIdMap = typename boost::property_map<GraphType, boost::edge_index_t>::type;
+    static constexpr bool is_directed = Directed;
 
 private:
     GraphType g;
     WeightMap weight_map;
+    EdgeIdMap edge_id_map;
     std::unordered_map<NodeID, VertexDesc> id_to_bgl;
     std::vector<NodeID> bgl_to_id;
+    std::size_t next_edge_id = 0;
 
 public:
     std::unordered_map<NodeID, std::unordered_map<std::string, std::any>> node_properties;
-    std::map<EdgeDesc, std::unordered_map<std::string, std::any>> edge_properties;
+    std::unordered_map<std::size_t, std::unordered_map<std::string, std::any>> edge_properties;
 
 private:
     VertexDesc get_or_create_vertex(const NodeID& id) {
@@ -89,8 +98,24 @@ private:
         return v;
     }
 
+    std::size_t get_edge_id(EdgeDesc e) const {
+        return boost::get(edge_id_map, e);
+    }
+
+    void erase_incident_edge_properties(VertexDesc v) {
+        std::vector<std::size_t> edge_ids;
+        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+            if (boost::source(*e, g) == v || boost::target(*e, g) == v) {
+                edge_ids.push_back(get_edge_id(*e));
+            }
+        }
+        for (auto edge_id : edge_ids) {
+            edge_properties.erase(edge_id);
+        }
+    }
+
 public:
-    Graph() : g(), weight_map(boost::get(boost::edge_weight, g)) {}
+    Graph() : g(), weight_map(boost::get(boost::edge_weight, g)), edge_id_map(boost::get(boost::edge_index, g)) {}
 
     void add_node(const NodeID& id) {
         get_or_create_vertex(id);
@@ -133,6 +158,7 @@ public:
         
         auto [e, added] = boost::add_edge(bu, bv, g);
         weight_map[e] = w;
+        edge_id_map[e] = next_edge_id++;
     }
 
     void add_edges_from(const std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>& edges) {
@@ -151,7 +177,11 @@ public:
         g = GraphType();
         id_to_bgl.clear();
         bgl_to_id.clear();
+        node_properties.clear();
+        edge_properties.clear();
         weight_map = boost::get(boost::edge_weight, g);
+        edge_id_map = boost::get(boost::edge_index, g);
+        next_edge_id = 0;
     }
 
     void remove_edge(const NodeID& u, const NodeID& v) {
@@ -160,6 +190,11 @@ public:
         if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
             throw std::runtime_error("NetworkXError: The node is not in the graph.");
         }
+        auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
+        if (!exists) {
+            throw std::runtime_error("NetworkXError: The edge is not in the graph.");
+        }
+        edge_properties.erase(get_edge_id(e));
         boost::remove_edge(it_u->second, it_v->second, g);
     }
 
@@ -169,11 +204,13 @@ public:
             throw std::runtime_error("NetworkXError: The node is not in the graph.");
         }
         VertexDesc v = it->second;
-        
+
+        erase_incident_edge_properties(v);
         boost::clear_vertex(v, g);
         boost::remove_vertex(v, g);
         
         id_to_bgl.erase(it);
+        node_properties.erase(u);
 
         // When using vecS, remove_vertex invalidates all descriptors > v
         // because all subsequent vertices are shifted down by 1.
@@ -198,11 +235,123 @@ public:
         return res;
     }
 
+    std::vector<NodeID> successors(const NodeID& u) const {
+        return neighbors(u);
+    }
+
+    std::vector<NodeID> predecessors(const NodeID& u) const {
+        auto it = id_to_bgl.find(u);
+        if (it == id_to_bgl.end()) {
+            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+        }
+
+        std::vector<NodeID> res;
+        if constexpr (Directed) {
+            for (auto [e, eend] = boost::in_edges(it->second, g); e != eend; ++e) {
+                res.push_back(bgl_to_id[boost::source(*e, g)]);
+            }
+        } else {
+            for (auto [e, eend] = boost::out_edges(it->second, g); e != eend; ++e) {
+                res.push_back(bgl_to_id[boost::target(*e, g)]);
+            }
+        }
+        return res;
+    }
+
     bool has_node(const NodeID& u) const {
         return id_to_bgl.find(u) != id_to_bgl.end();
     }
 
+    bool has_node_attr(const NodeID& u, const std::string& key) const {
+        auto node_it = node_properties.find(u);
+        if (node_it == node_properties.end()) {
+            return false;
+        }
+        return node_it->second.find(key) != node_it->second.end();
+    }
 
+    bool has_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
+        if (!has_edge(u, v)) {
+            return false;
+        }
+        auto e = get_edge_desc(u, v);
+        auto edge_it = edge_properties.find(get_edge_id(e));
+        if (edge_it == edge_properties.end()) {
+            return false;
+        }
+        return edge_it->second.find(key) != edge_it->second.end();
+    }
+
+    template <typename T>
+    T get_node_attr(const NodeID& u, const std::string& key) const {
+        auto node_it = node_properties.find(u);
+        if (node_it == node_properties.end()) {
+            throw std::runtime_error("Node attribute lookup failed: node has no attributes.");
+        }
+        auto attr_it = node_it->second.find(key);
+        if (attr_it == node_it->second.end()) {
+            throw std::runtime_error("Node attribute lookup failed: key not found.");
+        }
+        try {
+            return std::any_cast<T>(attr_it->second);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Node attribute lookup failed: stored type does not match requested type.");
+        }
+    }
+
+    template <typename T>
+    T get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
+        auto e = get_edge_desc(u, v);
+        auto edge_it = edge_properties.find(get_edge_id(e));
+        if (edge_it == edge_properties.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: key not found.");
+        }
+        try {
+            return std::any_cast<T>(attr_it->second);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Edge attribute lookup failed: stored type does not match requested type.");
+        }
+    }
+
+    template <typename T>
+    std::optional<T> try_get_node_attr(const NodeID& u, const std::string& key) const {
+        auto node_it = node_properties.find(u);
+        if (node_it == node_properties.end()) {
+            return std::nullopt;
+        }
+        auto attr_it = node_it->second.find(key);
+        if (attr_it == node_it->second.end()) {
+            return std::nullopt;
+        }
+        if (const auto* value = std::any_cast<T>(&(attr_it->second))) {
+            return *value;
+        }
+        return std::nullopt;
+    }
+
+    template <typename T>
+    std::optional<T> try_get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
+        if (!has_edge(u, v)) {
+            return std::nullopt;
+        }
+        auto e = get_edge_desc(u, v);
+        auto edge_it = edge_properties.find(get_edge_id(e));
+        if (edge_it == edge_properties.end()) {
+            return std::nullopt;
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            return std::nullopt;
+        }
+        if (const auto* value = std::any_cast<T>(&(attr_it->second))) {
+            return *value;
+        }
+        return std::nullopt;
+    }
 
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
@@ -246,14 +395,13 @@ public:
         EdgeAttrProxy& operator=(const T& val) {
             if (!graph->has_edge(u, v)) graph->add_edge(u, v, 1.0);
             auto e = graph->get_edge_desc(u, v);
-            graph->edge_properties[e][key] = std::any(val);
+            graph->edge_properties[graph->get_edge_id(e)][key] = std::any(val);
             return *this;
         }
 
         template <typename T>
         operator T() const {
-            auto e = graph->get_edge_desc(u, v);
-            return std::any_cast<T>(graph->edge_properties.at(e).at(key));
+            return graph->template get_edge_attr<T>(u, v, key);
         }
     };
 
@@ -291,7 +439,7 @@ public:
 
         template <typename T>
         operator T() const {
-            return std::any_cast<T>(graph->node_properties.at(u).at(key));
+            return graph->template get_node_attr<T>(u, key);
         }
     };
 
@@ -365,7 +513,7 @@ GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < (GraphType::DirectedSelector::value ? n : i); ++j) {
+        for (size_t j = 0; j < (GraphType::is_directed ? n : i); ++j) {
             if (i == j) continue;
             if (dis(gen) < p) {
                 G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(j));
@@ -383,10 +531,6 @@ using MultiDiGraphInt = Graph<int, double, true, true>;
 using DiGraph = Graph<std::string, double, true>;
 using MultiGraph = Graph<std::string, double, false, true>;
 using MultiDiGraph = Graph<std::string, double, true, true>;
-
-// Ereditarietà per la retrocompatibilità
-using DiGraphStr = DiGraph<std::string, double>;
-using GraphStr = Graph<std::string, double, false, false>;
 
 
 // Algorithms: Traversals
@@ -423,6 +567,22 @@ auto bfs_edges(const GraphWrapper& G, const typename GraphWrapper::NodeType& sta
     return edges;
 }
 
+template <typename GraphWrapper>
+auto bfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
+    using NodeID = typename GraphWrapper::NodeType;
+    Graph<NodeID, double, GraphWrapper::is_directed> tree;
+
+    if (!G.has_node(start)) {
+        throw std::runtime_error("Start node not found in graph");
+    }
+
+    tree.add_node(start);
+    for (const auto& [u, v] : bfs_edges(G, start)) {
+        tree.add_edge(u, v);
+    }
+    return tree;
+}
+
 template <typename NodeID, typename Edge>
 class GenericDfsEdgeVisitor : public boost::default_dfs_visitor {
 public:
@@ -455,8 +615,87 @@ auto dfs_edges(const GraphWrapper& G, const typename GraphWrapper::NodeType& sta
     return edges;
 }
 
+template <typename GraphWrapper>
+auto dfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
+    using NodeID = typename GraphWrapper::NodeType;
+    Graph<NodeID, double, GraphWrapper::is_directed> tree;
+
+    if (!G.has_node(start)) {
+        throw std::runtime_error("Start node not found in graph");
+    }
+
+    tree.add_node(start);
+    for (const auto& [u, v] : dfs_edges(G, start)) {
+        tree.add_edge(u, v);
+    }
+    return tree;
+}
+
 
 // Algorithms: Shortest Paths
+
+template <typename GraphWrapper>
+auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end() || id_to_bgl.find(target_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    VertexDesc source = id_to_bgl.at(source_id);
+    VertexDesc target = id_to_bgl.at(target_id);
+
+    if (source == target) {
+        return std::vector<NodeID>{source_id};
+    }
+
+    const size_t n = boost::num_vertices(g);
+    std::vector<bool> visited(n, false);
+    std::vector<VertexDesc> pred(n);
+    std::queue<VertexDesc> q;
+
+    for (size_t i = 0; i < n; ++i) {
+        pred[i] = static_cast<VertexDesc>(i);
+    }
+
+    visited[source] = true;
+    q.push(source);
+
+    while (!q.empty()) {
+        VertexDesc current = q.front();
+        q.pop();
+
+        for (auto [e, eend] = boost::out_edges(current, g); e != eend; ++e) {
+            VertexDesc next = boost::target(*e, g);
+            if (!visited[next]) {
+                visited[next] = true;
+                pred[next] = current;
+                if (next == target) {
+                    q = {};
+                    break;
+                }
+                q.push(next);
+            }
+        }
+    }
+
+    if (!visited[target]) {
+        throw std::runtime_error("Node not reachable");
+    }
+
+    std::vector<NodeID> path;
+    for (VertexDesc curr = target; curr != source; curr = pred[curr]) {
+        path.push_back(bgl_to_id[curr]);
+    }
+    path.push_back(bgl_to_id[source]);
+    std::reverse(path.begin(), path.end());
+    return path;
+}
 
 template <typename GraphWrapper>
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
@@ -494,6 +733,45 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 }
 
 template <typename GraphWrapper>
+auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty()) {
+        return shortest_path(G, source_id, target_id);
+    }
+    if (weight == "weight") {
+        return dijkstra_path(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+}
+
+template <typename GraphWrapper>
+auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty() || weight == "weight") {
+        return dijkstra_path(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+}
+
+template <typename GraphWrapper>
+double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    const auto path = shortest_path(G, source_id, target_id);
+    if (path.empty()) {
+        throw std::runtime_error("Node not reachable");
+    }
+    return static_cast<double>(path.size() - 1);
+}
+
+template <typename GraphWrapper>
+double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty()) {
+        return shortest_path_length(G, source_id, target_id);
+    }
+    if (weight == "weight") {
+        return dijkstra_path_length(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+}
+
+template <typename GraphWrapper>
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -517,6 +795,105 @@ auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::No
         result[bgl_to_id[i]] = dist[i];
     }
     return result;
+}
+
+template <typename GraphWrapper>
+double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    const auto distances = dijkstra_path_length(G, source_id);
+    auto it = distances.find(target_id);
+    if (it == distances.end()) {
+        throw std::runtime_error("Target node not found in graph.");
+    }
+    return it->second;
+}
+
+template <typename GraphWrapper>
+double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty() || weight == "weight") {
+        return dijkstra_path_length(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+}
+
+template <typename GraphWrapper>
+auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end() || id_to_bgl.find(target_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    VertexDesc source = id_to_bgl.at(source_id);
+    VertexDesc target = id_to_bgl.at(target_id);
+
+    const size_t n = boost::num_vertices(g);
+    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<VertexDesc> pred(n);
+
+    for (size_t i = 0; i < n; ++i) {
+        pred[i] = static_cast<VertexDesc>(i);
+    }
+    dist[source] = 0.0;
+
+    const bool ok = boost::bellman_ford_shortest_paths(
+        g,
+        static_cast<int>(n),
+        boost::weight_map(boost::get(boost::edge_weight, g))
+            .distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+            .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
+            .root_vertex(source)
+    );
+
+    if (!ok) {
+        throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
+    }
+
+    if (dist[target] == std::numeric_limits<double>::max()) {
+        throw std::runtime_error("Node not reachable");
+    }
+
+    std::vector<NodeID> path;
+    for (VertexDesc curr = target; curr != source; curr = pred[curr]) {
+        path.push_back(bgl_to_id[curr]);
+    }
+    path.push_back(bgl_to_id[source]);
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+template <typename GraphWrapper>
+auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty() || weight == "weight") {
+        return bellman_ford_path(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+}
+
+template <typename GraphWrapper>
+double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    const auto path = bellman_ford_path(G, source_id, target_id);
+    if (path.empty()) {
+        throw std::runtime_error("Node not reachable");
+    }
+
+    double total = 0.0;
+    for (size_t i = 0; i + 1 < path.size(); ++i) {
+        total += static_cast<double>(G.get_edge_weight(path[i], path[i + 1]));
+    }
+    return total;
+}
+
+template <typename GraphWrapper>
+double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+    if (weight.empty() || weight == "weight") {
+        return bellman_ford_path_length(G, source_id, target_id);
+    }
+    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
 }
 
 
@@ -554,6 +931,41 @@ auto strongly_connected_components(const GraphWrapper& G) {
         components[comp[i]].push_back(bgl_to_id[i]);
     }
     return components;
+}
+
+template <typename GraphWrapper>
+auto degree_centrality(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& g = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+    const auto node_count = boost::num_vertices(g);
+
+    std::unordered_map<NodeID, double> centrality;
+    if (node_count == 0) {
+        return centrality;
+    }
+
+    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
+        centrality[bgl_to_id[*v]] = 0.0;
+    }
+
+    if (node_count <= 1) {
+        return centrality;
+    }
+
+    const double scale = 1.0 / static_cast<double>(node_count - 1);
+    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
+        double degree = 0.0;
+        if constexpr (GraphWrapper::is_directed) {
+            degree = static_cast<double>(boost::in_degree(*v, g) + boost::out_degree(*v, g));
+        } else {
+            degree = static_cast<double>(boost::degree(*v, g));
+        }
+        centrality[bgl_to_id[*v]] = degree * scale;
+    }
+
+    return centrality;
 }
 
 } // namespace nxpp
