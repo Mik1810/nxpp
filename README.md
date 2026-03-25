@@ -1,325 +1,502 @@
-# nxpp - NetworkX for C++
+# nxpp — NetworkX-inspired graph utilities for modern C++
 
-**nxpp** is a native, *header-only* **C++20** library designed to teleport the unmistakable syntactic and semantic elegance of [NetworkX](https://networkx.org/) (Python) into the high-performance C++ ecosystem. Internally, it acts as a powerful wrapper around the battle-tested [Boost Graph Library (BGL)](https://www.boost.org/doc/libs/1_84_0/libs/graph/doc/index.html).
+`nxpp` is a **header-only C++20** library built on top of the **Boost Graph Library (BGL)**.
+Its goal is not to clone all of NetworkX, but to offer a **small, practical, NetworkX-inspired API** that is easier to use directly from C++ than raw BGL in many common cases.
 
-It was born with a single goal: offering a strictly "1-to-1" continuous interface for complex networks, allowing researchers and developers to natively prototype algorithms in Python and compile the exact mirror topology in C++ with virtually zero cognitive overhead.
+The project centers on a single generic graph wrapper:
 
-## Build
+```cpp
+nxpp::Graph<NodeID, EdgeWeight, Directed, Multi>
+```
 
-Standard local build command:
+with public aliases such as:
+
+- `nxpp::GraphInt`
+- `nxpp::GraphStr`
+- `nxpp::DiGraph`
+- `nxpp::DiGraphInt`
+- `nxpp::MultiGraph`
+- `nxpp::MultiDiGraph`
+
+Internally, `nxpp` stores a BGL graph and maintains a translation layer between user-facing node IDs and BGL vertex descriptors.
+That translation layer is what allows code such as:
+
+```cpp
+G.add_edge("Rome", "Milan", 5.0);
+auto path = nxpp::dijkstra_path(G, std::string("Rome"), std::string("Milan"));
+G.node("Rome")["population"] = 2800000;
+G["Rome"]["Milan"]["company"] = std::string("Trenitalia");
+```
+
+---
+
+## What `nxpp` is and what it is not
+
+`nxpp` is best understood as:
+
+- a **BGL-backed convenience layer**
+- a **partial NetworkX-inspired API**, not full parity
+- a library that prefers **materialized C++ containers** over Python-style lazy iterators
+- a project that also includes a few **quality-of-life utilities** not meant as strict NetworkX or BGL ports
+
+It is **not**:
+
+- a full drop-in replacement for NetworkX
+- a complete abstraction over all BGL concepts
+- a zero-cost wrapper in every public function
+
+Several public calls do extra work beyond the underlying algorithm itself:
+
+- user-ID ↔ descriptor translation
+- node/edge attribute lookups through `std::any`
+- result materialization into `std::vector`, `std::unordered_map`, `std::map`, or custom wrappers
+- cleanup/reindex work after destructive operations such as `remove_node()`
+
+For this reason, the complexity notes below describe the cost of the **public `nxpp` function call**, not only the theoretical complexity of the wrapped graph algorithm.
+
+---
+
+## Current scope
+
+The current public surface covers four main areas:
+
+1. **Graph construction and mutation**
+2. **Proxy-style node/edge attribute access**
+3. **Common graph algorithms wrapped over BGL**
+4. **Utility helpers returning easier-to-consume C++ results**
+
+Highlights currently present in `include/nxpp.hpp` include:
+
+- graph types: simple graphs, digraphs, multigraphs
+- core methods: add/remove/clear, neighbors, successors, predecessors
+- attribute helpers: checked getters and optional-return variants
+- traversals: BFS / DFS edges, trees, visitor-style entry points
+- shortest paths: unweighted, Dijkstra, Bellman-Ford, DAG shortest paths, Floyd-Warshall
+- components: connected and strongly connected components, plus component maps
+- ordering / spanning: topological sort, Kruskal, Prim
+- flows: max flow, min cut, min-cost max-flow variants
+- generators: complete graph, path graph, Erdős–Rényi graph
+- extras: degree centrality, 2-SAT helper, SCC root helper
+
+---
+
+## Build and requirements
+
+`nxpp` is header-only, but it depends on **Boost Graph Library**.
+
+### Minimal local build
 
 ```bash
 g++ -std=c++20 -Wall -pedantic -O3 main.cpp -o main
 ```
 
-For the Python parity baseline in `test_suite/`, `networkx` must also be available in the active Python environment.
+### Install Boost Graph Library
 
-## Current Status
+**Ubuntu / Debian**
 
-- Phases 1-4 are implemented and verified.
-- Phase 5 is now started: `degree_centrality` is implemented, while `maximum_flow`, `minimum_cut`, `betweenness_centrality`, `pagerank`, and benchmarking remain open.
-- Stale and unused aliases were removed on March 25, 2026 during a repository audit to keep the public API cleaner.
-- Implementation priority is now explicitly aligned to the local reference snippets in `snippet/` and `py_snippet/`.
-
-## Priority Policy
-
-The project now treats the local snippet sets as the primary source of priority:
-
-- `snippet/` contains the C++ BGL reference algorithms
-- `snippet/` now also contains colocated Python `networkx` translations beside each `.cpp` snippet
-- `py_snippet/` contains the Python/NetworkX reference behavior
-- functions present in those folders are considered the essential core surface
-- functions not represented there should go into `TODO.md` and should not outrank snippet-backed essentials
-
-The current prioritized backlog is tracked in [TODO.md](/home/mik/github/nxpp/TODO.md).
-
-## How `nxpp.hpp` Works
-
-The single header is organized around one central idea: expose a NetworkX-like API while storing the real graph in BGL.
-
-`nxpp::Graph<NodeID, EdgeWeight, Directed, Multi>` is the core type. User-facing node identifiers remain `NodeID` values such as `std::string` or `int`, but the backend graph is a `boost::adjacency_list` using `boost::vecS` vertex storage.
-
-Because BGL internally works with vertex descriptors rather than arbitrary user IDs, `nxpp` maintains two synchronized translation structures:
-
-- `id_to_bgl`: maps a user node ID to the internal BGL vertex descriptor
-- `bgl_to_id`: maps a BGL vertex descriptor back to the user node ID
-
-This translation layer is what makes the higher-level API possible. Almost every operation in the file follows the same pattern:
-
-1. Convert user node IDs into BGL descriptors.
-2. Invoke the corresponding BGL operation.
-3. Convert results back into `NodeID` values.
-
-### Core Graph Behavior
-
-- `add_node()` and `add_nodes_from()` route through an internal `get_or_create_vertex()` helper that creates the BGL vertex and updates both translation structures.
-- `add_edge()` creates missing endpoints automatically. In simple graphs it overwrites the existing edge weight instead of duplicating the edge. In multigraphs it allows parallel edges.
-- `nodes()`, `edges()`, `neighbors()`, `successors()`, `predecessors()`, and `get_edge_weight()` expose user-facing values by translating BGL descriptors back into `NodeID`.
-- `clear()` resets the underlying BGL graph and descriptor maps.
-
-### Destruction Semantics
-
-`remove_node()` is the most delicate low-level method in the file. Because the graph uses `boost::vecS`, removing a vertex shifts all later vertex descriptors down by one. That means every stored descriptor after the removed vertex becomes stale immediately.
-
-To keep the graph valid, `nxpp` performs a full re-synchronization of the `NodeID -> descriptor` mapping after `boost::remove_vertex()`. This is a critical invariant of the whole design.
-
-Edge attributes are no longer keyed directly by `EdgeDesc`. The header now assigns a stable internal edge ID when an edge is created, and `edge_properties` is keyed by that stable ID instead. This avoids tying application-level metadata to a fragile BGL descriptor.
-
-### NetworkX-like Access Syntax
-
-The Python-like API is implemented with proxy objects rather than real nested dictionaries.
-
-- `G[u][v] = w` works through `NodeProxy` and `EdgeProxy`
-- `G[u][v]["key"] = value` works through `EdgeAttrProxy`
-- `G.node(u)["key"] = value` works through `NodeAttrProxy`
-
-Node and edge attributes are stored separately from the BGL graph:
-
-- node attributes live in `node_properties`
-- edge attributes live in `edge_properties`
-
-Attribute values are stored as `std::any`, which gives Python-like flexibility at the cost of runtime casts on retrieval.
-
-The proxy syntax is still available, but the header now also exposes explicit safer helpers:
-
-- `has_node_attr()` and `has_edge_attr()`
-- `get_node_attr<T>()` and `get_edge_attr<T>()`
-- `try_get_node_attr<T>()` and `try_get_edge_attr<T>()`
-
-These helpers make attribute reads clearer and avoid relying exclusively on implicit proxy conversions.
-
-The proxy layer also provides explicit `const char*` overloads for chained `operator[]` usage, which helps editor tooling resolve expressions like `G["u"]["v"]["key"]` more reliably.
-
-### Algorithms
-
-The algorithms in the header are wrappers around BGL. The current structure is:
-
-- traversal wrappers: `bfs_edges()`, `bfs_tree()`, `dfs_edges()`, and `dfs_tree()`
-- shortest paths: `shortest_path()`, `shortest_path_length()`, `dijkstra_path()`, `dijkstra_path_length()`, `bellman_ford_path()`, `bellman_ford_path_length()`, `dag_shortest_paths()`, and `floyd_warshall_all_pairs_shortest_paths()`
-- components: `connected_components()` and `strongly_connected_components()`
-- DAG and ordering: `topological_sort()`
-- spanning trees: `kruskal_minimum_spanning_tree()` and `prim_minimum_spanning_tree()`
-- flow: `maximum_flow()`, `minimum_cut()`, `max_flow_min_cost_cycle_canceling()`, and `max_flow_min_cost_successive_shortest_path()`
-- SCC extras: `strongly_connected_component_roots()`
-- SAT helper: `two_sat_satisfiable()`
-- generators: `complete_graph()`, `path_graph()`, and `erdos_renyi_graph()`
-- centrality: `degree_centrality()`
-
-Each wrapper translates IDs to descriptors, runs the BGL algorithm, and then converts the output back into `NodeID`-based containers.
-
-`shortest_path()` is now split more explicitly by intent:
-
-- `shortest_path(G, source, target)` uses an unweighted BFS-style path by edge count
-- `shortest_path_length(G, source, target)` returns that unweighted distance
-- `shortest_path(G, source, target, "weight")` routes to the weighted path implementation
-- `shortest_path_length(G, source, target, "weight")` routes to the weighted distance implementation
-- weighted wrappers currently support only the built-in edge weight property named `"weight"`
-
-## Current Design Caveats
-
-These are the main technical constraints and risks currently visible in `include/nxpp.hpp`:
-
-- edge metadata now uses a stable internal edge ID instead of `EdgeDesc`, which removes the worst descriptor-stability issue from the previous design.
-- `clear()` now resets graph structure, node attributes, edge attributes, and internal edge ID state together.
-- `remove_edge()` and `remove_node()` now explicitly clean associated edge metadata before removing graph structure.
-- `neighbors()` remains successor-based for directed graphs, which matches `DiGraph.neighbors()` semantics in NetworkX.
-- `successors()` and `predecessors()` now exist explicitly to make directed traversal intent clearer in user code.
-- The algorithm wrappers are still intentionally thin. Basic missing wrapper names have been filled in, and `shortest_path()` now distinguishes unweighted and weighted calls, but the wider NetworkX option surface is still not implemented.
-- `std::any` still gives flexible attributes, but attribute access is now less fragile because explicit checked getters and optional-return helpers exist alongside the proxy syntax.
-- `maximum_flow()` currently expects edge capacities to live in the edge attribute dictionary under `"capacity"` and returns both total flow value and per-edge flow on original edges.
-- `minimum_cut()` uses the same `"capacity"` convention and returns the cut value, the reachable/non-reachable partition, and the cut edges in the original graph.
-- min-cost max-flow wrappers currently expect capacities in `"capacity"` and costs in the built-in edge weight property.
-- GCC-specific false-positive warnings from Boost min-cost-flow internals are now contained locally in the header so normal project builds stay readable.
-
-## Internal Invariants
-
-The current header depends on a few invariants staying true:
-
-- `id_to_bgl` and `bgl_to_id` must always describe the same graph state
-- every algorithm wrapper assumes those mappings are valid before it calls BGL
-- any operation that changes vertex indices must rebuild the forward mapping immediately
-- user-facing containers should always return `NodeID` values, never raw BGL descriptors
-
-
----
-
----
-
-
-## Prerequisites & Installation
-
-**nxpp** is a pure header-only library, which means there are absolutely no `.cpp` object files to compile or link. You simply `#include "nxpp.hpp"` in your architecture.
-
-However, `nxpp` is a highly-optimized structural wrapper and strictly requires the **Boost Graph Library (BGL)** to function.
-
-**Ubuntu / Debian:**
 ```bash
 sudo apt-get install libboost-graph-dev
 ```
 
-**macOS (Homebrew):**
+**macOS (Homebrew)**
+
 ```bash
 brew install boost
 ```
 
-**Windows (vcpkg):**
+**Windows (vcpkg)**
+
 ```bash
 vcpkg install boost-graph
 ```
 
-*Note: The `nxpp.hpp` header inherently utilizes a compile-time safety check (`__has_include`). If Boost is missing or incorrectly linked in your standard include directories, the C++ compiler will safely halt and boldly alert you immediately.*
+The header performs a compile-time include check and fails early if BGL headers are missing.
 
 ---
 
-## Graph Topologies & Theory
+## Quick start
 
-In mathematical graph theory, the semantics of connections dictate the solution space. `nxpp` faithfully implements and maps the 4 core architectures defining NetworkX:
-
-| `nxpp` Class | Python Equivalent | Graph Theory Description |
-| :--- | :--- | :--- |
-| **`nxpp::Graph`** | `nx.Graph` | **Undirected Simple Graph**: Edges have no direction and can be traversed both ways ($A \leftrightarrow B$). There is *at most one strict edge* between any pair of nodes. |
-| **`nxpp::DiGraph`** | `nx.DiGraph` | **Directed Simple Graph**: Edges act as rigid directional vectors with a semantic origin and a specific destination ($A \rightarrow B$). |
-| **`nxpp::MultiGraph`** | `nx.MultiGraph` | **Undirected Multigraph**: The container mathematically permits **parallel edges** between the exact same two nodes. |
-| **`nxpp::MultiDiGraph`** | `nx.MultiDiGraph` | **Directed Multigraph**: Parallel edges equipped with a rigorous directional vector. |
-
----
-
-## Python vs C++: Parity and Operations
-
-The lifeblood of **nxpp** is its **API Proxy Parity** and heavy utilization of **C++ Generic Templates**.
-Structural node identifiers (`NodeID`) are not opaque RAM memory indices (as traditionally enforced by C and BGL), but can dynamically take the visible form of any software entity that is *Hashable* (e.g., `std::string`, `int`, custom Classes), mimicking precisely the behavior of Python dictionaries.
-
-### The Same Algorithm, in Two Languages
-
-A practical example of the intense code overlap:
-
-#### 1. Prototyping in NetworkX (Python)
-```python
-import networkx as nx
-
-# Directed Graph Instantiation (Default: string-based nodes)
-G = nx.DiGraph()
-
-# Organic edge creation
-G.add_edge("Milan", "Rome", weight=5.0)
-G.add_edge("Rome", "Naples", weight=2.5)
-
-# Proxy Dictionary: O(1) constant time edge Read/Write
-G["Rome"]["Naples"]["weight"] = 3.0
-
-# Neighbor iteration
-print("Neighbors of Rome:")
-for node in G.neighbors("Rome"):
-    print("-", node)
-
-# Shortest Pathfinding Algorithm
-path = nx.dijkstra_path(G, "Milan", "Naples", weight="weight")
-```
-
-#### 2. The Exact Network in NXPP (C++20)
 ```cpp
-#include "nxpp.hpp"
+#include "include/nxpp.hpp"
+#include <string>
 
-// Directed Graph Instantiation. (Under the hood it's actually Graph<std::string, double, true>)
-auto G = nxpp::DiGraph();
+int main() {
+    auto G = nxpp::DiGraph();
 
-// Organic edge creation (nxpp automatically generates BGL mappings seamlessly)
-G.add_edge("Milan", "Rome", 5.0);
-G.add_edge("Rome", "Naples", 2.5);
+    G.add_edge("Milan", "Rome", 5.0);
+    G.add_edge("Rome", "Naples", 2.5);
 
-// C++ Proxy Dictionary: Magical overload of operator[][] mimicking Python in O(1) time
-G["Rome"]["Naples"] = 3.0;
+    G.node("Rome")["population"] = 2800000;
+    G["Rome"]["Naples"]["company"] = std::string("Trenitalia");
 
-// Python-like variadic logger macro printing cleanly to console
-nxpp::print("Neighbors of Rome:");
-for (const auto& node : G.neighbors("Rome")) {
-    nxpp::print("-", node);
+    auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
+    auto preds = G.predecessors("Naples");
+    auto company = G.get_edge_attr<std::string>("Rome", "Naples", "company");
+
+    return 0;
 }
-
-// Shortest Pathfinding Algorithm
-auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
-
-// Topological Generators (Phase 3)
-auto K5 = nxpp::complete_graph(5); // Returns Graph<int> by default
-auto P4 = nxpp::path_graph<nxpp::DiGraph>(4); // Path 0->1->2->3 as DiGraph
-
-// Centrality (Phase 5 kickoff)
-auto centrality = nxpp::degree_centrality(K5);
-
-// Custom Node/Edge Attributes (std::any)
-G.node("Rome")["population"] = 2800000;
-G["Rome"]["Naples"]["km"] = 220;
-int pop = G.node("Rome")["population"];
 ```
----
-
-### Public Type Aliases
-
-To keep snippets and user code compact, `nxpp` exposes public aliases for common graph shapes:
-
-- `GraphInt` for `Graph<int>`
-- `GraphStr` for `Graph<std::string>`
-- `DiGraphInt` for `Graph<int, double, true>`
-- `DiGraph` for `Graph<std::string, double, true>`
-- `MultiGraphInt`, `MultiDiGraphInt`, `MultiGraph`, and `MultiDiGraph` for the multigraph variants
-
-
-
 
 ---
 
+## Internal model in one minute
 
-### Critical Under-the-Hood Differences
+`nxpp` keeps two synchronized structures:
 
-While perfectly emulating NetworkX—such as reproducing built-in node destruction APIs (`clear()`, `remove_node(u)`, `remove_edge(u,v)`) by dynamically maneuvering BGL fragments deep in memory via a smart algorithmic *O(1) memory-swap* swap—migrating to a statically typed systems language undeniably introduces structural differences to prevent segmentation faults:
+- `id_to_bgl`: `NodeID -> vertex_descriptor`
+- `bgl_to_id`: `vertex_descriptor -> NodeID`
 
-1. **Strong Type Safety Constraints**: 
-   In interpreted Python, a careless engineer might insert an integer into a graph layout, and subsequently assign an arbitrary floating-point edge mixed with textual boolean comparisons (`G.add_node(1); G.add_node("A");`). 
-   In **nxpp**, the node identifier type is securely locked down by the compiler Template directly on line one. If you compile an `nxpp::DiGraph` (or explicitly declare `nxpp::Graph<std::string>`), the *Hash* Map keys will strictly resolve to `std::string`. Zero structural ambiguity translates to incredible runtime stability and mathematically non-existent debug tracking.
+This gives the library a user-facing API based on `std::string`, `int`, or other hashable node IDs while still running algorithms on a normal BGL graph internally.
 
-2. **Custom Attributes via `std::any`**:
-   NetworkX is famous for its "attribute dictionaries" on nodes and edges.
-   **nxpp** implements this same flexibility using `std::any`. You can store strings, integers, or even custom structs directly inside `G.node(u)["key"]` or `G[u][v]["key"]`. Retrieval is type-safe via implicit or explicit casting, providing Python-like dynamism with C++ type integrity.
+### Important consequence
 
-3. **Solid Data Structures (Vectors) vs Lazy Generators (Python Yield)**:
-   In Python, commands corresponding to `edges()`, `nodes()` or `nx.bfs_edges` exclusively spit out *Lazy Generators* sequentially to compensate for horrendous dynamic execution times and stave off garbage collector memory exhaustion limits.
-   Conversely, in `nxpp`, BGL iterative methods directly graze precompiled L1-L2 hardware silicon array caches. Therefore, it is literally orders of magnitude faster to return completely compact, contiguous RAW structural blocks outright (`std::vector<NodeID>`), allowing highly hyper-performant iteration blocks and calculations without risking the corruption or stalling of the precompiled processor pipeline mechanisms.
+The current backend uses `boost::adjacency_list` with `boost::vecS` vertex storage.
+That choice is fast and convenient for many operations, but it has a crucial side effect:
 
-### Snippet Layout
+> when a vertex is removed, later vertex descriptors shift.
 
-The `snippet/` tree is now organized as a three-way reference set per algorithm:
+So `remove_node()` is not a trivial wrapper. In `nxpp`, it also performs:
 
-- `*.cpp`: original Boost Graph Library example
-- `*.py`: matching `networkx` translation
-- `*_nxpp.cpp`: matching C++ version built on top of `include/nxpp.hpp`
+- removal of incident edge metadata
+- node property cleanup
+- `bgl_to_id` erase/shift
+- full rebuild of the `id_to_bgl` map for shifted vertices
 
-The intent is that all three variants produce the same observable result for the same example. Python runs should use the repo virtualenv (`.venv/bin/python -B`) so `networkx` is available and no fresh `__pycache__` files are emitted during checks.
+This is one of the biggest reasons why the complexity of a public `nxpp` function can differ from the “pure algorithm” you might expect from a textbook description.
 
-A small shell harness now lives at `scripts/test_snippets.sh`.
-At the moment it covers `2sat`, `bellman_ford`, `bfs`, and `cc`, compiling the Boost and nxpp C++ snippets, running the Python translation, measuring compile/run times, and writing a live report both to the terminal and to a timestamped log file under `logs/`.
-To keep the report readable, the script currently compiles the non-nxpp reference snippets with warnings silenced, while nxpp snippet builds still use the normal warning set.
+---
 
-Current snippet progress checkpoint:
+## Complexity model used in this README
 
-- reviewed and cleaned through `2sat`, `bellman_ford`, `bfs`, and `cc`
-- current harness coverage also stops at `cc`
-- the next snippet planned for cleanup/alignment is `dag_sp`
+The tables below use these conventions:
 
-For traversal and shortest-path examples, `nxpp` now supports both styles:
+- `V` = number of vertices
+- `E` = number of edges
+- `deg(u)` = degree / out-degree relevant to `u`
+- unordered-map lookups are treated as **average-case O(1)**
+- vector growth is treated as **amortized O(1)** per push
+- materializing a returned container is counted in the complexity
+- destructive cleanup work done by `nxpp` is counted
 
-- Boost-like visitor-object style for event-driven snippets:
-  `breadth_first_search(G, source, visitor)` and `depth_first_search(G, source, visitor)`
-- NetworkX-like result style for data-driven snippets:
-  `bfs_successors(G, source)`, `dfs_predecessors(G, source)`, `dfs_successors(G, source)`, `single_source_dijkstra(G, source)`, `single_source_bellman_ford(G, source)`, and `single_source_dag_shortest_paths(G, source)`
+These are **practical complexity notes**, not formal proofs. Some BGL primitives depend on storage selectors and can vary in constant factors.
 
-The single-source shortest-path helpers return distances, predecessors, and full reconstructed paths so snippets can stay close to the corresponding NetworkX examples without rebuilding parent maps by hand.
-For visitor-style traversals, `nxpp` now provides a single generic base class:
-`default_graph_visitor<GraphWrapper>`.
-It exposes no-op `examine_vertex`, `tree_edge`, and `back_edge` hooks, so user code can derive once and override only the callbacks relevant to BFS or DFS.
+---
 
-For component algorithms, `nxpp` now supports both grouped and mapped results:
+## Public graph types
 
-- `connected_components(G)` / `strongly_connected_components(G)` return vectors of groups
-- `connected_component_map(G)` / `strongly_connected_component_map(G)` return `node -> component_id` maps when that form is more convenient for snippets or diagnostics
+| Type | Meaning |
+|---|---|
+| `nxpp::Graph<NodeID, EdgeWeight, false, false>` | Undirected simple graph |
+| `nxpp::Graph<NodeID, EdgeWeight, true, false>` | Directed simple graph |
+| `nxpp::Graph<NodeID, EdgeWeight, false, true>` | Undirected multigraph |
+| `nxpp::Graph<NodeID, EdgeWeight, true, true>` | Directed multigraph |
 
-These mapped results use a small `nxpp` wrapper so read access works naturally with either `result[key]` or `result.at(key)`, even when the map object itself is `const`.
+### Common aliases
+
+| Alias | Expands to |
+|---|---|
+| `GraphInt` | `Graph<int>` |
+| `GraphStr` | `Graph<std::string>` |
+| `DiGraphInt` | `Graph<int, double, true>` |
+| `DiGraph` | `Graph<std::string, double, true>` |
+| `MultiGraphInt` | `Graph<int, double, false, true>` |
+| `MultiDiGraphInt` | `Graph<int, double, true, true>` |
+| `MultiGraph` | `Graph<std::string, double, false, true>` |
+| `MultiDiGraph` | `Graph<std::string, double, true, true>` |
+
+---
+
+## Core graph API reference
+
+### Construction, mutation, inspection
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `Graph()` | — | graph object | `O(1)` | Creates an empty graph wrapper and initializes internal property maps. | `nxpp::GraphInt G;` |
+| `add_node` | `(const NodeID& id)` | `void` | avg `O(1)` | Inserts the node if absent and updates the ID/descriptor translation layer. | `G.add_node(42);` |
+| `add_nodes_from` | `(const std::vector<NodeID>& nodes)` | `void` | avg `O(k)` | Inserts `k` nodes by repeatedly calling `add_node`. | `G.add_nodes_from({1,2,3});` |
+| `has_node` | `(const NodeID& u)` | `bool` | avg `O(1)` | Checks if a node ID is present in the graph. | `if (G.has_node(1)) {}` |
+| `add_edge` | `(u, v, w = 1.0)` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` | Creates missing endpoints automatically. In simple graphs it overwrites the existing edge weight if `(u,v)` already exists. In multigraphs it allows parallel edges. | `G.add_edge(1, 2, 3.5);` |
+| `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with explicit weights. | `G.add_edges_from({{1,2,2.0},{2,3,4.0}});` |
+| `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with default weight `1.0`. | `G.add_edges_from({{1,2},{2,3}});` |
+| `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge between `u` and `v` exists. | `if (G.has_edge("A","B")) {}` |
+| `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight stored in the BGL edge property. | `auto w = G.get_edge_weight(1,2);` |
+| `nodes` | `()` | `std::vector<NodeID>` | `O(V)` | Materializes all node IDs into a vector. | `auto ns = G.nodes();` |
+| `edges` | `()` | `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>` | `O(E)` | Materializes all edges into a vector of `(u,v,weight)`. | `auto es = G.edges();` |
+| `neighbors` | `(u)` | `std::vector<NodeID>` | `O(deg(u))` | Returns the out-neighbors of `u`; in directed graphs this matches successor semantics. | `auto ns = G.neighbors("A");` |
+| `successors` | `(u)` | `std::vector<NodeID>` | `O(out_deg(u))` | Explicit directed-style successor helper. For undirected graphs it behaves like `neighbors`. | `auto succ = G.successors("A");` |
+| `predecessors` | `(u)` | `std::vector<NodeID>` | directed: `O(in_deg(u))`; undirected: `O(deg(u))` | Returns predecessor IDs in directed graphs. | `auto pred = G.predecessors("B");` |
+| `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying edge removal | Removes the edge and clears associated edge metadata tracked by `nxpp`. | `G.remove_edge(1,2);` |
+| `remove_node` | `(u)` | `void` | **`O(V + E)`** in practice | Removes the node, clears incident metadata, erases the vertex from the `vecS` graph, then rebuilds shifted descriptor mappings. | `G.remove_node("Rome");` |
+| `clear` | `()` | `void` | `O(V + E)` | Resets graph structure, translation maps, node attributes, edge attributes, and edge-ID state. | `G.clear();` |
+| `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns a proxy for `G.node(u)["key"]` attribute access; creates the node if absent. | `G.node("A")["x"] = 7;` |
+| `operator[]` | `(u)` | `NodeProxy` | avg `O(1)` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`; creates `u` if absent. | `G["A"]["B"] = 2.0;` |
+
+---
+
+## Attribute API reference
+
+Node and edge attributes are stored separately from the BGL graph using `std::any`.
+
+### Checked helpers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `has_node_attr` | `(u, key)` | `bool` | avg `O(1)` | Checks whether node `u` has attribute `key`. | `G.has_node_attr("A", "color")` |
+| `has_edge_attr` | `(u, v, key)` | `bool` | avg `O(1 + deg(u))` | Checks whether edge `(u,v)` has attribute `key`. | `G.has_edge_attr("A","B","capacity")` |
+| `get_node_attr<T>` | `(u, key)` | `T` | avg `O(1)` | Returns node attribute `key` with checked `std::any_cast`. Throws if missing or wrong type. | `int pop = G.get_node_attr<int>("Rome", "population");` |
+| `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. Throws if missing or wrong type. | `auto c = G.get_edge_attr<std::string>("A","B","company");` |
+| `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | avg `O(1)` | Safer optional-return node attribute lookup. | `auto x = G.try_get_node_attr<int>(1, "rank");` |
+| `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safer optional-return edge attribute lookup. | `auto cap = G.try_get_edge_attr<long>(0,1,"capacity");` |
+
+### Proxy syntax
+
+| Syntax | Meaning |
+|---|---|
+| `G[u][v] = w;` | set built-in edge weight |
+| `auto w = (double)G[u][v];` | read built-in edge weight through proxy conversion |
+| `G[u][v]["key"] = value;` | set an edge attribute |
+| `auto x = (T)G[u][v]["key"];` | read an edge attribute through proxy conversion |
+| `G.node(u)["key"] = value;` | set a node attribute |
+| `auto x = (T)G.node(u)["key"];` | read a node attribute through proxy conversion |
+
+### Recommendation
+
+Proxy syntax is convenient for write-heavy code and demos.
+For production-style reads, prefer:
+
+- `has_*_attr`
+- `get_*_attr<T>`
+- `try_get_*_attr<T>`
+
+because they make missing keys and type expectations much clearer.
+
+---
+
+## Traversal API reference
+
+### Edge/tree style helpers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `bfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs BFS and returns discovered tree edges as `(u,v)` pairs. | `auto es = nxpp::bfs_edges(G, 0);` |
+| `bfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the BFS tree rooted at `start`. | `auto T = nxpp::bfs_tree(G, 0);` |
+| `dfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs DFS and returns DFS tree edges. | `auto es = nxpp::dfs_edges(G, 0);` |
+| `dfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the DFS tree rooted at `start`. | `auto T = nxpp::dfs_tree(G, 0);` |
+| `bfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups BFS tree edges by parent node. | `auto s = nxpp::bfs_successors(G, 0);` |
+| `dfs_predecessors` | `(G, start)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns DFS predecessor map. | `auto p = nxpp::dfs_predecessors(G, 0);` |
+| `dfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups DFS tree edges by parent node. | `auto s = nxpp::dfs_successors(G, 0);` |
+
+### Visitor-style helpers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `breadth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object BFS entry point closer to a BGL usage style while still exposing user-facing node IDs. | `nxpp::breadth_first_search(G, 0, vis);` |
+| `depth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point closer to a BGL usage style. | `nxpp::depth_first_search(G, 0, vis);` |
+| `bfs_visit` | `(G, start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style BFS. | `nxpp::bfs_visit(G, 0, on_v, on_e);` |
+| `dfs_visit` | `(G, start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style DFS. | `nxpp::dfs_visit(G, 0, on_t, on_b);` |
+| `default_graph_visitor<GraphWrapper>` | template base class | visitor base | — | No-op base visitor exposing hooks such as `examine_vertex`, `tree_edge`, and `back_edge`. | `struct V : nxpp::default_graph_visitor<nxpp::GraphInt> {};` |
+
+---
+
+## Shortest-path API reference
+
+### Source-target path helpers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `shortest_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(V + E)` | Unweighted shortest path by edge count. | `auto p = nxpp::shortest_path(G, 0, 3);` |
+| `shortest_path_length` | `(G, source, target)` | `double` | `O(V + E)` | Unweighted shortest-path distance in edge count. | `auto d = nxpp::shortest_path_length(G, 0, 3);` |
+| `shortest_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Weighted shortest path via Dijkstra using the built-in edge weight. | `auto p = nxpp::shortest_path(G, 0, 3, "weight");` |
+| `shortest_path_length` | `(G, source, target, "weight")` | `double` | `O((V + E) log V)` | Weighted shortest-path distance using the built-in edge weight. | `auto d = nxpp::shortest_path_length(G, 0, 3, "weight");` |
+| `dijkstra_path` | `(G, source, target)` | `std::vector<NodeID>` | `O((V + E) log V)` | Direct Dijkstra path wrapper. | `auto p = nxpp::dijkstra_path(G, 0, 3);` |
+| `dijkstra_path_length` | `(G, source, target)` | `double` | `O((V + E) log V)` | Direct Dijkstra distance wrapper. | `auto d = nxpp::dijkstra_path_length(G, 0, 3);` |
+| `bellman_ford_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(VE)` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = nxpp::bellman_ford_path(G, 0, 3);` |
+| `bellman_ford_path_length` | `(G, source, target)` | `double` | `O(VE + L)` | Bellman-Ford distance wrapper; `L` is reconstructed path length for the final accumulation pass. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3);` |
+
+### Single-source helpers returning richer results
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `single_source_dijkstra` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O((V + E) log V + V)` | Returns distances, predecessors, and fully reconstructed paths. | `auto r = nxpp::single_source_dijkstra(G, 0);` |
+| `single_source_bellman_ford` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(VE + V + total_path_materialization)` | Bellman-Ford variant returning the richer result bundle. | `auto r = nxpp::single_source_bellman_ford(G, 0);` |
+| `dag_shortest_paths` | `(G, source)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | DAG shortest-path distances. | `auto d = nxpp::dag_shortest_paths(G, 0);` |
+| `single_source_dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = nxpp::single_source_dag_shortest_paths(G, 0);` |
+| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, double>>` | `O(V^3 + V^2)` | All-pairs shortest paths plus conversion from matrix form to NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
+
+---
+
+## Components, ordering, spanning, flows, and extras
+
+### Components and ordering
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Returns connected components as grouped node vectors. | `auto cc = nxpp::connected_components(G);` |
+| `connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id`, often easier than flattening grouped results. | `auto m = nxpp::connected_component_map(G);` |
+| `strongly_connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Returns strongly connected components as grouped node vectors. | `auto scc = nxpp::strongly_connected_components(G);` |
+| `strongly_connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> SCC id`. | `auto m = nxpp::strongly_connected_component_map(G);` |
+| `strongly_connected_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns a representative/root node for each vertex's SCC. | `auto r = nxpp::strongly_connected_component_roots(G);` |
+| `topological_sort` | `(G)` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = nxpp::topological_sort(G);` |
+
+### Spanning structures
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `kruskal_minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as `(u,v)` pairs. | `auto mst = nxpp::kruskal_minimum_spanning_tree(G);` |
+| `prim_minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map for the Prim tree rooted at `root`. | `auto p = nxpp::prim_minimum_spanning_tree(G, 0);` |
+
+### Flow and cut helpers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Builds an internal flow graph, reads capacities from edge attributes, and returns total flow plus per-edge flows. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
+| `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, reachable/non-reachable partition, and crossing edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
+| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns flow value, flow cost, and per-edge flows. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
+| `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
+
+### Generators, centrality, SAT
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `complete_graph` | `(n)` | `GraphType` | directed current implementation: `O(n^2)`; undirected current implementation: `O(n^2)` edge insertion attempts | Generates a complete graph using the chosen graph type template. | `auto K5 = nxpp::complete_graph(5);` |
+| `path_graph` | `(n)` | `GraphType` | `O(n)` | Generates a path graph `0-1-...-(n-1)` (or directed path if `GraphType` is directed). | `auto P4 = nxpp::path_graph(4);` |
+| `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | `O(n^2)` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
+| `degree_centrality` | `(G)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = nxpp::degree_centrality(G);` |
+| `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | `O(V + E)` on the implication graph | Convenience 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |
+
+---
+
+## `nxpp` utilities that are not just straight NetworkX/BGL ports
+
+One of the useful directions of the project is that it already contains some helpers whose purpose is not strict parity, but **better ergonomics in C++**.
+
+### Notable examples
+
+| Utility | Why it is useful |
+|---|---|
+| `successors()` / `predecessors()` | Makes directed traversal intent explicit, even if `neighbors()` already exists. |
+| `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>` | Safer than relying only on proxy conversions backed by `std::any`. |
+| `connected_component_map()` / `strongly_connected_component_map()` | Often easier to consume in C++ than grouped vectors. |
+| `single_source_dijkstra()` / `single_source_bellman_ford()` / `single_source_dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
+| `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult` | Wrap raw algorithm results into structures that are easier to inspect and use directly. |
+| `default_graph_visitor<GraphWrapper>` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |
+| `lookup_map<Key, Value>` | Keeps a convenient `result[key]` style even in const-read contexts for some mapped results. |
+
+This is a good direction for the library: use BGL internally when it makes sense, but expose **results that are easier to work with in real C++ code**.
+
+---
+
+## Differences from NetworkX and from raw BGL
+
+### Compared with NetworkX
+
+- `nxpp` is **statically typed**: node ID type is fixed by the graph type.
+- returned values are usually **materialized containers**, not lazy iterators
+- weighted path dispatch is currently intentionally narrow: the weighted form is tied to the built-in `weight` edge property
+- node and edge attributes are stored with `std::any`, so reads are runtime-checked rather than dynamically duck-typed
+- some helper APIs intentionally go beyond NetworkX because they are more convenient from C++
+
+### Compared with raw BGL
+
+- `nxpp` hides descriptors behind user-facing node IDs
+- `nxpp` adds attribute storage outside the base BGL graph
+- `nxpp` returns higher-level containers rather than forcing users to wire property maps manually each time
+- destructive operations pay extra bookkeeping cost because `nxpp` must keep its translation structures valid
+
+---
+
+## Current caveats and design trade-offs
+
+The current design is already useful, but a good README should be explicit about the trade-offs.
+
+### 1. Multigraph semantics need careful documentation
+
+The API shape `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` is naturally clear for simple graphs.
+For multigraphs, however, `(u, v)` no longer uniquely identifies one edge.
+
+That means the README should explicitly explain what the intended semantics are for:
+
+- reading the “edge weight” of parallel edges
+- reading an attribute from one of many parallel edges
+- removing one parallel edge vs all parallel edges
+
+At the moment, this is the area that most deserves precise documentation and possibly future API refinement.
+
+### 2. `remove_node()` is intentionally not cheap
+
+Because of the `vecS` backend and the ID/descriptor mapping, `remove_node()` should be treated as an **O(V + E)** operation in practice, not as a cheap local edit.
+That is fine, but it must be clearly documented.
+
+### 3. `std::any` is ergonomic, but not free
+
+The attribute system is flexible and Python-like, but it comes with trade-offs:
+
+- runtime casts
+- runtime failures on mismatched types
+- more fragile large-scale usage if attribute keys/types are not disciplined
+
+### 4. The single-header approach keeps usage easy, but increases maintenance pressure
+
+A single `include/nxpp.hpp` is convenient for users and examples.
+But as the project grows, it also means:
+
+- larger compile units
+- harder navigation
+- higher risk of documentation drift if status files and README are not updated together
+
+---
+
+## Snippets and local verification
+
+The repository also includes a snippet-based workflow and a small harness script:
+
+- `snippet/` contains local reference examples
+- `scripts/test_snippets.sh` compiles/runs selected cases and logs timings
+- the project markdown files (`TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `SESSION.md`) are useful to track scope, status, and cleanup direction
+
+That is a healthy sign for the project: there is a visible effort not just to write wrappers, but to compare behavior, keep examples aligned, and make regressions easier to notice.
+
+---
+
+## Suggested roadmap for documentation quality
+
+A stronger README should keep the following order:
+
+1. one-paragraph description
+2. installation and 30-second quick start
+3. honest scope statement: “NetworkX-inspired, not full parity”
+4. graph types and core API
+5. complexity table for **public functions**
+6. algorithm and utility reference tables
+7. explicit caveats
+8. snippet/testing notes
+
+That structure makes the project easier to trust because users can immediately see:
+
+- what exists
+- how to compile it
+- how expensive public operations are
+- where the API intentionally differs from NetworkX or BGL
+- which helpers are extra ergonomics rather than strict ports
+
+---
+
+## Short assessment of the codebase beyond the README
+
+Leaving documentation aside, the project has several genuinely good signs.
+
+### Strong points
+
+- The **ID translation layer** is the right architectural move if the goal is “user IDs outside, BGL inside”.
+- The switch to **stable internal edge IDs** for edge metadata is a meaningful improvement; it avoids binding user-level attributes to fragile edge descriptors.
+- The library is starting to develop **its own useful C++ ergonomics** rather than only copying names from NetworkX.
+- The richer result types for paths, flows, and component maps are a good direction.
+- The snippet/test-harness mindset is healthy: it suggests the code is being shaped against concrete examples rather than only abstract plans.
+
+### Main risks
+
+- Documentation/status drift is currently too easy.
+- Multigraph semantics are the biggest conceptual weak point in the public API.
+- The single-header design will become harder to evolve if the surface keeps growing quickly.
+- Error handling is still mostly string-based `std::runtime_error`, which is acceptable for now but not very expressive.
