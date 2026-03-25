@@ -159,6 +159,12 @@
    - Reconciled the remaining output mismatches in the Python companions (`dfs`, `floyd_warshall`, `kruskal`, `ts`) so the three versions now agree on observable output.
    - Cleaned out generated `__pycache__` directories and added ignore rules so future snippet verification runs stay cleaner.
 
+21. **Boost-Style and NetworkX-Style APIs Expanded**:
+   - Added `bfs_visit()` and `dfs_visit()` so nxpp can express visitor-style traversal snippets more directly, instead of open-coding queue and recursion logic in the examples.
+   - Added `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()` for more result-oriented traversal usage closer to NetworkX conventions.
+   - Extended `single_source_dijkstra()`, `single_source_bellman_ford()`, and `single_source_dag_shortest_paths()` so they now expose distances, predecessors, and full reconstructed paths together.
+   - Simplified the nxpp BFS/DFS/shortest-path snippets to use these higher-level APIs while preserving output parity with the original Boost examples.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

@@ -284,3 +284,12 @@ The `snippet/` tree is now organized as a three-way reference set per algorithm:
 - `*_nxpp.cpp`: matching C++ version built on top of `include/nxpp.hpp`
 
 The intent is that all three variants produce the same observable result for the same example. Python runs should use the repo virtualenv (`.venv/bin/python -B`) so `networkx` is available and no fresh `__pycache__` files are emitted during checks.
+
+For traversal and shortest-path examples, `nxpp` now supports both styles:
+
+- Boost-like callback style for event-driven snippets:
+  `bfs_visit(G, source, on_vertex, on_tree_edge)` and `dfs_visit(G, source, on_tree_edge, on_back_edge)`
+- NetworkX-like result style for data-driven snippets:
+  `bfs_successors(G, source)`, `dfs_predecessors(G, source)`, `dfs_successors(G, source)`, `single_source_dijkstra(G, source)`, `single_source_bellman_ford(G, source)`, and `single_source_dag_shortest_paths(G, source)`
+
+The single-source shortest-path helpers return distances, predecessors, and full reconstructed paths so snippets can stay close to the corresponding NetworkX examples without rebuilding parent maps by hand.

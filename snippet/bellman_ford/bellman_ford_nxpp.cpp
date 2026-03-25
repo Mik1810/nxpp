@@ -1,7 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <vector>
-
 #include "../../include/nxpp.hpp"
 
 int main() {
@@ -15,15 +13,14 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
+    const auto result = nxpp::single_source_bellman_ford(G, 0);
     for (int i = 0; i < 5; ++i) {
         if (i == 0) {
             std::cout << "Distance to 0: 0 Parent: 0\n";
             continue;
         }
-        const auto path = nxpp::bellman_ford_path(G, 0, i);
-        const auto dist = nxpp::bellman_ford_path_length(G, 0, i);
-        std::cout << "Distance to " << i << ": " << static_cast<int>(dist)
-                  << " Parent: " << path[path.size() - 2] << "\n";
+        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
+                  << " Parent: " << result.predecessor.at(i) << "\n";
     }
 
     return EXIT_SUCCESS;

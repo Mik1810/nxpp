@@ -14,15 +14,14 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    const auto distances = nxpp::dijkstra_path_length(G, 0);
+    const auto result = nxpp::single_source_dijkstra(G, 0);
     for (int i = 0; i < 5; ++i) {
         if (i == 0) {
             std::cout << "Distance to 0: 0 Parent: 0\n";
             continue;
         }
-        const auto path = nxpp::dijkstra_path(G, 0, i);
-        std::cout << "Distance to " << i << ": " << static_cast<int>(distances.at(i))
-                  << " Parent: " << path[path.size() - 2] << "\n";
+        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
+                  << " Parent: " << result.predecessor.at(i) << "\n";
     }
 
     return EXIT_SUCCESS;

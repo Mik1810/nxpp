@@ -603,6 +603,13 @@ struct MinimumCutResult {
     std::vector<std::pair<NodeID, NodeID>> cut_edges;
 };
 
+template <typename NodeID>
+struct SingleSourceShortestPathResult {
+    std::unordered_map<NodeID, double> distance;
+    std::unordered_map<NodeID, NodeID> predecessor;
+    std::unordered_map<NodeID, std::vector<NodeID>> paths;
+};
+
 
 // Algorithms: Traversals
 
@@ -654,6 +661,60 @@ auto bfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& star
     return tree;
 }
 
+template <typename GraphWrapper>
+auto bfs_successors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(start)) {
+        throw std::runtime_error("Start node not found in graph");
+    }
+
+    std::unordered_map<NodeID, std::vector<NodeID>> result;
+    for (const auto& [u, v] : bfs_edges(G, start)) {
+        result[u].push_back(v);
+    }
+    return result;
+}
+
+template <typename NodeID, typename Edge, typename OnVertex, typename OnTreeEdge>
+class GenericBfsVisitVisitor : public boost::default_bfs_visitor {
+public:
+    GenericBfsVisitVisitor(const std::vector<NodeID>& bgl_to_id, OnVertex& on_vertex, OnTreeEdge& on_tree_edge)
+        : bgl_to_id(bgl_to_id), on_vertex(on_vertex), on_tree_edge(on_tree_edge) {}
+
+    template <typename G>
+    void examine_vertex(typename boost::graph_traits<G>::vertex_descriptor u, const G&) const {
+        on_vertex(bgl_to_id[u]);
+    }
+
+    template <typename G>
+    void tree_edge(Edge e, const G& g) const {
+        on_tree_edge(bgl_to_id[boost::source(e, g)], bgl_to_id[boost::target(e, g)]);
+    }
+
+private:
+    const std::vector<NodeID>& bgl_to_id;
+    OnVertex& on_vertex;
+    OnTreeEdge& on_tree_edge;
+};
+
+template <typename GraphWrapper, typename OnVertex, typename OnTreeEdge>
+void bfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using GraphType = typename GraphWrapper::GraphType;
+    using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
+
+    if (!G.has_node(start)) throw std::runtime_error("Start node not found in graph");
+    auto start_bgl = G.get_id_to_bgl_map().at(start);
+
+    auto on_vertex_fn = std::forward<OnVertex>(on_vertex);
+    auto on_tree_edge_fn = std::forward<OnTreeEdge>(on_tree_edge);
+    GenericBfsVisitVisitor<NodeID, EdgeType, decltype(on_vertex_fn), decltype(on_tree_edge_fn)> vis(
+        G.get_bgl_to_id_map(), on_vertex_fn, on_tree_edge_fn
+    );
+    boost::breadth_first_search(G.get_impl(), start_bgl, boost::visitor(vis));
+}
+
 template <typename NodeID, typename Edge>
 class GenericDfsEdgeVisitor : public boost::default_dfs_visitor {
 public:
@@ -700,6 +761,106 @@ auto dfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& star
         tree.add_edge(u, v);
     }
     return tree;
+}
+
+template <typename GraphWrapper>
+auto dfs_predecessors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(start)) {
+        throw std::runtime_error("Start node not found in graph");
+    }
+
+    std::unordered_map<NodeID, NodeID> result;
+    for (const auto& [u, v] : dfs_edges(G, start)) {
+        result[v] = u;
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto dfs_successors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(start)) {
+        throw std::runtime_error("Start node not found in graph");
+    }
+
+    std::unordered_map<NodeID, std::vector<NodeID>> result;
+    for (const auto& [u, v] : dfs_edges(G, start)) {
+        result[u].push_back(v);
+    }
+    return result;
+}
+
+template <typename NodeID, typename VertexDesc>
+std::unordered_map<NodeID, std::vector<NodeID>> build_single_source_paths(
+    const std::vector<NodeID>& bgl_to_id,
+    const std::vector<double>& dist,
+    const std::vector<VertexDesc>& pred
+) {
+    std::unordered_map<NodeID, std::vector<NodeID>> paths;
+    const auto unreachable = std::numeric_limits<double>::max();
+
+    for (size_t i = 0; i < bgl_to_id.size(); ++i) {
+        const NodeID target_id = bgl_to_id[i];
+        if (dist[i] == unreachable) {
+            continue;
+        }
+
+        std::vector<NodeID> path;
+        VertexDesc current = static_cast<VertexDesc>(i);
+        while (true) {
+            path.push_back(bgl_to_id[current]);
+            if (pred[current] == current) {
+                break;
+            }
+            current = pred[current];
+        }
+        std::reverse(path.begin(), path.end());
+        paths[target_id] = std::move(path);
+    }
+
+    return paths;
+}
+
+template <typename NodeID, typename Edge, typename OnTreeEdge, typename OnBackEdge>
+class GenericDfsVisitVisitor : public boost::default_dfs_visitor {
+public:
+    GenericDfsVisitVisitor(const std::vector<NodeID>& bgl_to_id, OnTreeEdge& on_tree_edge, OnBackEdge& on_back_edge)
+        : bgl_to_id(bgl_to_id), on_tree_edge(on_tree_edge), on_back_edge(on_back_edge) {}
+
+    template <typename G>
+    void tree_edge(Edge e, const G& g) const {
+        on_tree_edge(bgl_to_id[boost::source(e, g)], bgl_to_id[boost::target(e, g)]);
+    }
+
+    template <typename G>
+    void back_edge(Edge e, const G& g) const {
+        on_back_edge(bgl_to_id[boost::source(e, g)], bgl_to_id[boost::target(e, g)]);
+    }
+
+private:
+    const std::vector<NodeID>& bgl_to_id;
+    OnTreeEdge& on_tree_edge;
+    OnBackEdge& on_back_edge;
+};
+
+template <typename GraphWrapper, typename OnTreeEdge, typename OnBackEdge>
+void dfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using GraphType = typename GraphWrapper::GraphType;
+    using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
+
+    if (!G.has_node(start)) throw std::runtime_error("Start node not found in graph");
+    auto start_bgl = G.get_id_to_bgl_map().at(start);
+
+    auto on_tree_edge_fn = std::forward<OnTreeEdge>(on_tree_edge);
+    auto on_back_edge_fn = std::forward<OnBackEdge>(on_back_edge);
+    GenericDfsVisitVisitor<NodeID, EdgeType, decltype(on_tree_edge_fn), decltype(on_back_edge_fn)> vis(
+        G.get_bgl_to_id_map(), on_tree_edge_fn, on_back_edge_fn
+    );
+    boost::depth_first_search(G.get_impl(), boost::root_vertex(start_bgl).visitor(vis));
 }
 
 
@@ -804,6 +965,43 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 }
 
 template <typename GraphWrapper>
+auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source node not found in graph.");
+    }
+
+    const VertexDesc source = id_to_bgl.at(source_id);
+    const size_t n = boost::num_vertices(g);
+    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<VertexDesc> pred(n);
+    for (size_t i = 0; i < n; ++i) {
+        pred[i] = static_cast<VertexDesc>(i);
+    }
+
+    boost::dijkstra_shortest_paths(
+        g,
+        source,
+        boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+            .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
+    );
+
+    SingleSourceShortestPathResult<NodeID> result;
+    for (size_t i = 0; i < n; ++i) {
+        result.distance[bgl_to_id[i]] = dist[i];
+        result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
+    }
+    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
+    return result;
+}
+
+template <typename GraphWrapper>
 auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty()) {
         return shortest_path(G, source_id, target_id);
@@ -844,28 +1042,7 @@ double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::
 
 template <typename GraphWrapper>
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
-    using NodeID = typename GraphWrapper::NodeType;
-    using VertexDesc = typename GraphWrapper::VertexDesc;
-    auto& g = G.get_impl();
-    auto& id_to_bgl = G.get_id_to_bgl_map();
-    auto& bgl_to_id = G.get_bgl_to_id_map();
-
-    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source node not found in graph.");
-    }
-    VertexDesc source = id_to_bgl.at(source_id);
-
-    size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n);
-
-    boost::dijkstra_shortest_paths(g, source, 
-        boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g))));
-
-    std::unordered_map<NodeID, double> result;
-    for(size_t i = 0; i < n; ++i) {
-        result[bgl_to_id[i]] = dist[i];
-    }
-    return result;
+    return single_source_dijkstra(G, source_id).distance;
 }
 
 template <typename GraphWrapper>
@@ -938,6 +1115,50 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 }
 
 template <typename GraphWrapper>
+auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source node not found in graph.");
+    }
+
+    const VertexDesc source = id_to_bgl.at(source_id);
+    const size_t n = boost::num_vertices(g);
+    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<VertexDesc> pred(n);
+    for (size_t i = 0; i < n; ++i) {
+        pred[i] = static_cast<VertexDesc>(i);
+    }
+    dist[source] = 0.0;
+
+    const bool ok = boost::bellman_ford_shortest_paths(
+        g,
+        static_cast<int>(n),
+        boost::weight_map(boost::get(boost::edge_weight, g))
+            .distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+            .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
+            .root_vertex(source)
+    );
+
+    if (!ok) {
+        throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
+    }
+
+    SingleSourceShortestPathResult<NodeID> result;
+    for (size_t i = 0; i < n; ++i) {
+        result.distance[bgl_to_id[i]] = dist[i];
+        result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
+    }
+    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
+    return result;
+}
+
+template <typename GraphWrapper>
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return bellman_ford_path(G, source_id, target_id);
@@ -994,6 +1215,43 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
     for (size_t i = 0; i < n; ++i) {
         result[bgl_to_id[i]] = dist[i];
     }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source node not found in graph.");
+    }
+
+    const VertexDesc source = id_to_bgl.at(source_id);
+    const size_t n = boost::num_vertices(g);
+    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<VertexDesc> pred(n);
+    for (size_t i = 0; i < n; ++i) {
+        pred[i] = static_cast<VertexDesc>(i);
+    }
+
+    boost::dag_shortest_paths(
+        g,
+        source,
+        boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+            .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
+    );
+
+    SingleSourceShortestPathResult<NodeID> result;
+    for (size_t i = 0; i < n; ++i) {
+        result.distance[bgl_to_id[i]] = dist[i];
+        result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
+    }
+    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
     return result;
 }
 

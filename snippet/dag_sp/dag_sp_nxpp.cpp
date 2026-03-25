@@ -14,20 +14,19 @@ int main() {
     G.add_edge(2, 3, 1);
     G.add_edge(3, 4, 5);
 
-    const auto dist = nxpp::dag_shortest_paths(G, 0);
+    const auto result = nxpp::single_source_dag_shortest_paths(G, 0);
     for (int i = 0; i < 5; ++i) {
         if (i == 0) {
             std::cout << "Distance to 0: 0 Parent: 0\n";
             continue;
         }
-        if (dist.at(i) == std::numeric_limits<double>::max()) {
+        if (result.distance.at(i) == std::numeric_limits<double>::max()) {
             std::cout << "Distance to " << i << ": " << std::numeric_limits<int>::max()
                       << " Parent: " << i << "\n";
             continue;
         }
-        const auto path = nxpp::dijkstra_path(G, 0, i);
-        std::cout << "Distance to " << i << ": " << static_cast<int>(dist.at(i))
-                  << " Parent: " << path[path.size() - 2] << "\n";
+        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
+                  << " Parent: " << result.predecessor.at(i) << "\n";
     }
 
     return EXIT_SUCCESS;
