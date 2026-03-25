@@ -251,11 +251,11 @@ void test_missing_algorithm_wrappers() {
 
     print("BFS tree edges:", bfsT.edges().size());
     print("DFS tree edges:", dfsT.edges().size());
-    print("Shortest path length:", sp.size());
+    print("Shortest path node count:", sp.size());
     print("Shortest path distance:", spl);
-    print("Weighted shortest path length:", weighted_sp.size());
+    print("Weighted shortest path node count:", weighted_sp.size());
     print("Weighted shortest path distance:", weighted_spl);
-    print("Bellman-Ford path length:", bfp.size());
+    print("Bellman-Ford path node count:", bfp.size());
     print("Bellman-Ford path distance:", bfpl, "\n");
 }
 

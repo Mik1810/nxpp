@@ -87,6 +87,8 @@ The proxy syntax is still available, but the header now also exposes explicit sa
 
 These helpers make attribute reads clearer and avoid relying exclusively on implicit proxy conversions.
 
+The proxy layer also provides explicit `const char*` overloads for chained `operator[]` usage, which helps editor tooling resolve expressions like `G["u"]["v"]["key"]` more reliably.
+
 ### Algorithms
 
 The algorithms in the header are wrappers around BGL. The current structure is:

@@ -132,6 +132,11 @@
    - Extended `main.cpp` with a small runtime exercise for the new flow and SCC-root helpers.
    - Updated `TODO.md`, `README.md`, and `ROADMAP.md` so the snippet-backed essentials list is now fully checked off.
 
+16. **Proxy API IntelliSense Fix**:
+   - Added explicit `const char*` overloads for proxy `operator[]` lookups on node and edge attribute access.
+   - This reduces editor-side ambiguity on chained expressions such as `G["u"]["v"]["key"]` and `G.node("u")["key"]`.
+   - Recompiled `main.cpp` successfully after the change.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

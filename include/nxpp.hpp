@@ -458,6 +458,10 @@ public:
         EdgeAttrProxy operator[](const std::string& key) {
             return {graph, u, v, key};
         }
+
+        EdgeAttrProxy operator[](const char* key) {
+            return {graph, u, v, std::string(key)};
+        }
     };
 
     struct NodeAttrProxy {
@@ -497,6 +501,10 @@ public:
         
         NodeAttrProxy operator[](const std::string& key) {
             return {graph, u, key};
+        }
+
+        NodeAttrProxy operator[](const char* key) {
+            return {graph, u, std::string(key)};
         }
     };
 
