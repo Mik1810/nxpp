@@ -12,6 +12,12 @@
 #include <boost/graph/bellman_ford_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/strong_components.hpp>
+#include <boost/graph/topological_sort.hpp>
+#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <boost/graph/prim_minimum_spanning_tree.hpp>
+#include <boost/graph/dag_shortest_paths.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/graph/edmonds_karp_max_flow.hpp>
 #include <unordered_map>
 #include <vector>
 #include <stdexcept>
@@ -353,6 +359,27 @@ public:
         return std::nullopt;
     }
 
+    double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
+        auto e = get_edge_desc(u, v);
+        auto edge_it = edge_properties.find(get_edge_id(e));
+        if (edge_it == edge_properties.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: key not found.");
+        }
+
+        const auto& value = attr_it->second;
+        if (const auto* vptr = std::any_cast<int>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<long>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<long long>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<float>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<double>(&value)) return *vptr;
+
+        throw std::runtime_error("Edge attribute lookup failed: stored value is not numeric.");
+    }
+
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -531,6 +558,12 @@ using MultiDiGraphInt = Graph<int, double, true, true>;
 using DiGraph = Graph<std::string, double, true>;
 using MultiGraph = Graph<std::string, double, false, true>;
 using MultiDiGraph = Graph<std::string, double, true, true>;
+
+template <typename NodeID>
+struct MaximumFlowResult {
+    long value = 0;
+    std::map<std::pair<NodeID, NodeID>, long> flow;
+};
 
 
 // Algorithms: Traversals
@@ -896,6 +929,56 @@ double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapp
     throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
 }
 
+template <typename GraphWrapper>
+auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& g = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Source node not found in graph.");
+    }
+
+    VertexDesc source = id_to_bgl.at(source_id);
+    const size_t n = boost::num_vertices(g);
+    std::vector<double> dist(n, std::numeric_limits<double>::max());
+
+    boost::dag_shortest_paths(
+        g,
+        source,
+        boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+    );
+
+    std::unordered_map<NodeID, double> result;
+    for (size_t i = 0; i < n; ++i) {
+        result[bgl_to_id[i]] = dist[i];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& g = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+    const size_t n = boost::num_vertices(g);
+
+    std::vector<std::vector<double>> matrix(n, std::vector<double>(n));
+    boost::floyd_warshall_all_pairs_shortest_paths(g, matrix);
+
+    std::unordered_map<NodeID, std::unordered_map<NodeID, double>> result;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            result[bgl_to_id[i]][bgl_to_id[j]] = matrix[i][j];
+        }
+    }
+    return result;
+}
+
 
 // Algorithms: Components
 
@@ -931,6 +1014,162 @@ auto strongly_connected_components(const GraphWrapper& G) {
         components[comp[i]].push_back(bgl_to_id[i]);
     }
     return components;
+}
+
+template <typename GraphWrapper>
+auto topological_sort(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    std::vector<typename GraphWrapper::VertexDesc> rev_order;
+    boost::topological_sort(G.get_impl(), std::back_inserter(rev_order));
+
+    std::vector<NodeID> order;
+    order.reserve(rev_order.size());
+    for (auto it = rev_order.rbegin(); it != rev_order.rend(); ++it) {
+        order.push_back(G.get_bgl_to_id_map()[*it]);
+    }
+    return order;
+}
+
+template <typename GraphWrapper>
+auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using EdgeDesc = typename GraphWrapper::EdgeDesc;
+
+    std::vector<EdgeDesc> mst_edges;
+    boost::kruskal_minimum_spanning_tree(G.get_impl(), std::back_inserter(mst_edges));
+
+    std::vector<std::pair<NodeID, NodeID>> result;
+    result.reserve(mst_edges.size());
+    const auto& impl = G.get_impl();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+    for (const auto& e : mst_edges) {
+        result.emplace_back(bgl_to_id[boost::source(e, impl)], bgl_to_id[boost::target(e, impl)]);
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
+    using NodeID = typename GraphWrapper::NodeType;
+    using VertexDesc = typename GraphWrapper::VertexDesc;
+
+    const auto& impl = G.get_impl();
+    const auto& id_to_bgl = G.get_id_to_bgl_map();
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+
+    if (id_to_bgl.find(root_id) == id_to_bgl.end()) {
+        throw std::runtime_error("Root node not found in graph.");
+    }
+
+    std::vector<VertexDesc> parent(boost::num_vertices(impl));
+    boost::prim_minimum_spanning_tree(
+        impl,
+        boost::make_iterator_property_map(parent.begin(), boost::get(boost::vertex_index, impl)),
+        boost::root_vertex(id_to_bgl.at(root_id))
+    );
+
+    std::unordered_map<NodeID, NodeID> result;
+    for (size_t i = 0; i < parent.size(); ++i) {
+        result[bgl_to_id[i]] = bgl_to_id[parent[i]];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_capacity_t,
+            long,
+            boost::property<
+                boost::edge_residual_capacity_t,
+                long,
+                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+            >
+        >
+    >;
+
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
+    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+
+    const auto nodes = G.nodes();
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(flow_graph);
+        node_to_index[nodes[i]] = i;
+    }
+
+    std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
+        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[rev] = 0;
+        reverse[e] = rev;
+        reverse[rev] = e;
+        original_edges[{u, v}] = e;
+    }
+
+    const long flow_value = boost::edmonds_karp_max_flow(
+        flow_graph,
+        node_to_index.at(source_id),
+        node_to_index.at(target_id)
+    );
+
+    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+
+    MaximumFlowResult<NodeID> result;
+    result.value = flow_value;
+    for (const auto& [key, edge_desc] : original_edges) {
+        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+    }
+    return result;
+}
+
+inline int to_2sat_vertex_id(int literal) {
+    return (literal > 0) ? (2 * literal - 2) : (-2 * literal - 1);
+}
+
+inline bool two_sat_satisfiable(int num_variables, const std::vector<std::pair<int, int>>& clauses) {
+    using SatGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
+
+    SatGraph g(2 * num_variables);
+    for (const auto& [x, y] : clauses) {
+        boost::add_edge(to_2sat_vertex_id(-x), to_2sat_vertex_id(y), g);
+        boost::add_edge(to_2sat_vertex_id(-y), to_2sat_vertex_id(x), g);
+    }
+
+    std::vector<int> comp(boost::num_vertices(g));
+    boost::strong_components(g, boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)));
+
+    for (int i = 1; i <= num_variables; ++i) {
+        if (comp[to_2sat_vertex_id(i)] == comp[to_2sat_vertex_id(-i)]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 template <typename GraphWrapper>

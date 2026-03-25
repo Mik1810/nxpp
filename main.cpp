@@ -259,6 +259,59 @@ void test_missing_algorithm_wrappers() {
     print("Bellman-Ford path distance:", bfpl, "\n");
 }
 
+void test_snippet_backed_essentials() {
+    print("NXPP (C++) - Snippet-Backed Essentials Test\n");
+
+    DiGraphInt dag;
+    dag.add_edges_from({
+        {5, 2}, {5, 0}, {4, 0}, {4, 1}, {2, 3}, {3, 1}
+    });
+    auto topo = nxpp::topological_sort(dag);
+    print("Topological sort size:", topo.size());
+
+    Graph<int> wg;
+    wg.add_edges_from({
+        {0, 1, 2.0}, {0, 3, 6.0}, {1, 2, 3.0},
+        {1, 3, 8.0}, {1, 4, 5.0}, {2, 4, 7.0}, {3, 4, 9.0}
+    });
+    auto mst = nxpp::kruskal_minimum_spanning_tree(wg);
+    auto prim = nxpp::prim_minimum_spanning_tree(wg, 0);
+    print("Kruskal MST edges:", mst.size());
+    print("Prim parent entries:", prim.size());
+
+    DiGraphInt flow_g;
+    flow_g.add_edge(0, 1, 1.0);
+    flow_g.add_edge(0, 3, 2.0);
+    flow_g.add_edge(1, 2, 3.0);
+    flow_g.add_edge(1, 4, 4.0);
+    flow_g.add_edge(2, 5, 2.0);
+    flow_g.add_edge(3, 2, 2.0);
+    flow_g.add_edge(4, 5, 2.0);
+    flow_g[0][1]["capacity"] = 1L;
+    flow_g[0][3]["capacity"] = 2L;
+    flow_g[1][2]["capacity"] = 3L;
+    flow_g[1][4]["capacity"] = 4L;
+    flow_g[2][5]["capacity"] = 2L;
+    flow_g[3][2]["capacity"] = 2L;
+    flow_g[4][5]["capacity"] = 2L;
+    auto flow = nxpp::maximum_flow(flow_g, 0, 5);
+    print("Maximum flow:", flow.value);
+    print("Flow on (1,4):", flow.flow[{1, 4}]);
+
+    DiGraphInt dag_sp;
+    dag_sp.add_edges_from({
+        {0, 2, 3.0}, {1, 0, 2.0}, {1, 2, 2.0},
+        {1, 4, 5.0}, {2, 3, 1.0}, {3, 4, 5.0}
+    });
+    auto dag_dist = nxpp::dag_shortest_paths(dag_sp, 0);
+    auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(dag_sp);
+    print("DAG shortest distance to 4:", dag_dist.at(4));
+    print("Floyd-Warshall 0->4:", fw.at(0).at(4));
+
+    bool sat = nxpp::two_sat_satisfiable(2, {{1, 2}, {-1, 2}});
+    print("2-SAT satisfiable:", sat, "\n");
+}
+
 int main() {
     test_dijkstra_scc();
     test_integer_nodes();
@@ -269,5 +322,6 @@ int main() {
     test_degree_centrality();
     test_directed_neighbors_api();
     test_missing_algorithm_wrappers();
+    test_snippet_backed_essentials();
     return 0;
 }

@@ -120,6 +120,12 @@
    - Added `TODO.md` to separate snippet-backed essentials from secondary work that is not currently represented in the snippet folders.
    - Updated `README.md` and `ROADMAP.md` so future work stays anchored to snippet-backed algorithms rather than drifting into lower-priority API expansion.
 
+14. **First Snippet-Backed Essentials Batch**:
+   - Added `topological_sort()`, `kruskal_minimum_spanning_tree()`, `prim_minimum_spanning_tree()`, `maximum_flow()`, `dag_shortest_paths()`, `floyd_warshall_all_pairs_shortest_paths()`, and `two_sat_satisfiable()` to `include/nxpp.hpp`.
+   - Added a `MaximumFlowResult` return type and numeric edge-attribute helper to support snippet-style flow use cases.
+   - Added a usage block in `main.cpp` that exercises the newly added snippet-backed APIs.
+   - Updated `TODO.md`, `README.md`, and `ROADMAP.md` so the missing essentials list now reflects the newly implemented functions.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

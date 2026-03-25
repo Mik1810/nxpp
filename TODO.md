@@ -5,7 +5,7 @@ This file tracks two things:
 1. Missing functionality that is explicitly present in the local C++/Python snippet sets and should therefore be treated as core priority work.
 2. Secondary work that currently exists or is planned in `nxpp`, but is not directly driven by the snippet sets.
 
-## Priority: Functions Present in `snippet/` or `py_snippet/`
+## Priority: Functions Present in `snippet`
 
 These are the functions and algorithm families that should drive implementation order.
 
@@ -19,21 +19,21 @@ These are the functions and algorithm families that should drive implementation 
 
 ## Missing Snippet-Backed Essentials
 
-- [ ] `topological_sort`
+- [x] `topological_sort`
   Reference: `snippet/ts/ts.cpp`, `py_snippet/graph_operations/ts.py`
-- [ ] `kruskal_minimum_spanning_tree`
+- [x] `kruskal_minimum_spanning_tree`
   Reference: `snippet/kruskal/kruskal.cpp`, `py_snippet/graph_operations/kruskal.py`
-- [ ] `prim_minimum_spanning_tree`
+- [x] `prim_minimum_spanning_tree`
   Reference: `snippet/prim/prim.cpp`
-- [ ] `maximum_flow`
+- [x] `maximum_flow`
   Reference: `snippet/flow/flow.cpp`, `py_snippet/flow/flow.py`
-- [ ] `dag_shortest_paths`
+- [x] `dag_shortest_paths`
   Reference: `snippet/dag_sp/dag_sp.cpp`
-- [ ] `floyd_warshall_all_pairs_shortest_paths`
+- [x] `floyd_warshall_all_pairs_shortest_paths`
   Reference: `snippet/floyd_warshall/floyd_warshall.cpp`
 - [ ] `max_flow_min_cost` / min-cost max-flow wrappers
   Reference: `snippet/mcmf_cc/mcmf_cc.cpp`, `snippet/mcmf_spp/mcmf_ssp.cpp`, `py_snippet/flow/mcmf_cc.py`, `py_snippet/flow/mcmf_ssp.py`
-- [ ] `two_sat_satisfiable` or equivalent 2-SAT helper
+- [x] `two_sat_satisfiable` or equivalent 2-SAT helper
   Reference: `snippet/2sat/2sat.cpp`
 - [ ] SCC representative/root-map style helper
   Reference: `snippet/scc_named/scc_named.cpp`

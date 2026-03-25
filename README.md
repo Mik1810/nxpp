@@ -92,8 +92,12 @@ These helpers make attribute reads clearer and avoid relying exclusively on impl
 The algorithms in the header are wrappers around BGL. The current structure is:
 
 - traversal wrappers: `bfs_edges()`, `bfs_tree()`, `dfs_edges()`, and `dfs_tree()`
-- shortest paths: `shortest_path()`, `shortest_path_length()`, `dijkstra_path()`, `dijkstra_path_length()`, `bellman_ford_path()`, and `bellman_ford_path_length()`
+- shortest paths: `shortest_path()`, `shortest_path_length()`, `dijkstra_path()`, `dijkstra_path_length()`, `bellman_ford_path()`, `bellman_ford_path_length()`, `dag_shortest_paths()`, and `floyd_warshall_all_pairs_shortest_paths()`
 - components: `connected_components()` and `strongly_connected_components()`
+- DAG and ordering: `topological_sort()`
+- spanning trees: `kruskal_minimum_spanning_tree()` and `prim_minimum_spanning_tree()`
+- flow: `maximum_flow()`
+- SAT helper: `two_sat_satisfiable()`
 - generators: `complete_graph()`, `path_graph()`, and `erdos_renyi_graph()`
 - centrality: `degree_centrality()`
 
@@ -118,6 +122,7 @@ These are the main technical constraints and risks currently visible in `include
 - `successors()` and `predecessors()` now exist explicitly to make directed traversal intent clearer in user code.
 - The algorithm wrappers are still intentionally thin. Basic missing wrapper names have been filled in, and `shortest_path()` now distinguishes unweighted and weighted calls, but the wider NetworkX option surface is still not implemented.
 - `std::any` still gives flexible attributes, but attribute access is now less fragile because explicit checked getters and optional-return helpers exist alongside the proxy syntax.
+- `maximum_flow()` currently expects edge capacities to live in the edge attribute dictionary under `"capacity"` and returns both total flow value and per-edge flow on original edges.
 
 ## Internal Invariants
 
