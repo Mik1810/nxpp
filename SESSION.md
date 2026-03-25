@@ -153,6 +153,12 @@
    - Verified syntax for all newly created Python files with `python3 -m py_compile`.
    - Updated `README.md` and `ROADMAP.md` to record that `snippet/` now carries side-by-side C++ and Python references.
 
+20. **Colocated nxpp Snippets Added**:
+   - Added `*_nxpp.cpp` variants beside the existing Boost and NetworkX snippets throughout `snippet/`.
+   - Built each nxpp example on top of `include/nxpp.hpp`, using direct nxpp wrappers where possible and snippet-local logic where exact BGL-style output required extra formatting or traversal bookkeeping.
+   - Reconciled the remaining output mismatches in the Python companions (`dfs`, `floyd_warshall`, `kruskal`, `ts`) so the three versions now agree on observable output.
+   - Cleaned out generated `__pycache__` directories and added ignore rules so future snippet verification runs stay cleaner.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

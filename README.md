@@ -274,3 +274,13 @@ While perfectly emulating NetworkX—such as reproducing built-in node destructi
 3. **Solid Data Structures (Vectors) vs Lazy Generators (Python Yield)**:
    In Python, commands corresponding to `edges()`, `nodes()` or `nx.bfs_edges` exclusively spit out *Lazy Generators* sequentially to compensate for horrendous dynamic execution times and stave off garbage collector memory exhaustion limits.
    Conversely, in `nxpp`, BGL iterative methods directly graze precompiled L1-L2 hardware silicon array caches. Therefore, it is literally orders of magnitude faster to return completely compact, contiguous RAW structural blocks outright (`std::vector<NodeID>`), allowing highly hyper-performant iteration blocks and calculations without risking the corruption or stalling of the precompiled processor pipeline mechanisms.
+
+### Snippet Layout
+
+The `snippet/` tree is now organized as a three-way reference set per algorithm:
+
+- `*.cpp`: original Boost Graph Library example
+- `*.py`: matching `networkx` translation
+- `*_nxpp.cpp`: matching C++ version built on top of `include/nxpp.hpp`
+
+The intent is that all three variants produce the same observable result for the same example. Python runs should use the repo virtualenv (`.venv/bin/python -B`) so `networkx` is available and no fresh `__pycache__` files are emitted during checks.

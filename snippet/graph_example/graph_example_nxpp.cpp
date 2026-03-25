@@ -1,0 +1,28 @@
+#include <cstdlib>
+#include <iostream>
+
+#include "../../include/nxpp.hpp"
+
+int main() {
+    nxpp::Graph<int, double, true> G;
+    G.add_nodes_from({0, 1, 2, 3, 4});
+
+    G.add_edge(0, 2);
+    G.add_edge(1, 0);
+    G.add_edge(1, 4);
+    G.add_edge(2, 1);
+    G.add_edge(2, 3);
+    G.add_edge(3, 2);
+    G.add_edge(3, 4);
+
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        std::cout << "Edge from " << u << " to " << v << "\n";
+    }
+
+    for (const int v : G.successors(2)) {
+        std::cout << "Out edge from 2 to " << v << "\n";
+    }
+
+    return EXIT_SUCCESS;
+}

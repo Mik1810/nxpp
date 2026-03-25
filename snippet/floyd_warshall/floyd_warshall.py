@@ -13,11 +13,10 @@ def main() -> None:
 
     dist = dict(nx.floyd_warshall(g, weight="weight"))
     for i in range(5):
-        row = []
         for j in range(5):
             value = dist[i][j]
-            row.append("2147483647" if math.isinf(value) else str(int(value)))
-        print(" ".join(row))
+            print(2147483647 if math.isinf(value) else int(value), end=" ")
+        print()
 
 
 if __name__ == "__main__":

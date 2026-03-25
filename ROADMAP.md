@@ -65,6 +65,7 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] Chained proxy access now includes explicit `const char*` overloads to reduce editor/IntelliSense ambiguity on attribute access.
 - [x] GCC false-positive warnings from Boost min-cost-flow internals are now locally contained so core builds remain readable.
 - [x] Each C++ snippet in `snippet/` now has a colocated Python `networkx` counterpart to support side-by-side algorithm comparison.
+- [x] Each snippet folder now also has an `*_nxpp.cpp` counterpart using `include/nxpp.hpp`, and the local examples have been aligned so Boost C++, NetworkX Python, and nxpp C++ produce matching outputs.
 - [ ] Phase 5 is partially started: `degree_centrality` and the network-flow block (`maximum_flow`, `minimum_cut`) exist, while `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
 - [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 

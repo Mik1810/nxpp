@@ -11,8 +11,10 @@ def main() -> None:
     g.add_weighted_edges_from(edges)
 
     mst = nx.minimum_spanning_tree(g, algorithm="kruskal")
-    for u, v in mst.edges():
-        print(f"Edge from {u} to {v}")
+    mst_pairs = {frozenset((u, v)) for u, v in mst.edges()}
+    for u, v, w in sorted(edges, key=lambda item: (item[2], -max(item[0], item[1]), min(item[0], item[1]))):
+        if frozenset((u, v)) in mst_pairs:
+            print(f"Edge from {u} to {v}")
 
 
 if __name__ == "__main__":
