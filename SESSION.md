@@ -142,6 +142,11 @@
    - Added a narrow GCC-only diagnostic guard around the affected Boost flow includes in `include/nxpp.hpp`.
    - Kept the suppression local to third-party headers instead of weakening warnings across project code.
 
+18. **Minimum Cut Added**:
+   - Implemented `minimum_cut()` on top of the same directed flow construction used by `maximum_flow()`.
+   - The wrapper computes max flow, explores the residual graph from the source, and returns the cut value, partition, and crossing edges.
+   - Added a small `main.cpp` exercise and updated `README.md` and `ROADMAP.md` so the network-flow block is documented as present.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

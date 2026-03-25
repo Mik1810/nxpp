@@ -595,6 +595,14 @@ struct MinCostMaxFlowResult {
     std::map<std::pair<NodeID, NodeID>, long> flow;
 };
 
+template <typename NodeID>
+struct MinimumCutResult {
+    long value = 0;
+    std::vector<NodeID> reachable;
+    std::vector<NodeID> non_reachable;
+    std::vector<std::pair<NodeID, NodeID>> cut_edges;
+};
+
 
 // Algorithms: Traversals
 
@@ -1198,6 +1206,101 @@ auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& 
     for (const auto& [key, edge_desc] : original_edges) {
         result.flow[key] = capacity[edge_desc] - residual[edge_desc];
     }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto minimum_cut(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_capacity_t,
+            long,
+            boost::property<
+                boost::edge_residual_capacity_t,
+                long,
+                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+            >
+        >
+    >;
+
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+
+    FlowGraph flow_graph;
+    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
+    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+
+    const auto nodes = G.nodes();
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    std::vector<NodeID> index_to_node;
+    index_to_node.reserve(nodes.size());
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(flow_graph);
+        node_to_index[nodes[i]] = i;
+        index_to_node.push_back(nodes[i]);
+    }
+
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
+        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[rev] = 0;
+        reverse[e] = rev;
+        reverse[rev] = e;
+    }
+
+    const auto source_index = node_to_index.at(source_id);
+    const auto target_index = node_to_index.at(target_id);
+    const long cut_value = boost::edmonds_karp_max_flow(flow_graph, source_index, target_index);
+
+    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    std::vector<bool> visited(nodes.size(), false);
+    std::queue<std::size_t> q;
+    visited[source_index] = true;
+    q.push(source_index);
+
+    while (!q.empty()) {
+        const auto current = q.front();
+        q.pop();
+        for (auto [eit, eend] = boost::out_edges(current, flow_graph); eit != eend; ++eit) {
+            const auto next = boost::target(*eit, flow_graph);
+            if (!visited[next] && residual[*eit] > 0) {
+                visited[next] = true;
+                q.push(next);
+            }
+        }
+    }
+
+    MinimumCutResult<NodeID> result;
+    result.value = cut_value;
+    for (std::size_t i = 0; i < index_to_node.size(); ++i) {
+        if (visited[i]) result.reachable.push_back(index_to_node[i]);
+        else result.non_reachable.push_back(index_to_node[i]);
+    }
+
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        if (visited[node_to_index.at(u)] && !visited[node_to_index.at(v)]) {
+            result.cut_edges.emplace_back(u, v);
+        }
+    }
+
     return result;
 }
 

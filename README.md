@@ -98,7 +98,7 @@ The algorithms in the header are wrappers around BGL. The current structure is:
 - components: `connected_components()` and `strongly_connected_components()`
 - DAG and ordering: `topological_sort()`
 - spanning trees: `kruskal_minimum_spanning_tree()` and `prim_minimum_spanning_tree()`
-- flow: `maximum_flow()`, `max_flow_min_cost_cycle_canceling()`, and `max_flow_min_cost_successive_shortest_path()`
+- flow: `maximum_flow()`, `minimum_cut()`, `max_flow_min_cost_cycle_canceling()`, and `max_flow_min_cost_successive_shortest_path()`
 - SCC extras: `strongly_connected_component_roots()`
 - SAT helper: `two_sat_satisfiable()`
 - generators: `complete_graph()`, `path_graph()`, and `erdos_renyi_graph()`
@@ -126,6 +126,7 @@ These are the main technical constraints and risks currently visible in `include
 - The algorithm wrappers are still intentionally thin. Basic missing wrapper names have been filled in, and `shortest_path()` now distinguishes unweighted and weighted calls, but the wider NetworkX option surface is still not implemented.
 - `std::any` still gives flexible attributes, but attribute access is now less fragile because explicit checked getters and optional-return helpers exist alongside the proxy syntax.
 - `maximum_flow()` currently expects edge capacities to live in the edge attribute dictionary under `"capacity"` and returns both total flow value and per-edge flow on original edges.
+- `minimum_cut()` uses the same `"capacity"` convention and returns the cut value, the reachable/non-reachable partition, and the cut edges in the original graph.
 - min-cost max-flow wrappers currently expect capacities in `"capacity"` and costs in the built-in edge weight property.
 - GCC-specific false-positive warnings from Boost min-cost-flow internals are now contained locally in the header so normal project builds stay readable.
 

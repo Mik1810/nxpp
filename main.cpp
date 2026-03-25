@@ -295,8 +295,11 @@ void test_snippet_backed_essentials() {
     flow_g[3][2]["capacity"] = 2L;
     flow_g[4][5]["capacity"] = 2L;
     auto flow = nxpp::maximum_flow(flow_g, 0, 5);
+    auto cut = nxpp::minimum_cut(flow_g, 0, 5);
     print("Maximum flow:", flow.value);
     print("Flow on (1,4):", flow.flow[{1, 4}]);
+    print("Minimum cut value:", cut.value);
+    print("Minimum cut edges:", cut.cut_edges.size());
 
     DiGraphInt dag_sp;
     dag_sp.add_edges_from({
