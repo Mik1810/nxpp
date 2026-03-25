@@ -19,7 +19,7 @@ int main() {
     const auto comp_index = nxpp::strongly_connected_component_map(G);
 
     for (int i = 0; i < 5; ++i) {
-        std::cout << "Vertex " << i << " is in component " << comp_index.at(i) << "\n";
+        std::cout << "Vertex " << i << " is in component " << comp_index[i] << "\n";
     }
 
     return EXIT_SUCCESS;

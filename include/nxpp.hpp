@@ -612,6 +612,40 @@ struct SingleSourceShortestPathResult {
     std::unordered_map<NodeID, std::vector<NodeID>> paths;
 };
 
+template <typename Key, typename Value>
+class lookup_map {
+public:
+    using storage_type = std::unordered_map<Key, Value>;
+    using iterator = typename storage_type::iterator;
+    using const_iterator = typename storage_type::const_iterator;
+
+    Value& operator[](const Key& key) {
+        return data[key];
+    }
+
+    const Value& operator[](const Key& key) const {
+        return data.at(key);
+    }
+
+    Value& at(const Key& key) {
+        return data.at(key);
+    }
+
+    const Value& at(const Key& key) const {
+        return data.at(key);
+    }
+
+    iterator begin() { return data.begin(); }
+    iterator end() { return data.end(); }
+    const_iterator begin() const { return data.begin(); }
+    const_iterator end() const { return data.end(); }
+    const_iterator cbegin() const { return data.cbegin(); }
+    const_iterator cend() const { return data.cend(); }
+
+private:
+    storage_type data;
+};
+
 template <typename GraphWrapper>
 class default_graph_visitor {
 public:
@@ -1440,7 +1474,7 @@ auto connected_component_map(const GraphWrapper& G) {
     std::vector<int> comp(n);
     boost::connected_components(g, boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)));
 
-    std::unordered_map<NodeID, int> result;
+    lookup_map<NodeID, int> result;
     for (int i = 0; i < n; ++i) {
         result[bgl_to_id[i]] = comp[i];
     }
@@ -1475,7 +1509,7 @@ auto strongly_connected_component_map(const GraphWrapper& G) {
     std::vector<int> comp(n);
     boost::strong_components(g, boost::make_iterator_property_map(comp.begin(), boost::get(boost::vertex_index, g)));
 
-    std::unordered_map<NodeID, int> result;
+    lookup_map<NodeID, int> result;
     for (int i = 0; i < n; ++i) {
         result[bgl_to_id[i]] = comp[i];
     }

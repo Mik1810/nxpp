@@ -33,6 +33,13 @@ compile_cpp() {
   time_command "compile $(basename "$source_file")" g++ -std=c++20 -Wall -pedantic -O3 "$source_file" -o "$output_file" "$@"
 }
 
+compile_cpp_quiet() {
+  local source_file="$1"
+  local output_file="$2"
+  shift 2
+  time_command "compile $(basename "$source_file")" g++ -std=c++20 -w -O3 "$source_file" -o "$output_file" "$@"
+}
+
 run_and_capture() {
   local label="$1"
   local output_file="$2"
@@ -89,7 +96,7 @@ run_case() {
 
   log ""
   log "CASE $folder"
-  compile_cpp "$cpp_file" "$cpp_bin"
+  compile_cpp_quiet "$cpp_file" "$cpp_bin"
   compile_cpp "$nxpp_file" "$nxpp_bin" -I"$ROOT_DIR"
   run_and_capture "$folder cpp" "$cpp_out" "$stdin_file" "$cpp_bin"
   run_and_capture "$folder py" "$py_out" "$stdin_file" "$PYTHON_BIN" -B "$py_file"

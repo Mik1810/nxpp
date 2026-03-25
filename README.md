@@ -297,6 +297,7 @@ The intent is that all three variants produce the same observable result for the
 
 A small shell harness now lives at `scripts/test_snippets.sh`.
 At the moment it covers `2sat`, `bellman_ford`, `bfs`, and `cc`, compiling the Boost and nxpp C++ snippets, running the Python translation, measuring compile/run times, and writing a live report both to the terminal and to a timestamped log file under `logs/`.
+To keep the report readable, the script currently compiles the non-nxpp reference snippets with warnings silenced, while nxpp snippet builds still use the normal warning set.
 
 For traversal and shortest-path examples, `nxpp` now supports both styles:
 
@@ -314,3 +315,5 @@ For component algorithms, `nxpp` now supports both grouped and mapped results:
 
 - `connected_components(G)` / `strongly_connected_components(G)` return vectors of groups
 - `connected_component_map(G)` / `strongly_connected_component_map(G)` return `node -> component_id` maps when that form is more convenient for snippets or diagnostics
+
+These mapped results use a small `nxpp` wrapper so read access works naturally with either `result[key]` or `result.at(key)`, even when the map object itself is `const`.

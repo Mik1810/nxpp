@@ -179,6 +179,12 @@
    - Fixed the `cc` / `scc` nxpp snippets to use `.at(...)` on const component maps, resolving the editor/compiler complaint caused by `unordered_map::operator[]` on const objects.
    - Added `scripts/test_snippets.sh` as a first shell harness covering `2sat`, `bellman_ford`, `bfs`, and `cc`.
    - The script compiles the Boost and nxpp C++ snippets, runs the Python snippet with the repo virtualenv, measures compile and execution times, and writes the report both to the terminal and to a timestamped log under `logs/`.
+   - The reference Boost snippet compilations are now run with warnings silenced inside the harness so known third-party warning noise does not drown out nxpp-related signal in the test report.
+
+25. **Const-Friendly Lookup Wrapper Added**:
+   - Added a small `lookup_map<Key, Value>` wrapper in `nxpp` so mapped algorithm results can support `operator[]` in both mutable and const-read contexts.
+   - Updated `connected_component_map()` and `strongly_connected_component_map()` to return this wrapper instead of a raw `std::unordered_map`.
+   - Restored `comp_index[i]` syntax in the `cc` and `scc` nxpp snippets without requiring `.at(...)`.
 
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.

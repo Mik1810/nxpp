@@ -71,6 +71,7 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] Traversal snippets now build on a single generic `nxpp` visitor base class instead of ad-hoc callback lambdas or snippet-local freeform visitor conventions.
 - [x] Component algorithms now expose both grouped outputs and `node -> component_id` map helpers, reducing flattening boilerplate in snippet-style code.
 - [x] A first shell-based snippet harness now exists for `2sat`, `bellman_ford`, `bfs`, and `cc`, with compile/run timing and tee-style logging to file plus terminal.
+- [x] The initial shell harness now suppresses warning noise from the non-nxpp reference snippets so the report stays focused on parity and nxpp-facing issues.
 - [ ] Phase 5 is partially started: `degree_centrality` and the network-flow block (`maximum_flow`, `minimum_cut`) exist, while `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
 - [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 
