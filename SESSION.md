@@ -137,6 +137,11 @@
    - This reduces editor-side ambiguity on chained expressions such as `G["u"]["v"]["key"]` and `G.node("u")["key"]`.
    - Recompiled `main.cpp` successfully after the change.
 
+17. **Boost Warning Containment**:
+   - Isolated the large GCC `-Wmaybe-uninitialized` warning burst to Boost min-cost-flow headers, specifically the `cycle_canceling` include path.
+   - Added a narrow GCC-only diagnostic guard around the affected Boost flow includes in `include/nxpp.hpp`.
+   - Kept the suppression local to third-party headers instead of weakening warnings across project code.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

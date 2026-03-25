@@ -63,6 +63,7 @@ Integrate more complex mathematical features based on the provided BGL architect
 - [x] A first major batch of snippet-backed essentials is now implemented: `topological_sort`, `kruskal_minimum_spanning_tree`, `prim_minimum_spanning_tree`, `maximum_flow`, `dag_shortest_paths`, `floyd_warshall_all_pairs_shortest_paths`, and `two_sat_satisfiable`.
 - [x] The remaining snippet-backed essentials are now covered as well: min-cost max-flow wrappers and SCC representative/root-map helper.
 - [x] Chained proxy access now includes explicit `const char*` overloads to reduce editor/IntelliSense ambiguity on attribute access.
+- [x] GCC false-positive warnings from Boost min-cost-flow internals are now locally contained so core builds remain readable.
 - [ ] Phase 5 is partially started: `degree_centrality` exists, while `maximum_flow`, `minimum_cut`, `betweenness_centrality`, `pagerank`, and benchmarking are still missing.
 - [ ] No benchmarking harness exists yet for the Phase 5 performance milestone.
 

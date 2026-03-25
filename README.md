@@ -127,6 +127,7 @@ These are the main technical constraints and risks currently visible in `include
 - `std::any` still gives flexible attributes, but attribute access is now less fragile because explicit checked getters and optional-return helpers exist alongside the proxy syntax.
 - `maximum_flow()` currently expects edge capacities to live in the edge attribute dictionary under `"capacity"` and returns both total flow value and per-edge flow on original edges.
 - min-cost max-flow wrappers currently expect capacities in `"capacity"` and costs in the built-in edge weight property.
+- GCC-specific false-positive warnings from Boost min-cost-flow internals are now contained locally in the header so normal project builds stay readable.
 
 ## Internal Invariants
 

@@ -19,9 +19,16 @@
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/edmonds_karp_max_flow.hpp>
 #include <boost/graph/push_relabel_max_flow.hpp>
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include <boost/graph/cycle_canceling.hpp>
 #include <boost/graph/find_flow_cost.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #include <unordered_map>
 #include <vector>
 #include <stdexcept>
