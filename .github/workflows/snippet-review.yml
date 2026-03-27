@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-all-dev
+
       - name: Install Python dependencies
         run: python -m pip install --upgrade pip networkx
 
@@ -44,6 +49,12 @@ jobs:
               echo "| \`$snippet_name\` | PASS |" >> "$summary_file"
             else
               echo "| \`$snippet_name\` | FAIL |" >> "$summary_file"
+              latest_run_dir="$(ls -dt logs/snippet/${snippet_name}_* 2>/dev/null | head -n 1 || true)"
+              if [[ -n "$latest_run_dir" && -f "$latest_run_dir/run.log" ]]; then
+                echo "::group::${snippet_name} failure log"
+                sed -n '1,220p' "$latest_run_dir/run.log"
+                echo "::endgroup::"
+              fi
               overall_status=1
             fi
           done
