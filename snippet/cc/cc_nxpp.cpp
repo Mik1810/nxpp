@@ -6,7 +6,6 @@
 
 int main() {
     nxpp::UnweightedGraphInt G;
-    G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);
     G.add_edge(1, 0);
@@ -15,7 +14,7 @@ int main() {
 
     const auto comp_index = nxpp::connected_components(G);
 
-    for (int i = 0; i < 5; ++i) {
+    for (std::size_t i = 0; i < nxpp::num_vertices(G); ++i) {
         std::cout << "Vertex " << i << " is in component " << comp_index[i] << "\n";
     }
 

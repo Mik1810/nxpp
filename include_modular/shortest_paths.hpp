@@ -368,43 +368,6 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
         throw std::runtime_error("Source node not found in graph.");
     }
 
-    VertexDesc source = id_to_bgl.at(source_id);
-    const size_t n = boost::num_vertices(g);
-    std::vector<CalcDistance> dist(n, std::numeric_limits<CalcDistance>::max());
-
-    boost::dag_shortest_paths(
-        g,
-        source,
-        boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
-            .distance_compare(std::less<CalcDistance>())
-            .distance_combine(boost::closed_plus<CalcDistance>(std::numeric_limits<CalcDistance>::max()))
-            .distance_inf(std::numeric_limits<CalcDistance>::max())
-            .distance_zero(CalcDistance{})
-    );
-
-    std::unordered_map<NodeID, Distance> result;
-    for (size_t i = 0; i < n; ++i) {
-        result[bgl_to_id[i]] = convert_shortest_path_distance<Distance>(dist[i]);
-    }
-    return result;
-}
-
-template <typename GraphWrapper>
-requires(GraphWrapper::has_builtin_edge_weight)
-auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
-    using NodeID = typename GraphWrapper::NodeType;
-    using VertexDesc = typename GraphWrapper::VertexDesc;
-    using Distance = typename GraphWrapper::EdgeWeightType;
-    using CalcDistance = shortest_path_calc_type<Distance>;
-
-    const auto& g = G.get_impl();
-    const auto& id_to_bgl = G.get_id_to_bgl_map();
-    const auto& bgl_to_id = G.get_bgl_to_id_map();
-
-    if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source node not found in graph.");
-    }
-
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
     std::vector<CalcDistance> dist(n, std::numeric_limits<CalcDistance>::max());

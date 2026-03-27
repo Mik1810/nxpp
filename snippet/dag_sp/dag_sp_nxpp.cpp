@@ -12,10 +12,10 @@ int main() {
     G.add_edge(2, 3, 1);
     G.add_edge(3, 4, 5);
 
-    const auto result = nxpp::single_source_dag_shortest_paths(G, 0);
+    auto result = nxpp::dag_shortest_paths(G, 0);
     for (int i = 0; i < nxpp::num_vertices(G); ++i) {
-        std::cout << "Distance to " << i << ": " << result.distance.at(i)
-                  << " Parent: " << result.predecessor.at(i) << "\n";
+        std::cout << "Distance to " << i << ": " << result.distance[i]
+                  << " Parent: " << result.predecessor[i] << "\n";
     }
 
     return EXIT_SUCCESS;
