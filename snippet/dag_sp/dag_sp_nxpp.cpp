@@ -15,8 +15,13 @@ int main() {
     G.add_edge(3, 4, 5);
 
     const auto result = nxpp::single_source_dag_shortest_paths(G, 0);
-    for (int i = 0; i < 5; ++i) {
-        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
+    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+        const double distance = result.distance.at(i);
+        const int printable_distance =
+            distance == std::numeric_limits<double>::max()
+                ? std::numeric_limits<int>::max()
+                : static_cast<int>(distance);
+        std::cout << "Distance to " << i << ": " << printable_distance
                   << " Parent: " << result.predecessor.at(i) << "\n";
     }
 
