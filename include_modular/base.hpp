@@ -39,6 +39,7 @@
 #include <type_traits>
 #include <string>
 #include <algorithm>
+#include <cmath>
 #include <utility>
 #include <iostream>
 #include <any>

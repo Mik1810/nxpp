@@ -34,21 +34,46 @@ jobs:
           overall_status=0
           summary_file="$(mktemp)"
 
+          describe_snippet() {
+            case "$1" in
+              2sat) echo "2-SAT satisfiability via implication graph SCCs" ;;
+              bellman_ford) echo "Single-source shortest paths with Bellman-Ford" ;;
+              bfs) echo "Breadth-first search traversal events" ;;
+              cc) echo "Connected components in an undirected graph" ;;
+              dag_sp) echo "Single-source shortest paths in a DAG" ;;
+              dfs) echo "Depth-first search traversal events" ;;
+              dijkstra) echo "Single-source shortest paths with Dijkstra" ;;
+              flow) echo "Maximum flow on a capacitated directed graph" ;;
+              floyd_warshall) echo "All-pairs shortest paths with Floyd-Warshall" ;;
+              graph_example) echo "Basic directed graph construction and edge iteration" ;;
+              graph_weights) echo "Weighted graph construction and weight inspection" ;;
+              kruskal) echo "Minimum spanning tree with Kruskal" ;;
+              mcmf_cc) echo "Min-cost max-flow via push-relabel and cycle canceling" ;;
+              mcmf_ssp) echo "Min-cost max-flow via successive shortest paths" ;;
+              prim) echo "Minimum spanning tree with Prim" ;;
+              scc) echo "Strongly connected components in a directed graph" ;;
+              scc_named) echo "Strongly connected components with representative mapping" ;;
+              ts) echo "Topological sorting of a DAG" ;;
+              *) echo "Snippet parity check across implementations" ;;
+            esac
+          }
+
           {
             echo "## Snippet Review"
             echo
-            echo "| Snippet | Result |"
-            echo "|---|---|"
+            echo "| Snippet | Description | Result |"
+            echo "|---|---|---|"
           } > "$summary_file"
 
           for dir in snippet/*/; do
             snippet_name="$(basename "$dir")"
+            snippet_description="$(describe_snippet "$snippet_name")"
             echo "Running snippet review for $snippet_name"
 
             if bash scripts/test_single_snippet.sh "$snippet_name"; then
-              echo "| \`$snippet_name\` | PASS |" >> "$summary_file"
+              echo "| \`$snippet_name\` | $snippet_description | PASS |" >> "$summary_file"
             else
-              echo "| \`$snippet_name\` | FAIL |" >> "$summary_file"
+              echo "| \`$snippet_name\` | $snippet_description | FAIL |" >> "$summary_file"
               latest_run_dir="$(ls -dt logs/snippet/${snippet_name}_* 2>/dev/null | head -n 1 || true)"
               if [[ -n "$latest_run_dir" && -f "$latest_run_dir/run.log" ]]; then
                 echo "::group::${snippet_name} failure log"

@@ -218,20 +218,20 @@ These are **practical complexity notes**, not formal proofs. Some BGL primitives
 
 | Alias | Expands to |
 |---|---|
-| `WeightedGraphInt` | `Graph<int>` |
+| `WeightedGraphInt` | `Graph<int, int>` |
 | `WeightedGraphStr` | `Graph<std::string>` |
-| `WeightedDiGraphInt` | `Graph<int, double, true>` |
+| `WeightedDiGraphInt` | `Graph<int, int, true>` |
 | `WeightedDiGraph` | `Graph<std::string, double, true>` |
-| `WeightedMultiGraphInt` | `Graph<int, double, false, true>` |
-| `WeightedMultiDiGraphInt` | `Graph<int, double, true, true>` |
+| `WeightedMultiGraphInt` | `Graph<int, int, false, true>` |
+| `WeightedMultiDiGraphInt` | `Graph<int, int, true, true>` |
 | `WeightedMultiGraph` | `Graph<std::string, double, false, true>` |
 | `WeightedMultiDiGraph` | `Graph<std::string, double, true, true>` |
-| `GraphInt` | `Graph<int>` |
+| `GraphInt` | `Graph<int, int>` |
 | `GraphStr` | `Graph<std::string>` |
-| `DiGraphInt` | `Graph<int, double, true>` |
+| `DiGraphInt` | `Graph<int, int, true>` |
 | `DiGraph` | `Graph<std::string, double, true>` |
-| `MultiGraphInt` | `Graph<int, double, false, true>` |
-| `MultiDiGraphInt` | `Graph<int, double, true, true>` |
+| `MultiGraphInt` | `Graph<int, int, false, true>` |
+| `MultiDiGraphInt` | `Graph<int, int, true, true>` |
 | `MultiGraph` | `Graph<std::string, double, false, true>` |
 | `MultiDiGraph` | `Graph<std::string, double, true, true>` |
 

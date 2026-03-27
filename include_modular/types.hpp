@@ -8,21 +8,21 @@
 
 namespace nxpp {
 
-using WeightedGraphInt = Graph<int>;
-using WeightedDiGraphInt = Graph<int, double, true>;
+using WeightedGraphInt = Graph<int, int>;
+using WeightedDiGraphInt = Graph<int, int, true>;
 using WeightedGraphStr = Graph<std::string>;
-using WeightedMultiGraphInt = Graph<int, double, false, true>;
-using WeightedMultiDiGraphInt = Graph<int, double, true, true>;
+using WeightedMultiGraphInt = Graph<int, int, false, true>;
+using WeightedMultiDiGraphInt = Graph<int, int, true, true>;
 
 using WeightedDiGraph = Graph<std::string, double, true>;
 using WeightedMultiGraph = Graph<std::string, double, false, true>;
 using WeightedMultiDiGraph = Graph<std::string, double, true, true>;
 
-using GraphInt = Graph<int>;
-using DiGraphInt = Graph<int, double, true>;
+using GraphInt = Graph<int, int>;
+using DiGraphInt = Graph<int, int, true>;
 using GraphStr = Graph<std::string>;
-using MultiGraphInt = Graph<int, double, false, true>;
-using MultiDiGraphInt = Graph<int, double, true, true>;
+using MultiGraphInt = Graph<int, int, false, true>;
+using MultiDiGraphInt = Graph<int, int, true, true>;
 
 using DiGraph = Graph<std::string, double, true>;
 using MultiGraph = Graph<std::string, double, false, true>;

@@ -277,6 +277,39 @@ std::unordered_map<NodeID, std::vector<NodeID>> build_single_source_paths(
     return paths;
 }
 
+template <typename Distance>
+Distance normalize_weighted_distance(Distance value) {
+    if constexpr (std::is_integral_v<Distance> && std::is_signed_v<Distance>) {
+        if (value == std::numeric_limits<Distance>::lowest()) {
+            return std::numeric_limits<Distance>::max();
+        }
+    }
+    return value;
+}
+
+template <typename Distance>
+using shortest_path_calc_type = std::conditional_t<std::is_integral_v<Distance>, double, Distance>;
+
+template <typename Distance, typename CalcDistance>
+Distance convert_shortest_path_distance(CalcDistance value) {
+    if constexpr (std::is_same_v<CalcDistance, Distance>) {
+        return normalize_weighted_distance(value);
+    } else {
+        if constexpr (std::is_integral_v<Distance> && std::is_floating_point_v<CalcDistance>) {
+            if (!std::isfinite(value) || value >= static_cast<CalcDistance>(std::numeric_limits<Distance>::max())) {
+                return std::numeric_limits<Distance>::max();
+            }
+            if (value <= static_cast<CalcDistance>(std::numeric_limits<Distance>::lowest())) {
+                return std::numeric_limits<Distance>::lowest();
+            }
+        }
+        if (value == std::numeric_limits<CalcDistance>::max()) {
+            return std::numeric_limits<Distance>::max();
+        }
+        return static_cast<Distance>(value);
+    }
+}
+
 template <typename NodeID, typename Edge, typename OnTreeEdge, typename OnBackEdge>
 class GenericDfsVisitVisitor : public boost::default_dfs_visitor {
 public:

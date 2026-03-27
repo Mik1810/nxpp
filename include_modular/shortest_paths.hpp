@@ -358,6 +358,7 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
     using Distance = typename GraphWrapper::EdgeWeightType;
+    using CalcDistance = shortest_path_calc_type<Distance>;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -369,17 +370,21 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
 
     VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
+    std::vector<CalcDistance> dist(n, std::numeric_limits<CalcDistance>::max());
 
     boost::dag_shortest_paths(
         g,
         source,
         boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
+            .distance_compare(std::less<CalcDistance>())
+            .distance_combine(boost::closed_plus<CalcDistance>(std::numeric_limits<CalcDistance>::max()))
+            .distance_inf(std::numeric_limits<CalcDistance>::max())
+            .distance_zero(CalcDistance{})
     );
 
     std::unordered_map<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
-        result[bgl_to_id[i]] = dist[i];
+        result[bgl_to_id[i]] = convert_shortest_path_distance<Distance>(dist[i]);
     }
     return result;
 }
@@ -390,6 +395,7 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
     using Distance = typename GraphWrapper::EdgeWeightType;
+    using CalcDistance = shortest_path_calc_type<Distance>;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -401,7 +407,7 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
 
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
+    std::vector<CalcDistance> dist(n, std::numeric_limits<CalcDistance>::max());
     std::vector<VertexDesc> pred(n);
     for (size_t i = 0; i < n; ++i) {
         pred[i] = static_cast<VertexDesc>(i);
@@ -412,14 +418,23 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
         source,
         boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
             .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
+            .distance_compare(std::less<CalcDistance>())
+            .distance_combine(boost::closed_plus<CalcDistance>(std::numeric_limits<CalcDistance>::max()))
+            .distance_inf(std::numeric_limits<CalcDistance>::max())
+            .distance_zero(CalcDistance{})
     );
+
+    std::vector<Distance> normalized_dist(n);
+    for (size_t i = 0; i < n; ++i) {
+        normalized_dist[i] = convert_shortest_path_distance<Distance>(dist[i]);
+    }
 
     SingleSourceShortestPathResult<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
-        result.distance[bgl_to_id[i]] = dist[i];
+        result.distance[bgl_to_id[i]] = normalized_dist[i];
         result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
     }
-    result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, dist, pred);
+    result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, normalized_dist, pred);
     return result;
 }
 
@@ -428,13 +443,44 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
     using Distance = typename GraphWrapper::EdgeWeightType;
+    using CalcDistance = std::conditional_t<std::is_integral_v<Distance>, long long, Distance>;
 
     const auto& g = G.get_impl();
     const auto& bgl_to_id = G.get_bgl_to_id_map();
     const size_t n = boost::num_vertices(g);
 
-    std::vector<std::vector<Distance>> internal_matrix(n, std::vector<Distance>(n));
-    boost::floyd_warshall_all_pairs_shortest_paths(g, internal_matrix);
+    const CalcDistance inf = std::numeric_limits<CalcDistance>::max() / 4;
+    std::vector<std::vector<CalcDistance>> internal_matrix(n, std::vector<CalcDistance>(n, inf));
+    for (std::size_t i = 0; i < n; ++i) {
+        internal_matrix[i][i] = CalcDistance{};
+    }
+
+    for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+        const std::size_t u = static_cast<std::size_t>(boost::source(*e, g));
+        const std::size_t v = static_cast<std::size_t>(boost::target(*e, g));
+        const CalcDistance w = static_cast<CalcDistance>(boost::get(boost::edge_weight, g, *e));
+        internal_matrix[u][v] = std::min(internal_matrix[u][v], w);
+        if constexpr (!GraphWrapper::is_directed) {
+            internal_matrix[v][u] = std::min(internal_matrix[v][u], w);
+        }
+    }
+
+    for (std::size_t k = 0; k < n; ++k) {
+        for (std::size_t i = 0; i < n; ++i) {
+            if (internal_matrix[i][k] == inf) {
+                continue;
+            }
+            for (std::size_t j = 0; j < n; ++j) {
+                if (internal_matrix[k][j] == inf) {
+                    continue;
+                }
+                const CalcDistance through_k = internal_matrix[i][k] + internal_matrix[k][j];
+                if (through_k < internal_matrix[i][j]) {
+                    internal_matrix[i][j] = through_k;
+                }
+            }
+        }
+    }
 
     std::vector<std::size_t> order(n);
     for (std::size_t i = 0; i < n; ++i) {
@@ -450,7 +496,9 @@ auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     std::vector<std::vector<Distance>> matrix(n, std::vector<Distance>(n));
     for (std::size_t i = 0; i < n; ++i) {
         for (std::size_t j = 0; j < n; ++j) {
-            matrix[i][j] = internal_matrix[order[i]][order[j]];
+            matrix[i][j] = internal_matrix[order[i]][order[j]] == inf
+                ? std::numeric_limits<Distance>::max()
+                : static_cast<Distance>(internal_matrix[order[i]][order[j]]);
         }
     }
 
