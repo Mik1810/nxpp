@@ -55,6 +55,18 @@ jobs:
                 sed -n '1,220p' "$latest_run_dir/run.log"
                 echo "::endgroup::"
               fi
+              if [[ -n "$latest_run_dir" ]]; then
+                shopt -s nullglob
+                compile_errs=("$latest_run_dir"/*.compile.err)
+                shopt -u nullglob
+                for compile_err in "${compile_errs[@]}"; do
+                  if [[ -s "$compile_err" ]]; then
+                    echo "::group::$(basename "$compile_err")"
+                    sed -n '1,220p' "$compile_err"
+                    echo "::endgroup::"
+                  fi
+                done
+              fi
               overall_status=1
             fi
           done
