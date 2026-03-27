@@ -1,0 +1,55 @@
+name: Snippet Review
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  snippets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip networkx
+
+      - name: Run snippet review
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          overall_status=0
+          summary_file="$(mktemp)"
+
+          {
+            echo "## Snippet Review"
+            echo
+            echo "| Snippet | Result |"
+            echo "|---|---|"
+          } > "$summary_file"
+
+          for dir in snippet/*/; do
+            snippet_name="$(basename "$dir")"
+            echo "Running snippet review for $snippet_name"
+
+            if bash scripts/test_single_snippet.sh "$snippet_name"; then
+              echo "| \`$snippet_name\` | PASS |" >> "$summary_file"
+            else
+              echo "| \`$snippet_name\` | FAIL |" >> "$summary_file"
+              overall_status=1
+            fi
+          done
+
+          cat "$summary_file" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$overall_status" -ne 0 ]]; then
+            exit 1
+          fi

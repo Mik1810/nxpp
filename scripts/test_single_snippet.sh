@@ -26,53 +26,9 @@ fi
 SNIPPET_NAME="$1"
 USER_STDIN_FILE="${2:-}"
 CASE_DIR="$SNIPPET_ROOT/$SNIPPET_NAME"
-
-resolve_case_basename() {
-  local case_dir="$1"
-  local preferred="$2"
-
-  if [[ -f "$case_dir/$preferred.cpp" && -f "$case_dir/$preferred.py" && -f "$case_dir/${preferred}_nxpp.cpp" ]]; then
-    echo "$preferred"
-    return
-  fi
-
-  local candidate
-  for cpp_path in "$case_dir"/*.cpp; do
-    [[ -e "$cpp_path" ]] || continue
-    candidate="$(basename "$cpp_path" .cpp)"
-    [[ "$candidate" == *_nxpp ]] && continue
-    if [[ -f "$case_dir/$candidate.py" && -f "$case_dir/${candidate}_nxpp.cpp" ]]; then
-      echo "$candidate"
-      return
-    fi
-  done
-
-  return 1
-}
-
-CASE_BASENAME="$(resolve_case_basename "$CASE_DIR" "$SNIPPET_NAME")" || {
-  echo "ERROR: could not resolve snippet basename inside $CASE_DIR" >&2
-  exit 1
-}
-
-CPP_FILE="$CASE_DIR/$CASE_BASENAME.cpp"
-PY_FILE="$CASE_DIR/$CASE_BASENAME.py"
-NXPP_FILE="$CASE_DIR/${CASE_BASENAME}_nxpp.cpp"
-
 RUN_DIR="$LOG_ROOT/${SNIPPET_NAME}_${TIMESTAMP}"
-TMP_DIR="$(mktemp -d)"
 LOG_FILE="$RUN_DIR/run.log"
-
-CPP_BIN="$TMP_DIR/${CASE_BASENAME}_cpp.out"
-NXPP_BIN="$TMP_DIR/${CASE_BASENAME}_nxpp.out"
-CPP_OUT="$RUN_DIR/${CASE_BASENAME}.cpp.out"
-PY_OUT="$RUN_DIR/${CASE_BASENAME}.py.out"
-NXPP_OUT="$RUN_DIR/${CASE_BASENAME}_nxpp.cpp.out"
-DIFF_CPP_PY="$RUN_DIR/diff_cpp_vs_py.diff"
-DIFF_CPP_NXPP="$RUN_DIR/diff_cpp_vs_nxpp.diff"
-DIFF_PY_NXPP="$RUN_DIR/diff_py_vs_nxpp.diff"
-
-mkdir -p "$RUN_DIR"
+TMP_DIR="$(mktemp -d)"
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -102,19 +58,6 @@ resolve_python() {
     return
   fi
   return 1
-}
-
-time_command() {
-  local label="$1"
-  shift
-
-  local timing_file
-  timing_file="$(mktemp)"
-  /usr/bin/time -f "%e" -o "$timing_file" "$@"
-  local seconds
-  seconds="$(cat "$timing_file")"
-  rm -f "$timing_file"
-  log "TIME $label: ${seconds}s"
 }
 
 compile_and_capture() {
@@ -156,17 +99,16 @@ run_and_capture() {
 }
 
 compare_pair() {
-  local label="$1"
-  local left_name="$2"
-  local left_file="$3"
-  local right_name="$4"
-  local right_file="$5"
-  local diff_file="$6"
+  local left_name="$1"
+  local left_file="$2"
+  local right_name="$3"
+  local right_file="$4"
+  local diff_file="$5"
 
   if diff -u "$left_file" "$right_file" > "$diff_file"; then
-    log "OK $label: $left_name matches $right_name"
+    log "OK compare: $left_name matches $right_name"
   else
-    log "FAIL $label: $left_name differs from $right_name"
+    log "FAIL compare: $left_name differs from $right_name"
     log "Saved diff: $diff_file"
     sed -n '1,80p' "$diff_file" | tee -a "$LOG_FILE"
     return 1
@@ -194,18 +136,28 @@ EOF
   echo ""
 }
 
+sanitize_name() {
+  echo "$1" | tr '/ .' '___'
+}
+
 [[ -d "$CASE_DIR" ]] || fail "snippet folder not found: $CASE_DIR"
-[[ -f "$CPP_FILE" ]] || fail "missing source file: $CPP_FILE"
-[[ -f "$PY_FILE" ]] || fail "missing source file: $PY_FILE"
-[[ -f "$NXPP_FILE" ]] || fail "missing source file: $NXPP_FILE"
+mkdir -p "$RUN_DIR"
 
 PYTHON_BIN="$(resolve_python)" || fail "no Python interpreter found"
 STDIN_FILE="$(detect_stdin_file)"
 
+mapfile -t CPP_FILES < <(find "$CASE_DIR" -maxdepth 1 -type f -name '*.cpp' | sort)
+mapfile -t PY_FILES < <(find "$CASE_DIR" -maxdepth 1 -type f -name '*.py' | sort)
+
+IMPLEMENTATION_COUNT=$(( ${#CPP_FILES[@]} + ${#PY_FILES[@]} ))
+[[ $IMPLEMENTATION_COUNT -ge 2 ]] || fail "need at least two runnable implementations in $CASE_DIR"
+
+declare -a LABELS=()
+declare -a OUTPUTS=()
+
 : > "$LOG_FILE"
-log "NXPP snippet triplet test"
+log "NXPP snippet implementation test"
 log "Snippet: $SNIPPET_NAME"
-log "Basename: $CASE_BASENAME"
 log "Case dir: $CASE_DIR"
 log "Log dir: $RUN_DIR"
 log "Python: $PYTHON_BIN"
@@ -215,48 +167,60 @@ else
   log "stdin: <none>"
 fi
 
-log ""
-log "Compiling C++ reference"
-log "CMD: g++ -std=c++20 -Wall -Wextra -pedantic -O3 $CPP_FILE -o $CPP_BIN"
-compile_and_capture "compile ${CASE_BASENAME}.cpp" "$RUN_DIR/${CASE_BASENAME}.compile.err" \
-  g++ -std=c++20 -Wall -Wextra -pedantic -O3 "$CPP_FILE" -o "$CPP_BIN"
-log "compile stderr: $RUN_DIR/${CASE_BASENAME}.compile.err"
+for source_file in "${CPP_FILES[@]}"; do
+  local_name="$(basename "$source_file")"
+  stem="${local_name%.cpp}"
+  bin_file="$TMP_DIR/${stem}.out"
+  compile_err="$RUN_DIR/${local_name}.compile.err"
+  stdout_file="$RUN_DIR/${local_name}.out"
+  stderr_file="$RUN_DIR/${local_name}.err"
 
-log ""
-log "Compiling nxpp variant"
-log "CMD: g++ -std=c++20 -Wall -Wextra -pedantic -O3 $NXPP_FILE -I$ROOT_DIR -o $NXPP_BIN"
-compile_and_capture "compile ${CASE_BASENAME}_nxpp.cpp" "$RUN_DIR/${CASE_BASENAME}_nxpp.compile.err" \
-  g++ -std=c++20 -Wall -Wextra -pedantic -O3 "$NXPP_FILE" -I"$ROOT_DIR" -o "$NXPP_BIN"
-log "compile stderr: $RUN_DIR/${CASE_BASENAME}_nxpp.compile.err"
+  log ""
+  log "Compiling $local_name"
+  log "CMD: g++ -std=c++20 -Wall -Wextra -pedantic -O3 $source_file -I$ROOT_DIR -o $bin_file"
+  compile_and_capture "compile $local_name" "$compile_err" \
+    g++ -std=c++20 -Wall -Wextra -pedantic -O3 "$source_file" -I"$ROOT_DIR" -o "$bin_file"
+  log "compile stderr: $compile_err"
 
-log ""
-log "Running reference C++"
-run_and_capture "${CASE_BASENAME}.cpp" \
-  "$CPP_OUT" "$RUN_DIR/${CASE_BASENAME}.cpp.err" "$STDIN_FILE" "$CPP_BIN"
-log "stdout: $CPP_OUT"
-log "stderr: $RUN_DIR/${CASE_BASENAME}.cpp.err"
+  log ""
+  log "Running $local_name"
+  run_and_capture "$local_name" "$stdout_file" "$stderr_file" "$STDIN_FILE" "$bin_file"
+  log "stdout: $stdout_file"
+  log "stderr: $stderr_file"
 
-log ""
-log "Running Python reference"
-run_and_capture "${CASE_BASENAME}.py" \
-  "$PY_OUT" "$RUN_DIR/${CASE_BASENAME}.py.err" "$STDIN_FILE" "$PYTHON_BIN" -B "$PY_FILE"
-log "stdout: $PY_OUT"
-log "stderr: $RUN_DIR/${CASE_BASENAME}.py.err"
+  LABELS+=("$local_name")
+  OUTPUTS+=("$stdout_file")
+done
 
-log ""
-log "Running nxpp C++"
-run_and_capture "${CASE_BASENAME}_nxpp.cpp" \
-  "$NXPP_OUT" "$RUN_DIR/${CASE_BASENAME}_nxpp.cpp.err" "$STDIN_FILE" "$NXPP_BIN"
-log "stdout: $NXPP_OUT"
-log "stderr: $RUN_DIR/${CASE_BASENAME}_nxpp.cpp.err"
+for source_file in "${PY_FILES[@]}"; do
+  local_name="$(basename "$source_file")"
+  stdout_file="$RUN_DIR/${local_name}.out"
+  stderr_file="$RUN_DIR/${local_name}.err"
+
+  log ""
+  log "Running $local_name"
+  run_and_capture "$local_name" "$stdout_file" "$stderr_file" "$STDIN_FILE" "$PYTHON_BIN" -B "$source_file"
+  log "stdout: $stdout_file"
+  log "stderr: $stderr_file"
+
+  LABELS+=("$local_name")
+  OUTPUTS+=("$stdout_file")
+done
 
 log ""
 log "Comparing outputs"
 
 all_ok=true
-compare_pair "$SNIPPET_NAME" "cpp" "$CPP_OUT" "py" "$PY_OUT" "$DIFF_CPP_PY" || all_ok=false
-compare_pair "$SNIPPET_NAME" "cpp" "$CPP_OUT" "nxpp" "$NXPP_OUT" "$DIFF_CPP_NXPP" || all_ok=false
-compare_pair "$SNIPPET_NAME" "py" "$PY_OUT" "nxpp" "$NXPP_OUT" "$DIFF_PY_NXPP" || all_ok=false
+for ((i = 0; i < ${#LABELS[@]}; ++i)); do
+  for ((j = i + 1; j < ${#LABELS[@]}; ++j)); do
+    left_label="${LABELS[i]}"
+    right_label="${LABELS[j]}"
+    left_output="${OUTPUTS[i]}"
+    right_output="${OUTPUTS[j]}"
+    diff_file="$RUN_DIR/diff_$(sanitize_name "$left_label")_vs_$(sanitize_name "$right_label").diff"
+    compare_pair "$left_label" "$left_output" "$right_label" "$right_output" "$diff_file" || all_ok=false
+  done
+done
 
 log ""
 log "Artifacts saved in: $RUN_DIR"
