@@ -158,14 +158,16 @@ private:
     storage_type data;
 };
 
-template <typename GraphWrapper>
-class default_graph_visitor {
+class visitor {
 public:
-    using NodeID = typename GraphWrapper::NodeType;
+    template <typename... Args>
+    void examine_vertex(Args&&...) {}
 
-    void examine_vertex(const NodeID&, const GraphWrapper&) {}
-    void tree_edge(const NodeID&, const NodeID&, const GraphWrapper&) {}
-    void back_edge(const NodeID&, const NodeID&, const GraphWrapper&) {}
+    template <typename... Args>
+    void tree_edge(Args&&...) {}
+
+    template <typename... Args>
+    void back_edge(Args&&...) {}
 };
 
 } // namespace nxpp

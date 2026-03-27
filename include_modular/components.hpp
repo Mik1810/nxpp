@@ -675,6 +675,11 @@ auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeT
     return max_flow_min_cost_cycle_canceling(G, source_id, target_id, capacity_attr, weight_attr);
 }
 
+template <typename GraphWrapper>
+auto num_vertices(const GraphWrapper& G) {
+    return static_cast<int>(boost::num_vertices(G.get_impl()));
+}
+
 inline int to_2sat_vertex_id(int literal) {
     return (literal > 0) ? (2 * literal - 2) : (-2 * literal - 1);
 }

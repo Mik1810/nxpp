@@ -333,7 +333,7 @@ because they make missing keys and type expectations much clearer.
 | `depth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point closer to a BGL usage style. | `nxpp::depth_first_search(G, 0, vis);` |
 | `bfs_visit` | `(G, start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style BFS. | `nxpp::bfs_visit(G, 0, on_v, on_e);` |
 | `dfs_visit` | `(G, start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style DFS. | `nxpp::dfs_visit(G, 0, on_t, on_b);` |
-| `default_graph_visitor<GraphWrapper>` | template base class | visitor base | — | No-op base visitor exposing hooks such as `examine_vertex`, `tree_edge`, and `back_edge`. | `struct V : nxpp::default_graph_visitor<nxpp::GraphInt> {};` |
+| `visitor` | base class | visitor base | — | Minimal no-op visitor base exposing hooks such as `examine_vertex`, `tree_edge`, and `back_edge`. | `struct V : nxpp::visitor {};` |
 
 ---
 
@@ -431,7 +431,7 @@ One of the useful directions of the project is that it already contains some hel
 | `connected_component_groups()` / `strongly_connected_component_groups()` | Often easier to consume in C++ than flat component-id maps. |
 | `single_source_dijkstra()` / `bellman_ford_shortest_paths()` / `single_source_dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
 | `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult` | Wrap raw algorithm results into structures that are easier to inspect and use directly. |
-| `default_graph_visitor<GraphWrapper>` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |
+| `visitor` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |
 | `lookup_map<Key, Value>` | Keeps a convenient `result[key]` style even in const-read contexts for some mapped results. |
 
 This is a good direction for the library: use BGL internally when it makes sense, but expose **results that are easier to work with in real C++ code**.

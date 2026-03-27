@@ -3,7 +3,8 @@
 
 #include "../../include/nxpp.hpp"
 
-struct custom_visitor : nxpp::default_graph_visitor<nxpp::UnweightedDiGraphInt> {
+class custom_visitor : public nxpp::visitor {
+public:
     void tree_edge(int u, int v, const auto&) {
         std::cout << "Discovered tree edge from " << u << " to " << v << "\n";
     }
