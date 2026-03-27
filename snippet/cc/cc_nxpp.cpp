@@ -13,7 +13,7 @@ int main() {
     G.add_edge(1, 2);
     G.add_edge(3, 4);
 
-    const auto comp_index = nxpp::connected_component_map(G);
+    const auto comp_index = nxpp::connected_components(G);
 
     for (int i = 0; i < 5; ++i) {
         std::cout << "Vertex " << i << " is in component " << comp_index[i] << "\n";

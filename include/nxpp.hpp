@@ -1734,7 +1734,7 @@ auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
 // Algorithms: Components
 
 template <typename GraphWrapper>
-auto connected_components(const GraphWrapper& G) {
+auto connected_component_groups(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
     auto& g = G.get_impl();
     auto& bgl_to_id = G.get_bgl_to_id_map();
@@ -1751,7 +1751,7 @@ auto connected_components(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto connected_component_map(const GraphWrapper& G) {
+auto connected_components(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
     const auto& g = G.get_impl();
@@ -1769,7 +1769,7 @@ auto connected_component_map(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto strongly_connected_components(const GraphWrapper& G) {
+auto strongly_connected_component_groups(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
     auto& g = G.get_impl();
     auto& bgl_to_id = G.get_bgl_to_id_map();
@@ -1786,7 +1786,7 @@ auto strongly_connected_components(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto strongly_connected_component_map(const GraphWrapper& G) {
+auto strong_components(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
     const auto& g = G.get_impl();
@@ -1804,7 +1804,7 @@ auto strongly_connected_component_map(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto strongly_connected_component_roots(const GraphWrapper& G) {
+auto strong_component_roots(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
     const auto& g = G.get_impl();
@@ -1824,6 +1824,26 @@ auto strongly_connected_component_roots(const GraphWrapper& G) {
         result[bgl_to_id[i]] = bgl_to_id[roots[i]];
     }
     return result;
+}
+
+template <typename GraphWrapper>
+auto connected_component_map(const GraphWrapper& G) {
+    return connected_components(G);
+}
+
+template <typename GraphWrapper>
+auto strongly_connected_components(const GraphWrapper& G) {
+    return strongly_connected_component_groups(G);
+}
+
+template <typename GraphWrapper>
+auto strongly_connected_component_map(const GraphWrapper& G) {
+    return strong_components(G);
+}
+
+template <typename GraphWrapper>
+auto strongly_connected_component_roots(const GraphWrapper& G) {
+    return strong_component_roots(G);
 }
 
 template <typename GraphWrapper>

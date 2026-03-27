@@ -371,11 +371,11 @@ because they make missing keys and type expectations much clearer.
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Returns connected components as grouped node vectors. | `auto cc = nxpp::connected_components(G);` |
-| `connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id`, often easier than flattening grouped results. | `auto m = nxpp::connected_component_map(G);` |
-| `strongly_connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Returns strongly connected components as grouped node vectors. | `auto scc = nxpp::strongly_connected_components(G);` |
-| `strongly_connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> SCC id`. | `auto m = nxpp::strongly_connected_component_map(G);` |
-| `strongly_connected_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns a representative/root node for each vertex's SCC. | `auto r = nxpp::strongly_connected_component_roots(G);` |
+| `connected_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Boost-like wrapper returning `node -> component_id`. | `auto m = nxpp::connected_components(G);` |
+| `connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by connected component. | `auto cc = nxpp::connected_component_groups(G);` |
+| `strong_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Boost-like wrapper returning `node -> SCC id`. | `auto m = nxpp::strong_components(G);` |
+| `strongly_connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by SCC. | `auto scc = nxpp::strongly_connected_component_groups(G);` |
+| `strong_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Convenience helper returning a representative/root node for each vertex's SCC. | `auto r = nxpp::strong_component_roots(G);` |
 | `topological_sort` | `(G)` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = nxpp::topological_sort(G);` |
 
 ### Spanning structures
@@ -428,7 +428,7 @@ One of the useful directions of the project is that it already contains some hel
 |---|---|
 | `successors()` / `predecessors()` | Makes directed traversal intent explicit, even if `neighbors()` already exists. |
 | `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>` | Safer than relying only on proxy conversions backed by `std::any`. |
-| `connected_component_map()` / `strongly_connected_component_map()` | Often easier to consume in C++ than grouped vectors. |
+| `connected_component_groups()` / `strongly_connected_component_groups()` | Often easier to consume in C++ than flat component-id maps. |
 | `single_source_dijkstra()` / `single_source_bellman_ford()` / `single_source_dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
 | `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult` | Wrap raw algorithm results into structures that are easier to inspect and use directly. |
 | `default_graph_visitor<GraphWrapper>` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |

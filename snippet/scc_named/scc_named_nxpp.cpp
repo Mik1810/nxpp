@@ -15,7 +15,7 @@ int main() {
     G.add_edge(3, 2);
     G.add_edge(3, 4);
 
-    auto comp = nxpp::strongly_connected_component_roots(G);
+    auto comp = nxpp::strong_component_roots(G);
     for (int i = 0; i < 5; ++i) {
         std::cout << "The representative of the SCC of vertex " << i
                   << " is " << comp[i] << "\n";
