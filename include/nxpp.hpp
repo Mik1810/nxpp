@@ -1400,7 +1400,7 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+auto dijkstra_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
     using Distance = typename GraphWrapper::EdgeWeightType;
@@ -1435,6 +1435,12 @@ auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::
     }
     result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, dist, pred);
     return result;
+}
+
+template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
+auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    return dijkstra_shortest_paths(G, source_id);
 }
 
 template <typename GraphWrapper>
@@ -1480,7 +1486,7 @@ double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
-    return single_source_dijkstra(G, source_id).distance;
+    return dijkstra_shortest_paths(G, source_id).distance;
 }
 
 template <typename GraphWrapper>

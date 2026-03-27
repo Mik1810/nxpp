@@ -14,10 +14,11 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    const auto result = nxpp::single_source_dijkstra(G, 0);
-    for (int i = 0; i < 5; ++i) {
-        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
-                  << " Parent: " << result.predecessor.at(i) << "\n";
+    auto result = nxpp::dijkstra_shortest_paths(G, 0);
+    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+        const int result_distance = result.distance[i];
+        std::cout << "Distance to " << i << ": " << result_distance
+                  << " Parent: " << result.predecessor[i] << "\n";
     }
 
     return EXIT_SUCCESS;
