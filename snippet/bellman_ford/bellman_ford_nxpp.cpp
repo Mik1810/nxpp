@@ -13,11 +13,11 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    const auto result = nxpp::single_source_bellman_ford(G, 0);
-    std::cout << "Distance to 0: 0 Parent: 0\n";
-    for (int i = 1; i < 5; ++i) {
-        std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
-                  << " Parent: " << result.predecessor.at(i) << "\n";
+    auto result = nxpp::bellman_ford_shortest_paths(G, 0);
+    
+    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+        std::cout << "Distance to " << i << ": " << result.distance[i]
+                  << " Parent: " << result.predecessor[i] << "\n";
     }
 
     return EXIT_SUCCESS;

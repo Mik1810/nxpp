@@ -265,7 +265,7 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
 
@@ -306,6 +306,12 @@ auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapp
     }
     result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
     return result;
+}
+
+template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
+auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
+    return bellman_ford_shortest_paths(G, source_id);
 }
 
 template <typename GraphWrapper>

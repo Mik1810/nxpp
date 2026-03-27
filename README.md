@@ -357,7 +357,7 @@ because they make missing keys and type expectations much clearer.
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
 | `single_source_dijkstra` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O((V + E) log V + V)` | Returns distances, predecessors, and fully reconstructed paths. | `auto r = nxpp::single_source_dijkstra(G, 0);` |
-| `single_source_bellman_ford` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(VE + V + total_path_materialization)` | Bellman-Ford variant returning the richer result bundle. | `auto r = nxpp::single_source_bellman_ford(G, 0);` |
+| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(VE + V + total_path_materialization)` | Bellman-Ford wrapper returning distances, predecessors, and materialized paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
 | `dag_shortest_paths` | `(G, source)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | DAG shortest-path distances. | `auto d = nxpp::dag_shortest_paths(G, 0);` |
 | `single_source_dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = nxpp::single_source_dag_shortest_paths(G, 0);` |
 | `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<double>>` | `O(V^3)` | All-pairs shortest-path distance matrix in internal vertex order. For integer snippet-style graphs this lines up with node IDs directly. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
@@ -429,7 +429,7 @@ One of the useful directions of the project is that it already contains some hel
 | `successors()` / `predecessors()` | Makes directed traversal intent explicit, even if `neighbors()` already exists. |
 | `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>` | Safer than relying only on proxy conversions backed by `std::any`. |
 | `connected_component_groups()` / `strongly_connected_component_groups()` | Often easier to consume in C++ than flat component-id maps. |
-| `single_source_dijkstra()` / `single_source_bellman_ford()` / `single_source_dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
+| `single_source_dijkstra()` / `bellman_ford_shortest_paths()` / `single_source_dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
 | `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult` | Wrap raw algorithm results into structures that are easier to inspect and use directly. |
 | `default_graph_visitor<GraphWrapper>` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |
 | `lookup_map<Key, Value>` | Keeps a convenient `result[key]` style even in const-read contexts for some mapped results. |
