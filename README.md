@@ -1,5 +1,9 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
+<p align="center">
+  <img src="imgs/logo.svg" alt="nxpp logo" width="220">
+</p>
+
 `nxpp` is a **header-only C++20** library built on top of the **Boost Graph Library (BGL)**.
 Its goal is not to clone all of NetworkX, but to offer a **small, practical, NetworkX-inspired API** that is easier to use directly from C++ than raw BGL in many common cases.
 
