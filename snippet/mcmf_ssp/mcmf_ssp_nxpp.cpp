@@ -16,10 +16,8 @@ int main() {
     G.add_edge(3, 2, 6, {"capacity", 2});
     G.add_edge(4, 5, 1, {"capacity", 2});
 
-    const long flow = nxpp::push_relabel_maximum_flow(G, 0, 5);
-    const long cost = nxpp::cycle_canceling(G);
-
-    std::cout << "The maximum flow from 0 to 5 is " << flow << "\n";
-    std::cout << "The minimum cost of a max flow from 0 to 5 is " << cost << "\n";
+    const auto result = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);
+    std::cout << "The minimum cost of a max flow from 0 to 5 is " << result.cost << "\n";
+    std::cout << "The maximum flow from 0 to 5 is " << result.flow << "\n";
     return EXIT_SUCCESS;
 }

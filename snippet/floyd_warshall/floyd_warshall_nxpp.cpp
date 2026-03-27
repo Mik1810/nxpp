@@ -5,7 +5,7 @@
 #include "../../include/nxpp.hpp"
 
 int main() {
-    nxpp::Graph<int, double, true> G;
+    nxpp::WeightedDiGraphInt G;
 
     G.add_edge(0, 2, 3);
     G.add_edge(1, 0, 2);

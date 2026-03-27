@@ -64,7 +64,7 @@ These items are still snippet-driven, but concern parity coverage and verificati
 - [x] Carry the current manual snippet review pass through `flow`
 - [x] Carry the current manual snippet review pass through `floyd_warshall`
 - [ ] Continue the current manual snippet review pass with `graph_example`
-- [ ] Extend `scripts/test_snippets.sh` beyond the current first batch
+- [ ] Extend `scripts/test_snippet_batch.sh` beyond the current first batch
 - [ ] Add `dag_sp` to the shell harness
 - [ ] Add `flow` to the shell harness
 - [ ] Add `floyd_warshall` to the shell harness
@@ -108,6 +108,9 @@ These items improve maintainability, packaging, and project quality, but should 
 - [ ] Add CI with at least one Linux build
 - [ ] Extend CI to macOS and Windows if practical
 - [ ] Add a minimal compiler/version support matrix to the README
+- [ ] Define a GitHub release process (tags, release notes, artifacts, and release cadence)
+- [ ] Define a versioning strategy for the library (e.g. SemVer and compatibility expectations)
+- [ ] Once the packaging/install story is stable, evaluate Linux distribution channels such as `apt` and `snap`
 
 ### Testing
 
@@ -138,6 +141,8 @@ These items improve maintainability, packaging, and project quality, but should 
 - [ ] Standardize error message style across graph operations and algorithm wrappers
 - [ ] Clarify which functions create missing nodes implicitly and which should fail
 - [ ] Document complexity and caveats for destructive operations more explicitly in the API reference
+- [ ] Revisit complexity documentation so it does not lean too casually on expected `unordered_map` running time where a stricter effective bound can be stated without overstating performance
+- [ ] Where algorithmic complexity does not worsen, prefer documenting a stronger/worst-case-style public-call running time instead of only average-case hash-table assumptions
 - [ ] Add compile-time constraints or concepts for `NodeID` expectations
 
 ### Attribute System
@@ -155,6 +160,8 @@ These items improve maintainability, packaging, and project quality, but should 
 - [ ] Keep `TODO.md` focused on open work only
 - [ ] Keep `SESSION.md` as historical development log rather than current status source
 - [ ] Separate examples, smoke tests, and formal tests more clearly in repo structure
+- [ ] Study and define a proper documentation strategy (scope, structure, tooling, hosting, and API/reference split)
+- [ ] Add inline API documentation comments for public functions so editor hover/tooling can explain purpose, parameters, and return type directly from the code
 
 ---
 

@@ -4,7 +4,7 @@
 #include "../../include/nxpp.hpp"
 
 int main() {
-    nxpp::Graph<int, double, true> G;
+    nxpp::UnweightedDiGraphInt G;
     G.add_nodes_from({0, 1, 2, 3, 4, 5});
 
     G.add_edge(0, 1, {"capacity", 1});
@@ -19,7 +19,7 @@ int main() {
     // It uses the Edmonds-Karp algorithm by default, but you can specify the algorithm explicitly:
 
     const auto result = nxpp::edmonds_karp_maximum_flow(G, 0, 5);
-    // ALTERNATIVELY: const auto result = nxpp::push_relabel_maximum_flow(G, 0, 5);
+    // ALTERNATIVELY: const auto result = nxpp::push_relabel_maximum_flow_result(G, 0, 5);
     
     std::cout << "The maximum flow from 0 to 5 is " << result.value << "\n";
     std::cout << "The flow across edge (1, 4) is: " << result.flow.at({1, 4}) << "\n";

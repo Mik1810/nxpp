@@ -15,12 +15,12 @@ nxpp::Graph<NodeID, EdgeWeight, Directed, Multi>
 
 with public aliases such as:
 
-- `nxpp::GraphInt`
-- `nxpp::GraphStr`
-- `nxpp::DiGraph`
-- `nxpp::DiGraphInt`
-- `nxpp::MultiGraph`
-- `nxpp::MultiDiGraph`
+- `nxpp::WeightedGraphInt`
+- `nxpp::WeightedGraphStr`
+- `nxpp::WeightedDiGraph`
+- `nxpp::WeightedDiGraphInt`
+- `nxpp::UnweightedGraphInt`
+- `nxpp::UnweightedDiGraphInt`
 
 Internally, `nxpp` stores a BGL graph and maintains a translation layer between user-facing node IDs and BGL vertex descriptors.
 That translation layer is what allows code such as:
@@ -81,6 +81,15 @@ Highlights currently present in `include/nxpp.hpp` include:
 - flows: max flow, min cut, min-cost max-flow variants
 - generators: complete graph, path graph, Erdős–Rényi graph
 - extras: degree centrality, 2-SAT helper, SCC root helper
+
+`include/nxpp.hpp` remains the canonical public header.
+If you want the same API split into themed headers, run:
+
+```bash
+python3 scripts/sync_modular_headers.py
+```
+
+That command regenerates `include_modular/` from `include/nxpp.hpp`, so the split headers stay aligned with the single source of truth under `include/`.
 
 Current status, aligned with `TODO.md`, `ROADMAP.md`, and `CHANGELOG.md`:
 
@@ -209,6 +218,14 @@ These are **practical complexity notes**, not formal proofs. Some BGL primitives
 
 | Alias | Expands to |
 |---|---|
+| `WeightedGraphInt` | `Graph<int>` |
+| `WeightedGraphStr` | `Graph<std::string>` |
+| `WeightedDiGraphInt` | `Graph<int, double, true>` |
+| `WeightedDiGraph` | `Graph<std::string, double, true>` |
+| `WeightedMultiGraphInt` | `Graph<int, double, false, true>` |
+| `WeightedMultiDiGraphInt` | `Graph<int, double, true, true>` |
+| `WeightedMultiGraph` | `Graph<std::string, double, false, true>` |
+| `WeightedMultiDiGraph` | `Graph<std::string, double, true, true>` |
 | `GraphInt` | `Graph<int>` |
 | `GraphStr` | `Graph<std::string>` |
 | `DiGraphInt` | `Graph<int, double, true>` |
@@ -217,6 +234,9 @@ These are **practical complexity notes**, not formal proofs. Some BGL primitives
 | `MultiDiGraphInt` | `Graph<int, double, true, true>` |
 | `MultiGraph` | `Graph<std::string, double, false, true>` |
 | `MultiDiGraph` | `Graph<std::string, double, true, true>` |
+
+The `Weighted*` aliases are the preferred explicit names for graphs with built-in edge weights.
+The shorter aliases such as `GraphInt` and `DiGraphInt` are kept as backward-compatible synonyms.
 
 ---
 
@@ -362,6 +382,8 @@ because they make missing keys and type expectations much clearer.
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
+| `minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Default MST wrapper; currently delegates to `kruskal_minimum_spanning_tree`. | `auto mst = nxpp::minimum_spanning_tree(G);` |
+| `minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Rooted overload that delegates to `prim_minimum_spanning_tree`. | `auto p = nxpp::minimum_spanning_tree(G, 0);` |
 | `kruskal_minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as `(u,v)` pairs. | `auto mst = nxpp::kruskal_minimum_spanning_tree(G);` |
 | `prim_minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map for the Prim tree rooted at `root`. | `auto p = nxpp::prim_minimum_spanning_tree(G, 0);` |
 
@@ -371,10 +393,18 @@ because they make missing keys and type expectations much clearer.
 |---|---|---:|---|---|---|
 | `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper; currently delegates to `edmonds_karp_maximum_flow`. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
 | `edmonds_karp_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper using Boost Edmonds-Karp. | `auto f = nxpp::edmonds_karp_maximum_flow(G, 0, 5);` |
-| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Push-Relabel cost | Max-flow wrapper using Boost Push-Relabel. | `auto f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
+| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `long` | build wrapper graph `O(V + E)` + Push-Relabel cost | Push-Relabel max-flow value. When used before `cycle_canceling(G)`, nxpp keeps the internal staged state needed for the next step. | `long f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
+| `push_relabel_maximum_flow_result` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Push-Relabel cost | Push-Relabel wrapper returning both the total value and the per-edge flow map. | `auto f = nxpp::push_relabel_maximum_flow_result(G, 0, 5);` |
 | `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, reachable/non-reachable partition, and crossing edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
-| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns flow value, flow cost, and per-edge flows. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
+| `max_flow_min_cost` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to `max_flow_min_cost_cycle_canceling`. | `auto r = nxpp::max_flow_min_cost(G, 0, 5);` |
+| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns total flow in `result.flow`, flow cost in `result.cost`, and per-edge flows in `result.edge_flows`. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
 | `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
+| `cycle_canceling` | `(G, weight_attr = "weight")` | deduced cost type | uses internal staged state from `push_relabel_maximum_flow` + cycle-canceling cost | Runs cycle-canceling over the internally cached staged flow graph prepared by `push_relabel_maximum_flow`. | `long c = nxpp::cycle_canceling(G);` |
+
+Native-style staged helpers for the cycle-canceling path are also available while keeping the state internal:
+
+- `long flow = nxpp::push_relabel_maximum_flow(G, source, sink, "capacity");`
+- `long cost = nxpp::cycle_canceling(G);`
 
 ### Generators, centrality, SAT
 
@@ -473,9 +503,25 @@ The repository also includes a snippet-based workflow and a small harness script
 
 - `snippet/` contains local reference examples
 - each algorithm folder now includes Boost-style C++, NetworkX Python, and `nxpp` C++ counterparts
-- `scripts/test_snippets.sh` currently compiles/runs `2sat`, `bellman_ford`, `bfs`, and `cc`, logging timings and diff-based parity results
+- `scripts/test_snippet_batch.sh` currently compiles/runs `2sat`, `bellman_ford`, `bfs`, and `cc`, logging timings and diff-based parity results
+- `scripts/test_single_snippet.sh <folder>` runs one snippet triplet at a time, compiling the two C++ variants, running the Python version, saving all logs, and producing all three pairwise diffs; if the file basename differs from the folder name, the script auto-detects it
 - snippet harness coverage for `dag_sp`, `flow`, `floyd_warshall`, `kruskal`, `prim`, `scc`, `scc_named`, `ts`, and min-cost max-flow is still open
 - the project markdown files (`TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `SESSION.md`) are useful to track scope, status, and cleanup direction
+
+Example single-snippet runs:
+
+```bash
+scripts/test_single_snippet.sh bfs
+scripts/test_single_snippet.sh 2sat
+scripts/test_single_snippet.sh 2sat /path/to/input.txt
+```
+
+Each run writes artifacts under `logs/snippet/<folder>_<timestamp>/`, including:
+
+- the combined run log
+- dedicated compile stderr logs for the Boost and `nxpp` C++ builds
+- captured `stdout` / `stderr` for all three implementations
+- `cpp vs py`, `cpp vs nxpp`, and `py vs nxpp` diff files
 
 That is a healthy sign for the project: there is a visible effort not just to write wrappers, but to compare behavior, keep examples aligned, and make regressions easier to notice.
 

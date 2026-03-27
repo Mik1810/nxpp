@@ -4,7 +4,7 @@
 #include "../../include/nxpp.hpp"
 
 int main() {
-    nxpp::Graph<int, double, true> G;
+    nxpp::UnweightedDiGraphInt G;
     G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);
@@ -15,8 +15,7 @@ int main() {
     G.add_edge(3, 2);
     G.add_edge(3, 4);
 
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edges()) {
         std::cout << "Edge from " << u << " to " << v << "\n";
     }
 

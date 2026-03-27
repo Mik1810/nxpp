@@ -1,0 +1,1 @@
+Here there willl be the full documentation of the library written in latex. It will be compiled to a pdf and uploaded here. The documentation will be updated with every new release of the library. It will contain all the necessary information to use the library, including installation instructions, usage examples, and API reference.

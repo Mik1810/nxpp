@@ -177,7 +177,7 @@
 
 24. **Initial Shell Snippet Harness Added**:
    - Fixed the `cc` / `scc` nxpp snippets to use `.at(...)` on const component maps, resolving the editor/compiler complaint caused by `unordered_map::operator[]` on const objects.
-   - Added `scripts/test_snippets.sh` as a first shell harness covering `2sat`, `bellman_ford`, `bfs`, and `cc`.
+   - Added `scripts/test_snippet_batch.sh` as a first shell harness covering `2sat`, `bellman_ford`, `bfs`, and `cc`.
    - The script compiles the Boost and nxpp C++ snippets, runs the Python snippet with the repo virtualenv, measures compile and execution times, and writes the report both to the terminal and to a timestamped log under `logs/`.
    - The reference Boost snippet compilations are now run with warnings silenced inside the harness so known third-party warning noise does not drown out nxpp-related signal in the test report.
 

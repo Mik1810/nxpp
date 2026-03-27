@@ -2,7 +2,7 @@
 #include <iostream>
 #include "../../include/nxpp.hpp"
 
-struct custom_visitor : nxpp::default_graph_visitor<nxpp::DiGraphInt> {
+struct custom_visitor : nxpp::default_graph_visitor<nxpp::UnweightedDiGraphInt> {
     void examine_vertex(int u, const auto&) {
         std::cout << "Visiting vertex " << u << "\n";
     }
@@ -13,7 +13,7 @@ struct custom_visitor : nxpp::default_graph_visitor<nxpp::DiGraphInt> {
 };
 
 int main() {
-    nxpp::DiGraphInt G;
+    nxpp::UnweightedDiGraphInt G;
     G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);

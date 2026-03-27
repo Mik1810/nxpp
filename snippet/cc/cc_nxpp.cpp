@@ -5,7 +5,7 @@
 #include "../../include/nxpp.hpp"
 
 int main() {
-    nxpp::GraphInt G;
+    nxpp::UnweightedGraphInt G;
     G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);

@@ -5,6 +5,10 @@
 #error "FATAL: nxpp requires the Boost Graph Library (BGL)."
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/depth_first_search.hpp>
@@ -19,10 +23,6 @@
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/edmonds_karp_max_flow.hpp>
 #include <boost/graph/push_relabel_max_flow.hpp>
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
 #include <boost/graph/cycle_canceling.hpp>
 #include <boost/graph/find_flow_cost.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
@@ -45,8 +45,30 @@
 #include <optional>
 #include <limits>
 #include <queue>
+#include <memory>
 
 namespace nxpp {
+
+template <typename GraphType, bool HasWeight>
+struct built_in_weight_traits;
+
+template <typename GraphType>
+struct built_in_weight_traits<GraphType, true> {
+    using map_type = typename boost::property_map<GraphType, boost::edge_weight_t>::type;
+
+    static map_type get(GraphType& g) {
+        return boost::get(boost::edge_weight, g);
+    }
+};
+
+template <typename GraphType>
+struct built_in_weight_traits<GraphType, false> {
+    struct map_type {};
+
+    static map_type get(GraphType&) {
+        return {};
+    }
+};
 
 // Python Emulation Utilities
 
@@ -73,20 +95,24 @@ inline void print(First&& first, Rest&&... rest) {
 
 // Core Graph Class
 
-template <typename NodeID = std::string, typename EdgeWeight = double, bool Directed = false, bool Multi = false>
+template <typename NodeID = std::string, typename EdgeWeight = double, bool Directed = false, bool Multi = false, bool Weighted = true>
 class Graph {
 public:
     using NodeType = NodeID;
     using DirectedSelector = typename std::conditional<Directed, boost::bidirectionalS, boost::undirectedS>::type;
-    using EdgeProperty = boost::property<boost::edge_weight_t, EdgeWeight,
-                                         boost::property<boost::edge_index_t, std::size_t>>;
+    using EdgeProperty = typename std::conditional<
+        Weighted,
+        boost::property<boost::edge_weight_t, EdgeWeight, boost::property<boost::edge_index_t, std::size_t>>,
+        boost::property<boost::edge_index_t, std::size_t>
+    >::type;
     using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, DirectedSelector,
                                             boost::no_property, EdgeProperty>;
     using VertexDesc = typename boost::graph_traits<GraphType>::vertex_descriptor;
     using EdgeDesc = typename boost::graph_traits<GraphType>::edge_descriptor;
-    using WeightMap = typename boost::property_map<GraphType, boost::edge_weight_t>::type;
+    using WeightMap = typename built_in_weight_traits<GraphType, Weighted>::map_type;
     using EdgeIdMap = typename boost::property_map<GraphType, boost::edge_index_t>::type;
     static constexpr bool is_directed = Directed;
+    static constexpr bool has_builtin_edge_weight = Weighted;
 
 private:
     GraphType g;
@@ -152,7 +178,7 @@ private:
     }
 
 public:
-    Graph() : g(), weight_map(boost::get(boost::edge_weight, g)), edge_id_map(boost::get(boost::edge_index, g)) {}
+    Graph() : g(), weight_map(built_in_weight_traits<GraphType, Weighted>::get(g)), edge_id_map(boost::get(boost::edge_index, g)) {}
 
     void add_node(const NodeID& id) {
         get_or_create_vertex(id);
@@ -181,6 +207,8 @@ public:
         return exists;
     }
 
+    template <bool W = Weighted>
+    requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
@@ -198,33 +226,74 @@ public:
         edge_id_map[e] = next_edge_id++;
     }
 
+    template <bool W = Weighted>
+    requires(!W)
+    void add_edge(const NodeID& u, const NodeID& v) {
+        VertexDesc bu = get_or_create_vertex(u);
+        VertexDesc bv = get_or_create_vertex(v);
+
+        if constexpr (!Multi) {
+            auto [e, exists] = boost::edge(bu, bv, g);
+            if (exists) {
+                return;
+            }
+        }
+
+        auto [e, added] = boost::add_edge(bu, bv, g);
+        (void)added;
+        edge_id_map[e] = next_edge_id++;
+    }
+
+    template <bool W = Weighted>
+    requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const EdgeAttrMap& attrs) {
         add_edge(u, v, w);
         assign_edge_attrs(get_edge_desc(u, v), attrs);
     }
 
     void add_edge(const NodeID& u, const NodeID& v, const EdgeAttrMap& attrs) {
-        add_edge(u, v, 1.0, attrs);
+        if constexpr (Weighted) {
+            add_edge(u, v, static_cast<EdgeWeight>(1.0), attrs);
+        } else {
+            add_edge(u, v);
+            assign_edge_attrs(get_edge_desc(u, v), attrs);
+        }
     }
 
+    template <bool W = Weighted>
+    requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const std::pair<std::string, std::any>& attr) {
         add_edge(u, v, w);
         assign_edge_attr(get_edge_desc(u, v), attr);
     }
 
     void add_edge(const NodeID& u, const NodeID& v, const std::pair<std::string, std::any>& attr) {
-        add_edge(u, v, 1.0, attr);
+        if constexpr (Weighted) {
+            add_edge(u, v, static_cast<EdgeWeight>(1.0), attr);
+        } else {
+            add_edge(u, v);
+            assign_edge_attr(get_edge_desc(u, v), attr);
+        }
     }
 
+    template <bool W = Weighted>
+    requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, std::initializer_list<std::pair<std::string, std::any>> attrs) {
         add_edge(u, v, w);
         assign_edge_attrs(get_edge_desc(u, v), attrs);
     }
 
     void add_edge(const NodeID& u, const NodeID& v, std::initializer_list<std::pair<std::string, std::any>> attrs) {
-        add_edge(u, v, 1.0, attrs);
+        if constexpr (Weighted) {
+            add_edge(u, v, static_cast<EdgeWeight>(1.0), attrs);
+        } else {
+            add_edge(u, v);
+            assign_edge_attrs(get_edge_desc(u, v), attrs);
+        }
     }
 
+    template <bool W = Weighted>
+    requires(W)
     void add_edges_from(const std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>& edges) {
         for (const auto& edge : edges) {
             add_edge(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
@@ -233,7 +302,7 @@ public:
 
     void add_edges_from(const std::vector<std::pair<NodeID, NodeID>>& edges) {
         for (const auto& edge : edges) {
-            add_edge(edge.first, edge.second, 1.0);
+            add_edge(edge.first, edge.second);
         }
     }
 
@@ -243,7 +312,7 @@ public:
         bgl_to_id.clear();
         node_properties.clear();
         edge_properties.clear();
-        weight_map = boost::get(boost::edge_weight, g);
+        weight_map = built_in_weight_traits<GraphType, Weighted>::get(g);
         edge_id_map = boost::get(boost::edge_index, g);
         next_edge_id = 0;
     }
@@ -419,7 +488,11 @@ public:
 
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
         if (key == "weight") {
-            return static_cast<double>(get_edge_weight(u, v));
+            if constexpr (Weighted) {
+                return static_cast<double>(get_edge_weight(u, v));
+            } else {
+                throw std::runtime_error("Edge attribute lookup failed: graph has no built-in edge weight.");
+            }
         }
 
         auto e = get_edge_desc(u, v);
@@ -442,6 +515,8 @@ public:
         throw std::runtime_error("Edge attribute lookup failed: stored value is not numeric.");
     }
 
+    template <bool W = Weighted>
+    requires(W)
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -459,12 +534,32 @@ public:
         return res;
     }
 
-    std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> edges() const {
-        std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
+    auto edges() const {
+        if constexpr (Weighted) {
+            std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
+            for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+                NodeID source_id = bgl_to_id[boost::source(*e, g)];
+                NodeID target_id = bgl_to_id[boost::target(*e, g)];
+                res.emplace_back(source_id, target_id, weight_map[*e]);
+            }
+            return res;
+        } else {
+            std::vector<std::pair<NodeID, NodeID>> res;
+            for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+                NodeID source_id = bgl_to_id[boost::source(*e, g)];
+                NodeID target_id = bgl_to_id[boost::target(*e, g)];
+                res.emplace_back(source_id, target_id);
+            }
+            return res;
+        }
+    }
+
+    std::vector<std::pair<NodeID, NodeID>> edge_pairs() const {
+        std::vector<std::pair<NodeID, NodeID>> res;
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
             NodeID source_id = bgl_to_id[boost::source(*e, g)];
             NodeID target_id = bgl_to_id[boost::target(*e, g)];
-            res.emplace_back(source_id, target_id, weight_map[*e]);
+            res.emplace_back(source_id, target_id);
         }
         return res;
     }
@@ -482,7 +577,10 @@ public:
 
         template <typename T>
         EdgeAttrProxy& operator=(const T& val) {
-            if (!graph->has_edge(u, v)) graph->add_edge(u, v, 1.0);
+            if (!graph->has_edge(u, v)) {
+                if constexpr (Weighted) graph->add_edge(u, v, static_cast<EdgeWeight>(1.0));
+                else graph->add_edge(u, v);
+            }
             auto e = graph->get_edge_desc(u, v);
             graph->edge_properties[graph->get_edge_id(e)][key] = std::any(val);
             return *this;
@@ -500,11 +598,15 @@ public:
     public:
         EdgeProxy(Graph* g, NodeID u, NodeID v) : graph(g), u(u), v(v) {}
         
+        template <bool W = Weighted>
+        requires(W)
         EdgeProxy& operator=(EdgeWeight w) {
             graph->add_edge(u, v, w);
             return *this;
         }
 
+        template <bool W = Weighted>
+        requires(W)
         operator EdgeWeight() const {
             return graph->get_edge_weight(u, v);
         }
@@ -621,6 +723,16 @@ GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
 }
 
 // NetworkX-style Aliases
+using WeightedGraphInt = Graph<int>;
+using WeightedDiGraphInt = Graph<int, double, true>;
+using WeightedGraphStr = Graph<std::string>;
+using WeightedMultiGraphInt = Graph<int, double, false, true>;
+using WeightedMultiDiGraphInt = Graph<int, double, true, true>;
+
+using WeightedDiGraph = Graph<std::string, double, true>;
+using WeightedMultiGraph = Graph<std::string, double, false, true>;
+using WeightedMultiDiGraph = Graph<std::string, double, true, true>;
+
 using GraphInt = Graph<int>;
 using DiGraphInt = Graph<int, double, true>;
 using GraphStr = Graph<std::string>;
@@ -631,6 +743,15 @@ using DiGraph = Graph<std::string, double, true>;
 using MultiGraph = Graph<std::string, double, false, true>;
 using MultiDiGraph = Graph<std::string, double, true, true>;
 
+using UnweightedGraphInt = Graph<int, double, false, false, false>;
+using UnweightedDiGraphInt = Graph<int, double, true, false, false>;
+using UnweightedGraphStr = Graph<std::string, double, false, false, false>;
+using UnweightedDiGraph = Graph<std::string, double, true, false, false>;
+using UnweightedMultiGraphInt = Graph<int, double, false, true, false>;
+using UnweightedMultiDiGraphInt = Graph<int, double, true, true, false>;
+using UnweightedMultiGraph = Graph<std::string, double, false, true, false>;
+using UnweightedMultiDiGraph = Graph<std::string, double, true, true, false>;
+
 template <typename NodeID>
 struct MaximumFlowResult {
     long value = 0;
@@ -639,10 +760,69 @@ struct MaximumFlowResult {
 
 template <typename NodeID>
 struct MinCostMaxFlowResult {
+    long flow = 0;
+    long cost = 0;
+    std::map<std::pair<NodeID, NodeID>, long> edge_flows;
+};
+
+namespace detail {
+
+template <typename NodeID>
+struct MinCostFlowState {
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_weight_t,
+            long,
+            boost::property<
+                boost::edge_capacity_t,
+                long,
+                boost::property<
+                    boost::edge_residual_capacity_t,
+                    long,
+                    boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+                >
+            >
+        >
+    >;
+    using WeightMap = typename boost::property_map<FlowGraph, boost::edge_weight_t>::type;
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    WeightMap weight;
+    CapacityMap capacity;
+    ResidualMap residual;
+    ReverseMap reverse;
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
+    NodeID source_id;
+    NodeID target_id;
     long value = 0;
     long cost = 0;
-    std::map<std::pair<NodeID, NodeID>, long> flow;
+
+    MinCostFlowState()
+        : flow_graph(),
+          weight(boost::get(boost::edge_weight, flow_graph)),
+          capacity(boost::get(boost::edge_capacity, flow_graph)),
+          residual(boost::get(boost::edge_residual_capacity, flow_graph)),
+          reverse(boost::get(boost::edge_reverse, flow_graph)) {}
 };
+
+template <typename GraphWrapper>
+auto& min_cost_flow_cache() {
+    using NodeID = typename GraphWrapper::NodeType;
+    static std::unordered_map<const void*, std::unique_ptr<MinCostFlowState<NodeID>>> cache;
+    return cache;
+}
+
+} // namespace detail
 
 template <typename NodeID>
 struct MinimumCutResult {
@@ -1145,6 +1325,7 @@ auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1180,6 +1361,7 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1228,6 +1410,7 @@ auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return dijkstra_path(G, source_id, target_id);
@@ -1256,11 +1439,13 @@ double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return single_source_dijkstra(G, source_id).distance;
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     const auto distances = dijkstra_path_length(G, source_id);
     auto it = distances.find(target_id);
@@ -1271,6 +1456,7 @@ double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return dijkstra_path_length(G, source_id, target_id);
@@ -1279,6 +1465,7 @@ double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1330,6 +1517,7 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1374,6 +1562,7 @@ auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapp
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return bellman_ford_path(G, source_id, target_id);
@@ -1382,6 +1571,7 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     const auto path = bellman_ford_path(G, source_id, target_id);
     if (path.empty()) {
@@ -1396,6 +1586,7 @@ double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapp
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return bellman_ford_path_length(G, source_id, target_id);
@@ -1404,6 +1595,7 @@ double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapp
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1434,6 +1626,7 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1471,6 +1664,7 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
@@ -1506,6 +1700,7 @@ auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
@@ -1647,6 +1842,7 @@ auto topological_sort(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
     using EdgeDesc = typename GraphWrapper::EdgeDesc;
@@ -1665,6 +1861,7 @@ auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
 auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
@@ -1689,6 +1886,18 @@ auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapp
         result[bgl_to_id[i]] = bgl_to_id[parent[i]];
     }
     return result;
+}
+
+template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
+auto minimum_spanning_tree(const GraphWrapper& G) {
+    return kruskal_minimum_spanning_tree(G);
+}
+
+template <typename GraphWrapper>
+requires(GraphWrapper::has_builtin_edge_weight)
+auto minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
+    return prim_minimum_spanning_tree(G, root_id);
 }
 
 template <typename GraphWrapper>
@@ -1733,8 +1942,7 @@ auto edmonds_karp_maximum_flow(const GraphWrapper& G, const typename GraphWrappe
     }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edge_pairs()) {
         auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
         auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
         (void)added;
@@ -1764,7 +1972,7 @@ auto edmonds_karp_maximum_flow(const GraphWrapper& G, const typename GraphWrappe
 }
 
 template <typename GraphWrapper>
-auto push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+auto push_relabel_maximum_flow_result(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     using NodeID = typename GraphWrapper::NodeType;
 
     if (!G.has_node(source_id) || !G.has_node(target_id)) {
@@ -1805,8 +2013,7 @@ auto push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrappe
     }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edge_pairs()) {
         auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
         auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
         (void)added;
@@ -1925,8 +2132,7 @@ auto minimum_cut(const GraphWrapper& G, const typename GraphWrapper::NodeType& s
         else result.non_reachable.push_back(index_to_node[i]);
     }
 
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edge_pairs()) {
         if (visited[node_to_index.at(u)] && !visited[node_to_index.at(v)]) {
             result.cut_edges.emplace_back(u, v);
         }
@@ -1983,8 +2189,7 @@ auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename Gra
     }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edge_pairs()) {
         auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
         auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
         (void)added;
@@ -1999,7 +2204,7 @@ auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename Gra
         original_edges[{u, v}] = e;
     }
 
-    const long flow_value = boost::push_relabel_max_flow(
+    boost::push_relabel_max_flow(
         flow_graph,
         node_to_index.at(source_id),
         node_to_index.at(target_id)
@@ -2009,12 +2214,80 @@ auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename Gra
 
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     MinCostMaxFlowResult<NodeID> result;
-    result.value = flow_value;
     result.cost = cost;
     for (const auto& [key, edge_desc] : original_edges) {
-        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+        result.edge_flows[key] = capacity[edge_desc] - residual[edge_desc];
+        if (key.first == source_id) {
+            result.flow += result.edge_flows[key];
+        }
     }
     return result;
+}
+
+template <typename GraphWrapper>
+long push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    auto state = std::make_unique<detail::MinCostFlowState<NodeID>>();
+    state->source_id = source_id;
+    state->target_id = target_id;
+
+    const auto nodes = G.nodes();
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(state->flow_graph);
+        state->node_to_index[nodes[i]] = i;
+    }
+
+    for (const auto& [u, v] : G.edge_pairs()) {
+        auto [e, added] = boost::add_edge(state->node_to_index.at(u), state->node_to_index.at(v), state->flow_graph);
+        auto [rev, rev_added] = boost::add_edge(state->node_to_index.at(v), state->node_to_index.at(u), state->flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        state->weight[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, weight_attr));
+        state->weight[rev] = -state->weight[e];
+        state->capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        state->capacity[rev] = 0;
+        state->reverse[e] = rev;
+        state->reverse[rev] = e;
+        state->original_edges[{u, v}] = e;
+    }
+
+    state->value = boost::push_relabel_max_flow(
+        state->flow_graph,
+        state->node_to_index.at(source_id),
+        state->node_to_index.at(target_id)
+    );
+
+    auto& cache = detail::min_cost_flow_cache<GraphWrapper>();
+    cache[static_cast<const void*>(&G)] = std::move(state);
+    return cache.at(static_cast<const void*>(&G))->value;
+}
+
+template <typename GraphWrapper>
+auto cycle_canceling(const GraphWrapper& G, const std::string& weight_attr = "weight") {
+    auto& cache = detail::min_cost_flow_cache<GraphWrapper>();
+    auto it = cache.find(static_cast<const void*>(&G));
+
+    if (it == cache.end()) {
+        throw std::runtime_error("Cycle-canceling state unavailable: run push_relabel_maximum_flow(...) first.");
+    }
+
+    auto& state = *it->second;
+
+    for (const auto& [key, edge_desc] : state.original_edges) {
+        state.weight[edge_desc] = static_cast<long>(G.get_edge_numeric_attr(key.first, key.second, weight_attr));
+        const auto rev = state.reverse[edge_desc];
+        state.weight[rev] = -state.weight[edge_desc];
+    }
+
+    boost::cycle_canceling(state.flow_graph);
+    state.cost = boost::find_flow_cost(state.flow_graph);
+    return state.cost;
 }
 
 template <typename GraphWrapper>
@@ -2065,8 +2338,7 @@ auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typ
     }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v, w] : G.edges()) {
-        (void)w;
+    for (const auto& [u, v] : G.edge_pairs()) {
         auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
         auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
         (void)added;
@@ -2096,12 +2368,16 @@ auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typ
     const long cost = boost::find_flow_cost(flow_graph);
 
     MinCostMaxFlowResult<NodeID> result;
-    result.value = flow_value;
+    result.flow = flow_value;
     result.cost = cost;
     for (const auto& [key, edge_desc] : original_edges) {
-        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+        result.edge_flows[key] = capacity[edge_desc] - residual[edge_desc];
     }
     return result;
+}
+template <typename GraphWrapper>
+auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+    return max_flow_min_cost_cycle_canceling(G, source_id, target_id, capacity_attr, weight_attr);
 }
 
 inline int to_2sat_vertex_id(int literal) {
