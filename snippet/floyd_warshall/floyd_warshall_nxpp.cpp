@@ -15,16 +15,12 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    const auto matrix = nxpp::floyd_warshall_all_pairs_shortest_paths(G);
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 5; ++j) {
-            const double value = matrix.at(i).at(j);
-            if (value == std::numeric_limits<double>::max()) {
-                std::cout << std::numeric_limits<int>::max() << " ";
-            } else {
-                std::cout << static_cast<int>(value) << " ";
-            }
-        }
+    const auto M = nxpp::floyd_warshall_all_pairs_shortest_paths(G);
+
+   for(auto row : M)
+    {
+        for(int d : row)
+            std::cout << d << " ";
         std::cout << "\n";
     }
 

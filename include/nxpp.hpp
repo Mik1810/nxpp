@@ -101,6 +101,8 @@ public:
     std::unordered_map<std::size_t, std::unordered_map<std::string, std::any>> edge_properties;
 
 private:
+    using EdgeAttrMap = std::unordered_map<std::string, std::any>;
+
     VertexDesc get_or_create_vertex(const NodeID& id) {
         auto it = id_to_bgl.find(id);
         if (it != id_to_bgl.end()) {
@@ -129,6 +131,24 @@ private:
         for (auto edge_id : edge_ids) {
             edge_properties.erase(edge_id);
         }
+    }
+
+    void assign_edge_attrs(EdgeDesc e, const EdgeAttrMap& attrs) {
+        auto& edge_attr_map = edge_properties[get_edge_id(e)];
+        for (const auto& [key, value] : attrs) {
+            edge_attr_map[key] = value;
+        }
+    }
+
+    void assign_edge_attrs(EdgeDesc e, std::initializer_list<std::pair<std::string, std::any>> attrs) {
+        auto& edge_attr_map = edge_properties[get_edge_id(e)];
+        for (const auto& [key, value] : attrs) {
+            edge_attr_map[key] = value;
+        }
+    }
+
+    void assign_edge_attr(EdgeDesc e, const std::pair<std::string, std::any>& attr) {
+        edge_properties[get_edge_id(e)][attr.first] = attr.second;
     }
 
 public:
@@ -176,6 +196,33 @@ public:
         auto [e, added] = boost::add_edge(bu, bv, g);
         weight_map[e] = w;
         edge_id_map[e] = next_edge_id++;
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const EdgeAttrMap& attrs) {
+        add_edge(u, v, w);
+        assign_edge_attrs(get_edge_desc(u, v), attrs);
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, const EdgeAttrMap& attrs) {
+        add_edge(u, v, 1.0, attrs);
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const std::pair<std::string, std::any>& attr) {
+        add_edge(u, v, w);
+        assign_edge_attr(get_edge_desc(u, v), attr);
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, const std::pair<std::string, std::any>& attr) {
+        add_edge(u, v, 1.0, attr);
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, std::initializer_list<std::pair<std::string, std::any>> attrs) {
+        add_edge(u, v, w);
+        assign_edge_attrs(get_edge_desc(u, v), attrs);
+    }
+
+    void add_edge(const NodeID& u, const NodeID& v, std::initializer_list<std::pair<std::string, std::any>> attrs) {
+        add_edge(u, v, 1.0, attrs);
     }
 
     void add_edges_from(const std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>& edges) {
@@ -1431,13 +1478,58 @@ auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     const auto& bgl_to_id = G.get_bgl_to_id_map();
     const size_t n = boost::num_vertices(g);
 
+    std::vector<std::vector<double>> internal_matrix(n, std::vector<double>(n));
+    boost::floyd_warshall_all_pairs_shortest_paths(g, internal_matrix);
+
+    std::vector<std::size_t> order(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        order[i] = i;
+    }
+
+    if constexpr (std::is_arithmetic_v<NodeID> || std::is_same_v<NodeID, std::string>) {
+        std::sort(order.begin(), order.end(), [&](std::size_t lhs, std::size_t rhs) {
+            return bgl_to_id[lhs] < bgl_to_id[rhs];
+        });
+    }
+
     std::vector<std::vector<double>> matrix(n, std::vector<double>(n));
-    boost::floyd_warshall_all_pairs_shortest_paths(g, matrix);
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = 0; j < n; ++j) {
+            const double value = internal_matrix[order[i]][order[j]];
+            matrix[i][j] = value == std::numeric_limits<double>::max()
+                ? static_cast<double>(std::numeric_limits<int>::max())
+                : value;
+        }
+    }
+
+    return matrix;
+}
+
+template <typename GraphWrapper>
+auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    const auto& bgl_to_id = G.get_bgl_to_id_map();
+    const auto& g = G.get_impl();
+    const size_t n = boost::num_vertices(g);
+
+    std::vector<std::size_t> order(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        order[i] = i;
+    }
+
+    if constexpr (std::is_arithmetic_v<NodeID> || std::is_same_v<NodeID, std::string>) {
+        std::sort(order.begin(), order.end(), [&](std::size_t lhs, std::size_t rhs) {
+            return bgl_to_id[lhs] < bgl_to_id[rhs];
+        });
+    }
+
+    const auto matrix = floyd_warshall_all_pairs_shortest_paths(G);
 
     std::unordered_map<NodeID, std::unordered_map<NodeID, double>> result;
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            result[bgl_to_id[i]][bgl_to_id[j]] = matrix[i][j];
+            result[bgl_to_id[order[i]]][bgl_to_id[order[j]]] = matrix[i][j];
         }
     }
     return result;
@@ -1600,7 +1692,7 @@ auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapp
 }
 
 template <typename GraphWrapper>
-auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+auto edmonds_karp_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     using NodeID = typename GraphWrapper::NodeType;
 
     if (!G.has_node(source_id) || !G.has_node(target_id)) {
@@ -1669,6 +1761,83 @@ auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& 
         result.flow[key] = capacity[edge_desc] - residual[edge_desc];
     }
     return result;
+}
+
+template <typename GraphWrapper>
+auto push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+    using NodeID = typename GraphWrapper::NodeType;
+
+    if (!G.has_node(source_id) || !G.has_node(target_id)) {
+        throw std::runtime_error("Source or target node not found in graph.");
+    }
+
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_capacity_t,
+            long,
+            boost::property<
+                boost::edge_residual_capacity_t,
+                long,
+                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+            >
+        >
+    >;
+
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
+    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+
+    const auto nodes = G.nodes();
+    std::unordered_map<NodeID, std::size_t> node_to_index;
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        boost::add_vertex(flow_graph);
+        node_to_index[nodes[i]] = i;
+    }
+
+    std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
+    for (const auto& [u, v, w] : G.edges()) {
+        (void)w;
+        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
+        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+        (void)added;
+        (void)rev_added;
+
+        capacity[e] = static_cast<long>(G.get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[rev] = 0;
+        reverse[e] = rev;
+        reverse[rev] = e;
+        original_edges[{u, v}] = e;
+    }
+
+    const long flow_value = boost::push_relabel_max_flow(
+        flow_graph,
+        node_to_index.at(source_id),
+        node_to_index.at(target_id)
+    );
+
+    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+
+    MaximumFlowResult<NodeID> result;
+    result.value = flow_value;
+    for (const auto& [key, edge_desc] : original_edges) {
+        result.flow[key] = capacity[edge_desc] - residual[edge_desc];
+    }
+    return result;
+}
+
+template <typename GraphWrapper>
+auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
+    return edmonds_karp_maximum_flow(G, source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>

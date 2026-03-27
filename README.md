@@ -78,6 +78,16 @@ Highlights currently present in `include/nxpp.hpp` include:
 - generators: complete graph, path graph, Erdős–Rényi graph
 - extras: degree centrality, 2-SAT helper, SCC root helper
 
+Current status, aligned with `TODO.md`, `ROADMAP.md`, and `CHANGELOG.md`:
+
+- snippet-backed algorithm coverage in the header is largely in place
+- the shell harness currently checks `2sat`, `bellman_ford`, `bfs`, and `cc`
+- the current manual snippet review pass has reached `floyd_warshall`
+- the next snippet-harness expansion item is still `dag_sp`, followed by the other remaining reviewed folders
+- the next manual snippet target is `graph_example`
+- `betweenness_centrality`, `pagerank`, and a benchmarking harness are still not implemented
+- repository hygiene work such as `LICENSE`, `CMakeLists.txt`, and CI is still open
+
 ---
 
 ## Build and requirements
@@ -217,6 +227,10 @@ These are **practical complexity notes**, not formal proofs. Some BGL primitives
 | `add_nodes_from` | `(const std::vector<NodeID>& nodes)` | `void` | avg `O(k)` | Inserts `k` nodes by repeatedly calling `add_node`. | `G.add_nodes_from({1,2,3});` |
 | `has_node` | `(const NodeID& u)` | `bool` | avg `O(1)` | Checks if a node ID is present in the graph. | `if (G.has_node(1)) {}` |
 | `add_edge` | `(u, v, w = 1.0)` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` | Creates missing endpoints automatically. In simple graphs it overwrites the existing edge weight if `(u,v)` already exists. In multigraphs it allows parallel edges. | `G.add_edge(1, 2, 3.5);` |
+| `add_edge` | `(u, v, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Creates an edge with default built-in weight `1.0` and applies one edge attribute during insertion. | `G.add_edge(0, 1, {"capacity", 5L});` |
+| `add_edge` | `(u, v, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Creates an edge with default built-in weight `1.0` and applies edge attributes during insertion. | `G.add_edge(0, 1, {{"capacity", 5L}});` |
+| `add_edge` | `(u, v, w, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Creates or updates an edge weight and applies one edge attribute during insertion. | `G.add_edge(0, 1, 3.5, {"capacity", 5L});` |
+| `add_edge` | `(u, v, w, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Creates or updates an edge weight and applies edge attributes during insertion. | `G.add_edge(0, 1, 3.5, {{"capacity", 5L}});` |
 | `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with explicit weights. | `G.add_edges_from({{1,2,2.0},{2,3,4.0}});` |
 | `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with default weight `1.0`. | `G.add_edges_from({{1,2},{2,3}});` |
 | `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge between `u` and `v` exists. | `if (G.has_edge("A","B")) {}` |
@@ -322,7 +336,8 @@ because they make missing keys and type expectations much clearer.
 | `single_source_bellman_ford` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(VE + V + total_path_materialization)` | Bellman-Ford variant returning the richer result bundle. | `auto r = nxpp::single_source_bellman_ford(G, 0);` |
 | `dag_shortest_paths` | `(G, source)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | DAG shortest-path distances. | `auto d = nxpp::dag_shortest_paths(G, 0);` |
 | `single_source_dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = nxpp::single_source_dag_shortest_paths(G, 0);` |
-| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, double>>` | `O(V^3 + V^2)` | All-pairs shortest paths plus conversion from matrix form to NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
+| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<double>>` | `O(V^3)` | All-pairs shortest-path distance matrix in internal vertex order. For integer snippet-style graphs this lines up with node IDs directly. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
+| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, double>>` | `O(V^3 + V^2)` | Convenience wrapper converting the Floyd-Warshall matrix into NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
 
 ---
 
@@ -350,7 +365,9 @@ because they make missing keys and type expectations much clearer.
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Builds an internal flow graph, reads capacities from edge attributes, and returns total flow plus per-edge flows. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
+| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper; currently delegates to `edmonds_karp_maximum_flow`. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
+| `edmonds_karp_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper using Boost Edmonds-Karp. | `auto f = nxpp::edmonds_karp_maximum_flow(G, 0, 5);` |
+| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Push-Relabel cost | Max-flow wrapper using Boost Push-Relabel. | `auto f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
 | `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, reachable/non-reachable partition, and crossing edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
 | `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns flow value, flow cost, and per-edge flows. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
 | `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
@@ -410,18 +427,17 @@ This is a good direction for the library: use BGL internally when it makes sense
 
 The current design is already useful, but a good README should be explicit about the trade-offs.
 
-### 1. Multigraph semantics need careful documentation
+### 1. Multigraph semantics are currently limited
 
-The API shape `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` is naturally clear for simple graphs.
-For multigraphs, however, `(u, v)` no longer uniquely identifies one edge.
+For simple graphs, APIs such as `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
+For multigraphs, the current implementation is more limited and should be treated carefully:
 
-That means the README should explicitly explain what the intended semantics are for:
+- `has_edge(u, v)` means "there exists at least one parallel edge between `u` and `v`"
+- `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, and proxy reads/writes such as `G[u][v]["key"]` operate on one matching `(u, v)` edge, not on a stable public edge identity
+- `remove_edge(u, v)` removes the `(u, v)` connection at the BGL level and is not yet documented as a precise "remove one specific parallel edge" API
+- because of that ambiguity, multigraph edge reads and destructive operations should currently be treated as a known caveat rather than a polished parity surface
 
-- reading the “edge weight” of parallel edges
-- reading an attribute from one of many parallel edges
-- removing one parallel edge vs all parallel edges
-
-At the moment, this is the area that most deserves precise documentation and possibly future API refinement.
+This is the highest-risk part of the public API today and is explicitly tracked in `TODO.md` for redesign/documentation follow-up.
 
 ### 2. `remove_node()` is intentionally not cheap
 
@@ -452,51 +468,25 @@ But as the project grows, it also means:
 The repository also includes a snippet-based workflow and a small harness script:
 
 - `snippet/` contains local reference examples
-- `scripts/test_snippets.sh` compiles/runs selected cases and logs timings
+- each algorithm folder now includes Boost-style C++, NetworkX Python, and `nxpp` C++ counterparts
+- `scripts/test_snippets.sh` currently compiles/runs `2sat`, `bellman_ford`, `bfs`, and `cc`, logging timings and diff-based parity results
+- snippet harness coverage for `dag_sp`, `flow`, `floyd_warshall`, `kruskal`, `prim`, `scc`, `scc_named`, `ts`, and min-cost max-flow is still open
 - the project markdown files (`TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `SESSION.md`) are useful to track scope, status, and cleanup direction
 
 That is a healthy sign for the project: there is a visible effort not just to write wrappers, but to compare behavior, keep examples aligned, and make regressions easier to notice.
 
 ---
 
-## Suggested roadmap for documentation quality
+## Status snapshot
 
-A stronger README should keep the following order:
+The project currently looks strongest as:
 
-1. one-paragraph description
-2. installation and 30-second quick start
-3. honest scope statement: “NetworkX-inspired, not full parity”
-4. graph types and core API
-5. complexity table for **public functions**
-6. algorithm and utility reference tables
-7. explicit caveats
-8. snippet/testing notes
+- a header-only C++20 graph utility layer with a practical subset of NetworkX-style ergonomics
+- a snippet-driven algorithm wrapper project whose implemented surface is broader than the automated regression harness
+- a codebase where the biggest remaining correctness/documentation risk is multigraph edge identity semantics
 
-That structure makes the project easier to trust because users can immediately see:
+If you use `nxpp` today, the safest mental model is:
 
-- what exists
-- how to compile it
-- how expensive public operations are
-- where the API intentionally differs from NetworkX or BGL
-- which helpers are extra ergonomics rather than strict ports
-
----
-
-## Short assessment of the codebase beyond the README
-
-Leaving documentation aside, the project has several genuinely good signs.
-
-### Strong points
-
-- The **ID translation layer** is the right architectural move if the goal is “user IDs outside, BGL inside”.
-- The switch to **stable internal edge IDs** for edge metadata is a meaningful improvement; it avoids binding user-level attributes to fragile edge descriptors.
-- The library is starting to develop **its own useful C++ ergonomics** rather than only copying names from NetworkX.
-- The richer result types for paths, flows, and component maps are a good direction.
-- The snippet/test-harness mindset is healthy: it suggests the code is being shaped against concrete examples rather than only abstract plans.
-
-### Main risks
-
-- Documentation/status drift is currently too easy.
-- Multigraph semantics are the biggest conceptual weak point in the public API.
-- The single-header design will become harder to evolve if the surface keeps growing quickly.
-- Error handling is still mostly string-based `std::runtime_error`, which is acceptable for now but not very expressive.
+- simple graphs and the snippet-backed algorithm family are the best-covered parts
+- richer path/flow/component helpers are available and useful
+- multigraph mutation/lookup semantics still need a more explicit, stable public contract

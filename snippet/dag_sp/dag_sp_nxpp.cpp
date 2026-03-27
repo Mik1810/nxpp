@@ -16,15 +16,6 @@ int main() {
 
     const auto result = nxpp::single_source_dag_shortest_paths(G, 0);
     for (int i = 0; i < 5; ++i) {
-        if (i == 0) {
-            std::cout << "Distance to 0: 0 Parent: 0\n";
-            continue;
-        }
-        if (result.distance.at(i) == std::numeric_limits<double>::max()) {
-            std::cout << "Distance to " << i << ": " << std::numeric_limits<int>::max()
-                      << " Parent: " << i << "\n";
-            continue;
-        }
         std::cout << "Distance to " << i << ": " << static_cast<int>(result.distance.at(i))
                   << " Parent: " << result.predecessor.at(i) << "\n";
     }

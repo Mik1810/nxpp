@@ -58,6 +58,12 @@ These are the functions and algorithm families that should drive implementation 
 
 These items are still snippet-driven, but concern parity coverage and verification rather than missing API surface.
 
+- [x] Carry the current manual snippet review pass through `dag_sp`
+- [x] Carry the current manual snippet review pass through `dfs`
+- [x] Carry the current manual snippet review pass through `dijkstra`
+- [x] Carry the current manual snippet review pass through `flow`
+- [x] Carry the current manual snippet review pass through `floyd_warshall`
+- [ ] Continue the current manual snippet review pass with `graph_example`
 - [ ] Extend `scripts/test_snippets.sh` beyond the current first batch
 - [ ] Add `dag_sp` to the shell harness
 - [ ] Add `flow` to the shell harness
@@ -167,6 +173,7 @@ These items are not currently driven by the snippet sets, so they should not out
 ## Notes
 
 - `graph_example` and `graph_weights` are informational reference snippets rather than standalone algorithm targets.
+- The current manual snippet review/parity pass has reached `floyd_warshall`; the next folder queued for inspection is `graph_example`.
 - Existing features that are outside snippet scope can stay in the codebase, but they should not drive roadmap priority over the functions listed above.
 - The highest-risk implemented area at the moment is multigraph behavior and edge identity semantics.
 - The highest-value non-feature improvement at the moment is broader automated verification of the snippet folders.
