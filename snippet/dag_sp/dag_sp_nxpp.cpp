@@ -1,7 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <limits>
-
 #include "../../include/nxpp.hpp"
 
 int main() {
@@ -16,12 +14,7 @@ int main() {
 
     const auto result = nxpp::single_source_dag_shortest_paths(G, 0);
     for (int i = 0; i < nxpp::num_vertices(G); ++i) {
-        const double distance = result.distance.at(i);
-        const int printable_distance =
-            distance == std::numeric_limits<double>::max()
-                ? std::numeric_limits<int>::max()
-                : static_cast<int>(distance);
-        std::cout << "Distance to " << i << ": " << printable_distance
+        std::cout << "Distance to " << i << ": " << result.distance.at(i)
                   << " Parent: " << result.predecessor.at(i) << "\n";
     }
 

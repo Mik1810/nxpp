@@ -117,9 +117,9 @@ struct MinimumCutResult {
     std::vector<std::pair<NodeID, NodeID>> cut_edges;
 };
 
-template <typename NodeID>
+template <typename NodeID, typename Distance = double>
 struct SingleSourceShortestPathResult {
-    std::unordered_map<NodeID, double> distance;
+    std::unordered_map<NodeID, Distance> distance;
     std::unordered_map<NodeID, NodeID> predecessor;
     std::unordered_map<NodeID, std::vector<NodeID>> paths;
 };

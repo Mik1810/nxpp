@@ -246,14 +246,14 @@ auto dfs_successors(const GraphWrapper& G, const typename GraphWrapper::NodeType
     return result;
 }
 
-template <typename NodeID, typename VertexDesc>
+template <typename NodeID, typename Distance, typename VertexDesc>
 std::unordered_map<NodeID, std::vector<NodeID>> build_single_source_paths(
     const std::vector<NodeID>& bgl_to_id,
-    const std::vector<double>& dist,
+    const std::vector<Distance>& dist,
     const std::vector<VertexDesc>& pred
 ) {
     std::unordered_map<NodeID, std::vector<NodeID>> paths;
-    const auto unreachable = std::numeric_limits<double>::max();
+    const auto unreachable = std::numeric_limits<Distance>::max();
 
     for (size_t i = 0; i < bgl_to_id.size(); ++i) {
         const NodeID target_id = bgl_to_id[i];

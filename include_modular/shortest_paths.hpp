@@ -76,6 +76,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
     auto& g = G.get_impl();
     auto& id_to_bgl = G.get_id_to_bgl_map();
     auto& bgl_to_id = G.get_bgl_to_id_map();
@@ -87,7 +88,7 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
     VertexDesc target = id_to_bgl.at(target_id);
 
     size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n);
+    std::vector<Distance> dist(n);
     std::vector<VertexDesc> pred(n);
 
     boost::dijkstra_shortest_paths(g, source, 
@@ -112,6 +113,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -123,7 +125,7 @@ auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::
 
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
     std::vector<VertexDesc> pred(n);
     for (size_t i = 0; i < n; ++i) {
         pred[i] = static_cast<VertexDesc>(i);
@@ -136,12 +138,12 @@ auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::
             .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
     );
 
-    SingleSourceShortestPathResult<NodeID> result;
+    SingleSourceShortestPathResult<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
         result.distance[bgl_to_id[i]] = dist[i];
         result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
     }
-    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
+    result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, dist, pred);
     return result;
 }
 
@@ -193,7 +195,7 @@ auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::No
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     const auto distances = dijkstra_path_length(G, source_id);
     auto it = distances.find(target_id);
     if (it == distances.end()) {
@@ -204,7 +206,7 @@ double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-double dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return dijkstra_path_length(G, source_id, target_id);
     }
@@ -216,6 +218,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -229,13 +232,13 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
     VertexDesc target = id_to_bgl.at(target_id);
 
     const size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
     std::vector<VertexDesc> pred(n);
 
     for (size_t i = 0; i < n; ++i) {
         pred[i] = static_cast<VertexDesc>(i);
     }
-    dist[source] = 0.0;
+    dist[source] = Distance{};
 
     const bool ok = boost::bellman_ford_shortest_paths(
         g,
@@ -250,7 +253,7 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
         throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
     }
 
-    if (dist[target] == std::numeric_limits<double>::max()) {
+    if (dist[target] == std::numeric_limits<Distance>::max()) {
         throw std::runtime_error("Node not reachable");
     }
 
@@ -268,6 +271,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -279,12 +283,12 @@ auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrap
 
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
     std::vector<VertexDesc> pred(n);
     for (size_t i = 0; i < n; ++i) {
         pred[i] = static_cast<VertexDesc>(i);
     }
-    dist[source] = 0.0;
+    dist[source] = Distance{};
 
     const bool ok = boost::bellman_ford_shortest_paths(
         g,
@@ -299,12 +303,12 @@ auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrap
         throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
     }
 
-    SingleSourceShortestPathResult<NodeID> result;
+    SingleSourceShortestPathResult<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
         result.distance[bgl_to_id[i]] = dist[i];
         result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
     }
-    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
+    result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, dist, pred);
     return result;
 }
 
@@ -325,22 +329,23 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
+    using Distance = typename GraphWrapper::EdgeWeightType;
     const auto path = bellman_ford_path(G, source_id, target_id);
     if (path.empty()) {
         throw std::runtime_error("Node not reachable");
     }
 
-    double total = 0.0;
+    Distance total{};
     for (size_t i = 0; i + 1 < path.size(); ++i) {
-        total += static_cast<double>(G.get_edge_weight(path[i], path[i + 1]));
+        total += G.get_edge_weight(path[i], path[i + 1]);
     }
     return total;
 }
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-double bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
+auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     if (weight.empty() || weight == "weight") {
         return bellman_ford_path_length(G, source_id, target_id);
     }
@@ -352,6 +357,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -363,7 +369,7 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
 
     VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
 
     boost::dag_shortest_paths(
         g,
@@ -371,7 +377,7 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
         boost::distance_map(boost::make_iterator_property_map(dist.begin(), boost::get(boost::vertex_index, g)))
     );
 
-    std::unordered_map<NodeID, double> result;
+    std::unordered_map<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
         result[bgl_to_id[i]] = dist[i];
     }
@@ -383,6 +389,7 @@ requires(GraphWrapper::has_builtin_edge_weight)
 auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     using NodeID = typename GraphWrapper::NodeType;
     using VertexDesc = typename GraphWrapper::VertexDesc;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& id_to_bgl = G.get_id_to_bgl_map();
@@ -394,7 +401,7 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
 
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);
-    std::vector<double> dist(n, std::numeric_limits<double>::max());
+    std::vector<Distance> dist(n, std::numeric_limits<Distance>::max());
     std::vector<VertexDesc> pred(n);
     for (size_t i = 0; i < n; ++i) {
         pred[i] = static_cast<VertexDesc>(i);
@@ -407,12 +414,12 @@ auto single_source_dag_shortest_paths(const GraphWrapper& G, const typename Grap
             .predecessor_map(boost::make_iterator_property_map(pred.begin(), boost::get(boost::vertex_index, g)))
     );
 
-    SingleSourceShortestPathResult<NodeID> result;
+    SingleSourceShortestPathResult<NodeID, Distance> result;
     for (size_t i = 0; i < n; ++i) {
         result.distance[bgl_to_id[i]] = dist[i];
         result.predecessor[bgl_to_id[i]] = bgl_to_id[pred[i]];
     }
-    result.paths = build_single_source_paths<NodeID>(bgl_to_id, dist, pred);
+    result.paths = build_single_source_paths<NodeID, Distance>(bgl_to_id, dist, pred);
     return result;
 }
 
@@ -420,12 +427,13 @@ template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
 auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& g = G.get_impl();
     const auto& bgl_to_id = G.get_bgl_to_id_map();
     const size_t n = boost::num_vertices(g);
 
-    std::vector<std::vector<double>> internal_matrix(n, std::vector<double>(n));
+    std::vector<std::vector<Distance>> internal_matrix(n, std::vector<Distance>(n));
     boost::floyd_warshall_all_pairs_shortest_paths(g, internal_matrix);
 
     std::vector<std::size_t> order(n);
@@ -439,13 +447,10 @@ auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
         });
     }
 
-    std::vector<std::vector<double>> matrix(n, std::vector<double>(n));
+    std::vector<std::vector<Distance>> matrix(n, std::vector<Distance>(n));
     for (std::size_t i = 0; i < n; ++i) {
         for (std::size_t j = 0; j < n; ++j) {
-            const double value = internal_matrix[order[i]][order[j]];
-            matrix[i][j] = value == std::numeric_limits<double>::max()
-                ? static_cast<double>(std::numeric_limits<int>::max())
-                : value;
+            matrix[i][j] = internal_matrix[order[i]][order[j]];
         }
     }
 
@@ -456,6 +461,7 @@ template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
 auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
+    using Distance = typename GraphWrapper::EdgeWeightType;
 
     const auto& bgl_to_id = G.get_bgl_to_id_map();
     const auto& g = G.get_impl();
@@ -474,7 +480,7 @@ auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
 
     const auto matrix = floyd_warshall_all_pairs_shortest_paths(G);
 
-    std::unordered_map<NodeID, std::unordered_map<NodeID, double>> result;
+    std::unordered_map<NodeID, std::unordered_map<NodeID, Distance>> result;
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
             result[bgl_to_id[order[i]]][bgl_to_id[order[j]]] = matrix[i][j];

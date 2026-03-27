@@ -12,6 +12,7 @@ template <typename NodeID = std::string, typename EdgeWeight = double, bool Dire
 class Graph {
 public:
     using NodeType = NodeID;
+    using EdgeWeightType = EdgeWeight;
     using DirectedSelector = typename std::conditional<Directed, boost::bidirectionalS, boost::undirectedS>::type;
     using EdgeProperty = typename std::conditional<
         Weighted,
