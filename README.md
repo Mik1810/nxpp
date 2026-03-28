@@ -5,12 +5,11 @@
 </p>
 
 `nxpp` is a **header-only C++20** library built on top of the **Boost Graph Library (BGL)**.
-Its goal is not to clone all of NetworkX, but to offer a **small, practical, NetworkX-inspired API** that is easier to use directly from C++ than raw BGL in many common cases.
 
-> [!WARNING]
-> The public API is still settling. I am still deciding how close `nxpp` should stay to Boost vs. NetworkX, and in particular whether graph operations should lean more on free functions under `nxpp::` or on methods called directly on the graph object itself.
+It does **not** try to reimplement all of NetworkX.  
+It aims to provide a **small, practical, C++-friendly graph API** that feels closer to NetworkX in day-to-day use while still delegating most graph work to Boost.
 
-The project centers on a single generic graph wrapper:
+The core abstraction is:
 
 ```cpp
 nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, Weighted>
@@ -22,18 +21,75 @@ with public aliases such as:
 - `nxpp::WeightedGraphStr`
 - `nxpp::WeightedDiGraph`
 - `nxpp::WeightedDiGraphInt`
+- `nxpp::GraphInt`
+- `nxpp::GraphStr`
+- `nxpp::DiGraph`
+- `nxpp::DiGraphInt`
+- `nxpp::MultiGraph`
+- `nxpp::MultiDiGraph`
 - `nxpp::UnweightedGraphInt`
 - `nxpp::UnweightedDiGraphInt`
 
-Internally, `nxpp` stores a BGL graph and maintains a translation layer between user-facing node IDs and BGL vertex descriptors.
-That translation layer is what allows code such as:
+---
 
-```cpp
-G.add_edge("Rome", "Milan", 5.0);
-auto path = nxpp::dijkstra_path(G, std::string("Rome"), std::string("Milan"));
-G.node("Rome")["population"] = 2800000;
-G["Rome"]["Milan"]["company"] = std::string("Trenitalia");
-```
+## Project status
+
+> [!WARNING]
+> The public API is still settling.
+> The biggest open design questions are:
+>
+> - how much of the API should remain NetworkX-shaped
+> - when functionality should live as free functions under `nxpp::`
+> - how much Boost configurability should be exposed publicly
+> - how multigraph edge identity should be modeled
+
+Today, the project is strongest as:
+
+- a **header-only wrapper over BGL**
+- a **NetworkX-inspired convenience layer**
+- a library that often returns **materialized C++ results**
+- a project with a **snippet-based parity / regression harness**
+- a codebase whose main remaining correctness/documentation risk is **multigraph edge semantics**
+
+---
+
+## Read this before using `nxpp`
+
+### 1. Complexity in this README means **public-call complexity**
+
+This README documents the cost of calling an `nxpp` function, not only the underlying graph algorithm.
+
+That matters because `nxpp` often does extra work around the Boost call itself, for example:
+
+- NodeID ↔ descriptor translation
+- `std::any`-based attribute lookups
+- result materialization into containers
+- cleanup of metadata on destructive operations
+- descriptor remapping after `remove_node()`
+
+So the complexity tables below describe the cost of the **full `nxpp` function call**.
+
+### 2. Multigraph APIs are still the weakest part of the public surface
+
+For simple graphs, calls such as `has_edge(u, v)`, `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
+
+For multigraphs, the current implementation still addresses edges through `(u, v)` in several places, which is not a stable public way to identify one specific parallel edge.
+
+Treat multigraph mutation / lookup as a **known caveat**, not as a fully polished API.
+
+### 3. `remove_node()` is intentionally not cheap
+
+The backend uses `boost::adjacency_list` with `boost::vecS` vertex storage.
+
+That makes many operations convenient, but removing a vertex shifts later descriptors.
+So `remove_node()` must also:
+
+- clear incident edge metadata
+- erase node metadata
+- shift internal descriptor-to-ID state
+- rebuild `id_to_bgl` mappings
+
+In practice, this is an **`O(V + E)` public operation**.
 
 ---
 
@@ -43,62 +99,64 @@ G["Rome"]["Milan"]["company"] = std::string("Trenitalia");
 
 - a **BGL-backed convenience layer**
 - a **partial NetworkX-inspired API**, not full parity
-- a library that prefers **materialized C++ containers** over Python-style lazy iterators
-- a project that also includes a few **quality-of-life utilities** not meant as strict NetworkX or BGL ports
+- a library that prefers **materialized C++ containers** over lazy iterator-heavy public APIs
+- a place for a few **C++-oriented utility wrappers** that are easier to consume than raw Boost output
 
 It is **not**:
 
-- a full drop-in replacement for NetworkX
-- a complete abstraction over all BGL concepts
+- a drop-in replacement for NetworkX
+- a full abstraction over all BGL concepts
 - a zero-cost wrapper in every public function
+- a fully stabilized graph framework yet
 
-Several public calls do extra work beyond the underlying algorithm itself:
+---
 
-- user-ID ↔ descriptor translation
-- node/edge attribute lookups through `std::any`
-- result materialization into `std::vector`, `std::unordered_map`, `std::map`, or custom wrappers
-- cleanup/reindex work after destructive operations such as `remove_node()`
+## Project documents
 
-For this reason, the complexity notes below describe the cost of the **public `nxpp` function call**, not only the theoretical complexity of the wrapped graph algorithm.
+These repository files should have clearly separated roles:
+
+- [`README.md`](README.md): user-facing overview, caveats, usage, and API reference
+- [`TODO.md`](TODO.md): open work and unresolved design / engineering tasks
+- [`CHANGELOG.md`](CHANGELOG.md): dated change history
+- [`SESSION.md`](SESSION.md): historical development log
+- [`docs/README.md`](docs/README.md): placeholder for fuller generated / long-form documentation
+
+If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
 
 ---
 
 ## Current scope
 
-The current public surface covers four main areas:
+The current public surface covers these areas:
 
 1. **Graph construction and mutation**
-2. **Proxy-style node/edge attribute access**
-3. **Common graph algorithms wrapped over BGL**
-4. **Utility helpers returning easier-to-consume C++ results**
+2. **Node and edge attributes through proxies and checked accessors**
+3. **Traversal wrappers**
+4. **Shortest paths**
+5. **Connected / strongly connected components**
+6. **Topological sort and minimum spanning tree helpers**
+7. **Maximum flow, minimum cut, and min-cost flow wrappers**
+8. **Graph generators and extra utilities**
 
-Highlights currently present in `include/nxpp.hpp` include:
+The most important implemented functionality currently includes:
 
-- graph types: simple graphs, digraphs, multigraphs
-- core methods: add/remove/clear, neighbors, successors, predecessors
-- attribute helpers: checked getters and optional-return variants
-- traversals: BFS / DFS edges, trees, visitor-style entry points
-- shortest paths: unweighted, Dijkstra, Bellman-Ford, DAG shortest paths, Floyd-Warshall
-- components: connected and strongly connected components, plus component maps
-- ordering / spanning: topological sort, Kruskal, Prim
-- flows: max flow, min cut, min-cost max-flow variants
-- generators: complete graph, path graph, Erdős–Rényi graph
-- extras: degree centrality, 2-SAT helper, SCC root helper
+- graph aliases for directed / undirected / multi / unweighted variants
+- `add_node`, `add_edge`, `remove_edge`, `remove_node`, `clear`
+- `neighbors`, `successors`, `predecessors`
+- `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>`
+- `bfs_edges`, `dfs_edges`, `bfs_tree`, `dfs_tree`
+- `breadth_first_search`, `depth_first_search`, `bfs_visit`, `dfs_visit`
+- `shortest_path`, `dijkstra_path`, `bellman_ford_path`, `dag_shortest_paths`
+- `dijkstra_shortest_paths`, `bellman_ford_shortest_paths`
+- `floyd_warshall_all_pairs_shortest_paths`
+- `connected_components`, `connected_component_groups`
+- `strongly_connected_components`, `strongly_connected_component_map`, `strongly_connected_component_roots`
+- `topological_sort`, `kruskal_minimum_spanning_tree`, `prim_minimum_spanning_tree`
+- `maximum_flow`, `minimum_cut`, `max_flow_min_cost`, `cycle_canceling`
+- `complete_graph`, `path_graph`, `erdos_renyi_graph`
+- `degree_centrality`, `two_sat_satisfiable`
 
-`include/nxpp.hpp` remains the canonical public header.
-
-Current status, aligned with `TODO.md`, `ROADMAP.md`, and `CHANGELOG.md`:
-
-- snippet-backed algorithm coverage in the header is largely in place
-- the snippet review workflow now runs across all folders under `snippet/`
-- the manual snippet review/parity pass across the snippet folders has been completed
-- a MIT `LICENSE` file is now present at the repository root
-- `betweenness_centrality`, `pagerank`, and a benchmarking harness are still not implemented
-- repository hygiene work such as `CMakeLists.txt`, broader build support, and release/versioning policy is still open
-
-## License
-
-This project is licensed under the MIT License. See `LICENSE`.
+`include/nxpp.hpp` is the canonical public header.
 
 ---
 
@@ -109,7 +167,7 @@ This project is licensed under the MIT License. See `LICENSE`.
 ### Minimal local build
 
 ```bash
-g++ -std=c++20 -Wall -pedantic -O3 main.cpp -o main
+g++ -std=c++20 -Wall -Wextra -pedantic -O3 main.cpp -o main
 ```
 
 ### Install Boost Graph Library
@@ -138,26 +196,51 @@ The header performs a compile-time include check and fails early if BGL headers 
 
 ## Quick start
 
+The old graph-weights / direct-path style example is no longer representative enough.
+A more up-to-date "small but real" example is:
+
 ```cpp
 #include "include/nxpp.hpp"
+#include <iostream>
 #include <string>
 
 int main() {
     auto G = nxpp::DiGraph();
 
-    G.add_edge("Milan", "Rome", 5.0);
+    G.add_edge("Milan", "Rome", 5.0, {
+        {"capacity", 8L},
+        {"company", std::string("Trenitalia")}
+    });
     G.add_edge("Rome", "Naples", 2.5);
+    G.add_edge("Milan", "Florence", 2.0);
+    G.add_edge("Florence", "Naples", 4.0);
 
     G.node("Rome")["population"] = 2800000;
-    G["Rome"]["Naples"]["company"] = std::string("Trenitalia");
 
-    auto path = nxpp::dijkstra_path(G, std::string("Milan"), std::string("Naples"));
-    auto preds = G.predecessors("Naples");
-    auto company = G.get_edge_attr<std::string>("Rome", "Naples", "company");
+    auto routes = nxpp::dijkstra_shortest_paths(G, std::string("Milan"));
+    auto dist_to_naples = routes.distance.at("Naples");
+    auto path_to_naples = routes.paths.at("Naples");
+
+    auto operator_name =
+        G.get_edge_attr<std::string>("Milan", "Rome", "company");
+
+    std::cout << "Distance Milan -> Naples: " << dist_to_naples << "\n";
+    std::cout << "Rail operator on Milan -> Rome: " << operator_name << "\n";
+    std::cout << "Path:";
+    for (const auto& node : path_to_naples) {
+        std::cout << " " << node;
+    }
+    std::cout << "\n";
 
     return 0;
 }
 ```
+
+This shows the three main ideas of the library:
+
+- graph mutation through a small wrapper API
+- checked node / edge attribute access
+- richer result wrappers such as `dijkstra_shortest_paths()`
 
 ---
 
@@ -168,50 +251,54 @@ int main() {
 - `id_to_bgl`: `NodeID -> vertex_descriptor`
 - `bgl_to_id`: `vertex_descriptor -> NodeID`
 
-This gives the library a user-facing API based on `std::string`, `int`, or other hashable node IDs while still running algorithms on a normal BGL graph internally.
+This lets the public API use `std::string`, `int`, or other hashable node IDs while running algorithms on a normal BGL graph internally.
 
-### Important consequence
+### Consequence
 
-The current backend uses `boost::adjacency_list` with `boost::vecS` vertex storage.
-That choice is fast and convenient for many operations, but it has a crucial side effect:
+The current backend uses:
 
-> when a vertex is removed, later vertex descriptors shift.
+```cpp
+boost::adjacency_list<boost::vecS, boost::vecS, ...>
+```
 
-So `remove_node()` is not a trivial wrapper. In `nxpp`, it also performs:
+That is convenient, but vertex removal shifts later descriptors.
 
-- removal of incident edge metadata
-- node property cleanup
-- `bgl_to_id` erase/shift
-- full rebuild of the `id_to_bgl` map for shifted vertices
-
-This is one of the biggest reasons why the complexity of a public `nxpp` function can differ from the “pure algorithm” you might expect from a textbook description.
+So operations such as `remove_node()` must also repair `nxpp`'s own translation layer.
+That is why some public-call costs differ from the textbook complexity of the wrapped algorithm alone.
 
 ---
 
-## Complexity model used in this README
+## Complexity conventions used below
 
-The tables below use these conventions:
+The tables use these symbols:
 
 - `V` = number of vertices
 - `E` = number of edges
 - `deg(u)` = degree / out-degree relevant to `u`
-- unordered-map lookups are treated as **average-case O(1)**
-- vector growth is treated as **amortized O(1)** per push
-- materializing a returned container is counted in the complexity
-- destructive cleanup work done by `nxpp` is counted
+- `k` = number of inserted items in a bulk call
 
-These are **practical complexity notes**, not formal proofs. Some BGL primitives depend on storage selectors and can vary in constant factors.
+Conventions:
+
+- unordered-map lookups are treated as **average-case `O(1)`**
+- vector growth is treated as **amortized `O(1)` per push**
+- materializing the returned result container counts toward the complexity
+- cleanup / metadata repair done by `nxpp` counts toward the complexity
+
+These are **practical public-call notes**, not formal proofs.
 
 ---
 
-## Public graph types
+## Public graph template and aliases
+
+### Primary template
 
 | Type | Meaning |
 |---|---|
-| `nxpp::Graph<NodeID, EdgeWeight, false, false>` | Undirected simple graph |
-| `nxpp::Graph<NodeID, EdgeWeight, true, false>` | Directed simple graph |
+| `nxpp::Graph<NodeID, EdgeWeight, false, false>` | Undirected simple weighted graph |
+| `nxpp::Graph<NodeID, EdgeWeight, true, false>` | Directed simple weighted graph |
 | `nxpp::Graph<NodeID, EdgeWeight, false, true>` | Undirected multigraph |
 | `nxpp::Graph<NodeID, EdgeWeight, true, true>` | Directed multigraph |
+| `nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, false>` | Unweighted variant |
 
 ### Common aliases
 
@@ -233,9 +320,17 @@ These are **practical complexity notes**, not formal proofs. Some BGL primitives
 | `MultiDiGraphInt` | `Graph<int, int, true, true>` |
 | `MultiGraph` | `Graph<std::string, double, false, true>` |
 | `MultiDiGraph` | `Graph<std::string, double, true, true>` |
+| `UnweightedGraphInt` | `Graph<int, double, false, false, false>` |
+| `UnweightedDiGraphInt` | `Graph<int, double, true, false, false>` |
+| `UnweightedGraphStr` | `Graph<std::string, double, false, false, false>` |
+| `UnweightedDiGraph` | `Graph<std::string, double, true, false, false>` |
+| `UnweightedMultiGraphInt` | `Graph<int, double, false, true, false>` |
+| `UnweightedMultiDiGraphInt` | `Graph<int, double, true, true, false>` |
+| `UnweightedMultiGraph` | `Graph<std::string, double, false, true, false>` |
+| `UnweightedMultiDiGraph` | `Graph<std::string, double, true, true, false>` |
 
-The `Weighted*` aliases are the preferred explicit names for graphs with built-in edge weights.
-The shorter aliases such as `GraphInt` and `DiGraphInt` are kept as backward-compatible synonyms.
+The `Weighted*` aliases are the clearest explicit names.
+The shorter aliases such as `GraphInt` and `DiGraph` are kept as compatibility-friendly synonyms.
 
 ---
 
@@ -245,35 +340,40 @@ The shorter aliases such as `GraphInt` and `DiGraphInt` are kept as backward-com
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `Graph()` | — | graph object | `O(1)` | Creates an empty graph wrapper and initializes internal property maps. | `nxpp::GraphInt G;` |
-| `add_node` | `(const NodeID& id)` | `void` | avg `O(1)` | Inserts the node if absent and updates the ID/descriptor translation layer. | `G.add_node(42);` |
-| `add_nodes_from` | `(const std::vector<NodeID>& nodes)` | `void` | avg `O(k)` | Inserts `k` nodes by repeatedly calling `add_node`. | `G.add_nodes_from({1,2,3});` |
-| `has_node` | `(const NodeID& u)` | `bool` | avg `O(1)` | Checks if a node ID is present in the graph. | `if (G.has_node(1)) {}` |
-| `add_edge` | `(u, v, w = 1.0)` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` | Creates missing endpoints automatically. In simple graphs it overwrites the existing edge weight if `(u,v)` already exists. In multigraphs it allows parallel edges. | `G.add_edge(1, 2, 3.5);` |
-| `add_edge` | `(u, v, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Creates an edge with default built-in weight `1.0` and applies one edge attribute during insertion. | `G.add_edge(0, 1, {"capacity", 5L});` |
-| `add_edge` | `(u, v, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Creates an edge with default built-in weight `1.0` and applies edge attributes during insertion. | `G.add_edge(0, 1, {{"capacity", 5L}});` |
-| `add_edge` | `(u, v, w, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Creates or updates an edge weight and applies one edge attribute during insertion. | `G.add_edge(0, 1, 3.5, {"capacity", 5L});` |
-| `add_edge` | `(u, v, w, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Creates or updates an edge weight and applies edge attributes during insertion. | `G.add_edge(0, 1, 3.5, {{"capacity", 5L}});` |
-| `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with explicit weights. | `G.add_edges_from({{1,2,2.0},{2,3,4.0}});` |
-| `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk edge insertion with default weight `1.0`. | `G.add_edges_from({{1,2},{2,3}});` |
-| `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge between `u` and `v` exists. | `if (G.has_edge("A","B")) {}` |
-| `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight stored in the BGL edge property. | `auto w = G.get_edge_weight(1,2);` |
-| `nodes` | `()` | `std::vector<NodeID>` | `O(V)` | Materializes all node IDs into a vector. | `auto ns = G.nodes();` |
-| `edges` | `()` | `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>` | `O(E)` | Materializes all edges into a vector of `(u,v,weight)`. | `auto es = G.edges();` |
-| `neighbors` | `(u)` | `std::vector<NodeID>` | `O(deg(u))` | Returns the out-neighbors of `u`; in directed graphs this matches successor semantics. | `auto ns = G.neighbors("A");` |
-| `successors` | `(u)` | `std::vector<NodeID>` | `O(out_deg(u))` | Explicit directed-style successor helper. For undirected graphs it behaves like `neighbors`. | `auto succ = G.successors("A");` |
-| `predecessors` | `(u)` | `std::vector<NodeID>` | directed: `O(in_deg(u))`; undirected: `O(deg(u))` | Returns predecessor IDs in directed graphs. | `auto pred = G.predecessors("B");` |
-| `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying edge removal | Removes the edge and clears associated edge metadata tracked by `nxpp`. | `G.remove_edge(1,2);` |
-| `remove_node` | `(u)` | `void` | **`O(V + E)`** in practice | Removes the node, clears incident metadata, erases the vertex from the `vecS` graph, then rebuilds shifted descriptor mappings. | `G.remove_node("Rome");` |
-| `clear` | `()` | `void` | `O(V + E)` | Resets graph structure, translation maps, node attributes, edge attributes, and edge-ID state. | `G.clear();` |
-| `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns a proxy for `G.node(u)["key"]` attribute access; creates the node if absent. | `G.node("A")["x"] = 7;` |
-| `operator[]` | `(u)` | `NodeProxy` | avg `O(1)` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`; creates `u` if absent. | `G["A"]["B"] = 2.0;` |
+| `Graph()` | — | graph object | `O(1)` | Creates an empty wrapper and initializes internal state. | `nxpp::GraphInt G;` |
+| `add_node` | `(const NodeID& id)` | `void` | avg `O(1)` | Inserts the node if absent. | `G.add_node(42);` |
+| `add_nodes_from` | `(const std::vector<NodeID>& nodes)` | `void` | avg `O(k)` | Inserts `k` nodes by repeated `add_node`. | `G.add_nodes_from({1,2,3});` |
+| `has_node` | `(const NodeID& u)` | `bool` | avg `O(1)` | Checks whether a node exists. | `G.has_node(1)` |
+| `add_edge` | `(u, v, w = 1.0)` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` | Creates missing endpoints automatically. In simple graphs, a repeated `(u, v)` overwrites weight. | `G.add_edge(1, 2, 3.5);` |
+| `add_edge` | `(u, v)` on unweighted graphs | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` | Inserts an unweighted edge. | `UG.add_edge(1, 2);` |
+| `add_edge` | `(u, v, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Adds one edge attribute with default built-in weight where applicable. | `G.add_edge(0, 1, {"capacity", 5L});` |
+| `add_edge` | `(u, v, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Adds multiple edge attributes with default built-in weight where applicable. | `G.add_edge(0, 1, {{"capacity", 5L}});` |
+| `add_edge` | `(u, v, w, {"key", value})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute insert | Adds / updates weight and one edge attribute. | `G.add_edge(0, 1, 3.5, {"capacity", 5L});` |
+| `add_edge` | `(u, v, w, {{"key", value}, ...})` | `void` | simple graph: avg `O(1 + deg(u))`; multigraph: avg `O(1)` + attribute inserts | Adds / updates weight and multiple edge attributes. | `G.add_edge(0, 1, 3.5, {{"capacity", 5L}});` |
+| `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk weighted insertion. | `G.add_edges_from({{1,2,2},{2,3,4}});` |
+| `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk insertion with default weight or unweighted insertion depending on graph type. | `G.add_edges_from({{1,2},{2,3}});` |
+| `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge exists. In multigraphs, this means "at least one edge exists". | `G.has_edge("A","B")` |
+| `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight. | `auto w = G.get_edge_weight(1,2);` |
+| `nodes` | `()` | `std::vector<NodeID>` | `O(V)` | Materializes all node IDs. | `auto ns = G.nodes();` |
+| `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes all edges. | `auto es = G.edges();` |
+| `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
+| `neighbors` | `(u)` | `std::vector<NodeID>` | `O(deg(u))` | Returns out-neighbors. For directed graphs this matches successor semantics. | `G.neighbors("A")` |
+| `successors` | `(u)` | `std::vector<NodeID>` | `O(out_deg(u))` | Explicit directed-style successor helper. | `G.successors("A")` |
+| `predecessors` | `(u)` | `std::vector<NodeID>` | directed: `O(in_deg(u))`; undirected: `O(deg(u))` | Returns predecessor IDs in directed graphs. | `G.predecessors("B")` |
+| `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying removal | Removes the edge and tracked edge metadata. In multigraphs, semantics are not yet precise enough. | `G.remove_edge(1,2);` |
+| `remove_node` | `(u)` | `void` | **`O(V + E)`** | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. | `G.remove_node("Rome");` |
+| `clear` | `()` | `void` | `O(V + E)` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
+| `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
+| `operator[]` | `(u)` | `NodeProxy` | avg `O(1)` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
+| `get_impl` | `()` | `const GraphType&` | `O(1)` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |
+| `get_bgl_to_id_map` | `()` | `const std::vector<NodeID>&` | `O(1)` | Exposes descriptor-to-ID mapping. | `auto& map = G.get_bgl_to_id_map();` |
+| `get_id_to_bgl_map` | `()` | `const std::unordered_map<NodeID, VertexDesc>&` | `O(1)` | Exposes ID-to-descriptor mapping. | `auto& map = G.get_id_to_bgl_map();` |
 
 ---
 
 ## Attribute API reference
 
-Node and edge attributes are stored separately from the BGL graph using `std::any`.
+Node and edge attributes are stored outside the BGL graph using `std::any`.
 
 ### Checked helpers
 
@@ -281,17 +381,18 @@ Node and edge attributes are stored separately from the BGL graph using `std::an
 |---|---|---:|---|---|---|
 | `has_node_attr` | `(u, key)` | `bool` | avg `O(1)` | Checks whether node `u` has attribute `key`. | `G.has_node_attr("A", "color")` |
 | `has_edge_attr` | `(u, v, key)` | `bool` | avg `O(1 + deg(u))` | Checks whether edge `(u,v)` has attribute `key`. | `G.has_edge_attr("A","B","capacity")` |
-| `get_node_attr<T>` | `(u, key)` | `T` | avg `O(1)` | Returns node attribute `key` with checked `std::any_cast`. Throws if missing or wrong type. | `int pop = G.get_node_attr<int>("Rome", "population");` |
-| `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. Throws if missing or wrong type. | `auto c = G.get_edge_attr<std::string>("A","B","company");` |
-| `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | avg `O(1)` | Safer optional-return node attribute lookup. | `auto x = G.try_get_node_attr<int>(1, "rank");` |
-| `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safer optional-return edge attribute lookup. | `auto cap = G.try_get_edge_attr<long>(0,1,"capacity");` |
+| `get_node_attr<T>` | `(u, key)` | `T` | avg `O(1)` | Returns node attribute `key` with checked `std::any_cast`. Throws on missing key or type mismatch. | `G.get_node_attr<int>("Rome", "population")` |
+| `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. | `G.get_edge_attr<std::string>("A","B","company")` |
+| `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | avg `O(1)` | Safe optional-return node attribute lookup. | `G.try_get_node_attr<int>(1, "rank")` |
+| `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safe optional-return edge attribute lookup. | `G.try_get_edge_attr<long>(0,1,"capacity")` |
+| `get_edge_numeric_attr` | `(u, v, key)` | `double` | avg `O(1 + deg(u))` | Returns a numeric edge attribute or the built-in `"weight"` as `double`. Used internally by flow wrappers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
 
 ### Proxy syntax
 
 | Syntax | Meaning |
 |---|---|
 | `G[u][v] = w;` | set built-in edge weight |
-| `auto w = (double)G[u][v];` | read built-in edge weight through proxy conversion |
+| `auto w = (EdgeWeight)G[u][v];` | read built-in edge weight through proxy conversion |
 | `G[u][v]["key"] = value;` | set an edge attribute |
 | `auto x = (T)G[u][v]["key"];` | read an edge attribute through proxy conversion |
 | `G.node(u)["key"] = value;` | set a node attribute |
@@ -299,14 +400,33 @@ Node and edge attributes are stored separately from the BGL graph using `std::an
 
 ### Recommendation
 
-Proxy syntax is convenient for write-heavy code and demos.
-For production-style reads, prefer:
+Proxy syntax is convenient for writes and demos.
+
+For reads, prefer:
 
 - `has_*_attr`
 - `get_*_attr<T>`
 - `try_get_*_attr<T>`
 
-because they make missing keys and type expectations much clearer.
+because they make type expectations and failure behavior much clearer.
+
+---
+
+## Result-wrapper and helper types
+
+These types are part of the public API and are worth knowing because they make some results easier to consume than raw BGL output.
+
+| Type | Main fields / behavior | What it is for |
+|---|---|---|
+| `MaximumFlowResult<NodeID>` | `value`, `flow` | max-flow total plus per-edge flow map |
+| `MinCostMaxFlowResult<NodeID>` | `flow`, `cost`, `edge_flows` | min-cost max-flow total flow, cost, and per-edge flows |
+| `MinimumCutResult<NodeID>` | `value`, `reachable`, `non_reachable`, `cut_edges` | cut value and partition information |
+| `SingleSourceShortestPathResult<NodeID, Distance>` | `distance`, `predecessor`, `paths` | single-source shortest-path results in a C++-friendly shape |
+| `lookup_map<Key, Value>` | `operator[]`, `at`, iterators | const-friendly lookup wrapper returned by some component helpers |
+| `visitor` | no-op hooks `examine_vertex`, `tree_edge`, `back_edge` | small visitor base for traversal entry points |
+
+This is one of the design directions that makes `nxpp` more than a thin parity layer:
+some wrappers return results that are easier to work with directly in C++ than raw Boost primitives.
 
 ---
 
@@ -316,123 +436,162 @@ because they make missing keys and type expectations much clearer.
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `bfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs BFS and returns discovered tree edges as `(u,v)` pairs. | `auto es = nxpp::bfs_edges(G, 0);` |
+| `bfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs BFS and returns discovered tree edges. | `auto es = nxpp::bfs_edges(G, 0);` |
 | `bfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the BFS tree rooted at `start`. | `auto T = nxpp::bfs_tree(G, 0);` |
+| `bfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups BFS tree edges by parent. | `auto s = nxpp::bfs_successors(G, 0);` |
 | `dfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs DFS and returns DFS tree edges. | `auto es = nxpp::dfs_edges(G, 0);` |
 | `dfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the DFS tree rooted at `start`. | `auto T = nxpp::dfs_tree(G, 0);` |
-| `bfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups BFS tree edges by parent node. | `auto s = nxpp::bfs_successors(G, 0);` |
 | `dfs_predecessors` | `(G, start)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns DFS predecessor map. | `auto p = nxpp::dfs_predecessors(G, 0);` |
-| `dfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups DFS tree edges by parent node. | `auto s = nxpp::dfs_successors(G, 0);` |
+| `dfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups DFS tree edges by parent. | `auto s = nxpp::dfs_successors(G, 0);` |
 
 ### Visitor-style helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `breadth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object BFS entry point closer to a BGL usage style while still exposing user-facing node IDs. | `nxpp::breadth_first_search(G, 0, vis);` |
-| `depth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point closer to a BGL usage style. | `nxpp::depth_first_search(G, 0, vis);` |
-| `bfs_visit` | `(G, start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style BFS. | `nxpp::bfs_visit(G, 0, on_v, on_e);` |
-| `dfs_visit` | `(G, start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Convenience callback adapter around visitor-style DFS. | `nxpp::dfs_visit(G, 0, on_t, on_b);` |
-| `visitor` | base class | visitor base | — | Minimal no-op visitor base exposing hooks such as `examine_vertex`, `tree_edge`, and `back_edge`. | `struct V : nxpp::visitor {};` |
+| `breadth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object BFS entry point. | `nxpp::breadth_first_search(G, 0, vis);` |
+| `depth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point. | `nxpp::depth_first_search(G, 0, vis);` |
+| `bfs_visit` | `(G, start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Callback-style BFS adapter around the visitor layer. | `nxpp::bfs_visit(G, 0, on_v, on_e);` |
+| `dfs_visit` | `(G, start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Callback-style DFS adapter around the visitor layer. | `nxpp::dfs_visit(G, 0, on_t, on_b);` |
 
 ---
 
 ## Shortest-path API reference
 
-### Source-target path helpers
+### Source-target helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
 | `shortest_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(V + E)` | Unweighted shortest path by edge count. | `auto p = nxpp::shortest_path(G, 0, 3);` |
-| `shortest_path_length` | `(G, source, target)` | `double` | `O(V + E)` | Unweighted shortest-path distance in edge count. | `auto d = nxpp::shortest_path_length(G, 0, 3);` |
-| `shortest_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Weighted shortest path via Dijkstra using the built-in edge weight. | `auto p = nxpp::shortest_path(G, 0, 3, "weight");` |
-| `shortest_path_length` | `(G, source, target, "weight")` | `double` | `O((V + E) log V)` | Weighted shortest-path distance using the built-in edge weight. | `auto d = nxpp::shortest_path_length(G, 0, 3, "weight");` |
-| `dijkstra_path` | `(G, source, target)` | `std::vector<NodeID>` | `O((V + E) log V)` | Direct Dijkstra path wrapper. | `auto p = nxpp::dijkstra_path(G, 0, 3);` |
-| `dijkstra_path_length` | `(G, source, target)` | `double` | `O((V + E) log V)` | Direct Dijkstra distance wrapper. | `auto d = nxpp::dijkstra_path_length(G, 0, 3);` |
+| `shortest_path_length` | `(G, source, target)` | `double` | `O(V + E)` | Unweighted shortest-path length in edge count. | `auto d = nxpp::shortest_path_length(G, 0, 3);` |
+| `shortest_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Weighted shortest path through the built-in edge weight. | `auto p = nxpp::shortest_path(G, 0, 3, "weight");` |
+| `shortest_path_length` | `(G, source, target, "weight")` | `double` | `O((V + E) log V)` | Weighted shortest-path length through the built-in edge weight. | `auto d = nxpp::shortest_path_length(G, 0, 3, "weight");` |
+| `dijkstra_path` | `(G, source, target)` | `std::vector<NodeID>` | `O((V + E) log V)` | Direct Dijkstra source-target path wrapper. | `auto p = nxpp::dijkstra_path(G, 0, 3);` |
+| `dijkstra_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Same as above; explicit `"weight"` overload for compatibility-shaped usage. | `auto p = nxpp::dijkstra_path(G, 0, 3, "weight");` |
+| `dijkstra_path_length` | `(G, source, target)` | `Distance` | `O((V + E) log V)` | Dijkstra distance to one target. | `auto d = nxpp::dijkstra_path_length(G, 0, 3);` |
+| `dijkstra_path_length` | `(G, source, target, "weight")` | `Distance` | `O((V + E) log V)` | Same as above with explicit `"weight"` overload. | `auto d = nxpp::dijkstra_path_length(G, 0, 3, "weight");` |
 | `bellman_ford_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(VE)` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = nxpp::bellman_ford_path(G, 0, 3);` |
-| `bellman_ford_path_length` | `(G, source, target)` | `double` | `O(VE + L)` | Bellman-Ford distance wrapper; `L` is reconstructed path length for the final accumulation pass. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3);` |
+| `bellman_ford_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O(VE)` | Same as above with explicit `"weight"` overload. | `auto p = nxpp::bellman_ford_path(G, 0, 3, "weight");` |
+| `bellman_ford_path_length` | `(G, source, target)` | `Distance` | `O(VE + L)` | Bellman-Ford distance wrapper; `L` is reconstructed path length used for the final accumulation pass. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3);` |
+| `bellman_ford_path_length` | `(G, source, target, "weight")` | `Distance` | `O(VE + L)` | Same as above with explicit `"weight"` overload. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3, "weight");` |
 
-### Single-source helpers returning richer results
+### Single-source result helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `dijkstra_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O((V + E) log V + V)` | Returns distances, predecessors, and fully reconstructed paths. | `auto r = nxpp::dijkstra_shortest_paths(G, 0);` |
-| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(VE + V + total_path_materialization)` | Bellman-Ford wrapper returning distances, predecessors, and materialized paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
-| `dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and full paths. | `auto r = nxpp::dag_shortest_paths(G, 0);` |
-| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<Distance>>` | `O(V^3)` | All-pairs shortest-path distance matrix in internal vertex order, using the graph edge-weight type for the exposed result. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
-| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, Distance>>` | `O(V^3 + V^2)` | Convenience wrapper converting the Floyd-Warshall matrix into NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
+| `dijkstra_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O((V + E) log V + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = nxpp::dijkstra_shortest_paths(G, 0);` |
+| `single_source_dijkstra` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `dijkstra_shortest_paths` | Thin alias to `dijkstra_shortest_paths`. | `auto r = nxpp::single_source_dijkstra(G, 0);` |
+| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(VE + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
+| `single_source_bellman_ford` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `bellman_ford_shortest_paths` | Thin alias to `bellman_ford_shortest_paths`. | `auto r = nxpp::single_source_bellman_ford(G, 0);` |
+| `dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = nxpp::dag_shortest_paths(G, 0);` |
+| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<Distance>>` | `O(V^3)` | Returns an all-pairs distance matrix. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
+| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `std::unordered_map<NodeID, std::unordered_map<NodeID, Distance>>` | `O(V^3 + V^2)` | Convenience map wrapper around the Floyd-Warshall matrix. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
 
 ---
 
-## Components, ordering, spanning, flows, and extras
+## Components, ordering, and spanning
 
-### Components and ordering
+### Components
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `connected_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Boost-like wrapper returning `node -> component_id`. | `auto m = nxpp::connected_components(G);` |
-| `connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by connected component. | `auto cc = nxpp::connected_component_groups(G);` |
-| `strong_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | SCC map returning `node -> component_id`. | `auto m = nxpp::strong_component_map(G);` |
-| `strongly_connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by SCC. | `auto scc = nxpp::strongly_connected_component_groups(G);` |
-| `strong_components` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Boost-like root/representative map for each vertex's SCC. | `auto r = nxpp::strong_components(G);` |
+| `connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by connected component. | `auto cc = nxpp::connected_component_groups(G);` |
+| `connected_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id`. | `auto map = nxpp::connected_components(G);` |
+| `connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | same as `connected_components` | Thin alias to `connected_components`. | `auto map = nxpp::connected_component_map(G);` |
+| `strongly_connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by SCC. | `auto scc = nxpp::strongly_connected_component_groups(G);` |
+| `strongly_connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | same as `strongly_connected_component_groups` | Thin alias to grouped SCC output. | `auto scc = nxpp::strongly_connected_components(G);` |
+| `strong_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id` for SCCs. | `auto map = nxpp::strong_component_map(G);` |
+| `strongly_connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | same as `strong_component_map` | Thin alias to `strong_component_map`. | `auto map = nxpp::strongly_connected_component_map(G);` |
+| `strong_components` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns a representative/root per SCC. | `auto roots = nxpp::strong_components(G);` |
+| `strongly_connected_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | same as `strong_components` | Thin alias to SCC root map. | `auto roots = nxpp::strongly_connected_component_roots(G);` |
+
+### Ordering and spanning
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
 | `topological_sort` | `(G)` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = nxpp::topological_sort(G);` |
-
-### Spanning structures
-
-| Function | Parameters | Returns | Public-call complexity | Description | Example |
-|---|---|---:|---|---|---|
-| `minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Default MST wrapper; currently delegates to `kruskal_minimum_spanning_tree`. | `auto mst = nxpp::minimum_spanning_tree(G);` |
-| `minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Rooted overload that delegates to `prim_minimum_spanning_tree`. | `auto p = nxpp::minimum_spanning_tree(G, 0);` |
-| `kruskal_minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as `(u,v)` pairs. | `auto mst = nxpp::kruskal_minimum_spanning_tree(G);` |
-| `prim_minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map for the Prim tree rooted at `root`. | `auto p = nxpp::prim_minimum_spanning_tree(G, 0);` |
-
-### Flow and cut helpers
-
-| Function | Parameters | Returns | Public-call complexity | Description | Example |
-|---|---|---:|---|---|---|
-| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper; currently delegates to `edmonds_karp_maximum_flow`. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
-| `edmonds_karp_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper using Boost Edmonds-Karp. | `auto f = nxpp::edmonds_karp_maximum_flow(G, 0, 5);` |
-| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `long` | build wrapper graph `O(V + E)` + Push-Relabel cost | Push-Relabel max-flow value. When used before `cycle_canceling(G)`, nxpp keeps the internal staged state needed for the next step. | `long f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
-| `push_relabel_maximum_flow_result` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build wrapper graph `O(V + E)` + Push-Relabel cost | Push-Relabel wrapper returning both the total value and the per-edge flow map. | `auto f = nxpp::push_relabel_maximum_flow_result(G, 0, 5);` |
-| `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, reachable/non-reachable partition, and crossing edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
-| `max_flow_min_cost` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to `max_flow_min_cost_cycle_canceling`. | `auto r = nxpp::max_flow_min_cost(G, 0, 5);` |
-| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns total flow in `result.flow`, flow cost in `result.cost`, and per-edge flows in `result.edge_flows`. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
-| `successive_shortest_path_nonnegative_weights` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::successive_shortest_path_nonnegative_weights(G, 0, 5);` |
-| `cycle_canceling` | `(G, weight_attr = "weight")` | deduced cost type | uses internal staged state from `push_relabel_maximum_flow` + cycle-canceling cost | Runs cycle-canceling over the internally cached staged flow graph prepared by `push_relabel_maximum_flow`. | `long c = nxpp::cycle_canceling(G);` |
-
-Native-style staged helpers for the cycle-canceling path are also available while keeping the state internal:
-
-- `long flow = nxpp::push_relabel_maximum_flow(G, source, sink, "capacity");`
-- `long cost = nxpp::cycle_canceling(G);`
-
-### Generators, centrality, SAT
-
-| Function | Parameters | Returns | Public-call complexity | Description | Example |
-|---|---|---:|---|---|---|
-| `complete_graph` | `(n)` | `GraphType` | directed current implementation: `O(n^2)`; undirected current implementation: `O(n^2)` edge insertion attempts | Generates a complete graph using the chosen graph type template. | `auto K5 = nxpp::complete_graph(5);` |
-| `path_graph` | `(n)` | `GraphType` | `O(n)` | Generates a path graph `0-1-...-(n-1)` (or directed path if `GraphType` is directed). | `auto P4 = nxpp::path_graph(4);` |
-| `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | `O(n^2)` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
-| `degree_centrality` | `(G)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = nxpp::degree_centrality(G);` |
-| `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | `O(V + E)` on the implication graph | Convenience 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |
+| `kruskal_minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as pairs. | `auto mst = nxpp::kruskal_minimum_spanning_tree(G);` |
+| `prim_minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map rooted at `root`. | `auto p = nxpp::prim_minimum_spanning_tree(G, 0);` |
+| `minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Thin default wrapper delegating to Kruskal. | `auto mst = nxpp::minimum_spanning_tree(G);` |
+| `minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Thin rooted wrapper delegating to Prim. | `auto p = nxpp::minimum_spanning_tree(G, 0);` |
 
 ---
 
-## `nxpp` utilities that are not just straight NetworkX/BGL ports
+## Flow and cut API reference
 
-One of the useful directions of the project is that it already contains some helpers whose purpose is not strict parity, but **better ergonomics in C++**.
+### Maximum flow / minimum cut
 
-### Notable examples
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `edmonds_karp_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper returning value and per-edge flow map. | `auto f = nxpp::edmonds_karp_maximum_flow(G, 0, 5);` |
+| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
+| `push_relabel_maximum_flow_result` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Push-Relabel cost | Push-Relabel wrapper returning value and per-edge flow map. | `auto f = nxpp::push_relabel_maximum_flow_result(G, 0, 5);` |
+| `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, partition, and cut edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
 
-| Utility | Why it is useful |
+### Staged min-cost-flow path
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | build staged auxiliary graph `O(V + E)` + Push-Relabel cost | Computes max flow and caches staged state for a later `cycle_canceling(G)`. | `long f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
+| `cycle_canceling` | `(G, weight_attr = "weight")` | deduced cost type | uses cached staged state + cycle-canceling cost | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. | `long c = nxpp::cycle_canceling(G);` |
+
+### One-shot min-cost max-flow wrappers
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | One-shot min-cost max-flow wrapper using cycle canceling. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
+| `successive_shortest_path_nonnegative_weights` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + SSP min-cost-flow cost | One-shot min-cost max-flow wrapper using SSP. | `auto r = nxpp::successive_shortest_path_nonnegative_weights(G, 0, 5);` |
+| `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | same as `successive_shortest_path_nonnegative_weights` | Thin alias to the SSP wrapper. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
+| `max_flow_min_cost` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to cycle canceling. | `auto r = nxpp::max_flow_min_cost(G, 0, 5);` |
+
+---
+
+## Generators and extra utilities
+
+These are good examples of public helpers that are useful in real C++ code even when they are not exact one-to-one ports of a single NetworkX or BGL entry point.
+
+| Function | Parameters | Returns | Public-call complexity | Description | Example |
+|---|---|---:|---|---|---|
+| `complete_graph` | `(n)` | `GraphType` | current implementation: `O(n^2)` edge insertion attempts | Generates a complete graph for the chosen graph type template. | `auto K5 = nxpp::complete_graph(5);` |
+| `path_graph` | `(n)` | `GraphType` | `O(n)` | Generates a path graph. | `auto P4 = nxpp::path_graph(4);` |
+| `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | `O(n^2)` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
+| `num_vertices` | `(G)` | `int` | `O(1)` | Convenience wrapper over `boost::num_vertices`. | `auto n = nxpp::num_vertices(G);` |
+| `degree_centrality` | `(G)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = nxpp::degree_centrality(G);` |
+| `to_2sat_vertex_id` | `(literal)` | `int` | `O(1)` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
+| `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | `O(V + E)` on the implication graph | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |
+| `print` | variadic | `void` | proportional to printed output | Small Python-style convenience print helper used by examples. | `nxpp::print("Node", 3);` |
+
+---
+
+## Repository layout
+
+| Path | Role |
 |---|---|
-| `successors()` / `predecessors()` | Makes directed traversal intent explicit, even if `neighbors()` already exists. |
-| `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>` | Safer than relying only on proxy conversions backed by `std::any`. |
-| `connected_component_groups()` / `strongly_connected_component_groups()` | Often easier to consume in C++ than flat component-id maps. |
-| `dijkstra_shortest_paths()` / `bellman_ford_shortest_paths()` / `dag_shortest_paths()` | Return distances, predecessors, and full paths together instead of making users rebuild them manually. |
-| `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult` | Wrap raw algorithm results into structures that are easier to inspect and use directly. |
-| `visitor` | Gives a project-owned visitor base instead of forcing raw BGL visitor plumbing on every example. |
-| `lookup_map<Key, Value>` | Keeps a convenient `result[key]` style even in const-read contexts for some mapped results. |
+| `include/nxpp.hpp` | canonical public header |
+| `snippet/` | local reference snippets and parity-oriented cases |
+| `scripts/test_single_snippet.sh` | compiles/runs implementations in one snippet folder and compares outputs pairwise |
+| `scripts/log_snippet_folder.sh` | runs all implementations in one snippet folder and writes a combined log |
+| `.github/workflows/snippet-review.yml` | CI snippet review workflow |
+| `main.cpp` | smoke/demo-style local entry point |
+| `main.py` | older Python-side demo / comparison script |
+| `TODO.md` | open work |
+| `CHANGELOG.md` | dated changes |
+| `SESSION.md` | historical development notes |
+| `docs/README.md` | placeholder for fuller docs |
 
-This is a good direction for the library: use BGL internally when it makes sense, but expose **results that are easier to work with in real C++ code**.
+---
+
+## Snippet parity and testing status
+
+The repository includes a visible snippet-based verification workflow:
+
+- `snippet/` contains Boost-style C++, `nxpp` C++, and Python `networkx` variants where relevant
+- `scripts/test_single_snippet.sh <folder>` compiles/runs every implementation present in that snippet folder, stores artifacts under `logs/snippet/`, and compares outputs pairwise
+- `scripts/log_snippet_folder.sh <folder>` runs all implementations in a folder and writes a combined log
+- the GitHub Actions `snippet-review` workflow iterates across all folders under `snippet/`
+
+This is a useful regression / parity harness.
+
+It is **not yet a substitute** for a dedicated test suite with assertion-based unit tests and focused edge-case coverage.
 
 ---
 
@@ -440,103 +599,84 @@ This is a good direction for the library: use BGL internally when it makes sense
 
 ### Compared with NetworkX
 
-- `nxpp` is **statically typed**: node ID type is fixed by the graph type.
-- returned values are usually **materialized containers**, not lazy iterators
-- weighted path dispatch is currently intentionally narrow: the weighted form is tied to the built-in `weight` edge property
-- node and edge attributes are stored with `std::any`, so reads are runtime-checked rather than dynamically duck-typed
-- some helper APIs intentionally go beyond NetworkX because they are more convenient from C++
+- `nxpp` is **statically typed**
+- return values are usually **materialized C++ containers**
+- weighted path dispatch is intentionally narrow: the weighted overloads currently support the built-in edge weight property `"weight"`
+- node and edge attributes are runtime-checked through `std::any`
+- some helpers intentionally go beyond NetworkX because they are easier to consume from C++
 
 ### Compared with raw BGL
 
 - `nxpp` hides descriptors behind user-facing node IDs
-- `nxpp` adds attribute storage outside the base BGL graph
-- `nxpp` returns higher-level containers rather than forcing users to wire property maps manually each time
-- destructive operations pay extra bookkeeping cost because `nxpp` must keep its translation structures valid
+- `nxpp` stores node / edge attributes outside the BGL graph
+- `nxpp` often returns higher-level result containers
+- destructive operations pay extra bookkeeping cost to keep internal translation state valid
 
 ---
 
-## Current caveats and design trade-offs
+## `nxpp` utilities that are not just strict NetworkX/BGL ports
 
-The current design is already useful, but a good README should be explicit about the trade-offs.
+A useful direction of the project is that some public helpers exist because they are better ergonomically in C++, not because one upstream API required them.
 
-### 1. Multigraph semantics are currently limited
+Examples:
 
-For simple graphs, APIs such as `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
-For multigraphs, the current implementation is more limited and should be treated carefully:
+- `successors()` / `predecessors()`
+- `has_*_attr`, `get_*_attr<T>`, `try_get_*_attr<T>`
+- `connected_component_groups()` and `strongly_connected_component_groups()`
+- `dijkstra_shortest_paths()`, `bellman_ford_shortest_paths()`, `dag_shortest_paths()`
+- `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult`
+- `lookup_map`
+- `visitor`
 
-- `has_edge(u, v)` means "there exists at least one parallel edge between `u` and `v`"
-- `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, and proxy reads/writes such as `G[u][v]["key"]` operate on one matching `(u, v)` edge, not on a stable public edge identity
-- `remove_edge(u, v)` removes the `(u, v)` connection at the BGL level and is not yet documented as a precise "remove one specific parallel edge" API
-- because of that ambiguity, multigraph edge reads and destructive operations should currently be treated as a known caveat rather than a polished parity surface
+This is one of the project’s strongest ideas and should stay explicit in the documentation:
+use Boost internally when it helps, but expose results that are easier to work with in real C++.
 
-This is the highest-risk part of the public API today and is explicitly tracked in `TODO.md` for redesign/documentation follow-up.
+---
 
-### 2. `remove_node()` is intentionally not cheap
+## Current caveats and trade-offs
 
-Because of the `vecS` backend and the ID/descriptor mapping, `remove_node()` should be treated as an **O(V + E)** operation in practice, not as a cheap local edit.
-That is fine, but it must be clearly documented.
+### 1. Multigraph edge identity is still under-specified
 
-### 3. `std::any` is ergonomic, but not free
+This is the highest-risk public area today.
 
-The attribute system is flexible and Python-like, but it comes with trade-offs:
+### 2. `std::any` keeps the API flexible, but shifts some failures to runtime
+
+That is useful for ergonomics, but it means:
 
 - runtime casts
-- runtime failures on mismatched types
-- more fragile large-scale usage if attribute keys/types are not disciplined
+- runtime type mismatches
+- more discipline needed around attribute keys and value types
 
-### 4. The single-header approach keeps usage easy, but increases maintenance pressure
+### 3. Single-header distribution keeps usage easy, but increases maintenance pressure
 
-A single `include/nxpp.hpp` is convenient for users and examples.
-But as the project grows, it also means:
+A single `include/nxpp.hpp` is convenient, but it also means:
 
 - larger compile units
 - harder navigation
-- higher risk of documentation drift if status files and README are not updated together
+- higher risk of README / code drift if repo metadata is not maintained carefully
+
+### 4. The weighted overload story is intentionally narrow
+
+The `"weight"` string overloads currently refer to the built-in edge weight property.
+They are not a generic "use any named edge attribute as a weight" abstraction yet.
 
 ---
 
-## Snippets and local verification
+## What is still clearly open
 
-The repository also includes a snippet-based verification workflow:
+The most important open work visible from the repository today is:
 
-- `snippet/` contains the local reference examples
-- each algorithm folder includes Boost-style C++, NetworkX Python, and `nxpp` C++ counterparts where applicable
-- `scripts/log_snippet_folder.sh <folder>` runs all implementations found in a snippet folder and writes a combined log under `snippet/<folder>/logs/`
-- `scripts/test_single_snippet.sh <folder>` compiles/runs every implementation in a snippet folder, saves per-run artifacts under `logs/snippet/`, and produces pairwise diffs across all implementations
-- the GitHub Actions snippet-review workflow runs the same verification approach across all folders under `snippet/`
-- the manual snippet review/parity pass across the snippet folders has been completed
-- the project markdown files (`TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `SESSION.md`) are useful to track scope, status, and cleanup direction
+- multigraph edge identity redesign / clarification
+- a real assertion-based test suite
+- stronger edge-case coverage
+- packaging / install story beyond manual header inclusion
+- clearer documentation generation and source-of-truth discipline
+- eventual API stabilization
 
-Example single-snippet runs:
-
-```bash
-scripts/test_single_snippet.sh bfs
-scripts/test_single_snippet.sh 2sat
-scripts/test_single_snippet.sh 2sat /path/to/input.txt
-scripts/log_snippet_folder.sh floyd_warshall
-```
-
-Each run writes artifacts under `logs/snippet/<folder>_<timestamp>/`, including:
-
-- the combined run log
-- dedicated compile stderr logs for the Boost and `nxpp` C++ builds
-- captured `stdout` / `stderr` for all implementations in the folder
-- pairwise diff files across all implementation combinations
-
-That is a healthy sign for the project: there is a visible effort not just to write wrappers, but to compare behavior, keep examples aligned, and make regressions easier to notice.
+See [`TODO.md`](TODO.md) for the open list.
 
 ---
 
-## Status snapshot
+## License
 
-The project currently looks strongest as:
-
-- a header-only C++20 graph utility layer with a practical subset of NetworkX-style ergonomics
-- a snippet-driven algorithm wrapper project whose implemented surface is broader than the automated regression harness
-- a codebase where the biggest remaining correctness/documentation risk is multigraph edge identity semantics
-
-If you use `nxpp` today, the safest mental model is:
-
-- simple graphs and the snippet-backed algorithm family are the best-covered parts
-- richer path/flow/component helpers are available and useful
-- multigraph mutation/lookup semantics still need a more explicit, stable public contract
+This project is licensed under the MIT License. See [`LICENSE`](LICENSE).
