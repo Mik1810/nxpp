@@ -15,7 +15,7 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    const auto M = nxpp::floyd_warshall_all_pairs_shortest_paths(G);
+    const auto M = G.floyd_warshall_all_pairs_shortest_paths();
 
    for(auto row : M)
     {

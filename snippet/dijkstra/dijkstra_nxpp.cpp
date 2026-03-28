@@ -14,8 +14,8 @@ int main() {
     G.add_edge(3, 2, 4);
     G.add_edge(3, 4, 5);
 
-    auto result = nxpp::dijkstra_shortest_paths(G, 0);
-    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+    auto result = G.dijkstra_shortest_paths(0);
+    for (int i = 0; i < G.num_vertices(); ++i) {
         const int result_distance = result.distance[i];
         std::cout << "Distance to " << i << ": " << result_distance
                   << " Parent: " << result.predecessor[i] << "\n";

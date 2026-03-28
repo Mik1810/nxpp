@@ -39,7 +39,6 @@ with public aliases such as:
 > The biggest open design questions are:
 >
 > - how much of the API should remain NetworkX-shaped
-> - when functionality should live as free functions under `nxpp::`
 > - how much Boost configurability should be exposed publicly
 > - how multigraph edge identity should be modeled
 
@@ -116,12 +115,30 @@ It is **not**:
 These repository files should have clearly separated roles:
 
 - [`README.md`](README.md): user-facing overview, caveats, usage, and API reference
-- [`TODO.md`](TODO.md): open work and unresolved design / engineering tasks
+- [`TODO.md`](TODO.md): compact local priority index; GitHub Issues are the full backlog source of truth
 - [`CHANGELOG.md`](CHANGELOG.md): dated change history
 - [`SESSION.md`](SESSION.md): historical development log
-- [`docs/README.md`](docs/README.md): placeholder for fuller generated / long-form documentation
+- [`docs/README.md`](docs/README.md): index for longer-form and future generated documentation
+- [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
+
+---
+
+## API architecture policy
+
+The intended public shape of `nxpp` is:
+
+- **graph methods** as the primary API for graph ownership, mutation, local lookups, traversals, algorithms, and attribute/proxy access on an existing graph
+- **free functions under `nxpp::`** only where namespace-scope factories/generators are the cleaner fit
+
+In other words:
+
+- `G.add_edge(...)`, `G.remove_node(...)`, `G.neighbors(...)`, `G.get_edge_attr<T>(...)`, `G.bfs_edges(...)`, and `G.dijkstra_shortest_paths(...)` belong on the graph object
+- calls such as `nxpp::complete_graph(...)`, `nxpp::path_graph(...)`, and `nxpp::erdos_renyi_graph(...)` remain free functions because they construct and return graphs
+- old free-function forms for existing-graph operations are deprecated and should not be treated as canonical entry points
+
+See [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md) for the fuller rule and future-addition placement policy.
 
 ---
 
@@ -217,7 +234,7 @@ int main() {
 
     G.node("Rome")["population"] = 2800000;
 
-    auto routes = nxpp::dijkstra_shortest_paths(G, std::string("Milan"));
+    auto routes = G.dijkstra_shortest_paths(std::string("Milan"));
     auto dist_to_naples = routes.distance.at("Naples");
     auto path_to_naples = routes.paths.at("Naples");
 
@@ -432,26 +449,28 @@ some wrappers return results that are easier to work with directly in C++ than r
 
 ## Traversal API reference
 
+For operations on an existing graph, the canonical form is method-based: `G.foo(...)`.
+
 ### Edge/tree style helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `bfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs BFS and returns discovered tree edges. | `auto es = nxpp::bfs_edges(G, 0);` |
-| `bfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the BFS tree rooted at `start`. | `auto T = nxpp::bfs_tree(G, 0);` |
-| `bfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups BFS tree edges by parent. | `auto s = nxpp::bfs_successors(G, 0);` |
-| `dfs_edges` | `(G, start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs DFS and returns DFS tree edges. | `auto es = nxpp::dfs_edges(G, 0);` |
-| `dfs_tree` | `(G, start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the DFS tree rooted at `start`. | `auto T = nxpp::dfs_tree(G, 0);` |
-| `dfs_predecessors` | `(G, start)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns DFS predecessor map. | `auto p = nxpp::dfs_predecessors(G, 0);` |
-| `dfs_successors` | `(G, start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups DFS tree edges by parent. | `auto s = nxpp::dfs_successors(G, 0);` |
+| `bfs_edges` | `(start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs BFS and returns discovered tree edges. | `auto es = G.bfs_edges(0);` |
+| `bfs_tree` | `(start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the BFS tree rooted at `start`. | `auto T = G.bfs_tree(0);` |
+| `bfs_successors` | `(start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups BFS tree edges by parent. | `auto s = G.bfs_successors(0);` |
+| `dfs_edges` | `(start)` | `std::vector<std::pair<NodeID, NodeID>>` | `O(V + E)` | Runs DFS and returns DFS tree edges. | `auto es = G.dfs_edges(0);` |
+| `dfs_tree` | `(start)` | `Graph<NodeID, double, Directed>` | `O(V + E)` | Builds a new graph containing the DFS tree rooted at `start`. | `auto T = G.dfs_tree(0);` |
+| `dfs_predecessors` | `(start)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns DFS predecessor map. | `auto p = G.dfs_predecessors(0);` |
+| `dfs_successors` | `(start)` | `std::unordered_map<NodeID, std::vector<NodeID>>` | `O(V + E)` | Groups DFS tree edges by parent. | `auto s = G.dfs_successors(0);` |
 
 ### Visitor-style helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `breadth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object BFS entry point. | `nxpp::breadth_first_search(G, 0, vis);` |
-| `depth_first_search` | `(G, start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point. | `nxpp::depth_first_search(G, 0, vis);` |
-| `bfs_visit` | `(G, start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Callback-style BFS adapter around the visitor layer. | `nxpp::bfs_visit(G, 0, on_v, on_e);` |
-| `dfs_visit` | `(G, start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Callback-style DFS adapter around the visitor layer. | `nxpp::dfs_visit(G, 0, on_t, on_b);` |
+| `breadth_first_search` | `(start, visitor)` | `void` | `O(V + E)` | Visitor-object BFS entry point. | `G.breadth_first_search(0, vis);` |
+| `depth_first_search` | `(start, visitor)` | `void` | `O(V + E)` | Visitor-object DFS entry point. | `G.depth_first_search(0, vis);` |
+| `bfs_visit` | `(start, on_vertex, on_tree_edge)` | `void` | `O(V + E)` | Callback-style BFS adapter around the visitor layer. | `G.bfs_visit(0, on_v, on_e);` |
+| `dfs_visit` | `(start, on_tree_edge, on_back_edge)` | `void` | `O(V + E)` | Callback-style DFS adapter around the visitor layer. | `G.dfs_visit(0, on_t, on_b);` |
 
 ---
 
@@ -461,30 +480,30 @@ some wrappers return results that are easier to work with directly in C++ than r
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `shortest_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(V + E)` | Unweighted shortest path by edge count. | `auto p = nxpp::shortest_path(G, 0, 3);` |
-| `shortest_path_length` | `(G, source, target)` | `double` | `O(V + E)` | Unweighted shortest-path length in edge count. | `auto d = nxpp::shortest_path_length(G, 0, 3);` |
-| `shortest_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Weighted shortest path through the built-in edge weight. | `auto p = nxpp::shortest_path(G, 0, 3, "weight");` |
-| `shortest_path_length` | `(G, source, target, "weight")` | `double` | `O((V + E) log V)` | Weighted shortest-path length through the built-in edge weight. | `auto d = nxpp::shortest_path_length(G, 0, 3, "weight");` |
-| `dijkstra_path` | `(G, source, target)` | `std::vector<NodeID>` | `O((V + E) log V)` | Direct Dijkstra source-target path wrapper. | `auto p = nxpp::dijkstra_path(G, 0, 3);` |
-| `dijkstra_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Same as above; explicit `"weight"` overload for compatibility-shaped usage. | `auto p = nxpp::dijkstra_path(G, 0, 3, "weight");` |
-| `dijkstra_path_length` | `(G, source, target)` | `Distance` | `O((V + E) log V)` | Dijkstra distance to one target. | `auto d = nxpp::dijkstra_path_length(G, 0, 3);` |
-| `dijkstra_path_length` | `(G, source, target, "weight")` | `Distance` | `O((V + E) log V)` | Same as above with explicit `"weight"` overload. | `auto d = nxpp::dijkstra_path_length(G, 0, 3, "weight");` |
-| `bellman_ford_path` | `(G, source, target)` | `std::vector<NodeID>` | `O(VE)` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = nxpp::bellman_ford_path(G, 0, 3);` |
-| `bellman_ford_path` | `(G, source, target, "weight")` | `std::vector<NodeID>` | `O(VE)` | Same as above with explicit `"weight"` overload. | `auto p = nxpp::bellman_ford_path(G, 0, 3, "weight");` |
-| `bellman_ford_path_length` | `(G, source, target)` | `Distance` | `O(VE + L)` | Bellman-Ford distance wrapper; `L` is reconstructed path length used for the final accumulation pass. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3);` |
-| `bellman_ford_path_length` | `(G, source, target, "weight")` | `Distance` | `O(VE + L)` | Same as above with explicit `"weight"` overload. | `auto d = nxpp::bellman_ford_path_length(G, 0, 3, "weight");` |
+| `shortest_path` | `(source, target)` | `std::vector<NodeID>` | `O(V + E)` | Unweighted shortest path by edge count. | `auto p = G.shortest_path(0, 3);` |
+| `shortest_path_length` | `(source, target)` | `double` | `O(V + E)` | Unweighted shortest-path length in edge count. | `auto d = G.shortest_path_length(0, 3);` |
+| `shortest_path` | `(source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Weighted shortest path through the built-in edge weight. | `auto p = G.shortest_path(0, 3, "weight");` |
+| `shortest_path_length` | `(source, target, "weight")` | `double` | `O((V + E) log V)` | Weighted shortest-path length through the built-in edge weight. | `auto d = G.shortest_path_length(0, 3, "weight");` |
+| `dijkstra_path` | `(source, target)` | `std::vector<NodeID>` | `O((V + E) log V)` | Direct Dijkstra source-target path wrapper. | `auto p = G.dijkstra_path(0, 3);` |
+| `dijkstra_path` | `(source, target, "weight")` | `std::vector<NodeID>` | `O((V + E) log V)` | Same as above; explicit `"weight"` overload for compatibility-shaped usage. | `auto p = G.dijkstra_path(0, 3, "weight");` |
+| `dijkstra_path_length` | `(source, target)` | `Distance` | `O((V + E) log V)` | Dijkstra distance to one target. | `auto d = G.dijkstra_path_length(0, 3);` |
+| `dijkstra_path_length` | `(source, target, "weight")` | `Distance` | `O((V + E) log V)` | Same as above with explicit `"weight"` overload. | `auto d = G.dijkstra_path_length(0, 3, "weight");` |
+| `bellman_ford_path` | `(source, target)` | `std::vector<NodeID>` | `O(VE)` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = G.bellman_ford_path(0, 3);` |
+| `bellman_ford_path` | `(source, target, "weight")` | `std::vector<NodeID>` | `O(VE)` | Same as above with explicit `"weight"` overload. | `auto p = G.bellman_ford_path(0, 3, "weight");` |
+| `bellman_ford_path_length` | `(source, target)` | `Distance` | `O(VE + L)` | Bellman-Ford distance wrapper; `L` is reconstructed path length used for the final accumulation pass. | `auto d = G.bellman_ford_path_length(0, 3);` |
+| `bellman_ford_path_length` | `(source, target, "weight")` | `Distance` | `O(VE + L)` | Same as above with explicit `"weight"` overload. | `auto d = G.bellman_ford_path_length(0, 3, "weight");` |
 
 ### Single-source result helpers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `dijkstra_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O((V + E) log V + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = nxpp::dijkstra_shortest_paths(G, 0);` |
-| `single_source_dijkstra` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `dijkstra_shortest_paths` | Thin alias to `dijkstra_shortest_paths`. | `auto r = nxpp::single_source_dijkstra(G, 0);` |
-| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(VE + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
-| `single_source_bellman_ford` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `bellman_ford_shortest_paths` | Thin alias to `bellman_ford_shortest_paths`. | `auto r = nxpp::single_source_bellman_ford(G, 0);` |
-| `dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = nxpp::dag_shortest_paths(G, 0);` |
-| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<Distance>>` | `O(V^3)` | Returns an all-pairs distance matrix. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
-| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `std::unordered_map<NodeID, std::unordered_map<NodeID, Distance>>` | `O(V^3 + V^2)` | Convenience map wrapper around the Floyd-Warshall matrix. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
+| `dijkstra_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O((V + E) log V + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = G.dijkstra_shortest_paths(0);` |
+| `single_source_dijkstra` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `dijkstra_shortest_paths` | Thin alias to `dijkstra_shortest_paths`. | `auto r = G.single_source_dijkstra(0);` |
+| `bellman_ford_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(VE + V + total_path_materialization)` | Returns distances, predecessors, and reconstructed paths. | `auto r = G.bellman_ford_shortest_paths(0);` |
+| `single_source_bellman_ford` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | same as `bellman_ford_shortest_paths` | Thin alias to `bellman_ford_shortest_paths`. | `auto r = G.single_source_bellman_ford(0);` |
+| `dag_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = G.dag_shortest_paths(0);` |
+| `floyd_warshall_all_pairs_shortest_paths` | `()` | `std::vector<std::vector<Distance>>` | `O(V^3)` | Returns an all-pairs distance matrix. | `auto fw = G.floyd_warshall_all_pairs_shortest_paths();` |
+| `floyd_warshall_all_pairs_shortest_paths_map` | `()` | `std::unordered_map<NodeID, std::unordered_map<NodeID, Distance>>` | `O(V^3 + V^2)` | Convenience map wrapper around the Floyd-Warshall matrix. | `auto fw = G.floyd_warshall_all_pairs_shortest_paths_map();` |
 
 ---
 
@@ -494,25 +513,25 @@ some wrappers return results that are easier to work with directly in C++ than r
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by connected component. | `auto cc = nxpp::connected_component_groups(G);` |
-| `connected_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id`. | `auto map = nxpp::connected_components(G);` |
-| `connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | same as `connected_components` | Thin alias to `connected_components`. | `auto map = nxpp::connected_component_map(G);` |
-| `strongly_connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by SCC. | `auto scc = nxpp::strongly_connected_component_groups(G);` |
-| `strongly_connected_components` | `(G)` | `std::vector<std::vector<NodeID>>` | same as `strongly_connected_component_groups` | Thin alias to grouped SCC output. | `auto scc = nxpp::strongly_connected_components(G);` |
-| `strong_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id` for SCCs. | `auto map = nxpp::strong_component_map(G);` |
-| `strongly_connected_component_map` | `(G)` | `lookup_map<NodeID, int>` | same as `strong_component_map` | Thin alias to `strong_component_map`. | `auto map = nxpp::strongly_connected_component_map(G);` |
-| `strong_components` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns a representative/root per SCC. | `auto roots = nxpp::strong_components(G);` |
-| `strongly_connected_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | same as `strong_components` | Thin alias to SCC root map. | `auto roots = nxpp::strongly_connected_component_roots(G);` |
+| `connected_component_groups` | `()` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by connected component. | `auto cc = G.connected_component_groups();` |
+| `connected_components` | `()` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id`. | `auto map = G.connected_components();` |
+| `connected_component_map` | `()` | `lookup_map<NodeID, int>` | same as `connected_components` | Thin alias to `connected_components`. | `auto map = G.connected_component_map();` |
+| `strongly_connected_component_groups` | `()` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Groups vertices by SCC. | `auto scc = G.strongly_connected_component_groups();` |
+| `strongly_connected_components` | `()` | `std::vector<std::vector<NodeID>>` | same as `strongly_connected_component_groups` | Thin alias to grouped SCC output. | `auto scc = G.strongly_connected_components();` |
+| `strong_component_map` | `()` | `lookup_map<NodeID, int>` | `O(V + E)` | Returns `node -> component_id` for SCCs. | `auto map = G.strong_component_map();` |
+| `strongly_connected_component_map` | `()` | `lookup_map<NodeID, int>` | same as `strong_component_map` | Thin alias to `strong_component_map`. | `auto map = G.strongly_connected_component_map();` |
+| `strong_components` | `()` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Returns a representative/root per SCC. | `auto roots = G.strong_components();` |
+| `strongly_connected_component_roots` | `()` | `std::unordered_map<NodeID, NodeID>` | same as `strong_components` | Thin alias to SCC root map. | `auto roots = G.strongly_connected_component_roots();` |
 
 ### Ordering and spanning
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `topological_sort` | `(G)` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = nxpp::topological_sort(G);` |
-| `kruskal_minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as pairs. | `auto mst = nxpp::kruskal_minimum_spanning_tree(G);` |
-| `prim_minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map rooted at `root`. | `auto p = nxpp::prim_minimum_spanning_tree(G, 0);` |
-| `minimum_spanning_tree` | `(G)` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Thin default wrapper delegating to Kruskal. | `auto mst = nxpp::minimum_spanning_tree(G);` |
-| `minimum_spanning_tree` | `(G, root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Thin rooted wrapper delegating to Prim. | `auto p = nxpp::minimum_spanning_tree(G, 0);` |
+| `topological_sort` | `()` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = G.topological_sort();` |
+| `kruskal_minimum_spanning_tree` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Returns MST edges as pairs. | `auto mst = G.kruskal_minimum_spanning_tree();` |
+| `prim_minimum_spanning_tree` | `(root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Returns a `node -> parent` map rooted at `root`. | `auto p = G.prim_minimum_spanning_tree(0);` |
+| `minimum_spanning_tree` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | typically `O(E log E)` | Thin default wrapper delegating to Kruskal. | `auto mst = G.minimum_spanning_tree();` |
+| `minimum_spanning_tree` | `(root)` | `std::unordered_map<NodeID, NodeID>` | typically `O((V + E) log V)` | Thin rooted wrapper delegating to Prim. | `auto p = G.minimum_spanning_tree(0);` |
 
 ---
 
@@ -522,26 +541,26 @@ some wrappers return results that are easier to work with directly in C++ than r
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `edmonds_karp_maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper returning value and per-edge flow map. | `auto f = nxpp::edmonds_karp_maximum_flow(G, 0, 5);` |
-| `maximum_flow` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper. | `auto f = nxpp::maximum_flow(G, 0, 5);` |
-| `push_relabel_maximum_flow_result` | `(G, source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Push-Relabel cost | Push-Relabel wrapper returning value and per-edge flow map. | `auto f = nxpp::push_relabel_maximum_flow_result(G, 0, 5);` |
-| `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, partition, and cut edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
+| `edmonds_karp_maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Max-flow wrapper returning value and per-edge flow map. | `auto f = G.edmonds_karp_maximum_flow(0, 5);` |
+| `maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Edmonds-Karp cost | Backward-compatible default max-flow wrapper. | `auto f = G.maximum_flow(0, 5);` |
+| `push_relabel_maximum_flow_result` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + Push-Relabel cost | Push-Relabel wrapper returning value and per-edge flow map. | `auto f = G.push_relabel_maximum_flow_result(0, 5);` |
+| `minimum_cut` | `(source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, partition, and cut edges. | `auto c = G.minimum_cut(0, 5);` |
 
 ### Staged min-cost-flow path
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `push_relabel_maximum_flow` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | build staged auxiliary graph `O(V + E)` + Push-Relabel cost | Computes max flow and caches staged state for a later `cycle_canceling(G)`. | `long f = nxpp::push_relabel_maximum_flow(G, 0, 5);` |
-| `cycle_canceling` | `(G, weight_attr = "weight")` | deduced cost type | uses cached staged state + cycle-canceling cost | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. | `long c = nxpp::cycle_canceling(G);` |
+| `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | build staged auxiliary graph `O(V + E)` + Push-Relabel cost | Computes max flow and caches staged state for a later `cycle_canceling()`. | `long f = G.push_relabel_maximum_flow(0, 5);` |
+| `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | uses cached staged state + cycle-canceling cost | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. | `long c = G.cycle_canceling();` |
 
 ### One-shot min-cost max-flow wrappers
 
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
-| `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | One-shot min-cost max-flow wrapper using cycle canceling. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
-| `successive_shortest_path_nonnegative_weights` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + SSP min-cost-flow cost | One-shot min-cost max-flow wrapper using SSP. | `auto r = nxpp::successive_shortest_path_nonnegative_weights(G, 0, 5);` |
-| `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | same as `successive_shortest_path_nonnegative_weights` | Thin alias to the SSP wrapper. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
-| `max_flow_min_cost` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to cycle canceling. | `auto r = nxpp::max_flow_min_cost(G, 0, 5);` |
+| `max_flow_min_cost_cycle_canceling` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | One-shot min-cost max-flow wrapper using cycle canceling. | `auto r = G.max_flow_min_cost_cycle_canceling(0, 5);` |
+| `successive_shortest_path_nonnegative_weights` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + SSP min-cost-flow cost | One-shot min-cost max-flow wrapper using SSP. | `auto r = G.successive_shortest_path_nonnegative_weights(0, 5);` |
+| `max_flow_min_cost_successive_shortest_path` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | same as `successive_shortest_path_nonnegative_weights` | Thin alias to the SSP wrapper. | `auto r = G.max_flow_min_cost_successive_shortest_path(0, 5);` |
+| `max_flow_min_cost` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build auxiliary graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to cycle canceling. | `auto r = G.max_flow_min_cost(0, 5);` |
 
 ---
 
@@ -554,8 +573,8 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `complete_graph` | `(n)` | `GraphType` | current implementation: `O(n^2)` edge insertion attempts | Generates a complete graph for the chosen graph type template. | `auto K5 = nxpp::complete_graph(5);` |
 | `path_graph` | `(n)` | `GraphType` | `O(n)` | Generates a path graph. | `auto P4 = nxpp::path_graph(4);` |
 | `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | `O(n^2)` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
-| `num_vertices` | `(G)` | `int` | `O(1)` | Convenience wrapper over `boost::num_vertices`. | `auto n = nxpp::num_vertices(G);` |
-| `degree_centrality` | `(G)` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = nxpp::degree_centrality(G);` |
+| `num_vertices` | `()` | `int` | `O(1)` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
+| `degree_centrality` | `()` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = G.degree_centrality();` |
 | `to_2sat_vertex_id` | `(literal)` | `int` | `O(1)` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
 | `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | `O(V + E)` on the implication graph | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |
 | `print` | variadic | `void` | proportional to printed output | Small Python-style convenience print helper used by examples. | `nxpp::print("Node", 3);` |

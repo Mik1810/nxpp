@@ -13,11 +13,11 @@ int main() {
     G.add_edge(2, 3, 1);
     G.add_edge(3, 4, 5);
 
-    // Default behavior: const auto result = nxpp::minimum_spanning_tree(G);
+    // Default behavior: const auto result = G.minimum_spanning_tree();
     // It uses the Kruskal algorithm by default, but you can specify the algorithm explicitly:
 
-    const auto result = nxpp::kruskal_minimum_spanning_tree(G);
-    // ALTERNATIVELY: const auto result = nxpp::prim_minimum_spanning_tree(G, 0);
+    const auto result = G.kruskal_minimum_spanning_tree();
+    // ALTERNATIVELY: const auto result = G.prim_minimum_spanning_tree(0);
 
     for (const auto& [u, v] : result) {
         std::cout << "Edge from " << u << " to " << v << "\n";

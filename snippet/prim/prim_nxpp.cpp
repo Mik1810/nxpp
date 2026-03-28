@@ -14,12 +14,12 @@ int main() {
     G.add_edge(2, 3, 1);
     G.add_edge(3, 4, 5);
 
-    // Default behavior: const auto result = nxpp::minimum_spanning_tree(G);
+    // Default behavior: const auto result = G.minimum_spanning_tree();
     // It uses the Kruskal algorithm by default, but you can specify the algorithm explicitly:
 
-    auto parent = nxpp::prim_minimum_spanning_tree(G, 0);
+    auto parent = G.prim_minimum_spanning_tree(0);
 
-    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+    for (int i = 0; i < G.num_vertices(); ++i) {
         std::cout << "Parent of " << i << ": " << parent[i] << "\n";
     }
 

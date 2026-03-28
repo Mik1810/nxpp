@@ -13,7 +13,7 @@ int main() {
     G.add_edge(2, 3);
     G.add_edge(3, 4);
 
-    for (const int node : nxpp::topological_sort(G)) {
+    for (const int node : G.topological_sort()) {
         std::cout << node << " ";
     }
     std::cout << "\n";

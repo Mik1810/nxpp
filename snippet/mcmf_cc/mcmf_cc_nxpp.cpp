@@ -15,11 +15,11 @@ int main() {
     G.add_edge(3, 2, 6, {"capacity", 2});
     G.add_edge(4, 5, 1, {"capacity", 2});
 
-    // Default behavior: const auto result = nxpp::maximum_flow(G, 0, 5);
+    // Default behavior: const auto result = G.maximum_flow(0, 5);
     // It uses the Edmonds-Karp algorithm by default, but you can specify the algorithm explicitly:
 
-    const long flow = nxpp::push_relabel_maximum_flow(G, 0, 5);
-    const long cost = nxpp::cycle_canceling(G);
+    const long flow = G.push_relabel_maximum_flow(0, 5);
+    const long cost = G.cycle_canceling();
 
     std::cout << "The maximum flow from 0 to 5 is " << flow << "\n";
     std::cout << "The minimum cost of a max flow from 0 to 5 is " << cost << "\n";

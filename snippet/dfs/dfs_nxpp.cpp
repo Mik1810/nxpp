@@ -27,6 +27,6 @@ int main() {
     G.add_edge(4, 3);
 
     custom_visitor vis;
-    nxpp::depth_first_search(G, 0, vis);
+    G.depth_first_search(0, vis);
     return EXIT_SUCCESS;
 }

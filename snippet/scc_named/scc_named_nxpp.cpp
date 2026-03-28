@@ -14,8 +14,8 @@ int main() {
     G.add_edge(3, 2);
     G.add_edge(3, 4);
 
-    auto comp = nxpp::strong_components(G);
-    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
+    auto comp = G.strong_components();
+    for (int i = 0; i < G.num_vertices(); ++i) {
         std::cout << "The representative of the SCC of vertex " << i
                   << " is " << comp[i] << "\n";
     }
