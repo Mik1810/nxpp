@@ -1852,7 +1852,7 @@ auto strongly_connected_component_groups(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto strong_components(const GraphWrapper& G) {
+auto strong_component_map(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
     const auto& g = G.get_impl();
@@ -1870,7 +1870,7 @@ auto strong_components(const GraphWrapper& G) {
 }
 
 template <typename GraphWrapper>
-auto strong_component_roots(const GraphWrapper& G) {
+auto strong_components(const GraphWrapper& G) {
     using NodeID = typename GraphWrapper::NodeType;
 
     const auto& g = G.get_impl();
@@ -1904,12 +1904,12 @@ auto strongly_connected_components(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 auto strongly_connected_component_map(const GraphWrapper& G) {
-    return strong_components(G);
+    return strong_component_map(G);
 }
 
 template <typename GraphWrapper>
 auto strongly_connected_component_roots(const GraphWrapper& G) {
-    return strong_component_roots(G);
+    return strong_components(G);
 }
 
 template <typename GraphWrapper>
@@ -2377,7 +2377,7 @@ auto cycle_canceling(const GraphWrapper& G, const std::string& weight_attr = "we
 }
 
 template <typename GraphWrapper>
-auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+auto successive_shortest_path_nonnegative_weights(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     using NodeID = typename GraphWrapper::NodeType;
 
     if (!G.has_node(source_id) || !G.has_node(target_id)) {
@@ -2460,6 +2460,11 @@ auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typ
         result.edge_flows[key] = capacity[edge_desc] - residual[edge_desc];
     }
     return result;
+}
+
+template <typename GraphWrapper>
+auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
+    return successive_shortest_path_nonnegative_weights(G, source_id, target_id, capacity_attr, weight_attr);
 }
 template <typename GraphWrapper>
 auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {

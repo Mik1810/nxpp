@@ -5,7 +5,6 @@
 
 int main() {
     nxpp::WeightedGraphInt G;
-    G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2, 3);
     G.add_edge(1, 0, 2);
@@ -14,10 +13,13 @@ int main() {
     G.add_edge(2, 3, 1);
     G.add_edge(3, 4, 5);
 
-    // Default behavior: const auto mst = nxpp::minimum_spanning_tree(G);
-    // It uses Kruskal by default, but you can still call the explicit algorithm wrapper if you prefer.
+    // Default behavior: const auto result = nxpp::minimum_spanning_tree(G);
+    // It uses the Kruskal algorithm by default, but you can specify the algorithm explicitly:
 
-    for (const auto& [u, v] : nxpp::minimum_spanning_tree(G)) {
+    const auto result = nxpp::kruskal_minimum_spanning_tree(G);
+    // ALTERNATIVELY: const auto result = nxpp::prim_minimum_spanning_tree(G, 0);
+
+    for (const auto& [u, v] : result) {
         std::cout << "Edge from " << u << " to " << v << "\n";
     }
 

@@ -13,7 +13,7 @@ Its goal is not to clone all of NetworkX, but to offer a **small, practical, Net
 The project centers on a single generic graph wrapper:
 
 ```cpp
-nxpp::Graph<NodeID, EdgeWeight, Directed, Multi>
+nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, Weighted>
 ```
 
 with public aliases such as:
@@ -86,13 +86,6 @@ Highlights currently present in `include/nxpp.hpp` include:
 - extras: degree centrality, 2-SAT helper, SCC root helper
 
 `include/nxpp.hpp` remains the canonical public header.
-If you want the same API split into themed headers, run:
-
-```bash
-python3 scripts/sync_modular_headers.py
-```
-
-That command regenerates `include_modular/` from `include/nxpp.hpp`, so the split headers stay aligned with the single source of truth under `include/`.
 
 Current status, aligned with `TODO.md`, `ROADMAP.md`, and `CHANGELOG.md`:
 
@@ -363,10 +356,10 @@ because they make missing keys and type expectations much clearer.
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
 | `dijkstra_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O((V + E) log V + V)` | Returns distances, predecessors, and fully reconstructed paths. | `auto r = nxpp::dijkstra_shortest_paths(G, 0);` |
-| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID>` | `O(VE + V + total_path_materialization)` | Bellman-Ford wrapper returning distances, predecessors, and materialized paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
+| `bellman_ford_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(VE + V + total_path_materialization)` | Bellman-Ford wrapper returning distances, predecessors, and materialized paths. | `auto r = nxpp::bellman_ford_shortest_paths(G, 0);` |
 | `dag_shortest_paths` | `(G, source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | `O(V + E + total_path_materialization)` | DAG shortest-path helper returning distances, predecessors, and full paths. | `auto r = nxpp::dag_shortest_paths(G, 0);` |
-| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<double>>` | `O(V^3)` | All-pairs shortest-path distance matrix in internal vertex order. For integer snippet-style graphs this lines up with node IDs directly. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
-| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, double>>` | `O(V^3 + V^2)` | Convenience wrapper converting the Floyd-Warshall matrix into NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
+| `floyd_warshall_all_pairs_shortest_paths` | `(G)` | `std::vector<std::vector<Distance>>` | `O(V^3)` | All-pairs shortest-path distance matrix in internal vertex order, using the graph edge-weight type for the exposed result. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(G);` |
+| `floyd_warshall_all_pairs_shortest_paths_map` | `(G)` | `unordered_map<NodeID, unordered_map<NodeID, Distance>>` | `O(V^3 + V^2)` | Convenience wrapper converting the Floyd-Warshall matrix into NodeID-keyed maps. | `auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths_map(G);` |
 
 ---
 
@@ -504,13 +497,14 @@ But as the project grows, it also means:
 
 ## Snippets and local verification
 
-The repository also includes a snippet-based workflow and a small harness script:
+The repository also includes a snippet-based verification workflow:
 
-- `snippet/` contains local reference examples
-- each algorithm folder now includes Boost-style C++, NetworkX Python, and `nxpp` C++ counterparts
-- `scripts/test_snippet_batch.sh` currently compiles/runs `2sat`, `bellman_ford`, `bfs`, and `cc`, logging timings and diff-based parity results
-- `scripts/test_single_snippet.sh <folder>` runs one snippet triplet at a time, compiling the two C++ variants, running the Python version, saving all logs, and producing all three pairwise diffs; if the file basename differs from the folder name, the script auto-detects it
-- snippet harness coverage for `dag_sp`, `flow`, `floyd_warshall`, `kruskal`, `prim`, `scc`, `scc_named`, `ts`, and min-cost max-flow is still open
+- `snippet/` contains the local reference examples
+- each algorithm folder includes Boost-style C++, NetworkX Python, and `nxpp` C++ counterparts where applicable
+- `scripts/log_snippet_folder.sh <folder>` runs all implementations found in a snippet folder and writes a combined log under `snippet/<folder>/logs/`
+- `scripts/test_single_snippet.sh <folder>` compiles/runs every implementation in a snippet folder, saves per-run artifacts under `logs/snippet/`, and produces pairwise diffs across all implementations
+- the GitHub Actions snippet-review workflow runs the same verification approach across all folders under `snippet/`
+- the manual snippet review/parity pass across the snippet folders has been completed
 - the project markdown files (`TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `SESSION.md`) are useful to track scope, status, and cleanup direction
 
 Example single-snippet runs:
@@ -519,14 +513,15 @@ Example single-snippet runs:
 scripts/test_single_snippet.sh bfs
 scripts/test_single_snippet.sh 2sat
 scripts/test_single_snippet.sh 2sat /path/to/input.txt
+scripts/log_snippet_folder.sh floyd_warshall
 ```
 
 Each run writes artifacts under `logs/snippet/<folder>_<timestamp>/`, including:
 
 - the combined run log
 - dedicated compile stderr logs for the Boost and `nxpp` C++ builds
-- captured `stdout` / `stderr` for all three implementations
-- `cpp vs py`, `cpp vs nxpp`, and `py vs nxpp` diff files
+- captured `stdout` / `stderr` for all implementations in the folder
+- pairwise diff files across all implementation combinations
 
 That is a healthy sign for the project: there is a visible effort not just to write wrappers, but to compare behavior, keep examples aligned, and make regressions easier to notice.
 

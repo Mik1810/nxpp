@@ -25,7 +25,7 @@ bool solve() {
         G.add_edge(to_vertex_id(-y), to_vertex_id(x));
     }
 
-    auto comp = nxpp::strong_components(G);
+    auto comp = nxpp::strong_component_map(G);
     for (int i = 1; i <= n; ++i) {
         if (comp[to_vertex_id(i)] == comp[to_vertex_id(-i)]) {
             return false;

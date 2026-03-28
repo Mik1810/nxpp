@@ -5,7 +5,6 @@
 
 int main() {
     nxpp::UnweightedDiGraphInt G;
-    G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);
     G.add_edge(1, 0);

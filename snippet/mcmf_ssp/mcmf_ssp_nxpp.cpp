@@ -5,7 +5,6 @@
 
 int main() {
     nxpp::WeightedDiGraphInt G;
-    G.add_nodes_from({0, 1, 2, 3, 4, 5});
 
     G.add_edge(0, 1, 2, {"capacity", 1});
     G.add_edge(0, 3, 3, {"capacity", 2});
@@ -16,7 +15,7 @@ int main() {
     G.add_edge(3, 2, 6, {"capacity", 2});
     G.add_edge(4, 5, 1, {"capacity", 2});
 
-    const auto result = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);
+    const auto result = nxpp::successive_shortest_path_nonnegative_weights(G, 0, 5);
     std::cout << "The minimum cost of a max flow from 0 to 5 is " << result.cost << "\n";
     std::cout << "The maximum flow from 0 to 5 is " << result.flow << "\n";
     return EXIT_SUCCESS;

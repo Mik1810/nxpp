@@ -22,6 +22,7 @@ Implementation priority is still driven by the local snippet sets:
 These questions should currently outrank most implementation/detail work because they shape the long-term public API and internal model.
 
 - [ ] Decide the long-term graph API direction: clarify when functionality should live as free functions under `nxpp::` versus methods on graph objects like `G.add_edge(...)`, and document a consistent architectural rule
+- [ ] Discuss whether `nxpp` should keep explicit “NetworkX-behavioral signature” wrappers such as `bfs_edges`, `dfs_edges`, `dijkstra_path`, `connected_components`, and `strongly_connected_components`, or narrow/simplify that compatibility layer
 - [ ] Decide how much of the underlying Boost graph configurability should be exposed in `nxpp`
 - [ ] Design a clean way to customize the underlying BGL storage/selectors when needed (for example `vecS`, `setS`, and related choices), while keeping the current defaults simple and ergonomic
 - [ ] Define which graph-configuration knobs should remain advanced/optional and which should stay fixed behind the default `nxpp` graph aliases
@@ -144,7 +145,7 @@ These items improve maintainability, packaging, and project quality, but should 
 
 These items are not currently driven by the snippet sets, so they should not outrank the essentials above.
 
-- [ ] `degree_centrality`
+- [x] `degree_centrality`
 - [ ] `betweenness_centrality`
 - [ ] `pagerank`
 - [ ] Benchmarking harness

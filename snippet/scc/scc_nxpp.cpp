@@ -6,7 +6,6 @@
 
 int main() {
     nxpp::UnweightedDiGraphInt G;
-    G.add_nodes_from({0, 1, 2, 3, 4});
 
     G.add_edge(0, 2);
     G.add_edge(1, 0);
@@ -16,9 +15,9 @@ int main() {
     G.add_edge(3, 2);
     G.add_edge(3, 4);
 
-    const auto comp_index = nxpp::strong_components(G);
+    const auto comp_index = nxpp::strong_component_map(G);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < nxpp::num_vertices(G); ++i) {
         std::cout << "Vertex " << i << " is in component " << comp_index[i] << "\n";
     }
 

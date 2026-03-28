@@ -58,7 +58,7 @@
 1. **Roadmap and Repository Audit**:
    - Reviewed `ROADMAP.md`, `SESSION.md`, `README.md`, and the active code in `include/nxpp.hpp`.
    - Confirmed that the only planned work still open is the full Phase 5 block: flows, centrality metrics, and benchmarking.
-   - Confirmed that no partial implementation for `maximum_flow`, `minimum_cut`, `degree_centrality`, `betweenness_centrality`, or `pagerank` currently exists in the codebase.
+   - Confirmed that no partial implementation for `maximum_flow`, `minimum_cut`, `betweenness_centrality`, or `pagerank` currently exists in the codebase.
 
 2. **Dangling Build Issue Resolved**:
    - Ran the standard build command `g++ -std=c++20 -Wall -pedantic -O3 main.cpp -o main`.
@@ -221,8 +221,3 @@
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.
-   - Added a demonstration call in `main.cpp`.
-   - Extended the comparative test suite to generate, serialize, and compare `degree_centrality` outputs against `networkx`.
-   - Verified successful C++ compilation for both `main.cpp` and `test_suite/nxpp_test_runner.cpp`.
-   - Verified the C++ test runner executes successfully.
-   - Full Python parity regeneration is currently blocked in this environment because `python3` cannot import `networkx`.

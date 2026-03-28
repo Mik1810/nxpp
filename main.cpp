@@ -77,7 +77,7 @@ void test_integer_nodes() {
 
     // 4. Trova le Componenti Connesse generiche (CC)
     print("Componenti Connesse (Undirected):");
-    auto ccs = connected_components(G);
+    auto ccs = connected_component_groups(G);
     for (auto& cc : ccs) std::sort(cc.begin(), cc.end());
     std::sort(ccs.begin(), ccs.end(), [](const auto& a, const auto& b) {
         return a[0] < b[0];
@@ -308,8 +308,8 @@ void test_snippet_backed_essentials() {
     });
     auto dag_dist = nxpp::dag_shortest_paths(dag_sp, 0);
     auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(dag_sp);
-    print("DAG shortest distance to 4:", dag_dist.at(4));
-    print("Floyd-Warshall 0->4:", fw.at(0).at(4));
+    print("DAG shortest distance to 4:", dag_dist.distance[4]);
+    print("Floyd-Warshall 0->4:", fw[0][4]);
 
     bool sat = nxpp::two_sat_satisfiable(2, {{1, 2}, {-1, 2}});
     print("2-SAT satisfiable:", sat, "\n");
@@ -338,9 +338,9 @@ void test_remaining_snippet_essentials() {
     flow_g[4][5]["capacity"] = 2L;
 
     auto mcmf_cc = nxpp::max_flow_min_cost_cycle_canceling(flow_g, 0, 5);
-    auto mcmf_ssp = nxpp::max_flow_min_cost_successive_shortest_path(flow_g, 0, 5);
-    print("Cycle-canceling flow:", mcmf_cc.value, "cost:", mcmf_cc.cost);
-    print("SSP flow:", mcmf_ssp.value, "cost:", mcmf_ssp.cost);
+    auto mcmf_ssp = nxpp::successive_shortest_path_nonnegative_weights(flow_g, 0, 5);
+    print("Cycle-canceling flow:", mcmf_cc.flow, "cost:", mcmf_cc.cost);
+    print("SSP flow:", mcmf_ssp.flow, "cost:", mcmf_ssp.cost);
 
     DiGraphInt sccg;
     sccg.add_edges_from({
