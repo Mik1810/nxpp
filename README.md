@@ -7,6 +7,9 @@
 `nxpp` is a **header-only C++20** library built on top of the **Boost Graph Library (BGL)**.
 Its goal is not to clone all of NetworkX, but to offer a **small, practical, NetworkX-inspired API** that is easier to use directly from C++ than raw BGL in many common cases.
 
+> [!WARNING]
+> The public API is still settling. I am still deciding how close `nxpp` should stay to Boost vs. NetworkX, and in particular whether graph operations should lean more on free functions under `nxpp::` or on methods called directly on the graph object itself.
+
 The project centers on a single generic graph wrapper:
 
 ```cpp
@@ -94,12 +97,15 @@ That command regenerates `include_modular/` from `include/nxpp.hpp`, so the spli
 Current status, aligned with `TODO.md`, `ROADMAP.md`, and `CHANGELOG.md`:
 
 - snippet-backed algorithm coverage in the header is largely in place
-- the shell harness currently checks `2sat`, `bellman_ford`, `bfs`, and `cc`
-- the current manual snippet review pass has reached `floyd_warshall`
-- the next snippet-harness expansion item is still `dag_sp`, followed by the other remaining reviewed folders
-- the next manual snippet target is `graph_example`
+- the snippet review workflow now runs across all folders under `snippet/`
+- the manual snippet review/parity pass across the snippet folders has been completed
+- a MIT `LICENSE` file is now present at the repository root
 - `betweenness_centrality`, `pagerank`, and a benchmarking harness are still not implemented
-- repository hygiene work such as `LICENSE`, `CMakeLists.txt`, and CI is still open
+- repository hygiene work such as `CMakeLists.txt`, broader build support, and release/versioning policy is still open
+
+## License
+
+This project is licensed under the MIT License. See `LICENSE`.
 
 ---
 
@@ -372,9 +378,9 @@ because they make missing keys and type expectations much clearer.
 |---|---|---:|---|---|---|
 | `connected_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Boost-like wrapper returning `node -> component_id`. | `auto m = nxpp::connected_components(G);` |
 | `connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by connected component. | `auto cc = nxpp::connected_component_groups(G);` |
-| `strong_components` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | Boost-like wrapper returning `node -> SCC id`. | `auto m = nxpp::strong_components(G);` |
+| `strong_component_map` | `(G)` | `lookup_map<NodeID, int>` | `O(V + E)` | SCC map returning `node -> component_id`. | `auto m = nxpp::strong_component_map(G);` |
 | `strongly_connected_component_groups` | `(G)` | `std::vector<std::vector<NodeID>>` | `O(V + E)` | Convenience helper that groups vertices by SCC. | `auto scc = nxpp::strongly_connected_component_groups(G);` |
-| `strong_component_roots` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Convenience helper returning a representative/root node for each vertex's SCC. | `auto r = nxpp::strong_component_roots(G);` |
+| `strong_components` | `(G)` | `std::unordered_map<NodeID, NodeID>` | `O(V + E)` | Boost-like root/representative map for each vertex's SCC. | `auto r = nxpp::strong_components(G);` |
 | `topological_sort` | `(G)` | `std::vector<NodeID>` | `O(V + E)` | Returns a topological ordering. | `auto order = nxpp::topological_sort(G);` |
 
 ### Spanning structures
@@ -397,7 +403,7 @@ because they make missing keys and type expectations much clearer.
 | `minimum_cut` | `(G, source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow cost + residual BFS `O(V + E)` | Returns cut value, reachable/non-reachable partition, and crossing edges. | `auto c = nxpp::minimum_cut(G, 0, 5);` |
 | `max_flow_min_cost` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Default min-cost max-flow wrapper; currently delegates to `max_flow_min_cost_cycle_canceling`. | `auto r = nxpp::max_flow_min_cost(G, 0, 5);` |
 | `max_flow_min_cost_cycle_canceling` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + max-flow / cycle-canceling cost | Returns total flow in `result.flow`, flow cost in `result.cost`, and per-edge flows in `result.edge_flows`. | `auto r = nxpp::max_flow_min_cost_cycle_canceling(G, 0, 5);` |
-| `max_flow_min_cost_successive_shortest_path` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::max_flow_min_cost_successive_shortest_path(G, 0, 5);` |
+| `successive_shortest_path_nonnegative_weights` | `(G, source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | build wrapper graph `O(V + E)` + SSP min-cost-flow cost | Same result shape using successive shortest path. | `auto r = nxpp::successive_shortest_path_nonnegative_weights(G, 0, 5);` |
 | `cycle_canceling` | `(G, weight_attr = "weight")` | deduced cost type | uses internal staged state from `push_relabel_maximum_flow` + cycle-canceling cost | Runs cycle-canceling over the internally cached staged flow graph prepared by `push_relabel_maximum_flow`. | `long c = nxpp::cycle_canceling(G);` |
 
 Native-style staged helpers for the cycle-canceling path are also available while keeping the state internal:

@@ -191,6 +191,33 @@
    - The shell harness coverage currently matches that checkpoint and stops at `cc`.
    - The next snippet queued for the same pass is `dag_sp`.
 
+## Session Audit: March 27-28, 2026
+
+1. **Snippet Review Completed**:
+   - Continued and completed the manual parity pass across the remaining snippet folders under `snippet/`.
+   - Verified the reviewed cases against the local shell harness and then mirrored that coverage in the GitHub Actions snippet-review workflow summary.
+   - Closed the last parity blockers around `dag_sp` and `floyd_warshall`.
+
+2. **Shortest-Path Wrapper Alignment**:
+   - Renamed and reshaped several wrappers to stay closer to the Boost naming used by the reference snippets.
+   - Promoted `dijkstra_shortest_paths()` as the main single-source Dijkstra result helper.
+   - Simplified DAG shortest paths so `dag_shortest_paths()` now exposes distances, predecessors, and paths directly.
+   - Renamed the successive-shortest-path min-cost-flow wrapper to `successive_shortest_path_nonnegative_weights()`.
+
+3. **Weighted Integer Alias Fixes**:
+   - Corrected the weighted `*Int` graph aliases so they actually use integer edge weights instead of silently defaulting to `double`.
+   - This resolved parity issues in integer-weight snippet outputs, especially around unreachable-distance handling and integer-style output formatting.
+
+4. **Snippet Harness and CI Improvements**:
+   - Expanded `test_single_snippet.sh` to compare all implementations present in a snippet folder pairwise.
+   - Added `log_snippet_folder.sh` for whole-folder execution/logging.
+   - Added and refined the GitHub Actions snippet-review workflow, including clearer failure logging and a summary table with English descriptions.
+
+5. **Documentation and Repo Metadata Updates**:
+   - Added a MIT `LICENSE` file at the repository root.
+   - Updated `README.md`, `TODO.md`, and `CHANGELOG.md` to reflect the completed snippet review pass and the remaining top-priority architecture questions.
+   - Elevated the API-architecture decision (`nxpp::` free functions vs. graph methods) and Boost configurability exposure (`vecS`, `setS`, etc.) as top-priority design work.
+
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.

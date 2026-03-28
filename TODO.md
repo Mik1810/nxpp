@@ -17,64 +17,39 @@ Implementation priority is still driven by the local snippet sets:
 
 ---
 
-## Priority: Functions Present in `snippet`
+## Top-Priority Architecture Decisions
 
-These are the functions and algorithm families that should drive implementation order.
+These questions should currently outrank most implementation/detail work because they shape the long-term public API and internal model.
 
-- [x] `bfs_edges`
-- [x] `dfs_edges`
-- [x] `connected_components`
-- [x] `strongly_connected_components`
-- [x] `dijkstra_path`
-- [x] `bellman_ford_path`
-- [x] `shortest_path`
+- [ ] Decide the long-term graph API direction: clarify when functionality should live as free functions under `nxpp::` versus methods on graph objects like `G.add_edge(...)`, and document a consistent architectural rule
+- [ ] Decide how much of the underlying Boost graph configurability should be exposed in `nxpp`
+- [ ] Design a clean way to customize the underlying BGL storage/selectors when needed (for example `vecS`, `setS`, and related choices), while keeping the current defaults simple and ergonomic
+- [ ] Define which graph-configuration knobs should remain advanced/optional and which should stay fixed behind the default `nxpp` graph aliases
 
 ---
 
-## Snippet-Backed Essentials
+## Snippet-Driven Core Surface
 
-- [x] `topological_sort`
-  Reference: `snippet/ts/ts.cpp`, `snippet/ts/ts.py`
-- [x] `kruskal_minimum_spanning_tree`
-  Reference: `snippet/kruskal/kruskal.cpp`, `snippet/kruskal/kruskal.py`
-- [x] `prim_minimum_spanning_tree`
-  Reference: `snippet/prim/prim.cpp`
-- [x] `maximum_flow`
-  Reference: `snippet/flow/flow.cpp`, `snippet/flow/flow.py`
-- [x] `dag_shortest_paths`
-  Reference: `snippet/dag_sp/dag_sp.cpp`
-- [x] `floyd_warshall_all_pairs_shortest_paths`
-  Reference: `snippet/floyd_warshall/floyd_warshall.cpp`
-- [x] `max_flow_min_cost` / min-cost max-flow wrappers
-  Reference: `snippet/mcmf_cc/mcmf_cc.cpp`, `snippet/mcmf_spp/mcmf_ssp.cpp`, `snippet/mcmf_cc/mcmf_cc.py`, `snippet/mcmf_spp/mcmf_ssp.py`
-- [x] `two_sat_satisfiable` or equivalent 2-SAT helper
-  Reference: `snippet/2sat/2sat.cpp`
-- [x] SCC representative/root-map style helper
-  Reference: `snippet/scc_named/scc_named.cpp`
+These are the snippet folders that define the essential public surface of `nxpp`.
 
----
-
-## Remaining Snippet Verification / Harness Work
-
-These items are still snippet-driven, but concern parity coverage and verification rather than missing API surface.
-
-- [x] Carry the current manual snippet review pass through `dag_sp`
-- [x] Carry the current manual snippet review pass through `dfs`
-- [x] Carry the current manual snippet review pass through `dijkstra`
-- [x] Carry the current manual snippet review pass through `flow`
-- [x] Carry the current manual snippet review pass through `floyd_warshall`
-- [ ] Continue the current manual snippet review pass with `graph_example`
-- [ ] Extend `scripts/test_snippet_batch.sh` beyond the current first batch
-- [ ] Add `dag_sp` to the shell harness
-- [ ] Add `flow` to the shell harness
-- [ ] Add `floyd_warshall` to the shell harness
-- [ ] Add `kruskal` to the shell harness
-- [ ] Add `prim` to the shell harness
-- [ ] Add `scc` / `scc_named` to the shell harness
-- [ ] Add `ts` to the shell harness
-- [ ] Add min-cost max-flow snippet coverage to the shell harness
-- [ ] Add summary output for pass/fail counts across all snippet folders
-- [ ] Add a simple regression workflow so snippet parity can be rerun quickly after header changes
+- [x] `snippet/2sat/`
+- [x] `snippet/bellman_ford/`
+- [x] `snippet/bfs/`
+- [x] `snippet/cc/`
+- [x] `snippet/dag_sp/`
+- [x] `snippet/dfs/`
+- [x] `snippet/dijkstra/`
+- [x] `snippet/flow/`
+- [x] `snippet/floyd_warshall/`
+- [x] `snippet/graph_example/`
+- [x] `snippet/graph_weights/`
+- [x] `snippet/kruskal/`
+- [x] `snippet/mcmf_cc/`
+- [x] `snippet/mcmf_ssp/`
+- [x] `snippet/prim/`
+- [x] `snippet/scc/`
+- [x] `snippet/scc_named/`
+- [x] `snippet/ts/`
 
 ---
 
@@ -102,10 +77,10 @@ These items improve maintainability, packaging, and project quality, but should 
 
 ### Repository and Build
 
-- [ ] Add a `LICENSE`
+- [x] Add a `LICENSE`
 - [ ] Add a standard `CMakeLists.txt`
 - [ ] Add a small install/usage story for external users
-- [ ] Add CI with at least one Linux build
+- [x] Add CI with at least one Linux build
 - [ ] Extend CI to macOS and Windows if practical
 - [ ] Add a minimal compiler/version support matrix to the README
 - [ ] Define a GitHub release process (tags, release notes, artifacts, and release cadence)
@@ -129,8 +104,6 @@ These items improve maintainability, packaging, and project quality, but should 
 
 ### Header Architecture and Encapsulation
 
-- [ ] Split `include/nxpp.hpp` into logical subheaders once the public surface stabilizes
-- [ ] Keep a single umbrella include if desired, but move implementation into internal modules
 - [ ] Reduce direct exposure of internal mutable state
 - [ ] Consider making `node_properties` and `edge_properties` non-public
 - [ ] Re-check public API for invariants that can currently be bypassed
@@ -143,6 +116,7 @@ These items improve maintainability, packaging, and project quality, but should 
 - [ ] Document complexity and caveats for destructive operations more explicitly in the API reference
 - [ ] Revisit complexity documentation so it does not lean too casually on expected `unordered_map` running time where a stricter effective bound can be stated without overstating performance
 - [ ] Where algorithmic complexity does not worsen, prefer documenting a stronger/worst-case-style public-call running time instead of only average-case hash-table assumptions
+- [ ] Re-evaluate whether some public-facing maps/lookups should move from hash-based containers with expected running time to ordered/logarithmic structures (for example `std::map`/tree-based containers) when more stable insert/delete/lookup complexity is preferable
 - [ ] Add compile-time constraints or concepts for `NodeID` expectations
 
 ### Attribute System
@@ -160,6 +134,7 @@ These items improve maintainability, packaging, and project quality, but should 
 - [ ] Keep `TODO.md` focused on open work only
 - [ ] Keep `SESSION.md` as historical development log rather than current status source
 - [ ] Separate examples, smoke tests, and formal tests more clearly in repo structure
+- [ ] Keep `main.cpp` aligned with current wrapper names and result shapes after API renames/refactors
 - [ ] Study and define a proper documentation strategy (scope, structure, tooling, hosting, and API/reference split)
 - [ ] Add inline API documentation comments for public functions so editor hover/tooling can explain purpose, parameters, and return type directly from the code
 
@@ -169,7 +144,7 @@ These items improve maintainability, packaging, and project quality, but should 
 
 These items are not currently driven by the snippet sets, so they should not outrank the essentials above.
 
-- [x] `degree_centrality`
+- [ ] `degree_centrality`
 - [ ] `betweenness_centrality`
 - [ ] `pagerank`
 - [ ] Benchmarking harness
@@ -180,7 +155,7 @@ These items are not currently driven by the snippet sets, so they should not out
 ## Notes
 
 - `graph_example` and `graph_weights` are informational reference snippets rather than standalone algorithm targets.
-- The current manual snippet review/parity pass has reached `floyd_warshall`; the next folder queued for inspection is `graph_example`.
+- The current manual snippet review/parity pass across the snippet folders has been completed.
 - Existing features that are outside snippet scope can stay in the codebase, but they should not drive roadmap priority over the functions listed above.
 - The highest-risk implemented area at the moment is multigraph behavior and edge identity semantics.
 - The highest-value non-feature improvement at the moment is broader automated verification of the snippet folders.
