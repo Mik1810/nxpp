@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.8] - 2026-03-29
+
+- Extended `.github/workflows/release.yml` with `workflow_dispatch`, so release kickoff no longer requires a manually created git tag.
+- The dispatch path now reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`, fails if they disagree, creates and pushes the corresponding `vX.Y.Z` tag, and lets the tag-triggered path build, test, and publish the actual release.
+- Extended `scripts/extract_release_notes.py` with a `--latest-version` mode so the release workflow can read the current top version from the versioned markdown files without duplicating parsing logic.
+
 ## [0.7.7] - 2026-03-29
 
 - Added a versioned `RELEASE_NOTES.md` file so GitHub releases can use richer release-specific prose without forcing the same level of detail into `CHANGELOG.md`.

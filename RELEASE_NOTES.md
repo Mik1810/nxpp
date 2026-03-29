@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.8]
+
+### Highlights
+
+- Extended `.github/workflows/release.yml` with `workflow_dispatch`, so release kickoff no longer requires a manually created git tag.
+- The dispatch path now reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`, fails if they disagree, creates and pushes the corresponding `vX.Y.Z` tag, and lets the tag-triggered path create the actual GitHub release.
+- Extended `scripts/extract_release_notes.py` with a `--latest-version` mode so the workflow can read the current top version from the versioned markdown files without duplicating the parsing logic.
+
+### Verification
+
+- `python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+- `python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `bash scripts/build_single_header.sh && bash scripts/run_single_header_tests.sh`
+
+### Assets
+
+- `nxpp.hpp` will still be attached from the tested `dist/nxpp.hpp` build output once the tag-triggered release run completes.
+
 ## [0.7.7]
 
 ### Highlights

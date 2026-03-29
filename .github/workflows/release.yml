@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   publish-release:
@@ -14,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install Boost Graph
         run: |
@@ -25,23 +28,64 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Extract release notes
+      - name: Determine release version
+        id: version
         run: |
-          python3 scripts/extract_release_notes.py "${{ github.ref_name }}" > /tmp/nxpp_release_notes.md
+          if [ "${{ github.event_name }}" = "push" ]; then
+            version="${GITHUB_REF_NAME#v}"
+            tag="${GITHUB_REF_NAME}"
+          else
+            notes_version="$(python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md)"
+            changelog_version="$(python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md)"
+
+            if [ "$notes_version" != "$changelog_version" ]; then
+              echo "Top versions do not match: RELEASE_NOTES.md has $notes_version but CHANGELOG.md has $changelog_version" >&2
+              exit 1
+            fi
+
+            version="$notes_version"
+            tag="v$version"
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push release tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+        run: |
+          if git ls-remote --tags origin "refs/tags/$TAG_NAME" | grep -q "$TAG_NAME"; then
+            echo "Tag $TAG_NAME already exists on origin" >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+
+      - name: Extract release notes
+        if: github.event_name == 'push'
+        run: |
+          python3 scripts/extract_release_notes.py "${{ steps.version.outputs.tag }}" > /tmp/nxpp_release_notes.md
 
       - name: Build standalone single header
+        if: github.event_name == 'push'
         run: |
           bash scripts/build_single_header.sh
 
       - name: Run standalone-header test suite
+        if: github.event_name == 'push'
         run: |
           bash scripts/run_single_header_tests.sh
 
       - name: Create GitHub release with tested header
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" dist/nxpp.hpp#nxpp.hpp --title "${{ github.ref_name }}" --notes-file /tmp/nxpp_release_notes.md
+          gh release create "${{ steps.version.outputs.tag }}" dist/nxpp.hpp#nxpp.hpp --title "${{ steps.version.outputs.tag }}" --notes-file /tmp/nxpp_release_notes.md
 
       - name: Publish release summary
         if: always()
@@ -49,9 +93,15 @@ jobs:
           {
             echo "## Release Automation"
             echo
-            echo "- Tag: \`${{ github.ref_name }}\`"
-            echo "- Release notes source: \`RELEASE_NOTES.md\`"
-            echo "- Header build: \`bash scripts/build_single_header.sh\`"
-            echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
-            echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
+            echo "- Version: \`${{ steps.version.outputs.version }}\`"
+            echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "- Mode: created and pushed the release tag from the top version in `RELEASE_NOTES.md` and `CHANGELOG.md`"
+              echo "- Next step: the tag-push run of this workflow will build, test, and publish the GitHub release"
+            else
+              echo "- Release notes source: \`RELEASE_NOTES.md\`"
+              echo "- Header build: \`bash scripts/build_single_header.sh\`"
+              echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
+              echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

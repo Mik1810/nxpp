@@ -401,3 +401,8 @@
 ## 2026-03-29
 - Added a versioned `RELEASE_NOTES.md` file to hold richer GitHub release text separately from the terser `CHANGELOG.md` entries, and removed `RELEASE_NOTES.md` from `.gitignore` so it now lives in the repo as part of the release process.
 - Switched `scripts/extract_release_notes.py` plus `.github/workflows/release.yml` over to `RELEASE_NOTES.md`, so automated releases now read their body from the richer release-note source rather than from the changelog.
+
+## 2026-03-29
+- Extended `.github/workflows/release.yml` with a `workflow_dispatch` path so the same workflow can now kick off a release without requiring a locally created git tag.
+- Added a `--latest-version` mode to `scripts/extract_release_notes.py`, and used it in the workflow to compare the top versions in `RELEASE_NOTES.md` and `CHANGELOG.md` before creating and pushing the matching `vX.Y.Z` tag.
+- Kept actual release creation on the tag-triggered path, so the dispatch run only creates the tag while the tag-push run still owns the tested-header build, standalone suite, and GitHub release publication.

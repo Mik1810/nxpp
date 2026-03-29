@@ -8,8 +8,17 @@ from pathlib import Path
 
 
 def main() -> int:
+    if len(sys.argv) == 3 and sys.argv[1] == "--latest-version":
+        content = Path(sys.argv[2]).read_text(encoding="utf-8")
+        match = re.search(r"^## \[([^\]]+)\]", content, re.MULTILINE)
+        if not match:
+            print(f"could not find any version header in {sys.argv[2]}", file=sys.stderr)
+            return 1
+        print(match.group(1))
+        return 0
+
     if len(sys.argv) != 2:
-        print("usage: extract_release_notes.py <tag>", file=sys.stderr)
+        print("usage: extract_release_notes.py <tag> | --latest-version <path>", file=sys.stderr)
         return 1
 
     tag = sys.argv[1]

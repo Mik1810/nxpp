@@ -330,6 +330,13 @@ The release workflow handles automated GitHub releases from pushed version tags:
 - creates the GitHub release only after that suite passes
 - uploads the tested file as `nxpp.hpp`
 
+The same workflow also supports manual `workflow_dispatch` runs:
+
+- reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`
+- fails if those top versions do not match
+- creates and pushes the matching `vX.Y.Z` tag
+- lets the tag-triggered run create the actual GitHub release
+
 These are showcase demos, not formal tests or parity harnesses.
 
 The `*_nxpp.cpp` snippets now also follow the semantic-header split instead of
