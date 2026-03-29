@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "include/nxpp/flow.hpp"
+#ifndef NXPP_HEADER_UNDER_TEST
+#define NXPP_HEADER_UNDER_TEST "include/nxpp/flow.hpp"
+#endif
+
+#include NXPP_HEADER_UNDER_TEST
 
 constexpr const char* green = "\033[32m";
 constexpr const char* red = "\033[31m";

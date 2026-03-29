@@ -31,6 +31,11 @@ jobs:
         run: |
           bash scripts/build_single_header.sh
 
+      - name: Run standalone-header test suite before release upload
+        if: github.event_name == 'release'
+        run: |
+          bash scripts/run_single_header_tests.sh
+
       - name: Smoke test generated header
         run: |
           cat > /tmp/nxpp_single_header_smoke.cpp <<'EOF'
@@ -71,6 +76,7 @@ jobs:
             echo "- Output: \`dist/nxpp.hpp\`"
             echo "- Smoke test: compiled and executed a small program against the generated header"
             if [ "${{ github.event_name }}" = "release" ]; then
+              echo "- Test suite: ran \`bash scripts/run_single_header_tests.sh\` against \`dist/nxpp.hpp\` before uploading the release asset"
               echo "- Release asset: uploaded the tested header to release \`${{ github.event.release.tag_name }}\` as \`nxpp.hpp\`"
             fi
           } >> "$GITHUB_STEP_SUMMARY"

@@ -6,10 +6,14 @@
 #include <string>
 #include <vector>
 
+#ifdef NXPP_HEADER_UNDER_TEST
+#include NXPP_HEADER_UNDER_TEST
+#else
 #include "include/nxpp/graph.hpp"
 #include "include/nxpp/traversal.hpp"
 #include "include/nxpp/shortest_paths.hpp"
 #include "include/nxpp/components.hpp"
+#endif
 
 constexpr const char* green = "\033[32m";
 constexpr const char* red = "\033[31m";

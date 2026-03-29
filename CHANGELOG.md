@@ -2,9 +2,15 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.5] - 2026-03-29
+
+- Added `scripts/run_single_header_tests.sh` so the formal test suite can be recompiled directly against `dist/nxpp.hpp` instead of the modular include tree.
+- Tightened `.github/workflows/single-header.yml` so the release-upload path now builds `dist/nxpp.hpp`, runs the dedicated single-header test suite against that generated file, and only then publishes the standalone `nxpp.hpp` asset.
+- Push and pull-request runs still expose `dist/nxpp.hpp` as a workflow artifact without adding the full single-header test-suite gate to every standalone-header check.
+
 ## [0.7.4] - 2026-03-29
 
-- Extended `.github/workflows/single-header.yml` so published GitHub releases now receive the tested CI-built `nxpp.hpp` asset instead of relying on a locally generated upload.
+- Extended `.github/workflows/single-header.yml` so published GitHub releases receive the tested CI-built `nxpp.hpp` asset instead of relying on a locally generated upload.
 - The standalone-header workflow still uploads `dist/nxpp.hpp` as a workflow artifact, and now also pushes the same tested file into the release assets on `release.published`.
 
 ## [0.7.3] - 2026-03-29

@@ -318,6 +318,7 @@ formal test suite, and publishes the test output as a Markdown job summary.
 The standalone-header workflow is equally narrow in scope:
 
 - runs `bash scripts/build_single_header.sh`
+- on published releases, runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
 - smoke-tests the generated `dist/nxpp.hpp`
 - uploads the generated header as a workflow artifact
 - on published releases, uploads that tested file to the GitHub release as `nxpp.hpp`
