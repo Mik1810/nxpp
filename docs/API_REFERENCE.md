@@ -327,4 +327,3 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `degree_centrality` | `()` | `std::unordered_map<NodeID, double>` | `O(V + E)` | Returns degree centrality with NetworkX-like normalization by `n - 1`. | `auto c = G.degree_centrality();` |
 | `to_2sat_vertex_id` | `(literal)` | `int` | `O(1)` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
 | `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | `O(V + E)` on the implication graph | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |
-| `print` | variadic | `void` | proportional to printed output | Small Python-style convenience print helper used by examples. | `nxpp::print("Node", 3);` |

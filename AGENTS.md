@@ -55,7 +55,7 @@ When completing a task:
 ## Documentation
 - If you change public behavior, update the README or relevant comments.
 - If you add a command, explain how to run it.
-- `CHANGELOG.md` must be updated every time an issue is completed.
+- `CHANGELOG.md` must be updated every time an issue is completed, it must report the version compliant to the semantic versioning standard x.y.z, update the version when you think it's appropriate.
 - `SESSION.md` must always be updated in append-only mode.
 - `SESSION.md` must be updated every time important work is done, so it is expected to change more often than `CHANGELOG.md`.
 - The purpose of `SESSION.md` is to preserve enough chronological context for the model to resume work reliably in later sessions.

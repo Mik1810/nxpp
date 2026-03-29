@@ -42,7 +42,6 @@
 #include <iostream>
 #include <any>
 #include <map>
-#include <iomanip>
 #include <random>
 #include <optional>
 #include <limits>
@@ -71,29 +70,6 @@ struct built_in_weight_traits<GraphType, false> {
         return {};
     }
 };
-
-// Python Emulation Utilities
-
-// Python-style print() emulation: print(a, b, c) with spaces and auto-newline.
-inline void print() {
-    std::cout << "\n";
-}
-
-template <typename First, typename... Rest>
-inline void print(First&& first, Rest&&... rest) {
-    if constexpr (std::is_floating_point_v<std::decay_t<First>>) {
-        std::cout << std::fixed << std::setprecision(1) << first;
-    } else {
-        std::cout << std::forward<First>(first);
-    }
-
-    if constexpr (sizeof...(rest) > 0) {
-        std::cout << " ";
-        print(std::forward<Rest>(rest)...);
-    } else {
-        std::cout << "\n";
-    }
-}
 
 // Core Graph Class
 
@@ -153,6 +129,25 @@ private:
     );
 
     using EdgeAttrMap = std::unordered_map<std::string, std::any>;
+
+    static std::any normalize_attr_any(std::any value) {
+        if (value.type() == typeid(const char*)) {
+            return std::string(std::any_cast<const char*>(value));
+        }
+        if (value.type() == typeid(char*)) {
+            return std::string(std::any_cast<char*>(value));
+        }
+        return value;
+    }
+
+    template <typename T>
+    static std::any make_attr_any(const T& value) {
+        if constexpr (std::is_convertible_v<T, const char*> && !std::is_same_v<std::decay_t<T>, std::string>) {
+            return std::string(value);
+        } else {
+            return std::any(value);
+        }
+    }
 
     std::size_t vertex_index_of(VertexDesc v) const {
         return boost::get(vertex_index_map, v);
@@ -243,19 +238,19 @@ private:
     void assign_edge_attrs(EdgeDesc e, const EdgeAttrMap& attrs) {
         auto& edge_attr_map = edge_properties[get_edge_id(e)];
         for (const auto& [key, value] : attrs) {
-            edge_attr_map[key] = value;
+            edge_attr_map[key] = normalize_attr_any(value);
         }
     }
 
     void assign_edge_attrs(EdgeDesc e, std::initializer_list<std::pair<std::string, std::any>> attrs) {
         auto& edge_attr_map = edge_properties[get_edge_id(e)];
         for (const auto& [key, value] : attrs) {
-            edge_attr_map[key] = value;
+            edge_attr_map[key] = normalize_attr_any(value);
         }
     }
 
     void assign_edge_attr(EdgeDesc e, const std::pair<std::string, std::any>& attr) {
-        edge_properties[get_edge_id(e)][attr.first] = attr.second;
+        edge_properties[get_edge_id(e)][attr.first] = normalize_attr_any(attr.second);
     }
 
 public:
@@ -771,7 +766,7 @@ public:
     template <typename T>
     void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value) {
         (void)get_edge_desc_by_id(edge_id);
-        edge_properties[edge_id][key] = std::any(value);
+        edge_properties[edge_id][key] = make_attr_any(value);
     }
 
     std::vector<NodeID> nodes() const {
@@ -832,7 +827,7 @@ public:
                 else graph->add_edge(u, v);
             }
             auto e = graph->get_edge_desc(u, v);
-            graph->edge_properties[graph->get_edge_id(e)][key] = std::any(val);
+            graph->edge_properties[graph->get_edge_id(e)][key] = Graph::make_attr_any(val);
             return *this;
         }
 
@@ -878,7 +873,7 @@ public:
         template <typename T>
         NodeAttrProxy& operator=(const T& val) {
             if (!graph->has_node(u)) graph->add_node(u);
-            graph->node_properties[u][key] = std::any(val);
+            graph->node_properties[u][key] = Graph::make_attr_any(val);
             return *this;
         }
 

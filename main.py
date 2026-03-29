@@ -1,167 +1,124 @@
 import networkx as nx
 
-def test_dijkstra_scc():
-    # 1. Inizializza un grafo diretto con chiavi testuali
-    G = nx.DiGraph()
 
-    # 2. Popolamento
-    G.add_edge("Milano", "Roma", weight=5.0)
-    G.add_edge("Roma", "Napoli", weight=2.5)
-    G.add_edge("Venezia", "Milano", weight=2.0)
-    G.add_edge("Napoli", "Roma", weight=3.0) 
+def format_number(value: float) -> str:
+    return f"{value:g}"
 
-    # 3. Stampa dei Nodi
-    print("Nodi:")
-    for n in G.nodes():
-        print("-", n)
-    print("\n")
 
-    # Stampa di un peso salvato
-    print("Peso Milano -> Roma:", G["Milano"]["Roma"]["weight"], "\n")
+def showcase_string_node_ids_and_attributes() -> None:
+    print("\nString Node IDs And Attributes")
 
-    # 4. Dijkstra Shortest Path
-    print("Dijkstra (Venezia -> Napoli):")
-    path = nx.dijkstra_path(G, "Venezia", "Napoli", weight="weight")
-    for n in path:
-        print("->", n)
-    print("\n")
+    # This is the closest mental model to the nxpp demo: named nodes and
+    # ad-hoc attributes are the default starting point instead of an add-on.
+    graph = nx.DiGraph()
+    graph.add_edge("Milan", "Rome", weight=5.0, capacity=8, company="Trenitalia")
+    graph.add_edge("Rome", "Naples", weight=2.5)
+    graph.add_edge("Milan", "Florence", weight=2.0)
+    graph.add_edge("Florence", "Naples", weight=4.0)
 
-    # 5. Componenti Fortemente Connesse (SCC)
-    print("Componenti Fortemente Connesse (SCC):")
-    sccs = [sorted(list(scc)) for scc in nx.strongly_connected_components(G)]
-    sccs.sort(key=lambda x: x[0])
-    
-    for i, scc in enumerate(sccs):
-        print("SCC", i + 1, ":")
-        for n in scc:
-            print("  *", n)
-    print("\n")
+    graph.add_node("Rome", population=2800000)
+    graph.add_node("Milan", region="Lombardy")
 
-def test_integer_nodes():
-    # 1. Inizializza un grafo NON orientato con chiavi Intere
-    G = nx.Graph()
+    print("Nodes:", *graph.nodes())
+    print("Edges:")
+    edge_order = [
+        ("Milan", "Rome"),
+        ("Rome", "Naples"),
+        ("Milan", "Florence"),
+        ("Florence", "Naples"),
+    ]
+    for u, v in edge_order:
+        print(f"  {u} -> {v} (weight={format_number(graph[u][v]['weight'])})")
+    print("Rome population:", graph.nodes["Rome"]["population"])
+    print("Milan -> Rome operator:", graph["Milan"]["Rome"]["company"])
 
-    # 2. Aggiunge più archi in blocco
-    G.add_edges_from([
-        (1, 2), (2, 3), (3, 4),
-        (5, 6), (6, 7) # Un'isola disconnessa
-    ])
 
-    print("Nodi (Interi):")
-    for n in G.nodes():
-        print("-", n)
-    print("\n")
+def showcase_materialized_shortest_path_results() -> None:
+    print("\nMaterialized Shortest Path Results")
 
-    # 3. Esegue una visita BFS in ampiezza dal nodo 1
-    print("Albero BFS (partendo dal nodo 1):")
-    edges = list(nx.bfs_edges(G, 1))
-    for u, v in edges:
-        print(" (", u, "->", v, ")")
-    print("\n\n")
+    # This is the Python-side companion to main_nxpp.cpp: we ask for concrete
+    # path data directly, without the descriptor/index bookkeeping seen in Boost.
+    graph = nx.DiGraph()
+    graph.add_edge("Milan", "Rome", weight=5.0)
+    graph.add_edge("Rome", "Naples", weight=2.5)
+    graph.add_edge("Milan", "Florence", weight=2.0)
+    graph.add_edge("Florence", "Naples", weight=4.0)
+    graph.add_edge("Naples", "Bari", weight=3.0)
 
-    # 4. Trova le Componenti Connesse generiche (CC)
-    print("Componenti Connesse (Undirected):")
-    ccs = [sorted(list(cc)) for cc in nx.connected_components(G)]
-    ccs.sort(key=lambda x: x[0])
+    distances = nx.single_source_dijkstra_path_length(graph, "Milan", weight="weight")
+    paths = nx.single_source_dijkstra_path(graph, "Milan", weight="weight")
+    predecessor_map, _ = nx.dijkstra_predecessor_and_distance(graph, "Milan", weight="weight")
+    predecessors = {node: values[0] if values else node for node, values in predecessor_map.items()}
 
-    for i, cc in enumerate(ccs):
-        print("CC", i + 1, ":")
-        for n in cc:
-            print("  *", n)
-    print("\n")
+    print("Distance Milan -> Naples:", format_number(distances["Naples"]))
+    print("Path Milan -> Naples:", *paths["Naples"])
+    print("Predecessor of Bari:", predecessors["Bari"])
 
-def test_destruction():
-    G = nx.DiGraph()
 
-    G.add_edges_from([
-        ("A", "B"), ("A", "C"), ("B", "D"), ("C", "D"), ("D", "E")
-    ])
+def showcase_traversal_and_generators() -> None:
+    print("\nTraversal And Generators")
 
-    print("Neighbors di A:")
-    for n in G.neighbors("A"):
-        print("-", n)
-    print("\n")
+    # This mirrors the same generated-path and BFS story as the two C++ files,
+    # but from the high-level NetworkX point of view.
+    path = nx.path_graph(5)
+    tree_edges = list(nx.bfs_edges(path, 0))
+    centrality = nx.degree_centrality(path)
 
-    print("Grafo iniziale:")
-    for n in G.nodes(): print(n)
-    print("\n")
+    print("BFS tree edges from 0:")
+    for u, v in tree_edges:
+        print(f"  {u} -> {v}")
 
-    G.remove_node("B")
-    print("Dopo aver rimosso B:")
-    for n in G.nodes(): print(n)
-    print("\n")
+    print("Degree centrality on path_graph(5):")
+    for node in range(5):
+        print(f"  node {node}: {format_number(centrality[node])}")
 
-    G.remove_edge("C", "D")
 
-    print("Dopo aver rimosso C->D, l'albero BFS da A esplora:")
-    edges = list(nx.bfs_edges(G, "A"))
-    for u, v in edges:
-        print(" (", u, "->", v, ")")
-    print("\n\n")
+def showcase_flow_and_cut_helpers() -> None:
+    print("\nFlow And Cut Helpers")
 
-    G.clear()
-    print("Dopo clear(), quanti nodi rimangono?", len(list(G.nodes())), "\n")
+    # This is the other useful reference point for the C++ demos: concise like
+    # nxpp, but a reminder of how much setup raw Boost has to carry by hand.
+    graph = nx.DiGraph()
+    graph.add_edge(0, 1, capacity=3)
+    graph.add_edge(0, 2, capacity=2)
+    graph.add_edge(1, 3, capacity=2)
+    graph.add_edge(2, 3, capacity=2)
+    graph.add_edge(1, 2, capacity=1)
 
-def test_multigraph():
-    print("NXPP (C++) - MultiGraph Test\n")
-    MG = nx.MultiDiGraph()
-    MG.add_edge("Milano", "Roma", weight=5.0)
-    MG.add_edge("Milano", "Roma", weight=2.5)
+    flow_value, _ = nx.maximum_flow(graph, 0, 3)
+    cut_value, partitions = nx.minimum_cut(graph, 0, 3)
+    left, right = partitions
+    cut_edges = [(u, v) for u, v in graph.edges() if u in left and v in right]
 
-    G = nx.DiGraph()
-    G.add_edge("Milano", "Roma", weight=5.0)
-    G.add_edge("Milano", "Roma", weight=2.5) # Sovrascrive
+    print("Maximum flow value:", flow_value)
+    print("Minimum cut value:", cut_value)
+    print("Cut edges:")
+    for u, v in cut_edges:
+        print(f"  {u} -> {v}")
 
-    print("Archi in MultiDiGraph:")
-    for u, v, data in MG.edges(data=True):
-        print(" (", u, "->", v, ") peso:", data["weight"])
-    print("\n")
 
-    print("Archi in DiGraph (Standard):")
-    for u, v, data in G.edges(data=True):
-        print(" (", u, "->", v, ") peso:", data["weight"])
-    print("\n")
+def showcase_precise_multigraph_edges() -> None:
+    print("\nPrecise Multigraph Edge Identity")
 
-def test_attributes():
-    print("NXPP (C++) - Custom Attributes Test\n")
-    G = nx.DiGraph()
-    
-    # Test Node Attributes - NetworkX requires nodes to exist
-    G.add_node("Roma", population=2800000)
-    G.add_node("Milano", is_capital=False)
+    # NetworkX uses edge keys for this role, so this section acts as the Python
+    # companion to nxpp's edge_id-based multigraph API.
+    graph = nx.MultiDiGraph()
 
-    # Test Edge Attributes
-    G.add_edge("Roma", "Milano", weight=5.0)
-    G["Roma"]["Milano"]["company"] = "Trenitalia"
-    G["Roma"]["Milano"]["distance"] = 580
+    fast_train = graph.add_edge("Milan", "Rome", weight=5.0, service="fast")
+    graph.add_edge("Milan", "Rome", weight=8.0, service="night")
 
-    pop = G.nodes["Roma"]["population"]
-    company = G["Roma"]["Milano"]["company"]
-    dist = G["Roma"]["Milano"]["distance"]
+    parallel_edges = list(graph.edges(keys=True, data=True))
+    print("Parallel edges Milan -> Rome:", len(parallel_edges))
+    for u, v, key, data in parallel_edges:
+        print(f"  edge_key={key} {u} -> {v} weight={format_number(data['weight'])} service={data['service']}")
 
-    print("Popolazione di Roma:", pop)
-    print("Compagnia Treno Roma->Milano:", company)
-    print("Distanza:", dist, "km\n")
+    graph.remove_edge("Milan", "Rome", fast_train)
+    print("After removing one key, remaining Milan -> Rome edges:", graph.number_of_edges("Milan", "Rome"))
 
-def test_generators():
-    print("NXPP (C++) - Generators Test\n")
-    
-    # In NetworkX complete_graph returns Graph by default
-    G = nx.complete_graph(5)
-    print("Complete Graph (5) - Nodi:", len(G.nodes()), "Archi:", len(G.edges()))
-    
-    P = nx.path_graph(4)
-    # Convert to DiGraph to match print style of edges (u -> v)
-    P_dir = nx.DiGraph(P)
-    print("Path Graph (4) - Archi:")
-    for u, v in sorted(P_dir.edges()):
-        print(" (", u, "->", v, ")")
-    print("\n")
 
 if __name__ == "__main__":
-    test_dijkstra_scc()
-    test_integer_nodes()
-    test_destruction()
-    test_multigraph()
-    test_attributes()
-    test_generators()
+    showcase_string_node_ids_and_attributes()
+    showcase_materialized_shortest_path_results()
+    showcase_traversal_and_generators()
+    showcase_flow_and_cut_helpers()
+    showcase_precise_multigraph_edges()

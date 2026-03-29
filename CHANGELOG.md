@@ -2,6 +2,20 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.0] - 2026-03-29
+
+- Closed the previous critical issue block around graph configuration and multigraph behavior: `#24`, `#3`, `#2`, and `#1`.
+- Promoted explicit multigraph edge identity into the public API through `edge_id`-based creation, lookup, mutation, and removal helpers.
+- Finished the configuration-surface work so `Graph<...>` now supports direct selector customization while the standard aliases remain on the default `boost::vecS` / `boost::vecS` backend.
+- Fixed multigraph edge-metadata cleanup when removing all parallel edges between two endpoints.
+- Clarified the remaining `(u, v)` multigraph semantics in the public docs so the README now matches the current implementation behavior.
+- Split the showcase layer into aligned demos: `main_boost.cpp` for raw Boost, `main_nxpp.cpp` for `nxpp`, and `main.py` as the NetworkX/Python companion.
+- Removed the unused `nxpp::print` helper from the public header/reference docs.
+- Normalized C-string attributes to `std::string` internally so calls like `set_edge_attr(..., "fast")`, proxy assignment, and initializer-list attrs work correctly with typed string reads.
+- Slimmed the root `README.md` into a clearer overview/navigation document and moved detailed reference material into `docs/API_REFERENCE.md`.
+- Improved benchmark tooling with clearer timing resolution, a parallel compile benchmark driver, and quieter default output.
+- Prepared the repository for release consumption by keeping the single-header entry point at `include/nxpp.hpp` and shipping it as a dedicated release asset alongside the standard source archives.
+
 ## [0.4.1] - 2026-03-29
 
 - Extended `nxpp::Graph` so advanced users can customize both the BGL out-edge selector and vertex selector directly, while all existing aliases continue to use the default `boost::vecS` / `boost::vecS` backend.
@@ -11,6 +25,9 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Clarified the current multigraph semantics of `has_edge`, `get_edge_weight`, `get_edge_attr`, proxy edge access (`G[u][v]`), and `remove_edge` so the README now matches the actual `(u, v)`-based implementation behavior.
 - Added an explicit `edge_id`-based API for precise multigraph work, including `add_edge_with_id`, `edge_ids`, `has_edge_id`, `get_edge_endpoints`, edge-id-based attribute/weight accessors, and single-edge removal by `edge_id`.
 - Slimmed the root `README.md` back toward an overview/navigation role and moved the detailed API reference into `docs/API_REFERENCE.md` to reduce documentation drift risk.
+- Split the showcase demos into aligned entry points: `main_boost.cpp` now demonstrates raw Boost, `main_nxpp.cpp` demonstrates `nxpp`, and `main.py` follows the same story from the NetworkX side.
+- Removed the unused `nxpp::print` helper from the public header/reference docs.
+- Normalized C-string attributes to `std::string` internally so calls like `set_edge_attr(..., "fast")` and initializer-list attrs behave correctly with typed string reads.
 - Updated `main.cpp` to the current method-based API and removed reliance on deprecated free-function entry points in the demo/smoke path.
 - Updated `README.md` and `docs/GRAPH_CONFIGURATION.md` to describe the actual configuration surface, current support matrix, testing story, and open issue areas.
 

@@ -1,6 +1,6 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
-Current release: `v0.4.1` (March 29, 2026)
+Current release: `v0.5.0` (March 29, 2026)
 
 <p align="center">
   <img src="imgs/logo.svg" alt="nxpp logo" width="220">
@@ -36,14 +36,12 @@ with public aliases such as:
 
 ## Project status
 
-`nxpp` now starts explicit release versioning from `v0.4.1`.
+`nxpp` is now released as `v0.5.0`.
 
 > [!WARNING]
 > The public API is still settling.
-> The biggest open design questions are:
->
-> - how much of the API should remain NetworkX-shaped
-> - how multigraph edge identity should be modeled
+> The biggest open work is no longer the critical multigraph block, but the
+> next round of formal testing, packaging cleanup, and support-matrix clarity.
 
 Today, the project is strongest as:
 
@@ -51,13 +49,13 @@ Today, the project is strongest as:
 - a **NetworkX-inspired convenience layer**
 - a library that often returns **materialized C++ results**
 - a project with a **snippet-based parity / regression harness**
-- a codebase whose main remaining correctness/documentation risk is **multigraph edge semantics**
+- a codebase whose next big quality step is a **real assertion-based test suite**
 
 The most important open issue groups right now are:
 
-- multigraph edge identity / semantics: `#1`, `#2`, `#3`
 - documentation/source-of-truth/testing-story cleanup: `#29`, `#30`, `#31`
 - broader formal verification beyond snippet parity: `#8`, `#9`, `#10`, `#11`, `#12`
+- packaging / release ergonomics after the first versioned releases
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 
@@ -235,6 +233,18 @@ The most important implemented functionality currently includes:
 
 `include/nxpp.hpp` is the canonical public header.
 
+The repo now keeps three aligned showcase entry points:
+
+- `main_boost.cpp` for the raw Boost version
+- `main_nxpp.cpp` for the `nxpp` wrapper version
+- `main.py` as the NetworkX/Python companion to the two C++ demos
+
+These are showcase demos, not formal tests or parity harnesses.
+
+String attributes passed as `"..."` are normalized internally, so typed reads like
+`get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without
+having to spell `std::string(...)` at the call site.
+
 ---
 
 ## Build and requirements
@@ -244,7 +254,9 @@ The most important implemented functionality currently includes:
 ### Minimal local build
 
 ```bash
-g++ -std=c++20 -Wall -Wextra -pedantic -O3 main.cpp -o main
+g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_boost.cpp -o main_boost
+g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_nxpp.cpp -o main_nxpp
+python3 main.py
 ```
 
 ### Install Boost Graph Library
@@ -285,8 +297,8 @@ int main() {
     auto G = nxpp::DiGraph();
 
     G.add_edge("Milan", "Rome", 5.0, {
-        {"capacity", 8L},
-        {"company", std::string("Trenitalia")}
+        {"capacity", 8},
+        {"company", "Trenitalia"}
     });
     G.add_edge("Rome", "Naples", 2.5);
     G.add_edge("Milan", "Florence", 2.0);
@@ -294,7 +306,7 @@ int main() {
 
     G.node("Rome")["population"] = 2800000;
 
-    auto routes = G.dijkstra_shortest_paths(std::string("Milan"));
+    auto routes = G.dijkstra_shortest_paths("Milan");
     auto dist_to_naples = routes.distance.at("Naples");
     auto path_to_naples = routes.paths.at("Naples");
 
@@ -308,8 +320,6 @@ int main() {
         std::cout << " " << node;
     }
     std::cout << "\n";
-
-    return 0;
 }
 ```
 
@@ -375,7 +385,6 @@ The most important topics moved out of the README are:
 
 The most important open work visible from the repository today is:
 
-- multigraph edge identity redesign / clarification
 - a real assertion-based test suite
 - stronger edge-case coverage
 - packaging / install story beyond manual header inclusion
