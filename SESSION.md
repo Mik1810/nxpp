@@ -291,3 +291,12 @@
 
 ## 2026-03-29
 - Updated `scripts/run_tests.sh` to group test output by source file with `Testing <file>` headings and a blank separator between test binaries.
+
+## 2026-03-29
+- Added `tests/test_attributes.cpp` for issue `#10` and extended `scripts/run_tests.sh` plus the README/changelog coverage notes to include attribute failure-path regression tests.
+
+## 2026-03-29
+- Added `ISSUE_11_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #11.
+
+## 2026-03-29
+- Added `ISSUE_10_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #10.

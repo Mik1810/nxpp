@@ -256,6 +256,7 @@ These are showcase demos, not formal tests or parity harnesses.
 There is now also a minimal assertion-based test entry point:
 
 - `tests/test_core.cpp`
+- `tests/test_attributes.cpp`
 - `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
@@ -270,6 +271,13 @@ recent critical issue work stabilized:
 - all-edge removal with `remove_edge(u, v)`
 - per-edge attribute separation across parallel edges
 - consistent endpoint lookup after partial multigraph removal
+
+The attribute-specific part of the suite now also checks failure behavior:
+
+- missing node/edge attribute lookups that should throw
+- type mismatches that should throw
+- `try_get_*_attr(...)` returning empty on missing keys or wrong types
+- numeric edge-attribute lookup rejecting non-numeric stored values
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without

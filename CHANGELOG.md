@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.3] - 2026-03-29
+
+- Added `tests/test_attributes.cpp` and wired it into `scripts/run_tests.sh` to cover attribute failure paths in the formal test suite.
+- Added executable checks for missing attribute lookups, attribute type mismatches, `try_get_*_attr(...)` empty-return behavior, and rejection of non-numeric values in numeric edge-attribute lookup.
+
 ## [0.5.2] - 2026-03-29
 
 - Added a dedicated multigraph regression binary under `tests/test_multigraph.cpp` and wired it into `scripts/run_tests.sh`.
