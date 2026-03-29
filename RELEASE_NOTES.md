@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.9]
+
+### Highlights
+
+- Fixed `.github/workflows/release.yml` so the `workflow_dispatch` path no longer assumes that a tag pushed with `GITHUB_TOKEN` will trigger a second release run.
+- The manual release path now creates and pushes the tag, then continues in the same workflow run to extract notes, build `dist/nxpp.hpp`, run `bash scripts/run_single_header_tests.sh`, and publish the GitHub release.
+- Kept the pushed-tag path working too, so the same workflow still supports both manual kickoff and direct tag-driven release publication.
+
+### Verification
+
+- `python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+- `python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `bash scripts/build_single_header.sh && bash scripts/run_single_header_tests.sh`
+
+### Assets
+
+- `nxpp.hpp` will be attached from the tested `dist/nxpp.hpp` build output.
+
 ## [0.7.8]
 
 ### Highlights

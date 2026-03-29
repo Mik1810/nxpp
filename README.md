@@ -335,7 +335,7 @@ The same workflow also supports manual `workflow_dispatch` runs:
 - reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`
 - fails if those top versions do not match
 - creates and pushes the matching `vX.Y.Z` tag
-- lets the tag-triggered run create the actual GitHub release
+- then continues in the same run to build, test, and publish the actual GitHub release
 
 These are showcase demos, not formal tests or parity harnesses.
 

@@ -406,3 +406,7 @@
 - Extended `.github/workflows/release.yml` with a `workflow_dispatch` path so the same workflow can now kick off a release without requiring a locally created git tag.
 - Added a `--latest-version` mode to `scripts/extract_release_notes.py`, and used it in the workflow to compare the top versions in `RELEASE_NOTES.md` and `CHANGELOG.md` before creating and pushing the matching `vX.Y.Z` tag.
 - Kept actual release creation on the tag-triggered path, so the dispatch run only creates the tag while the tag-push run still owns the tested-header build, standalone suite, and GitHub release publication.
+
+## 2026-03-29
+- Fixed `.github/workflows/release.yml` after observing that tags pushed from `workflow_dispatch` with `GITHUB_TOKEN` do not reliably trigger a second workflow run in this repo.
+- The dispatch path now stays self-contained: after creating and pushing the matching `vX.Y.Z` tag, it continues in the same run to extract notes from `RELEASE_NOTES.md`, build `dist/nxpp.hpp`, run `bash scripts/run_single_header_tests.sh`, and create the GitHub release with the tested `nxpp.hpp` asset.

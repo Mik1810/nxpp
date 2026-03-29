@@ -66,22 +66,18 @@ jobs:
           git push origin "$TAG_NAME"
 
       - name: Extract release notes
-        if: github.event_name == 'push'
         run: |
           python3 scripts/extract_release_notes.py "${{ steps.version.outputs.tag }}" > /tmp/nxpp_release_notes.md
 
       - name: Build standalone single header
-        if: github.event_name == 'push'
         run: |
           bash scripts/build_single_header.sh
 
       - name: Run standalone-header test suite
-        if: github.event_name == 'push'
         run: |
           bash scripts/run_single_header_tests.sh
 
       - name: Create GitHub release with tested header
-        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -96,12 +92,12 @@ jobs:
             echo "- Version: \`${{ steps.version.outputs.version }}\`"
             echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              echo "- Mode: created and pushed the release tag from the top version in `RELEASE_NOTES.md` and `CHANGELOG.md`"
-              echo "- Next step: the tag-push run of this workflow will build, test, and publish the GitHub release"
+              echo "- Mode: created and pushed the release tag from the top version in `RELEASE_NOTES.md` and `CHANGELOG.md`, then continued in the same run to publish the release"
             else
-              echo "- Release notes source: \`RELEASE_NOTES.md\`"
-              echo "- Header build: \`bash scripts/build_single_header.sh\`"
-              echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
-              echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
+              echo "- Mode: running from a pushed release tag"
             fi
+            echo "- Release notes source: \`RELEASE_NOTES.md\`"
+            echo "- Header build: \`bash scripts/build_single_header.sh\`"
+            echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
+            echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
           } >> "$GITHUB_STEP_SUMMARY"
