@@ -256,10 +256,20 @@ These are showcase demos, not formal tests or parity harnesses.
 There is now also a minimal assertion-based test entry point:
 
 - `tests/test_core.cpp`
+- `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
 That test binary is intentionally small for now, but it gives the project a real
 formal test path in addition to snippets, showcases, and benchmarks.
+
+The multigraph-specific part of the suite now checks the exact behavior that the
+recent critical issue work stabilized:
+
+- distinct `edge_id` values for parallel edges
+- precise single-edge removal with `remove_edge(edge_id)`
+- all-edge removal with `remove_edge(u, v)`
+- per-edge attribute separation across parallel edges
+- consistent endpoint lookup after partial multigraph removal
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without

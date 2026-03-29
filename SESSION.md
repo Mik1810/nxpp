@@ -279,3 +279,15 @@
 
 ## 2026-03-29
 - Refined the GitHub Actions test summary: renamed the heading, reduced status text to SUCCESS/FAILURE only, and stripped ANSI color codes before embedding test output into the Markdown job summary.
+
+## 2026-03-29
+- Added `tests/test_multigraph.cpp` for issue `#11` and extended `scripts/run_tests.sh` to compile and execute both the core suite and the new multigraph-specific regression checks.
+
+## 2026-03-29
+- Added `ISSUE_8_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #8.
+
+## 2026-03-29
+- Simplified the local test runner output: removed per-binary summary lines from `tests/test_core.cpp` and `tests/test_multigraph.cpp`, and moved the aggregate count to a single final `[TEST] All tests passed (x/y) | PASS/FAIL` line in `scripts/run_tests.sh`.
+
+## 2026-03-29
+- Updated `scripts/run_tests.sh` to group test output by source file with `Testing <file>` headings and a blank separator between test binaries.

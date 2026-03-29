@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.2] - 2026-03-29
+
+- Added a dedicated multigraph regression binary under `tests/test_multigraph.cpp` and wired it into `scripts/run_tests.sh`.
+- Covered multigraph-specific behavior beyond the initial test-suite foundation: distinct `edge_id` values for parallel edges, per-edge attribute separation, precise `remove_edge(edge_id)` semantics, all-edge `remove_edge(u, v)` semantics, and stable endpoint lookup after partial removal.
+
 ## [0.5.1] - 2026-03-29
 
 - Added a first assertion-based test binary under `tests/test_core.cpp` and a matching `scripts/run_tests.sh` runner, establishing a real test-suite entry point beyond snippet parity and showcase demos.
