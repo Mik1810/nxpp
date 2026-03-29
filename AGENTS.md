@@ -53,6 +53,7 @@ When completing a task:
 4. describe how you verified the result.
 
 ## Documentation
+- Every time we close an issue, we must discuss about the version and eventually the release in GitHhub, and update the `CHANGELOG.md` file accordingly.
 - If you change public behavior, update the README or relevant comments.
 - If you add a command, explain how to run it.
 - `CHANGELOG.md` must be updated every time an issue is completed, it must report the version compliant to the semantic versioning standard x.y.z, update the version when you think it's appropriate.
