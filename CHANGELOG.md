@@ -2,6 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.6] - 2026-03-29
+
+- Added `scripts/extract_release_notes.py` plus `.github/workflows/release.yml` so pushed `v*` tags now create GitHub releases automatically using the matching `CHANGELOG.md` section as the release notes.
+- Moved the standalone-header asset publication responsibility out of `.github/workflows/single-header.yml` and into the dedicated release workflow, which builds `dist/nxpp.hpp`, runs `bash scripts/run_single_header_tests.sh`, and only then creates the release with `nxpp.hpp` attached.
+- Kept `.github/workflows/single-header.yml` focused on push/pull-request validation of the generated header and artifact upload, instead of mixing CI verification with release publication.
+- Updated the repository workflows to `actions/checkout@v6` and `actions/setup-python@v6` so they align with GitHub's Node 24 migration instead of emitting the Node 20 deprecation warning.
+
 ## [0.7.5] - 2026-03-29
 
 - Added `scripts/run_single_header_tests.sh` so the formal test suite can be recompiled directly against `dist/nxpp.hpp` instead of the modular include tree.

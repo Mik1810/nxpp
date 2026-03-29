@@ -311,6 +311,7 @@ and a dedicated GitHub Actions workflow:
 There is also a dedicated workflow for the generated standalone header:
 
 - `.github/workflows/single-header.yml`
+- `.github/workflows/release.yml`
 
 The formal-test workflow is intentionally narrow: it installs Boost, runs the
 formal test suite, and publishes the test output as a Markdown job summary.
@@ -318,10 +319,16 @@ formal test suite, and publishes the test output as a Markdown job summary.
 The standalone-header workflow is equally narrow in scope:
 
 - runs `bash scripts/build_single_header.sh`
-- on published releases, runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
 - smoke-tests the generated `dist/nxpp.hpp`
 - uploads the generated header as a workflow artifact
-- on published releases, uploads that tested file to the GitHub release as `nxpp.hpp`
+
+The release workflow handles automated GitHub releases from pushed version tags:
+
+- extracts the matching release notes directly from `CHANGELOG.md`
+- builds `dist/nxpp.hpp`
+- runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
+- creates the GitHub release only after that suite passes
+- uploads the tested file as `nxpp.hpp`
 
 These are showcase demos, not formal tests or parity harnesses.
 

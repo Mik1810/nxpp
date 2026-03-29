@@ -391,3 +391,9 @@
 - Added `scripts/run_single_header_tests.sh` and made the test sources configurable via `NXPP_HEADER_UNDER_TEST`, so the same formal suite can be recompiled directly against `dist/nxpp.hpp` without hardcoding any workspace-local absolute path.
 - Tightened the release path in `.github/workflows/single-header.yml` so published releases now build `dist/nxpp.hpp`, run the dedicated single-header suite against that generated file, and only then upload `nxpp.hpp` into the release assets.
 - Re-verified both paths locally by running `bash scripts/run_tests.sh` (`31/31` passing), then `bash scripts/build_single_header.sh && bash scripts/run_single_header_tests.sh` (`31/31` passing against `dist/nxpp.hpp`).
+
+## 2026-03-29
+- Added `scripts/extract_release_notes.py` so the GitHub release process can read the matching version section directly from `CHANGELOG.md` instead of relying on a separate handwritten notes file.
+- Added `.github/workflows/release.yml` to automate release creation from pushed `v*` tags: it extracts notes from the changelog, builds `dist/nxpp.hpp`, runs `bash scripts/run_single_header_tests.sh`, and only then creates the GitHub release with `nxpp.hpp` attached.
+- Simplified `.github/workflows/single-header.yml` back down to CI validation of the generated header plus artifact upload, leaving actual GitHub release publication to the dedicated release workflow.
+- Updated `.github/workflows/tests.yml`, `.github/workflows/snippet-review.yml`, `.github/workflows/single-header.yml`, and `.github/workflows/release.yml` to use `actions/checkout@v6` and `actions/setup-python@v6`, removing the Node 20 runtime deprecation warning path.

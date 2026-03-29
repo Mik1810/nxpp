@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Boost Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Extract release notes from changelog
+        run: |
+          python3 scripts/extract_release_notes.py "${{ github.ref_name }}" > /tmp/nxpp_release_notes.md
+
+      - name: Build standalone single header
+        run: |
+          bash scripts/build_single_header.sh
+
+      - name: Run standalone-header test suite
+        run: |
+          bash scripts/run_single_header_tests.sh
+
+      - name: Create GitHub release with tested header
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/nxpp.hpp#nxpp.hpp --title "${{ github.ref_name }}" --notes-file /tmp/nxpp_release_notes.md
+
+      - name: Publish release summary
+        if: always()
+        run: |
+          {
+            echo "## Release Automation"
+            echo
+            echo "- Tag: \`${{ github.ref_name }}\`"
+            echo "- Release notes source: \`CHANGELOG.md\`"
+            echo "- Header build: \`bash scripts/build_single_header.sh\`"
+            echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
+            echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
+          } >> "$GITHUB_STEP_SUMMARY"
