@@ -10,6 +10,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Fixed `remove_edge(u, v)` metadata cleanup in multigraph cases so tracked edge properties are removed consistently when all parallel edges between two endpoints are erased.
 - Clarified the current multigraph semantics of `has_edge`, `get_edge_weight`, `get_edge_attr`, proxy edge access (`G[u][v]`), and `remove_edge` so the README now matches the actual `(u, v)`-based implementation behavior.
 - Added an explicit `edge_id`-based API for precise multigraph work, including `add_edge_with_id`, `edge_ids`, `has_edge_id`, `get_edge_endpoints`, edge-id-based attribute/weight accessors, and single-edge removal by `edge_id`.
+- Slimmed the root `README.md` back toward an overview/navigation role and moved the detailed API reference into `docs/API_REFERENCE.md` to reduce documentation drift risk.
 - Updated `main.cpp` to the current method-based API and removed reliance on deprecated free-function entry points in the demo/smoke path.
 - Updated `README.md` and `docs/GRAPH_CONFIGURATION.md` to describe the actual configuration surface, current support matrix, testing story, and open issue areas.
 
