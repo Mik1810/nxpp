@@ -371,6 +371,20 @@ Where it stays readable, the test files now mirror the semantic-header split too
 That test binary is intentionally small for now, but it gives the project a real
 formal test path in addition to snippets, showcases, and benchmarks.
 
+For benchmark runs that should produce both CSV data and a ready-to-read report,
+you can use:
+
+```bash
+python3 scripts/run_benchmark_report.py --all --iterations 3 --jobs "$(nproc)"
+```
+
+That command:
+
+- runs the serial benchmark first and the parallel benchmark second
+- moves any previous benchmark CSVs, `benchmark/BENCHMARK.md`, and `benchmark/imgs/` into `backups/benchmark/<timestamp>/`
+- generates exactly two timestamped CSV files: one serial and one parallel
+- writes the report to `benchmark/BENCHMARK.md` and the plots to `benchmark/imgs/`
+
 The multigraph-specific part of the suite now checks the exact behavior that the
 recent critical issue work stabilized:
 

@@ -3,6 +3,22 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.10]
+
+### Highlights
+
+- Added `scripts/run_benchmark_report.py` so snippet compile benchmarks can now be run through one Python entry point that executes the serial pass first, then the parallel pass, and finishes by generating a report-ready analysis.
+- Kept the benchmark output intentionally small: the workflow now produces exactly two benchmark CSVs, writes the narrative report to `benchmark/BENCHMARK.md`, and stores all plots under `benchmark/imgs/`.
+- Added automatic benchmark backup behavior so previous CSVs, the generated benchmark report, and the `benchmark/imgs/` directory are moved into `backups/benchmark/<timestamp>/` before a new run starts.
+
+### Verification
+
+- `python3 scripts/run_benchmark_report.py --snippet bfs --iterations 1 --jobs 1`
+
+### Assets
+
+- This change does not add a new release asset, but it improves the local benchmark/report tooling used to evaluate compile-time costs after the semantic-header split.
+
 ## [0.7.9]
 
 ### Highlights

@@ -57,10 +57,32 @@ When completing a task:
 - If you change public behavior, update the README or relevant comments.
 - If you add a command, explain how to run it.
 - `CHANGELOG.md` must be updated every time an issue is completed, it must report the version compliant to the semantic versioning standard x.y.z, update the version when you think it's appropriate.
+- `CHANGELOG.md` is the concise technical history of the project; keep it versioned and relatively compact.
+- `RELEASE_NOTES.md` is the richer release-facing document; GitHub release bodies should be derived from it instead of from `CHANGELOG.md`.
 - `SESSION.md` must always be updated in append-only mode.
 - `SESSION.md` must be updated every time important work is done, so it is expected to change more often than `CHANGELOG.md`.
 - The purpose of `SESSION.md` is to preserve enough chronological context for the model to resume work reliably in later sessions.
 - Every time an issue is finished and the related work is pushed, the assistant must always remember to update `README.md`, `CHANGELOG.md`, and `SESSION.md`.
+
+## Release Process
+- A normal push to `main` must not create a GitHub release automatically.
+- Releases are driven by `.github/workflows/release.yml`.
+- The release workflow may be started from a pushed `vX.Y.Z` tag or from `workflow_dispatch`.
+- When `workflow_dispatch` is used, the workflow must treat itself as self-contained: it may create and push the tag, but it must also continue in the same run to build, test, and publish the release.
+- Before a release is created, the workflow must verify that the top version in `CHANGELOG.md` matches the top version in `RELEASE_NOTES.md`.
+
+## Single Header
+- `include/nxpp.hpp` is the canonical umbrella include in the repository.
+- `dist/nxpp.hpp` is a generated artifact and must not be versioned in git.
+- The generated single-header release asset must come from the tested `dist/nxpp.hpp` output, not from a manually edited or unverified file.
+- Validation of the generated single header should rely on the dedicated single-header test suite, not on snippets alone.
+
+## Headers
+- Prefer the narrowest semantic header that keeps a file readable, especially in snippets and focused tests.
+- Keep `include/nxpp.hpp` for broad showcase code or files that genuinely span multiple semantic areas.
+
+## GitHub Actions
+- Prefer up-to-date major versions of official GitHub actions such as `actions/checkout` and `actions/setup-python`, especially when GitHub announces runtime deprecations.
 
 ## What to Avoid
 - Do not rewrite entire files unless necessary.

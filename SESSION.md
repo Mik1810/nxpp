@@ -410,3 +410,11 @@
 ## 2026-03-29
 - Fixed `.github/workflows/release.yml` after observing that tags pushed from `workflow_dispatch` with `GITHUB_TOKEN` do not reliably trigger a second workflow run in this repo.
 - The dispatch path now stays self-contained: after creating and pushing the matching `vX.Y.Z` tag, it continues in the same run to extract notes from `RELEASE_NOTES.md`, build `dist/nxpp.hpp`, run `bash scripts/run_single_header_tests.sh`, and create the GitHub release with the tested `nxpp.hpp` asset.
+
+## 2026-03-29
+- Updated `AGENTS.md` with the release-process conventions that emerged from this session: `CHANGELOG.md` stays compact, `RELEASE_NOTES.md` is the richer release-body source, normal pushes must not auto-publish releases, the release workflow is the source of truth for release automation, and the generated single-header asset must come from the tested `dist/nxpp.hpp` output.
+
+## 2026-03-29
+- Added `scripts/run_benchmark_report.py` as a benchmark orchestrator that reuses the existing serial and parallel compile benchmark scripts, backs up the previous contents of `benchmark/` into `backups/benchmark/<timestamp>/`, writes short timestamped CSV names, and generates a Markdown report with SVG plots.
+- Documented the new benchmark entry point in `README.md` and started ignoring generated `benchmark/*.csv`, `benchmark/*.svg`, and `benchmark/*.md` outputs so repeated local benchmark runs do not keep polluting `git status`.
+- Simplified the benchmark orchestrator so it now runs serial first and parallel second, produces exactly two CSV outputs, writes the report to `benchmark/BENCHMARK.md`, writes plots under `benchmark/imgs/`, and backs up the previous benchmark CSVs plus `benchmark/imgs/` into `backups/benchmark/<timestamp>/`.

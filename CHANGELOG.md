@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.10] - 2026-03-29
+
+- Added `scripts/run_benchmark_report.py` as a benchmark orchestrator that runs the serial snippet-compile benchmark first, then the parallel one, and produces a single Markdown report with embedded SVG plots.
+- Kept the benchmark output intentionally compact: one serial CSV, one parallel CSV, `benchmark/BENCHMARK.md`, and plots under `benchmark/imgs/`, with older benchmark outputs moved into `backups/benchmark/<timestamp>/`.
+- Updated the benchmark documentation and repository rules to reflect the new report workflow and the separation between concise technical history (`CHANGELOG.md`) and richer operational conventions (`AGENTS.md` / `RELEASE_NOTES.md`).
+
 ## [0.7.9] - 2026-03-29
 
 - Fixed `.github/workflows/release.yml` so the `workflow_dispatch` path no longer assumes that a tag pushed with `GITHUB_TOKEN` will trigger a second release run.
