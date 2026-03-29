@@ -259,6 +259,7 @@ There is now also a minimal assertion-based test entry point:
 - `tests/test_attributes.cpp`
 - `tests/test_edge_cases.cpp`
 - `tests/test_flow.cpp`
+- `tests/test_remove_node.cpp`
 - `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
@@ -298,6 +299,15 @@ small reference flow networks already used in the snippets:
 - `cycle_canceling(...)`
 - `successive_shortest_path_nonnegative_weights(...)`
 - `max_flow_min_cost(...)` and `max_flow_min_cost_successive_shortest_path(...)`
+
+The `remove_node()` regression part of the suite now checks the descriptor-remap
+area directly:
+
+- node and edge views after removing a middle vertex
+- cleanup of node and incident edge attributes
+- traversal and shortest-path behavior after internal remapping
+- component views after node removal
+- multigraph cleanup of incident `edge_id` state
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.6] - 2026-03-29
+
+- Added `tests/test_remove_node.cpp` and wired it into `scripts/run_tests.sh` to cover `remove_node()` descriptor-remapping and cleanup behavior in the formal test suite.
+- Added executable checks for post-removal node/edge views, attribute cleanup, traversal and shortest-path behavior after remapping, component views, and multigraph incident-edge cleanup during node removal.
+
 ## [0.5.5] - 2026-03-29
 
 - Added `tests/test_flow.cpp` and wired it into `scripts/run_tests.sh` to cover the flow-wrapper surface in the formal test suite.

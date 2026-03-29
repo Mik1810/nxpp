@@ -302,6 +302,9 @@
 - Added `tests/test_flow.cpp` for issue `#12` and extended the runner/docs to cover max-flow, min-cut, min-cost flow wrappers, and the cached-state failure path for `cycle_canceling()`.
 
 ## 2026-03-29
+- Added `tests/test_remove_node.cpp` for issue `#4` and extended the runner/docs to cover `remove_node()` remapping, attribute cleanup, component views, and multigraph incident-edge cleanup.
+
+## 2026-03-29
 - Added `ISSUE_11_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #11.
 
 ## 2026-03-29
