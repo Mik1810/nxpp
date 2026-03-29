@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.7]
+
+### Highlights
+
+- Added a versioned `RELEASE_NOTES.md` file so GitHub releases can use richer release-specific prose without forcing the same level of detail into `CHANGELOG.md`.
+- Switched `scripts/extract_release_notes.py` and `.github/workflows/release.yml` to read from `RELEASE_NOTES.md` instead of `CHANGELOG.md`, keeping the changelog concise while improving release presentation quality.
+- Stopped ignoring `RELEASE_NOTES.md` in `.gitignore`, so the release-note source of truth now lives in the repository alongside the rest of the release automation.
+
+### Verification
+
+- `python3 scripts/extract_release_notes.py v0.7.7`
+- `bash scripts/build_single_header.sh`
+- `bash scripts/run_single_header_tests.sh`
+
+### Assets
+
+- `nxpp.hpp` will be attached from the tested `dist/nxpp.hpp` build output.
+
 ## [0.7.6]
 
 ### Highlights

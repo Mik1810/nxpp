@@ -11,13 +11,13 @@ old/
 HANDOVER.md
 NOTES.md
 ISSUE_PR_PLAN.md
+MODEL.md
 
 .venv/
 .venv
 __pycache__/
 __pycache__
 logs/
-MODEL.md
 create_github_issues.py
 backups/
 dist/
