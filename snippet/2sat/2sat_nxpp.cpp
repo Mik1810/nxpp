@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/components.hpp"
 
 int to_vertex_id(int i) {
     return (i > 0) ? (2 * i - 2) : (-2 * i - 1);

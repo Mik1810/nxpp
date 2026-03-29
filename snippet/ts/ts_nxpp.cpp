@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/topological_sort.hpp"
 
 int main() {
     nxpp::UnweightedDiGraphInt G;

@@ -366,3 +366,9 @@
 
 ## 2026-03-29
 - Marked the semantic-header and standalone single-header work as release-worthy by adding a `0.7.0` entry to `CHANGELOG.md` that records the new modular include layout, `sat.hpp`, the restored `include/nxpp.hpp` umbrella, and the new standalone `dist/nxpp.hpp` builder.
+
+## 2026-03-29
+- Added `include/nxpp/topological_sort.hpp` so the DAG ordering helper no longer shares a header with the MST helpers, and updated `include/nxpp.hpp` plus `include/nxpp/spanning_tree.hpp` accordingly.
+- Tightened the semantic-header dependency graph further by cutting the old include chain and keeping `flow.hpp` explicitly above `attributes.hpp` while the other algorithm headers now depend directly on `graph.hpp` or only on the narrow headers they truly need.
+- Refactored the `*_nxpp.cpp` snippets to include their narrow semantic headers instead of defaulting to `include/nxpp.hpp`; the only 2-SAT exception is `2sat_helper_nxpp.cpp`, which now uses `sat.hpp` because it calls `two_sat_satisfiable(...)` directly.
+- Verified the snippet include refactor by compiling the touched snippets in batches, rerunning `bash scripts/run_tests.sh` (`31/31` passing), and rebuilding the standalone `dist/nxpp.hpp` output.

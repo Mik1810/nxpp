@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/flow.hpp"
 
 int main() {
     nxpp::WeightedDiGraphInt G;

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <limits>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/shortest_paths.hpp"
 
 int main() {
     nxpp::WeightedDiGraphInt G;

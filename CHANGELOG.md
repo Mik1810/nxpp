@@ -2,6 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.1] - 2026-03-29
+
+- Tightened the semantic-header dependency graph so the public modular headers no longer form the earlier artificial include chain.
+- Moved `topological_sort()` into a dedicated `include/nxpp/topological_sort.hpp` header instead of keeping it bundled with the minimum-spanning-tree helpers.
+- Updated the `*_nxpp.cpp` snippet set to include the narrowest semantic header that matches each example domain instead of defaulting to `include/nxpp.hpp`, with `2sat_helper_nxpp.cpp` using `sat.hpp` where it really needs the direct 2-SAT helper.
+- Re-verified the snippet include refactor by compiling the touched snippets in batches, keeping the formal test suite green at `31/31`, and rechecking the generated standalone `dist/nxpp.hpp`.
+
 ## [0.7.0] - 2026-03-29
 
 - Split the library into a real semantic public-header layout under `include/nxpp/`, with dedicated homes for the core graph surface, attributes, multigraph edge-identity helpers, traversal, shortest paths, components, spanning-tree helpers, flow/cut/min-cost helpers, generators, and 2-SAT helpers.

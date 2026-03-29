@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/sat.hpp"
 
 int main() {
     int n = 0;

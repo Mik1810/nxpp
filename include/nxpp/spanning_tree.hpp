@@ -1,18 +1,11 @@
 #pragma once
 
-#include <boost/graph/topological_sort.hpp>
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
 
 #include "graph.hpp"
 
 namespace nxpp {
-
-template <typename GraphWrapper>
-[[deprecated("Use G.topological_sort() instead.")]]
-auto topological_sort(const GraphWrapper& G) {
-    return G.topological_sort();
-}
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
@@ -40,21 +33,6 @@ requires(GraphWrapper::has_builtin_edge_weight)
 [[deprecated("Use G.minimum_spanning_tree(root) instead.")]]
 auto minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     return G.minimum_spanning_tree(root_id);
-}
-
-template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
-auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::topological_sort() const {
-    std::vector<VertexDesc> rev_order;
-    std::vector<boost::default_color_type> color(boost::num_vertices(g));
-    boost::topological_sort(
-        g,
-        std::back_inserter(rev_order),
-        boost::color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
-    );
-    std::vector<NodeID> order;
-    order.reserve(rev_order.size());
-    for (auto it = rev_order.rbegin(); it != rev_order.rend(); ++it) order.push_back(get_node_id(*it));
-    return order;
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

@@ -312,6 +312,18 @@ That workflow is intentionally narrow: it installs Boost, runs the formal test s
 
 These are showcase demos, not formal tests or parity harnesses.
 
+The `*_nxpp.cpp` snippets now also follow the semantic-header split instead of
+pulling in the full umbrella header by default. For example:
+
+- traversal snippets include `nxpp/traversal.hpp`
+- shortest-path snippets include `nxpp/shortest_paths.hpp`
+- component snippets include `nxpp/components.hpp`
+- flow snippets include `nxpp/flow.hpp`
+- the topological-sort snippet includes `nxpp/topological_sort.hpp`
+
+This keeps the snippet layer closer to the real modular include story and makes
+compile-time comparisons more meaningful.
+
 There is now also a minimal assertion-based test entry point:
 
 - `tests/test_core.cpp`

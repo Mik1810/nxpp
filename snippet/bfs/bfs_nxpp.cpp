@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <iostream>
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/traversal.hpp"
 
 class custom_visitor : public nxpp::visitor {
 public:

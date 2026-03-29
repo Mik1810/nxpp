@@ -2,7 +2,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/components.hpp"
 
 int main() {
     nxpp::UnweightedDiGraphInt G;

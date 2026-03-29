@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/spanning_tree.hpp"
 
 int main() {
     nxpp::WeightedGraphInt G;

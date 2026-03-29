@@ -6,6 +6,7 @@
 #include "nxpp/traversal.hpp"
 #include "nxpp/shortest_paths.hpp"
 #include "nxpp/components.hpp"
+#include "nxpp/topological_sort.hpp"
 #include "nxpp/spanning_tree.hpp"
 #include "nxpp/flow.hpp"
 #include "nxpp/generators.hpp"

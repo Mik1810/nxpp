@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <iostream>
-#include "../../include/nxpp.hpp"
+#include "../../include/nxpp/shortest_paths.hpp"
 
 int main() {
     nxpp::WeightedDiGraphInt G;
