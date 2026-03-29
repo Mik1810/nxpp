@@ -91,6 +91,13 @@ In particular:
 
 Treat multigraph mutation / lookup as a **known caveat**, not as a fully polished API.
 
+For precise multigraph work, prefer the explicit `edge_id` API:
+
+- create a specific edge with `add_edge_with_id(...)`
+- enumerate parallel edges with `edge_ids(u, v)`
+- inspect a specific edge with `get_edge_endpoints(edge_id)`, `get_edge_weight(edge_id)`, `get_edge_attr(edge_id, key)`
+- mutate a specific edge with `set_edge_weight(edge_id, ...)`, `set_edge_attr(edge_id, ...)`, and `remove_edge(edge_id)`
+
 ### 3. `remove_node()` is intentionally not cheap
 
 `nxpp` now supports custom `OutEdgeSelector` and `VertexSelector` values on `Graph<...>`,
@@ -425,14 +432,20 @@ All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` back
 | `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk weighted insertion. | `G.add_edges_from({{1,2,2},{2,3,4}});` |
 | `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk insertion with default weight or unweighted insertion depending on graph type. | `G.add_edges_from({{1,2},{2,3}});` |
 | `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge exists. In multigraphs, this means "at least one edge exists". | `G.has_edge("A","B")` |
+| `has_edge_id` | `(edge_id)` | `bool` | `O(E)` | Checks whether a specific wrapper-tracked edge ID still exists. This is the precise multigraph edge existence check. | `G.has_edge_id(eid)` |
 | `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight. In multigraphs, this resolves through one edge returned by `boost::edge(u, v, g)` and should not be treated as a stable single-parallel-edge lookup. | `auto w = G.get_edge_weight(1,2);` |
+| `get_edge_weight` | `(edge_id)` | `EdgeWeight` | `O(E)` | Returns the built-in edge weight for one specific wrapper-tracked edge ID. | `auto w = G.get_edge_weight(eid);` |
 | `nodes` | `()` | `std::vector<NodeID>` | `O(V)` | Materializes all node IDs. | `auto ns = G.nodes();` |
 | `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes all edges. | `auto es = G.edges();` |
 | `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
+| `edge_ids` | `()` | `std::vector<size_t>` | `O(E)` | Returns every wrapper-tracked edge ID currently present in the graph. | `auto ids = G.edge_ids();` |
+| `edge_ids` | `(u, v)` | `std::vector<size_t>` | approx `O(deg(u))` | Returns the tracked edge IDs between two endpoints. In multigraphs, this is the main way to enumerate parallel edges precisely. | `auto ids = G.edge_ids("A","B");` |
+| `get_edge_endpoints` | `(edge_id)` | `std::pair<NodeID, NodeID>` | `O(E)` | Returns the endpoints of one specific wrapper-tracked edge ID. | `auto [u, v] = G.get_edge_endpoints(eid);` |
 | `neighbors` | `(u)` | `std::vector<NodeID>` | `O(deg(u))` | Returns out-neighbors. For directed graphs this matches successor semantics. | `G.neighbors("A")` |
 | `successors` | `(u)` | `std::vector<NodeID>` | `O(out_deg(u))` | Explicit directed-style successor helper. | `G.successors("A")` |
 | `predecessors` | `(u)` | `std::vector<NodeID>` | directed: `O(in_deg(u))`; undirected: `O(deg(u))` | Returns predecessor IDs in directed graphs. | `G.predecessors("B")` |
 | `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying removal | Removes the edge and tracked edge metadata. In multigraphs, this removes all parallel edges between `u` and `v` and cleans all tracked metadata for that pair. | `G.remove_edge(1,2);` |
+| `remove_edge` | `(edge_id)` | `void` | `O(E)` | Removes one specific wrapper-tracked edge ID. This is the precise multigraph removal API. | `G.remove_edge(eid);` |
 | `remove_node` | `(u)` | `void` | **`O(V + E)`** | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | `O(V + E)` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
@@ -455,11 +468,17 @@ Node and edge attributes are stored outside the BGL graph using `std::any`.
 |---|---|---:|---|---|---|
 | `has_node_attr` | `(u, key)` | `bool` | avg `O(1)` | Checks whether node `u` has attribute `key`. | `G.has_node_attr("A", "color")` |
 | `has_edge_attr` | `(u, v, key)` | `bool` | avg `O(1 + deg(u))` | Checks whether the resolved `(u,v)` edge has attribute `key`. In multigraphs, this uses the same non-stable `(u, v)` resolution as other edge lookups. | `G.has_edge_attr("A","B","capacity")` |
+| `has_edge_attr` | `(edge_id, key)` | `bool` | avg `O(1)` | Checks whether a specific wrapper-tracked edge ID has attribute `key`. | `G.has_edge_attr(eid, "capacity")` |
 | `get_node_attr<T>` | `(u, key)` | `T` | avg `O(1)` | Returns node attribute `key` with checked `std::any_cast`. Throws on missing key or type mismatch. | `G.get_node_attr<int>("Rome", "population")` |
 | `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. In multigraphs, this resolves through one edge returned by `boost::edge(u, v, g)` and is not a stable single-parallel-edge API. | `G.get_edge_attr<std::string>("A","B","company")` |
+| `get_edge_attr<T>` | `(edge_id, key)` | `T` | avg `O(1)` | Returns edge attribute `key` for one specific wrapper-tracked edge ID. | `G.get_edge_attr<std::string>(eid, "company")` |
 | `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | avg `O(1)` | Safe optional-return node attribute lookup. | `G.try_get_node_attr<int>(1, "rank")` |
 | `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safe optional-return edge attribute lookup. In multigraphs, this uses the same non-stable `(u, v)` resolution as `get_edge_attr<T>`. | `G.try_get_edge_attr<long>(0,1,"capacity")` |
+| `try_get_edge_attr<T>` | `(edge_id, key)` | `std::optional<T>` | avg `O(1)` | Safe optional-return edge attribute lookup for one specific wrapper-tracked edge ID. | `G.try_get_edge_attr<long>(eid, "capacity")` |
 | `get_edge_numeric_attr` | `(u, v, key)` | `double` | avg `O(1 + deg(u))` | Returns a numeric edge attribute or the built-in `"weight"` as `double`. In multigraphs, this follows the same non-stable `(u, v)` resolution path as the other edge lookup helpers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
+| `get_edge_numeric_attr` | `(edge_id, key)` | `double` | avg `O(1)` | Returns a numeric edge attribute or built-in `"weight"` for one specific wrapper-tracked edge ID. | `G.get_edge_numeric_attr(eid, "capacity")` |
+| `set_edge_attr<T>` | `(edge_id, key, value)` | `void` | avg `O(1)` | Sets one attribute on a specific wrapper-tracked edge ID. | `G.set_edge_attr(eid, "capacity", 5L)` |
+| `set_edge_weight` | `(edge_id, weight)` | `void` | `O(E)` | Sets the built-in weight on a specific wrapper-tracked edge ID. | `G.set_edge_weight(eid, 3.5)` |
 
 ### Proxy syntax
 
@@ -471,6 +490,26 @@ Node and edge attributes are stored outside the BGL graph using `std::any`.
 | `auto x = (T)G[u][v]["key"];` | read an edge attribute through proxy conversion; in multigraphs this follows the same non-stable `(u, v)` resolution path |
 | `G.node(u)["key"] = value;` | set a node attribute |
 | `auto x = (T)G.node(u)["key"];` | read a node attribute through proxy conversion |
+
+### Edge-ID usage
+
+For multigraph-safe edge access:
+
+```cpp
+nxpp::MultiDiGraph G;
+
+auto e1 = G.add_edge_with_id("A", "B", 1.0);
+auto e2 = G.add_edge_with_id("A", "B", 2.0);
+
+G.set_edge_attr(e1, "label", std::string("first"));
+G.set_edge_attr(e2, "label", std::string("second"));
+
+auto ids = G.edge_ids("A", "B");
+auto w1 = G.get_edge_weight(e1);
+auto label2 = G.get_edge_attr<std::string>(e2, "label");
+
+G.remove_edge(e1);
+```
 
 ### Recommendation
 

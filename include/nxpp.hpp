@@ -192,6 +192,23 @@ private:
         return boost::get(edge_id_map, e);
     }
 
+    std::optional<EdgeDesc> try_find_edge_desc_by_id(std::size_t edge_id) const {
+        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+            if (get_edge_id(*e) == edge_id) {
+                return *e;
+            }
+        }
+        return std::nullopt;
+    }
+
+    EdgeDesc get_edge_desc_by_id(std::size_t edge_id) const {
+        auto edge_desc = try_find_edge_desc_by_id(edge_id);
+        if (!edge_desc.has_value()) {
+            throw std::runtime_error("Edge not found");
+        }
+        return *edge_desc;
+    }
+
     std::vector<std::size_t> collect_edge_ids_between(VertexDesc u, VertexDesc v) const {
         std::vector<std::size_t> edge_ids;
         for (auto [e, eend] = boost::out_edges(u, g); e != eend; ++e) {
@@ -277,6 +294,35 @@ public:
         return exists;
     }
 
+    bool has_edge_id(std::size_t edge_id) const {
+        return try_find_edge_desc_by_id(edge_id).has_value();
+    }
+
+    std::vector<std::size_t> edge_ids() const {
+        std::vector<std::size_t> ids;
+        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+            ids.push_back(get_edge_id(*e));
+        }
+        return ids;
+    }
+
+    std::vector<std::size_t> edge_ids(const NodeID& u, const NodeID& v) const {
+        auto it_u = id_to_bgl.find(u);
+        auto it_v = id_to_bgl.find(v);
+        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
+            return {};
+        }
+        return collect_edge_ids_between(it_u->second, it_v->second);
+    }
+
+    std::pair<NodeID, NodeID> get_edge_endpoints(std::size_t edge_id) const {
+        auto e = get_edge_desc_by_id(edge_id);
+        return {
+            node_id_of(boost::source(e, g)),
+            node_id_of(boost::target(e, g))
+        };
+    }
+
     template <bool W = Weighted>
     requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
@@ -297,6 +343,27 @@ public:
     }
 
     template <bool W = Weighted>
+    requires(W)
+    std::size_t add_edge_with_id(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
+        VertexDesc bu = get_or_create_vertex(u);
+        VertexDesc bv = get_or_create_vertex(v);
+
+        if constexpr (!Multi) {
+            auto [e, exists] = boost::edge(bu, bv, g);
+            if (exists) {
+                weight_map[e] = w;
+                return get_edge_id(e);
+            }
+        }
+
+        auto [e, added] = boost::add_edge(bu, bv, g);
+        (void)added;
+        weight_map[e] = w;
+        edge_id_map[e] = next_edge_id++;
+        return get_edge_id(e);
+    }
+
+    template <bool W = Weighted>
     requires(!W)
     void add_edge(const NodeID& u, const NodeID& v) {
         VertexDesc bu = get_or_create_vertex(u);
@@ -312,6 +379,25 @@ public:
         auto [e, added] = boost::add_edge(bu, bv, g);
         (void)added;
         edge_id_map[e] = next_edge_id++;
+    }
+
+    template <bool W = Weighted>
+    requires(!W)
+    std::size_t add_edge_with_id(const NodeID& u, const NodeID& v) {
+        VertexDesc bu = get_or_create_vertex(u);
+        VertexDesc bv = get_or_create_vertex(v);
+
+        if constexpr (!Multi) {
+            auto [e, exists] = boost::edge(bu, bv, g);
+            if (exists) {
+                return get_edge_id(e);
+            }
+        }
+
+        auto [e, added] = boost::add_edge(bu, bv, g);
+        (void)added;
+        edge_id_map[e] = next_edge_id++;
+        return get_edge_id(e);
     }
 
     template <bool W = Weighted>
@@ -405,6 +491,15 @@ public:
         boost::remove_edge(it_u->second, it_v->second, g);
     }
 
+    void remove_edge(std::size_t edge_id) {
+        auto edge_desc = try_find_edge_desc_by_id(edge_id);
+        if (!edge_desc.has_value()) {
+            throw std::runtime_error("NetworkXError: The edge is not in the graph.");
+        }
+        edge_properties.erase(edge_id);
+        boost::remove_edge(*edge_desc, g);
+    }
+
     void remove_node(const NodeID& u) {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -479,6 +574,14 @@ public:
         return edge_it->second.find(key) != edge_it->second.end();
     }
 
+    bool has_edge_attr(std::size_t edge_id, const std::string& key) const {
+        auto edge_it = edge_properties.find(edge_id);
+        if (edge_it == edge_properties.end()) {
+            return false;
+        }
+        return edge_it->second.find(key) != edge_it->second.end();
+    }
+
     template <typename T>
     T get_node_attr(const NodeID& u, const std::string& key) const {
         auto node_it = node_properties.find(u);
@@ -500,6 +603,23 @@ public:
     T get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
         auto e = get_edge_desc(u, v);
         auto edge_it = edge_properties.find(get_edge_id(e));
+        if (edge_it == edge_properties.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: key not found.");
+        }
+        try {
+            return std::any_cast<T>(attr_it->second);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Edge attribute lookup failed: stored type does not match requested type.");
+        }
+    }
+
+    template <typename T>
+    T get_edge_attr(std::size_t edge_id, const std::string& key) const {
+        auto edge_it = edge_properties.find(edge_id);
         if (edge_it == edge_properties.end()) {
             throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
         }
@@ -550,6 +670,22 @@ public:
         return std::nullopt;
     }
 
+    template <typename T>
+    std::optional<T> try_get_edge_attr(std::size_t edge_id, const std::string& key) const {
+        auto edge_it = edge_properties.find(edge_id);
+        if (edge_it == edge_properties.end()) {
+            return std::nullopt;
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            return std::nullopt;
+        }
+        if (const auto* value = std::any_cast<T>(&(attr_it->second))) {
+            return *value;
+        }
+        return std::nullopt;
+    }
+
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const {
         if (key == "weight") {
             if constexpr (Weighted) {
@@ -579,6 +715,34 @@ public:
         throw std::runtime_error("Edge attribute lookup failed: stored value is not numeric.");
     }
 
+    double get_edge_numeric_attr(std::size_t edge_id, const std::string& key) const {
+        if (key == "weight") {
+            if constexpr (Weighted) {
+                return static_cast<double>(get_edge_weight(edge_id));
+            } else {
+                throw std::runtime_error("Edge attribute lookup failed: graph has no built-in edge weight.");
+            }
+        }
+
+        auto edge_it = edge_properties.find(edge_id);
+        if (edge_it == edge_properties.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: key not found.");
+        }
+
+        const auto& value = attr_it->second;
+        if (const auto* vptr = std::any_cast<int>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<long>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<long long>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<float>(&value)) return static_cast<double>(*vptr);
+        if (const auto* vptr = std::any_cast<double>(&value)) return *vptr;
+
+        throw std::runtime_error("Edge attribute lookup failed: stored value is not numeric.");
+    }
+
     template <bool W = Weighted>
     requires(W)
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const {
@@ -588,6 +752,26 @@ public:
         auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
         if (!exists) throw std::runtime_error("Edge not found in graph");
         return weight_map[e];
+    }
+
+    template <bool W = Weighted>
+    requires(W)
+    EdgeWeight get_edge_weight(std::size_t edge_id) const {
+        auto e = get_edge_desc_by_id(edge_id);
+        return weight_map[e];
+    }
+
+    template <bool W = Weighted>
+    requires(W)
+    void set_edge_weight(std::size_t edge_id, EdgeWeight w) {
+        auto e = get_edge_desc_by_id(edge_id);
+        weight_map[e] = w;
+    }
+
+    template <typename T>
+    void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value) {
+        (void)get_edge_desc_by_id(edge_id);
+        edge_properties[edge_id][key] = std::any(value);
     }
 
     std::vector<NodeID> nodes() const {

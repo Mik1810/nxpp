@@ -252,3 +252,4 @@
    - Refined the compact benchmark progress format to `SNIPPET: <name> | RUN: <i>/<n>` so parallel output remains readable even when multiple snippet jobs interleave.
    - Audited the current multigraph semantics for `has_edge`, `get_edge_weight`, `get_edge_attr`, `has_edge_attr`, `try_get_edge_attr`, `get_edge_numeric_attr`, `G[u][v]`, and `add_edge(..., attrs)`: all of these still resolve through `boost::edge(u, v, g)` and therefore do not identify one specific parallel edge in a stable public way.
    - Updated `README.md` to make that current behavior explicit while keeping the actual redesign of multigraph edge identity deferred to issue `#1`.
+   - Introduced a public `edge_id` path for precise multigraph work in `include/nxpp.hpp`: edge creation can now return an id via `add_edge_with_id(...)`, parallel edges can be enumerated with `edge_ids(...)`, and specific edges can be inspected/mutated/removed through edge-id-based accessors.
