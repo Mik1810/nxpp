@@ -6,6 +6,21 @@ SNIPPET_ROOT="$ROOT_DIR/snippet"
 LOG_ROOT="$ROOT_DIR/logs/snippet"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 
+resolve_gnu_time() {
+  local candidate
+  for candidate in /usr/bin/time /bin/time; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  if command -v gtime >/dev/null 2>&1; then
+    command -v gtime
+    return 0
+  fi
+  return 1
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -44,6 +59,9 @@ fail() {
   exit 1
 }
 
+TIME_BIN="$(resolve_gnu_time || true)"
+[[ -n "$TIME_BIN" ]] || fail "GNU time not found. Install the 'time' package or provide 'gtime'."
+
 resolve_python() {
   if [[ -x "$ROOT_DIR/.venv/bin/python" ]]; then
     echo "$ROOT_DIR/.venv/bin/python"
@@ -68,10 +86,11 @@ compile_and_capture() {
   local timing_file
   timing_file="$(mktemp)"
 
-  /usr/bin/time -f "%e" -o "$timing_file" "$@" 2> "$stderr_file"
+  "$TIME_BIN" -f "%e" -o "$timing_file" "$@" 2> "$stderr_file"
 
   local seconds
   seconds="$(cat "$timing_file")"
+  [[ -n "$seconds" ]] || fail "failed to capture timing for $label using $TIME_BIN"
   rm -f "$timing_file"
   log "TIME $label: ${seconds}s"
 }
@@ -87,13 +106,14 @@ run_and_capture() {
   timing_file="$(mktemp)"
 
   if [[ -n "$stdin_file" ]]; then
-    /usr/bin/time -f "%e" -o "$timing_file" "$@" < "$stdin_file" > "$stdout_file" 2> "$stderr_file"
+    "$TIME_BIN" -f "%e" -o "$timing_file" "$@" < "$stdin_file" > "$stdout_file" 2> "$stderr_file"
   else
-    /usr/bin/time -f "%e" -o "$timing_file" "$@" > "$stdout_file" 2> "$stderr_file"
+    "$TIME_BIN" -f "%e" -o "$timing_file" "$@" > "$stdout_file" 2> "$stderr_file"
   fi
 
   local seconds
   seconds="$(cat "$timing_file")"
+  [[ -n "$seconds" ]] || fail "failed to capture timing for $label using $TIME_BIN"
   rm -f "$timing_file"
   log "TIME $label: ${seconds}s"
 }

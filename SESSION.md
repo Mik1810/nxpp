@@ -246,3 +246,7 @@
    - Added a repo-local VS Code C/C++ configuration under `.vscode/c_cpp_properties.json` aligned with `/usr/bin/g++`, `linux-gcc-x64`, and `c++20` to reduce IntelliSense/parser drift against the actual build setup.
    - Prepared `RELEASE_NOTES.md` for the first explicit GitHub release associated with tag `v0.4.1`.
    - Audited `remove_edge(u, v)` in multigraph cases and fixed metadata cleanup so the wrapper now erases tracked properties for all parallel edges removed by the underlying Boost call.
+   - Fixed the snippet timing scripts to stop hardcoding `/usr/bin/time`; they now resolve a usable GNU `time` binary (`/usr/bin/time`, `/bin/time`, or `gtime`) and fail clearly if timing capture is unavailable.
+   - Added `scripts/benchmark_snippet_compile_parallel.sh` as a separate throughput-oriented benchmark driver: it keeps iterations serial within each snippet but can distribute different snippet folders across multiple jobs via `xargs -P`.
+   - Added `--verbose` to both compile benchmark scripts so the default output is now compact (`snippet run/iterations`), while the detailed headers/timings/summaries remain available on demand; also removed `bash -l` from the parallel worker launcher to avoid NVS startup noise in child jobs.
+   - Refined the compact benchmark progress format to `SNIPPET: <name> | RUN: <i>/<n>` so parallel output remains readable even when multiple snippet jobs interleave.

@@ -18,3 +18,4 @@ __pycache__
 logs/
 MODEL.md
 create_github_issues.py
+RELEASE_NOTES.md
