@@ -26,28 +26,28 @@ jobs:
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
 
-      - name: Write Markdown report
+      - name: Publish test summary
         if: always()
         env:
           TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
         run: |
           if [ "${TEST_EXIT_CODE:-1}" = "0" ]; then
-            status_word="PASS"
-            status_icon="SUCCESS"
+            status_word="SUCCESS"
           else
-            status_word="FAIL"
-            status_icon="FAILURE"
+            status_word="FAILURE"
           fi
 
+          perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' test-output.txt > test-output-clean.txt
+
           {
-            echo "## Test Suite Report"
+            echo "## Formal Test Suite"
             echo
-            echo "- Status: ${status_icon} (${status_word})"
+            echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/run_tests.sh\`"
             echo
             echo "### Output"
             echo
             echo '```text'
-            cat test-output.txt
+            cat test-output-clean.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

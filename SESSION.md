@@ -273,3 +273,9 @@
 
 ## 2026-03-29
 - Added `.tmp/` to `.gitignore` so local test/build scratch output stays out of git status.
+
+## 2026-03-29
+- Added a blank line before the final test-suite summary in tests/test_core.cpp so the aggregate result is visually separated from the per-test lines.
+
+## 2026-03-29
+- Refined the GitHub Actions test summary: renamed the heading, reduced status text to SUCCESS/FAILURE only, and stripped ANSI color codes before embedding test output into the Markdown job summary.

@@ -136,6 +136,8 @@ int main() {
     passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
 
+    std::cout << "\n";
+
     if (passed == total) {
         std::cout << "[TEST] all test_core checks (" << passed << "/" << total << ") | "
                   << green << "PASS" << reset << "\n";
