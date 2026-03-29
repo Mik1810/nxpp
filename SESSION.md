@@ -315,3 +315,9 @@
 
 ## 2026-03-29
 - Added `ISSUE_12_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #12, including the note that the min-cost reference value was verified against the current wrapper/snippet behavior and is 22.
+
+## 2026-03-29
+- Added `ISSUE_4_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #4.
+
+## 2026-03-29
+- Prepared the `0.6.0` release after closing the first formal test-suite block, updated the versioned docs (`README.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`), and framed the release around the new 31-test formal suite plus its dedicated GitHub Actions workflow.

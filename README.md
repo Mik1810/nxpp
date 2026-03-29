@@ -1,6 +1,6 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
-Current release: `v0.5.0` (March 29, 2026)
+Current release: `v0.6.0` (March 29, 2026)
 
 <p align="center">
   <img src="imgs/logo.svg" alt="nxpp logo" width="220">
@@ -36,12 +36,13 @@ with public aliases such as:
 
 ## Project status
 
-`nxpp` is now released as `v0.5.0`.
+`nxpp` is now released as `v0.6.0`.
 
 > [!WARNING]
 > The public API is still settling.
-> The biggest open work is no longer the critical multigraph block, but the
-> next round of formal testing, packaging cleanup, and support-matrix clarity.
+> The biggest open work is no longer the critical multigraph block or the first
+> formal-test block, but the next round of documentation cleanup, packaging
+> polish, and support-matrix clarity.
 
 Today, the project is strongest as:
 
@@ -49,12 +50,12 @@ Today, the project is strongest as:
 - a **NetworkX-inspired convenience layer**
 - a library that often returns **materialized C++ results**
 - a project with a **snippet-based parity / regression harness**
-- a codebase whose next big quality step is a **real assertion-based test suite**
+- a codebase that now also has a **real assertion-based test suite with CI**
 
 The most important open issue groups right now are:
 
 - documentation/source-of-truth/testing-story cleanup: `#29`, `#30`, `#31`
-- broader formal verification beyond snippet parity: `#8`, `#9`, `#10`, `#11`, `#12`
+- broader follow-up verification and maintenance beyond the first formal-test block
 - packaging / release ergonomics after the first versioned releases
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).

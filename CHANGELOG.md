@@ -2,6 +2,14 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.6.0] - 2026-03-29
+
+- Completed the first formal test-suite block by closing `#8`, `#9`, `#10`, `#11`, `#12`, and `#4`.
+- Expanded the assertion-based suite to cover the core wrapper surface, attribute failure paths, empty/singleton/disconnected graph cases, multigraph-specific behavior, flow wrappers, and `remove_node()` descriptor-remapping behavior.
+- Extended `scripts/run_tests.sh` into the canonical local test entry point, with grouped output and a single aggregate summary line.
+- Added a dedicated GitHub Actions workflow for the formal test suite under `.github/workflows/tests.yml`, including a Markdown job summary for each run.
+- Brought the suite to 31 passing checks across `test_core`, `test_attributes`, `test_edge_cases`, `test_flow`, `test_remove_node`, and `test_multigraph`.
+
 ## [0.5.6] - 2026-03-29
 
 - Added `tests/test_remove_node.cpp` and wired it into `scripts/run_tests.sh` to cover `remove_node()` descriptor-remapping and cleanup behavior in the formal test suite.
