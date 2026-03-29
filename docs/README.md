@@ -10,6 +10,32 @@ What currently lives here:
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 
+The repo now has a real semantic-header split under `include/nxpp/`:
+
+- `graph.hpp` owns the core graph type and public aliases
+- `attributes.hpp` owns the attribute-oriented overloads and accessors
+- `multigraph.hpp` owns the precise `edge_id`-based multigraph API
+- `traversal.hpp` owns the BFS/DFS visitor helpers, deprecated wrappers, and
+  graph traversal method definitions
+- `shortest_paths.hpp` owns the shortest-path helpers, deprecated wrappers,
+  and graph shortest-path method definitions
+- `components.hpp` owns the component helpers, deprecated wrappers, and graph
+  component method definitions
+- `spanning_tree.hpp` owns topological sort, minimum-spanning-tree helpers,
+  deprecated wrappers, and the matching graph method definitions
+- `flow.hpp` owns flow/cut/min-cost helpers, deprecated wrappers, supporting
+  result types, and the matching graph method definitions
+- `generators.hpp` owns `complete_graph`, `path_graph`, and
+  `erdos_renyi_graph`
+- `sat.hpp` owns the 2-SAT helpers
+
+`include/nxpp.hpp` is now the real umbrella include for the modular layout.
+
+The single-header rebuild script now produces a standalone `dist/nxpp.hpp`
+by recursively expanding local `nxpp` headers while leaving external includes
+alone. The generated file is a distribution artifact rather than another source
+of truth in the repository.
+
 What should eventually live here:
 
 - longer guides that would make the root README too heavy

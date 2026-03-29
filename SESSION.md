@@ -321,3 +321,48 @@
 
 ## 2026-03-29
 - Prepared the `0.6.0` release after closing the first formal test-suite block, updated the versioned docs (`README.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`), and framed the release around the new 31-test formal suite plus its dedicated GitHub Actions workflow.
+
+## 2026-03-29
+- Saved a safety copy of the pre-split umbrella header to `backups/nxpp.hpp.backup-2026-03-29` before starting header modularization work.
+- Added the first-stage semantic public include layout under `include/nxpp/` as bridge headers (`graph.hpp`, `attributes.hpp`, `traversal.hpp`, `shortest_paths.hpp`, `components.hpp`, `spanning_tree.hpp`, `flow.hpp`, `generators.hpp`, `multigraph.hpp`) while keeping `include/nxpp.hpp` as the canonical source of truth.
+- Added `scripts/build_single_header.sh` as the initial helper for rebuilding a distributable single header from the current umbrella header.
+- Promoted the first real split step by moving the core `Graph` type, base structural methods, and public aliases into `include/nxpp/graph.hpp`, and by moving attribute-aware overloads/accessors into `include/nxpp/attributes.hpp`.
+- Reworked `include/nxpp.hpp` into an umbrella header that includes the new `graph.hpp` and `attributes.hpp` sources of truth while keeping the remaining implementation in place for later split stages.
+- Re-verified the split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/attributes.hpp`.
+- Promoted `include/nxpp/multigraph.hpp` from a bridge header to the real home of the `edge_id`-based multigraph API, including `add_edge_with_id(...)`, `edge_ids(...)`, `remove_edge(edge_id)`, and the `edge_id` attribute/weight accessors.
+- Re-verified the multigraph split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/multigraph.hpp`.
+- Promoted `include/nxpp/traversal.hpp` from a bridge header to the real home of the BFS/DFS visitor helpers, deprecated traversal wrappers, and the `Graph` traversal method definitions.
+- Re-verified the traversal split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/traversal.hpp`.
+- Promoted `include/nxpp/shortest_paths.hpp` from a bridge header to the real home of the shortest-path helpers, deprecated shortest-path wrappers, and the `Graph` shortest-path method definitions, including the `SingleSourceShortestPathResult` type needed for direct semantic-header use.
+- Re-verified the shortest-path split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, compiling a direct include smoke test against `include/nxpp/shortest_paths.hpp`, and rebuilding the generated single-header output with `scripts/build_single_header.sh`.
+- Promoted `include/nxpp/components.hpp` from a bridge header to the real home of the component helpers, deprecated component wrappers, and the `Graph` component method definitions.
+- Promoted `lookup_map` into `include/nxpp/graph.hpp` so direct semantic-header includes can use component-return helpers without depending on the umbrella header.
+- Re-verified the component split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/components.hpp`.
+- Promoted `include/nxpp/spanning_tree.hpp` from a bridge header to the real home of topological sort, minimum-spanning-tree helpers, deprecated wrappers, and the matching `Graph` method definitions.
+- Re-verified the spanning-tree split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/spanning_tree.hpp`.
+- Promoted `include/nxpp/flow.hpp` from a bridge header to the real home of the flow/cut/min-cost helpers, deprecated wrappers, supporting result types, and the matching `Graph` method definitions.
+- Moved the flow-specific result structs and cached-state helpers (`MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult`, and `detail::MinCostFlowState`) into `include/nxpp/flow.hpp` so direct semantic-header includes no longer depend on the umbrella header for those types.
+- Re-verified the flow split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, and compiling a direct include smoke test against `include/nxpp/flow.hpp`.
+
+## 2026-03-29
+- Finished the semantic-header split by moving the remaining `num_vertices()` / `degree_centrality()` core definitions into `include/nxpp/graph.hpp` and verifying that `include/nxpp/generators.hpp` now works as a true direct include instead of accidentally depending on the umbrella header for those core methods.
+- Re-verified the completed split by running `bash scripts/run_tests.sh` (`31/31` passing), rebuilding `main_nxpp.cpp`, compiling a direct include smoke test against `include/nxpp/generators.hpp`, and rebuilding the generated single-header output with `scripts/build_single_header.sh`.
+- Updated `README.md` and `docs/README.md` to describe the semantic-header layout as a real split, while keeping `include/nxpp.hpp` documented as the umbrella include and home of the small leftover utility tail such as the 2-SAT helper.
+
+## 2026-03-29
+- Split the leftover 2-SAT helpers out of the umbrella header into `include/nxpp/sat.hpp`, so the semantic-header layout no longer needs an odd utility tail inside the root include.
+- Introduced `include/nxpp/nxpp.hpp` as the real umbrella header and turned `include/nxpp.hpp` into a compatibility shim that forwards to the new path.
+- Updated the public docs to describe `sat.hpp`, the new umbrella path, and the fact that the rebuild script currently republishes the umbrella header rather than producing a true standalone amalgamated file.
+- Re-verified the new include layout by running `bash scripts/run_tests.sh` (`31/31` passing), compiling direct smoke tests against `include/nxpp/nxpp.hpp`, `include/nxpp.hpp`, and `include/nxpp/sat.hpp`, and rebuilding the current single-header output helper.
+
+## 2026-03-29
+- Simplified the umbrella layout again by restoring `include/nxpp.hpp` as the real umbrella header, deleting the redundant `include/nxpp/nxpp.hpp`, and keeping the semantic headers under `include/nxpp/` as the modular source of truth.
+- Updated the rebuild helper to point back at `include/nxpp.hpp`, and re-verified the layout by running `bash scripts/run_tests.sh` (`31/31` passing) plus direct smoke tests against `include/nxpp.hpp`, `include/nxpp/flow.hpp`, and `include/nxpp/sat.hpp`.
+
+## 2026-03-29
+- Added `scripts/build_single_header.py` as the real single-header builder and turned `scripts/build_single_header.sh` into a thin wrapper that calls it.
+- The builder now expands local `nxpp` headers recursively from `include/nxpp.hpp`, leaves external Boost/std includes intact, skips duplicate local files, and writes a standalone `dist/nxpp.hpp` guarded by `NXPP_SINGLE_HEADER_HPP`.
+- Added `dist/` to `.gitignore`, updated the docs to describe `dist/nxpp.hpp` as a generated distribution artifact, and verified the generated file by compiling a direct smoke test that includes `/workspaces/nxpp/dist/nxpp.hpp` and runs successfully.
+
+## 2026-03-29
+- Marked the semantic-header and standalone single-header work as release-worthy by adding a `0.7.0` entry to `CHANGELOG.md` that records the new modular include layout, `sat.hpp`, the restored `include/nxpp.hpp` umbrella, and the new standalone `dist/nxpp.hpp` builder.

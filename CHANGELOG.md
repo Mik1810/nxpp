@@ -2,6 +2,14 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.0] - 2026-03-29
+
+- Split the library into a real semantic public-header layout under `include/nxpp/`, with dedicated homes for the core graph surface, attributes, multigraph edge-identity helpers, traversal, shortest paths, components, spanning-tree helpers, flow/cut/min-cost helpers, generators, and 2-SAT helpers.
+- Kept `include/nxpp.hpp` as the canonical umbrella include while moving the implementation source of truth into the semantic headers.
+- Added `include/nxpp/sat.hpp` so the 2-SAT helpers no longer live as an odd tail inside the umbrella header.
+- Added a real standalone single-header build path via `scripts/build_single_header.py`, with `scripts/build_single_header.sh` as a thin wrapper, generating `dist/nxpp.hpp` by recursively expanding local `nxpp` headers while leaving standard-library and Boost includes intact.
+- Updated the repository documentation to explain the modular include story, the umbrella header role, and the generated single-header distribution artifact.
+
 ## [0.6.0] - 2026-03-29
 
 - Completed the first formal test-suite block by closing `#8`, `#9`, `#10`, `#11`, `#12`, and `#4`.

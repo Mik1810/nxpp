@@ -232,7 +232,65 @@ The most important implemented functionality currently includes:
 - `complete_graph`, `path_graph`, `erdos_renyi_graph`
 - `degree_centrality`, `two_sat_satisfiable`
 
-`include/nxpp.hpp` is the canonical public header.
+The canonical umbrella header is `include/nxpp.hpp`.
+
+The repo now also has a semantic include layout under `include/nxpp/`:
+
+- `nxpp/graph.hpp`
+- `nxpp/attributes.hpp`
+- `nxpp/traversal.hpp`
+- `nxpp/shortest_paths.hpp`
+- `nxpp/components.hpp`
+- `nxpp/spanning_tree.hpp`
+- `nxpp/flow.hpp`
+- `nxpp/generators.hpp`
+- `nxpp/multigraph.hpp`
+- `nxpp/sat.hpp`
+
+That split is now real for the main public surface:
+
+- `nxpp/graph.hpp` owns the core `Graph` type, its base structural operations,
+  and the public graph aliases
+- `nxpp/attributes.hpp` owns the attribute-aware overloads and checked
+  attribute accessors
+- `nxpp/multigraph.hpp` owns the precise `edge_id`-based multigraph API
+- `nxpp/traversal.hpp` owns the traversal visitors, deprecated BFS/DFS wrappers,
+  and the `Graph` traversal method definitions
+- `nxpp/shortest_paths.hpp` owns the shortest-path helpers, deprecated shortest-path wrappers,
+  and the `Graph` shortest-path method definitions
+- `nxpp/components.hpp` owns the component helpers, deprecated component wrappers,
+  and the `Graph` component method definitions
+- `nxpp/spanning_tree.hpp` owns topological sort, minimum-spanning-tree helpers,
+  deprecated wrappers, and the matching `Graph` method definitions
+- `nxpp/flow.hpp` owns flow/cut/min-cost helpers, deprecated wrappers,
+  supporting result types, and the matching `Graph` method definitions
+- `nxpp/generators.hpp` owns `complete_graph`, `path_graph`, and
+  `erdos_renyi_graph`
+- `nxpp/sat.hpp` owns the 2-SAT helpers
+
+`include/nxpp.hpp` is the real umbrella include for the modular public surface.
+
+That means both of these forms currently work:
+
+```cpp
+#include "include/nxpp/flow.hpp"
+```
+
+```cpp
+#include "include/nxpp.hpp"
+```
+
+The repository also now has a small helper script for rebuilding a distributable
+single header from the umbrella rooted at `include/nxpp.hpp`:
+
+```bash
+bash scripts/build_single_header.sh
+```
+
+That command now generates a standalone `dist/nxpp.hpp` by expanding local
+`nxpp` headers recursively while leaving standard-library and Boost includes
+alone. The modular headers remain the source of truth; the generated file is a
+distribution artifact and is intentionally not versioned in git.
 
 The repo now keeps three aligned showcase entry points:
 
