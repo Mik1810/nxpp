@@ -82,6 +82,7 @@ So the complexity tables below describe the cost of the **full `nxpp` function c
 For simple graphs, calls such as `has_edge(u, v)`, `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
 
 For multigraphs, the current implementation still addresses edges through `(u, v)` in several places, which is not a stable public way to identify one specific parallel edge.
+In particular, `remove_edge(u, v)` currently removes all parallel edges between `u` and `v`, not one selected edge.
 
 Treat multigraph mutation / lookup as a **known caveat**, not as a fully polished API.
 
@@ -426,7 +427,7 @@ All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` back
 | `neighbors` | `(u)` | `std::vector<NodeID>` | `O(deg(u))` | Returns out-neighbors. For directed graphs this matches successor semantics. | `G.neighbors("A")` |
 | `successors` | `(u)` | `std::vector<NodeID>` | `O(out_deg(u))` | Explicit directed-style successor helper. | `G.successors("A")` |
 | `predecessors` | `(u)` | `std::vector<NodeID>` | directed: `O(in_deg(u))`; undirected: `O(deg(u))` | Returns predecessor IDs in directed graphs. | `G.predecessors("B")` |
-| `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying removal | Removes the edge and tracked edge metadata. In multigraphs, semantics are not yet precise enough. | `G.remove_edge(1,2);` |
+| `remove_edge` | `(u, v)` | `void` | approx `O(1 + deg(u))` plus underlying removal | Removes the edge and tracked edge metadata. In multigraphs, this removes all parallel edges between `u` and `v` and cleans all tracked metadata for that pair. | `G.remove_edge(1,2);` |
 | `remove_node` | `(u)` | `void` | **`O(V + E)`** | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | `O(V + E)` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |

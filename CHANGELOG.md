@@ -7,6 +7,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Extended `nxpp::Graph` so advanced users can customize both the BGL out-edge selector and vertex selector directly, while all existing aliases continue to use the default `boost::vecS` / `boost::vecS` backend.
 - Removed the remaining internal assumption that vertex descriptors behave like dense indices by maintaining wrapper-side vertex index bookkeeping compatible with non-`vecS` vertex selectors.
 - Added compile-time validation for unsupported selector combinations, including `Multi=true` with `boost::setS`.
+- Fixed `remove_edge(u, v)` metadata cleanup in multigraph cases so tracked edge properties are removed consistently when all parallel edges between two endpoints are erased.
 - Updated `main.cpp` to the current method-based API and removed reliance on deprecated free-function entry points in the demo/smoke path.
 - Updated `README.md` and `docs/GRAPH_CONFIGURATION.md` to describe the actual configuration surface, current support matrix, testing story, and open issue areas.
 

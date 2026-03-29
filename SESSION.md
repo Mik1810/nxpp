@@ -244,3 +244,5 @@
    - Verified smoke builds using non-default selector combinations, including `boost::listS` and `boost::setS` as custom vertex selectors.
    - Rechecked `docs/GRAPH_CONFIGURATION.md` against the current implementation and tightened the backend wording so the directed selector policy now explicitly states `boost::bidirectionalS` vs `boost::undirectedS`.
    - Added a repo-local VS Code C/C++ configuration under `.vscode/c_cpp_properties.json` aligned with `/usr/bin/g++`, `linux-gcc-x64`, and `c++20` to reduce IntelliSense/parser drift against the actual build setup.
+   - Prepared `RELEASE_NOTES.md` for the first explicit GitHub release associated with tag `v0.4.1`.
+   - Audited `remove_edge(u, v)` in multigraph cases and fixed metadata cleanup so the wrapper now erases tracked properties for all parallel edges removed by the underlying Boost call.

@@ -192,6 +192,25 @@ private:
         return boost::get(edge_id_map, e);
     }
 
+    std::vector<std::size_t> collect_edge_ids_between(VertexDesc u, VertexDesc v) const {
+        std::vector<std::size_t> edge_ids;
+        for (auto [e, eend] = boost::out_edges(u, g); e != eend; ++e) {
+            if (boost::target(*e, g) == v) {
+                edge_ids.push_back(get_edge_id(*e));
+            }
+        }
+        if constexpr (!Directed) {
+            if (u != v) {
+                for (auto [e, eend] = boost::out_edges(v, g); e != eend; ++e) {
+                    if (boost::target(*e, g) == u) {
+                        edge_ids.push_back(get_edge_id(*e));
+                    }
+                }
+            }
+        }
+        return edge_ids;
+    }
+
     void erase_incident_edge_properties(VertexDesc v) {
         std::vector<std::size_t> edge_ids;
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
@@ -380,7 +399,9 @@ public:
         if (!exists) {
             throw std::runtime_error("NetworkXError: The edge is not in the graph.");
         }
-        edge_properties.erase(get_edge_id(e));
+        for (auto edge_id : collect_edge_ids_between(it_u->second, it_v->second)) {
+            edge_properties.erase(edge_id);
+        }
         boost::remove_edge(it_u->second, it_v->second, g);
     }
 
