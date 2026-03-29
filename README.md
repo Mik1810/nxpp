@@ -308,7 +308,18 @@ and a dedicated GitHub Actions workflow:
 
 - `.github/workflows/tests.yml`
 
-That workflow is intentionally narrow: it installs Boost, runs the formal test suite, and publishes the test output as a Markdown job summary.
+There is also a dedicated workflow for the generated standalone header:
+
+- `.github/workflows/single-header.yml`
+
+The formal-test workflow is intentionally narrow: it installs Boost, runs the
+formal test suite, and publishes the test output as a Markdown job summary.
+
+The standalone-header workflow is equally narrow in scope:
+
+- runs `bash scripts/build_single_header.sh`
+- smoke-tests the generated `dist/nxpp.hpp`
+- uploads the generated header as a workflow artifact
 
 These are showcase demos, not formal tests or parity harnesses.
 

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.3] - 2026-03-29
+
+- Added a dedicated GitHub Actions workflow for the generated standalone header under `.github/workflows/single-header.yml`.
+- The workflow now builds `dist/nxpp.hpp`, smoke-tests the generated header by compiling and running a tiny program against it, and uploads the file as a workflow artifact.
+
 ## [0.7.2] - 2026-03-29
 
 - Narrowed the test-suite include surface where it stayed readable, moving `test_attributes.cpp`, `test_multigraph.cpp`, and `test_flow.cpp` onto their matching semantic headers and replacing the blanket umbrella include in `test_edge_cases.cpp` with the specific graph/traversal/shortest-path/components headers it actually uses.

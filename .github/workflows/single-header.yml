@@ -1,0 +1,62 @@
+name: Single Header
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-single-header:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Boost Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build standalone single header
+        run: |
+          bash scripts/build_single_header.sh
+
+      - name: Smoke test generated header
+        run: |
+          cat > /tmp/nxpp_single_header_smoke.cpp <<'EOF'
+          #include <iostream>
+          #include "${{ github.workspace }}/dist/nxpp.hpp"
+
+          int main() {
+              nxpp::DiGraph graph;
+              graph.add_edge("A", "B", 2.0);
+              std::cout << graph.get_edge_weight("A", "B") << "\n";
+          }
+          EOF
+
+          g++ -std=c++20 -Wall -Wextra -pedantic -O0 /tmp/nxpp_single_header_smoke.cpp -o /tmp/nxpp_single_header_smoke
+          /tmp/nxpp_single_header_smoke > /tmp/nxpp_single_header_output.txt
+          grep -qx '2' /tmp/nxpp_single_header_output.txt
+
+      - name: Upload standalone single header
+        uses: actions/upload-artifact@v4
+        with:
+          name: nxpp-single-header
+          path: dist/nxpp.hpp
+
+      - name: Publish single-header summary
+        if: always()
+        run: |
+          {
+            echo "## Standalone Single Header"
+            echo
+            echo "- Command: \`bash scripts/build_single_header.sh\`"
+            echo "- Output: \`dist/nxpp.hpp\`"
+            echo "- Smoke test: compiled and executed a small program against the generated header"
+          } >> "$GITHUB_STEP_SUMMARY"

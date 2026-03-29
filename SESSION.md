@@ -377,3 +377,8 @@
 - Narrowed the include surface of the formal tests where it still stayed readable: `test_attributes.cpp` now uses `attributes.hpp`, `test_multigraph.cpp` uses `multigraph.hpp`, `test_flow.cpp` uses `flow.hpp`, and `test_edge_cases.cpp` now includes only the graph/traversal/shortest-path/components headers it actually exercises.
 - Left `test_core.cpp` and `test_remove_node.cpp` on the umbrella include intentionally because those tests span multiple semantic areas and would become less readable if forced onto a larger manual include list.
 - Re-verified the test include refactor by rebuilding the touched test binaries directly and rerunning `bash scripts/run_tests.sh` (`31/31` passing).
+
+## 2026-03-29
+- Added a dedicated GitHub Actions workflow at `.github/workflows/single-header.yml` to build `dist/nxpp.hpp`, smoke-test the generated header by compiling and running a tiny C++ program against it, upload the generated file as an artifact, and publish a short Markdown job summary.
+- Clarified the README wording so the formal-test workflow and the standalone-header workflow are described separately instead of sharing one ambiguous paragraph.
+- Re-verified the standalone-header path locally by running `bash scripts/build_single_header.sh` and compiling a smoke test against `/workspaces/nxpp/dist/nxpp.hpp`, which printed `2`.
