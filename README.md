@@ -82,7 +82,12 @@ So the complexity tables below describe the cost of the **full `nxpp` function c
 For simple graphs, calls such as `has_edge(u, v)`, `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
 
 For multigraphs, the current implementation still addresses edges through `(u, v)` in several places, which is not a stable public way to identify one specific parallel edge.
-In particular, `remove_edge(u, v)` currently removes all parallel edges between `u` and `v`, not one selected edge.
+In particular:
+
+- `has_edge(u, v)` means "at least one parallel edge exists"
+- `remove_edge(u, v)` removes all parallel edges between `u` and `v`
+- `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, and `G[u][v]` resolve through a single edge returned by `boost::edge(u, v, g)`, so they do not identify a specific parallel edge in a stable public way
+- `add_edge(..., attrs)` on multigraphs attaches attributes through that same `(u, v)` resolution path, so attribute assignment is also not yet a precise per-parallel-edge API
 
 Treat multigraph mutation / lookup as a **known caveat**, not as a fully polished API.
 
@@ -420,7 +425,7 @@ All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` back
 | `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | sum of `add_edge` costs | Bulk weighted insertion. | `G.add_edges_from({{1,2,2},{2,3,4}});` |
 | `add_edges_from` | `vector<pair<u,v>>` | `void` | sum of `add_edge` costs | Bulk insertion with default weight or unweighted insertion depending on graph type. | `G.add_edges_from({{1,2},{2,3}});` |
 | `has_edge` | `(u, v)` | `bool` | avg `O(1 + deg(u))` | Checks whether an edge exists. In multigraphs, this means "at least one edge exists". | `G.has_edge("A","B")` |
-| `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight. | `auto w = G.get_edge_weight(1,2);` |
+| `get_edge_weight` | `(u, v)` | `EdgeWeight` | avg `O(1 + deg(u))` | Returns the built-in edge weight. In multigraphs, this resolves through one edge returned by `boost::edge(u, v, g)` and should not be treated as a stable single-parallel-edge lookup. | `auto w = G.get_edge_weight(1,2);` |
 | `nodes` | `()` | `std::vector<NodeID>` | `O(V)` | Materializes all node IDs. | `auto ns = G.nodes();` |
 | `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes all edges. | `auto es = G.edges();` |
 | `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | `O(E)` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
@@ -449,21 +454,21 @@ Node and edge attributes are stored outside the BGL graph using `std::any`.
 | Function | Parameters | Returns | Public-call complexity | Description | Example |
 |---|---|---:|---|---|---|
 | `has_node_attr` | `(u, key)` | `bool` | avg `O(1)` | Checks whether node `u` has attribute `key`. | `G.has_node_attr("A", "color")` |
-| `has_edge_attr` | `(u, v, key)` | `bool` | avg `O(1 + deg(u))` | Checks whether edge `(u,v)` has attribute `key`. | `G.has_edge_attr("A","B","capacity")` |
+| `has_edge_attr` | `(u, v, key)` | `bool` | avg `O(1 + deg(u))` | Checks whether the resolved `(u,v)` edge has attribute `key`. In multigraphs, this uses the same non-stable `(u, v)` resolution as other edge lookups. | `G.has_edge_attr("A","B","capacity")` |
 | `get_node_attr<T>` | `(u, key)` | `T` | avg `O(1)` | Returns node attribute `key` with checked `std::any_cast`. Throws on missing key or type mismatch. | `G.get_node_attr<int>("Rome", "population")` |
-| `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. | `G.get_edge_attr<std::string>("A","B","company")` |
+| `get_edge_attr<T>` | `(u, v, key)` | `T` | avg `O(1 + deg(u))` | Returns edge attribute `key` with checked `std::any_cast`. In multigraphs, this resolves through one edge returned by `boost::edge(u, v, g)` and is not a stable single-parallel-edge API. | `G.get_edge_attr<std::string>("A","B","company")` |
 | `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | avg `O(1)` | Safe optional-return node attribute lookup. | `G.try_get_node_attr<int>(1, "rank")` |
-| `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safe optional-return edge attribute lookup. | `G.try_get_edge_attr<long>(0,1,"capacity")` |
-| `get_edge_numeric_attr` | `(u, v, key)` | `double` | avg `O(1 + deg(u))` | Returns a numeric edge attribute or the built-in `"weight"` as `double`. Used internally by flow wrappers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
+| `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | avg `O(1 + deg(u))` | Safe optional-return edge attribute lookup. In multigraphs, this uses the same non-stable `(u, v)` resolution as `get_edge_attr<T>`. | `G.try_get_edge_attr<long>(0,1,"capacity")` |
+| `get_edge_numeric_attr` | `(u, v, key)` | `double` | avg `O(1 + deg(u))` | Returns a numeric edge attribute or the built-in `"weight"` as `double`. In multigraphs, this follows the same non-stable `(u, v)` resolution path as the other edge lookup helpers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
 
 ### Proxy syntax
 
 | Syntax | Meaning |
 |---|---|
-| `G[u][v] = w;` | set built-in edge weight |
-| `auto w = (EdgeWeight)G[u][v];` | read built-in edge weight through proxy conversion |
-| `G[u][v]["key"] = value;` | set an edge attribute |
-| `auto x = (T)G[u][v]["key"];` | read an edge attribute through proxy conversion |
+| `G[u][v] = w;` | set built-in edge weight; in multigraphs this is not a stable single-parallel-edge handle |
+| `auto w = (EdgeWeight)G[u][v];` | read built-in edge weight through proxy conversion; in multigraphs this follows the same non-stable `(u, v)` resolution path |
+| `G[u][v]["key"] = value;` | set an edge attribute; in multigraphs this is not yet a precise per-parallel-edge API |
+| `auto x = (T)G[u][v]["key"];` | read an edge attribute through proxy conversion; in multigraphs this follows the same non-stable `(u, v)` resolution path |
 | `G.node(u)["key"] = value;` | set a node attribute |
 | `auto x = (T)G.node(u)["key"];` | read a node attribute through proxy conversion |
 

@@ -8,6 +8,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Removed the remaining internal assumption that vertex descriptors behave like dense indices by maintaining wrapper-side vertex index bookkeeping compatible with non-`vecS` vertex selectors.
 - Added compile-time validation for unsupported selector combinations, including `Multi=true` with `boost::setS`.
 - Fixed `remove_edge(u, v)` metadata cleanup in multigraph cases so tracked edge properties are removed consistently when all parallel edges between two endpoints are erased.
+- Clarified the current multigraph semantics of `has_edge`, `get_edge_weight`, `get_edge_attr`, proxy edge access (`G[u][v]`), and `remove_edge` so the README now matches the actual `(u, v)`-based implementation behavior.
 - Updated `main.cpp` to the current method-based API and removed reliance on deprecated free-function entry points in the demo/smoke path.
 - Updated `README.md` and `docs/GRAPH_CONFIGURATION.md` to describe the actual configuration surface, current support matrix, testing story, and open issue areas.
 
