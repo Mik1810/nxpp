@@ -6,7 +6,10 @@
 #include <string>
 #include <vector>
 
-#include "include/nxpp.hpp"
+#include "include/nxpp/graph.hpp"
+#include "include/nxpp/traversal.hpp"
+#include "include/nxpp/shortest_paths.hpp"
+#include "include/nxpp/components.hpp"
 
 constexpr const char* green = "\033[32m";
 constexpr const char* red = "\033[31m";

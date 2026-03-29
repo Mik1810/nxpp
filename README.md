@@ -334,6 +334,13 @@ There is now also a minimal assertion-based test entry point:
 - `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
+Where it stays readable, the test files now mirror the semantic-header split too:
+
+- `tests/test_attributes.cpp` includes `nxpp/attributes.hpp`
+- `tests/test_multigraph.cpp` includes `nxpp/multigraph.hpp`
+- `tests/test_flow.cpp` includes `nxpp/flow.hpp`
+- `tests/test_edge_cases.cpp` includes only the graph/traversal/shortest-path/components headers it actually exercises
+
 That test binary is intentionally small for now, but it gives the project a real
 formal test path in addition to snippets, showcases, and benchmarks.
 

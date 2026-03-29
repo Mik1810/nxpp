@@ -372,3 +372,8 @@
 - Tightened the semantic-header dependency graph further by cutting the old include chain and keeping `flow.hpp` explicitly above `attributes.hpp` while the other algorithm headers now depend directly on `graph.hpp` or only on the narrow headers they truly need.
 - Refactored the `*_nxpp.cpp` snippets to include their narrow semantic headers instead of defaulting to `include/nxpp.hpp`; the only 2-SAT exception is `2sat_helper_nxpp.cpp`, which now uses `sat.hpp` because it calls `two_sat_satisfiable(...)` directly.
 - Verified the snippet include refactor by compiling the touched snippets in batches, rerunning `bash scripts/run_tests.sh` (`31/31` passing), and rebuilding the standalone `dist/nxpp.hpp` output.
+
+## 2026-03-29
+- Narrowed the include surface of the formal tests where it still stayed readable: `test_attributes.cpp` now uses `attributes.hpp`, `test_multigraph.cpp` uses `multigraph.hpp`, `test_flow.cpp` uses `flow.hpp`, and `test_edge_cases.cpp` now includes only the graph/traversal/shortest-path/components headers it actually exercises.
+- Left `test_core.cpp` and `test_remove_node.cpp` on the umbrella include intentionally because those tests span multiple semantic areas and would become less readable if forced onto a larger manual include list.
+- Re-verified the test include refactor by rebuilding the touched test binaries directly and rerunning `bash scripts/run_tests.sh` (`31/31` passing).

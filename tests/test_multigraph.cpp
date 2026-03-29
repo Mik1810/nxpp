@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "include/nxpp.hpp"
+#include "include/nxpp/multigraph.hpp"
 
 constexpr const char* green = "\033[32m";
 constexpr const char* red = "\033[31m";

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.2] - 2026-03-29
+
+- Narrowed the test-suite include surface where it stayed readable, moving `test_attributes.cpp`, `test_multigraph.cpp`, and `test_flow.cpp` onto their matching semantic headers and replacing the blanket umbrella include in `test_edge_cases.cpp` with the specific graph/traversal/shortest-path/components headers it actually uses.
+- Re-verified the refactor by rebuilding the touched test binaries explicitly and rerunning the full formal suite at `31/31`.
+
 ## [0.7.1] - 2026-03-29
 
 - Tightened the semantic-header dependency graph so the public modular headers no longer form the earlier artificial include chain.

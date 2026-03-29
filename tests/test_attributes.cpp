@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "include/nxpp.hpp"
+#include "include/nxpp/attributes.hpp"
 
 constexpr const char* green = "\033[32m";
 constexpr const char* red = "\033[31m";
