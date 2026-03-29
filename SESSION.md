@@ -299,6 +299,9 @@
 - Added `tests/test_edge_cases.cpp` for issue `#9` and extended the runner/docs to cover empty graphs, singleton graphs, missing-node operations, unreachable shortest paths, and disconnected components.
 
 ## 2026-03-29
+- Added `tests/test_flow.cpp` for issue `#12` and extended the runner/docs to cover max-flow, min-cut, min-cost flow wrappers, and the cached-state failure path for `cycle_canceling()`.
+
+## 2026-03-29
 - Added `ISSUE_11_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #11.
 
 ## 2026-03-29
@@ -306,3 +309,6 @@
 
 ## 2026-03-29
 - Added `ISSUE_9_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #9.
+
+## 2026-03-29
+- Added `ISSUE_12_CLOSE.md` at the repository root with a ready-to-post Markdown closeout message for issue #12, including the note that the min-cost reference value was verified against the current wrapper/snippet behavior and is 22.

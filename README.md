@@ -258,6 +258,7 @@ There is now also a minimal assertion-based test entry point:
 - `tests/test_core.cpp`
 - `tests/test_attributes.cpp`
 - `tests/test_edge_cases.cpp`
+- `tests/test_flow.cpp`
 - `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
@@ -287,6 +288,16 @@ The edge-case part of the suite now checks common boundary conditions:
 - missing-node operations throwing in a defined way
 - disconnected shortest paths preserving unreachable distances and missing paths
 - disconnected component grouping staying stable across separate subgraphs
+
+The flow-specific part of the suite now checks the wrapper layer around the
+small reference flow networks already used in the snippets:
+
+- `maximum_flow(...)`
+- `minimum_cut(...)`
+- `push_relabel_maximum_flow(...)`
+- `cycle_canceling(...)`
+- `successive_shortest_path_nonnegative_weights(...)`
+- `max_flow_min_cost(...)` and `max_flow_min_cost_successive_shortest_path(...)`
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without

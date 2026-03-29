@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.5] - 2026-03-29
+
+- Added `tests/test_flow.cpp` and wired it into `scripts/run_tests.sh` to cover the flow-wrapper surface in the formal test suite.
+- Added executable checks for `maximum_flow`, `minimum_cut`, `push_relabel_maximum_flow`, `cycle_canceling`, `successive_shortest_path_nonnegative_weights`, and the min-cost alias wrappers, including the failure path where `cycle_canceling()` is called without cached flow state.
+
 ## [0.5.4] - 2026-03-29
 
 - Added `tests/test_edge_cases.cpp` and wired it into `scripts/run_tests.sh` to cover empty, singleton, missing-node, and disconnected-graph cases in the formal test suite.
