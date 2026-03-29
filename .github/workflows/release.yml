@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Extract release notes from changelog
+      - name: Extract release notes
         run: |
           python3 scripts/extract_release_notes.py "${{ github.ref_name }}" > /tmp/nxpp_release_notes.md
 
@@ -50,7 +50,7 @@ jobs:
             echo "## Release Automation"
             echo
             echo "- Tag: \`${{ github.ref_name }}\`"
-            echo "- Release notes source: \`CHANGELOG.md\`"
+            echo "- Release notes source: \`RELEASE_NOTES.md\`"
             echo "- Header build: \`bash scripts/build_single_header.sh\`"
             echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
             echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"

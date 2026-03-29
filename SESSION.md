@@ -397,3 +397,7 @@
 - Added `.github/workflows/release.yml` to automate release creation from pushed `v*` tags: it extracts notes from the changelog, builds `dist/nxpp.hpp`, runs `bash scripts/run_single_header_tests.sh`, and only then creates the GitHub release with `nxpp.hpp` attached.
 - Simplified `.github/workflows/single-header.yml` back down to CI validation of the generated header plus artifact upload, leaving actual GitHub release publication to the dedicated release workflow.
 - Updated `.github/workflows/tests.yml`, `.github/workflows/snippet-review.yml`, `.github/workflows/single-header.yml`, and `.github/workflows/release.yml` to use `actions/checkout@v6` and `actions/setup-python@v6`, removing the Node 20 runtime deprecation warning path.
+
+## 2026-03-29
+- Added a versioned `RELEASE_NOTES.md` file to hold richer GitHub release text separately from the terser `CHANGELOG.md` entries, and removed `RELEASE_NOTES.md` from `.gitignore` so it now lives in the repo as part of the release process.
+- Switched `scripts/extract_release_notes.py` plus `.github/workflows/release.yml` over to `RELEASE_NOTES.md`, so automated releases now read their body from the richer release-note source rather than from the changelog.

@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.7] - 2026-03-29
+
+- Added a versioned `RELEASE_NOTES.md` file so GitHub releases can use richer release-specific prose without forcing the same level of detail into `CHANGELOG.md`.
+- Switched `scripts/extract_release_notes.py` and `.github/workflows/release.yml` to read from `RELEASE_NOTES.md` instead of `CHANGELOG.md`, keeping the changelog concise while improving release presentation quality.
+- Stopped ignoring `RELEASE_NOTES.md` in `.gitignore` so the release-note source of truth now lives in the repository alongside the rest of the release automation.
+
 ## [0.7.6] - 2026-03-29
 
 - Added `scripts/extract_release_notes.py` plus `.github/workflows/release.yml` so pushed `v*` tags now create GitHub releases automatically using the matching `CHANGELOG.md` section as the release notes.

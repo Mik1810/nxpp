@@ -324,7 +324,7 @@ The standalone-header workflow is equally narrow in scope:
 
 The release workflow handles automated GitHub releases from pushed version tags:
 
-- extracts the matching release notes directly from `CHANGELOG.md`
+- extracts the matching release notes directly from `RELEASE_NOTES.md`
 - builds `dist/nxpp.hpp`
 - runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
 - creates the GitHub release only after that suite passes
