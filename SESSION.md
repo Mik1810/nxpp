@@ -221,3 +221,25 @@
 4. **Phase 5 Kickoff: Degree Centrality**:
    - Implemented `nxpp::degree_centrality()` in `include/nxpp.hpp`.
    - Matched the standard NetworkX normalization rule using degree divided by `n - 1`, with zeroed output for graphs with fewer than 2 nodes.
+
+## Session Audit: March 29, 2026
+
+1. **Graph Configuration Surface Completed (`#24`)**:
+   - Extended `nxpp::Graph` so advanced users can customize both `OutEdgeSelector` and `VertexSelector` directly while preserving the existing alias defaults on `boost::vecS` / `boost::vecS`.
+   - Removed the remaining internal assumption that vertex descriptors behave like dense indices.
+   - Added wrapper-side vertex index bookkeeping so selector combinations such as `boost::listS` and `boost::setS` can be used in direct `Graph<...>` instantiations.
+   - Added compile-time validation for unsupported combinations such as `Multi=true` with `boost::setS`.
+
+2. **Method-Based Demo Refresh**:
+   - Updated `main.cpp` to the current method-first API direction.
+   - Removed the remaining dependence on deprecated free-function wrappers in the demo/smoke path.
+
+3. **Documentation Realignment**:
+   - Updated `README.md` to reflect the current configuration surface, project status, issue-driven risk areas, and testing story.
+   - Updated `docs/GRAPH_CONFIGURATION.md` so the selector policy matches the actual implementation instead of the earlier partial state.
+   - Started explicit release versioning with `v0.4.1` and recorded the release entry in `CHANGELOG.md`.
+
+4. **Verification**:
+   - Recompiled `main.cpp` successfully after the selector refactor and demo cleanup.
+   - Verified smoke builds using non-default selector combinations, including `boost::listS` and `boost::setS` as custom vertex selectors.
+   - Rechecked `docs/GRAPH_CONFIGURATION.md` against the current implementation and tightened the backend wording so the directed selector policy now explicitly states `boost::bidirectionalS` vs `boost::undirectedS`.

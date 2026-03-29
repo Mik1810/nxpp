@@ -28,7 +28,7 @@ void test_dijkstra_scc() {
 
     // 4. Dijkstra Shortest Path
     print("Dijkstra (Venezia -> Napoli):");
-    auto path = dijkstra_path(G, string("Venezia"), string("Napoli"));
+    auto path = G.dijkstra_path(string("Venezia"), string("Napoli"));
     for (const auto& n : path) {
         print("->", n);
     }
@@ -36,7 +36,7 @@ void test_dijkstra_scc() {
 
     // 5. Componenti Fortemente Connesse (SCC)
     print("Componenti Fortemente Connesse (SCC):");
-    auto sccs = strongly_connected_components(G);
+    auto sccs = G.strongly_connected_components();
     for (auto& scc : sccs) std::sort(scc.begin(), scc.end());
     std::sort(sccs.begin(), sccs.end(), [](const auto& a, const auto& b) {
         return a[0] < b[0];
@@ -69,7 +69,7 @@ void test_integer_nodes() {
 
     // 3. Esegue una visita BFS in ampiezza dal nodo 1
     print("Albero BFS (partendo dal nodo 1):");
-    auto edges = bfs_edges(G, 1);
+    auto edges = G.bfs_edges(1);
     for (const auto& e : edges) {
         print(" (", e.first, "->", e.second, ")");
     }
@@ -77,7 +77,7 @@ void test_integer_nodes() {
 
     // 4. Trova le Componenti Connesse generiche (CC)
     print("Componenti Connesse (Undirected):");
-    auto ccs = connected_component_groups(G);
+    auto ccs = G.connected_component_groups();
     for (auto& cc : ccs) std::sort(cc.begin(), cc.end());
     std::sort(ccs.begin(), ccs.end(), [](const auto& a, const auto& b) {
         return a[0] < b[0];
@@ -117,7 +117,7 @@ void test_destruction() {
     G.remove_edge("C", "D");
 
     print("Dopo aver rimosso C->D, l'albero BFS da A esplora:");
-    auto edges = bfs_edges(G, string("A"));
+    auto edges = G.bfs_edges(string("A"));
     for (const auto& e : edges) {
         print(" (", e.first, "->", e.second, ")");
     }
@@ -197,7 +197,7 @@ void test_degree_centrality() {
         {0, 1}, {0, 2}, {1, 2}, {2, 3}
     });
 
-    auto centrality = nxpp::degree_centrality(G);
+    auto centrality = G.degree_centrality();
     auto nodes = G.nodes();
     std::sort(nodes.begin(), nodes.end());
 
@@ -240,14 +240,14 @@ void test_missing_algorithm_wrappers() {
         {0, 1}, {1, 2}, {2, 3}
     });
 
-    auto bfsT = nxpp::bfs_tree(G, 0);
-    auto dfsT = nxpp::dfs_tree(G, 0);
-    auto sp = nxpp::shortest_path(G, 0, 3);
-    auto spl = nxpp::shortest_path_length(G, 0, 3);
-    auto weighted_sp = nxpp::shortest_path(G, 0, 3, "weight");
-    auto weighted_spl = nxpp::shortest_path_length(G, 0, 3, "weight");
-    auto bfp = nxpp::bellman_ford_path(G, 0, 3, "weight");
-    auto bfpl = nxpp::bellman_ford_path_length(G, 0, 3, "weight");
+    auto bfsT = G.bfs_tree(0);
+    auto dfsT = G.dfs_tree(0);
+    auto sp = G.shortest_path(0, 3);
+    auto spl = G.shortest_path_length(0, 3);
+    auto weighted_sp = G.shortest_path(0, 3, "weight");
+    auto weighted_spl = G.shortest_path_length(0, 3, "weight");
+    auto bfp = G.bellman_ford_path(0, 3, "weight");
+    auto bfpl = G.bellman_ford_path_length(0, 3, "weight");
 
     print("BFS tree edges:", bfsT.edges().size());
     print("DFS tree edges:", dfsT.edges().size());
@@ -266,7 +266,7 @@ void test_snippet_backed_essentials() {
     dag.add_edges_from({
         {5, 2}, {5, 0}, {4, 0}, {4, 1}, {2, 3}, {3, 1}
     });
-    auto topo = nxpp::topological_sort(dag);
+    auto topo = dag.topological_sort();
     print("Topological sort size:", topo.size());
 
     Graph<int> wg;
@@ -274,8 +274,8 @@ void test_snippet_backed_essentials() {
         {0, 1, 2.0}, {0, 3, 6.0}, {1, 2, 3.0},
         {1, 3, 8.0}, {1, 4, 5.0}, {2, 4, 7.0}, {3, 4, 9.0}
     });
-    auto mst = nxpp::kruskal_minimum_spanning_tree(wg);
-    auto prim = nxpp::prim_minimum_spanning_tree(wg, 0);
+    auto mst = wg.kruskal_minimum_spanning_tree();
+    auto prim = wg.prim_minimum_spanning_tree(0);
     print("Kruskal MST edges:", mst.size());
     print("Prim parent entries:", prim.size());
 
@@ -294,8 +294,8 @@ void test_snippet_backed_essentials() {
     flow_g[2][5]["capacity"] = 2L;
     flow_g[3][2]["capacity"] = 2L;
     flow_g[4][5]["capacity"] = 2L;
-    auto flow = nxpp::maximum_flow(flow_g, 0, 5);
-    auto cut = nxpp::minimum_cut(flow_g, 0, 5);
+    auto flow = flow_g.maximum_flow(0, 5);
+    auto cut = flow_g.minimum_cut(0, 5);
     print("Maximum flow:", flow.value);
     print("Flow on (1,4):", flow.flow[{1, 4}]);
     print("Minimum cut value:", cut.value);
@@ -306,8 +306,8 @@ void test_snippet_backed_essentials() {
         {0, 2, 3.0}, {1, 0, 2.0}, {1, 2, 2.0},
         {1, 4, 5.0}, {2, 3, 1.0}, {3, 4, 5.0}
     });
-    auto dag_dist = nxpp::dag_shortest_paths(dag_sp, 0);
-    auto fw = nxpp::floyd_warshall_all_pairs_shortest_paths(dag_sp);
+    auto dag_dist = dag_sp.dag_shortest_paths(0);
+    auto fw = dag_sp.floyd_warshall_all_pairs_shortest_paths();
     print("DAG shortest distance to 4:", dag_dist.distance[4]);
     print("Floyd-Warshall 0->4:", fw[0][4]);
 
@@ -337,8 +337,8 @@ void test_remaining_snippet_essentials() {
     flow_g[3][2]["capacity"] = 2L;
     flow_g[4][5]["capacity"] = 2L;
 
-    auto mcmf_cc = nxpp::max_flow_min_cost_cycle_canceling(flow_g, 0, 5);
-    auto mcmf_ssp = nxpp::successive_shortest_path_nonnegative_weights(flow_g, 0, 5);
+    auto mcmf_cc = flow_g.max_flow_min_cost_cycle_canceling(0, 5);
+    auto mcmf_ssp = flow_g.successive_shortest_path_nonnegative_weights(0, 5);
     print("Cycle-canceling flow:", mcmf_cc.flow, "cost:", mcmf_cc.cost);
     print("SSP flow:", mcmf_ssp.flow, "cost:", mcmf_ssp.cost);
 
@@ -346,7 +346,7 @@ void test_remaining_snippet_essentials() {
     sccg.add_edges_from({
         {0, 2}, {1, 0}, {1, 4}, {2, 1}, {2, 3}, {3, 2}, {3, 4}
     });
-    auto roots = nxpp::strongly_connected_component_roots(sccg);
+    auto roots = sccg.strongly_connected_component_roots();
     print("SCC representative for 0:", roots.at(0));
     print("SCC representative for 4:", roots.at(4), "\n");
 }

@@ -1,5 +1,7 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
+Current release: `v0.4.1` (March 29, 2026)
+
 <p align="center">
   <img src="imgs/logo.svg" alt="nxpp logo" width="220">
 </p>
@@ -12,7 +14,7 @@ It aims to provide a **small, practical, C++-friendly graph API** that feels clo
 The core abstraction is:
 
 ```cpp
-nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, Weighted>
+nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>
 ```
 
 with public aliases such as:
@@ -34,12 +36,13 @@ with public aliases such as:
 
 ## Project status
 
+`nxpp` now starts explicit release versioning from `v0.4.1`.
+
 > [!WARNING]
 > The public API is still settling.
 > The biggest open design questions are:
 >
 > - how much of the API should remain NetworkX-shaped
-> - how much Boost configurability should be exposed publicly
 > - how multigraph edge identity should be modeled
 
 Today, the project is strongest as:
@@ -49,6 +52,12 @@ Today, the project is strongest as:
 - a library that often returns **materialized C++ results**
 - a project with a **snippet-based parity / regression harness**
 - a codebase whose main remaining correctness/documentation risk is **multigraph edge semantics**
+
+The most important open issue groups right now are:
+
+- multigraph edge identity / semantics: `#1`, `#2`, `#3`
+- documentation/source-of-truth/testing-story cleanup: `#29`, `#30`, `#31`
+- broader formal verification beyond snippet parity: `#8`, `#9`, `#10`, `#11`, `#12`
 
 ---
 
@@ -78,17 +87,17 @@ Treat multigraph mutation / lookup as a **known caveat**, not as a fully polishe
 
 ### 3. `remove_node()` is intentionally not cheap
 
-The backend uses `boost::adjacency_list` with `boost::vecS` vertex storage.
+`nxpp` now supports custom `OutEdgeSelector` and `VertexSelector` values on `Graph<...>`,
+but destructive updates still require wrapper-side bookkeeping.
 
-That makes many operations convenient, but removing a vertex shifts later descriptors.
-So `remove_node()` must also:
+In particular, `remove_node()` must also:
 
 - clear incident edge metadata
 - erase node metadata
-- shift internal descriptor-to-ID state
-- rebuild `id_to_bgl` mappings
+- rebuild the NodeID <-> descriptor map
+- rebuild the maintained vertex-index map used by wrapper algorithms
 
-In practice, this is an **`O(V + E)` public operation**.
+In practice, this is still an **`O(V + E)` public operation**.
 
 ---
 
@@ -120,6 +129,7 @@ These repository files should have clearly separated roles:
 - [`SESSION.md`](SESSION.md): historical development log
 - [`docs/README.md`](docs/README.md): index for longer-form and future generated documentation
 - [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
+- [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md): supported BGL configurability surface and advanced-knob policy
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
 
@@ -139,6 +149,40 @@ In other words:
 - old free-function forms for existing-graph operations are deprecated and should not be treated as canonical entry points
 
 See [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md) for the fuller rule and future-addition placement policy.
+
+---
+
+## Graph configuration policy
+
+`nxpp` intentionally exposes a narrow graph-configuration surface.
+
+Today, the supported public knobs are:
+
+- `NodeID`
+- `EdgeWeight`
+- `Directed`
+- `Multi`
+- `Weighted`
+- `OutEdgeSelector`
+- `VertexSelector`
+
+The existing aliases such as `WeightedDiGraphInt`, `Graph`, and `MultiGraph` still use the standard `boost::vecS` / `boost::vecS` backend.
+Advanced users can override selectors by instantiating `Graph<...>` directly.
+
+Today, selector customization is broader than the default aliases, but it is still not "anything goes":
+
+- `OutEdgeSelector` can be changed for advanced use cases such as `boost::listS` or `boost::setS`
+- `VertexSelector` can also be changed for advanced use cases such as `boost::listS` or `boost::setS`
+- `Multi=true` is rejected with `boost::setS` because `setS` suppresses parallel edges by design
+
+For example:
+
+```cpp
+nxpp::WeightedDiGraphInt G_default;
+nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS> G_custom;
+```
+
+See [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md) for the full policy, rationale, and scoped future extension path.
 
 ---
 
@@ -263,24 +307,27 @@ This shows the three main ideas of the library:
 
 ## Internal model in one minute
 
-`nxpp` keeps two synchronized structures:
+`nxpp` keeps these synchronized structures:
 
 - `id_to_bgl`: `NodeID -> vertex_descriptor`
-- `bgl_to_id`: `vertex_descriptor -> NodeID`
+- `bgl_to_id`: index-ordered `NodeID` storage used for normalized wrapper results
+- a maintained `vertex_index_map`: `vertex_descriptor -> stable wrapper index`
 
 This lets the public API use `std::string`, `int`, or other hashable node IDs while running algorithms on a normal BGL graph internally.
 
 ### Consequence
 
-The current backend uses:
+The backend now uses:
 
 ```cpp
-boost::adjacency_list<boost::vecS, boost::vecS, ...>
+boost::adjacency_list<OutEdgeSelector, VertexSelector, ...>
 ```
 
-That is convenient, but vertex removal shifts later descriptors.
+The default aliases still resolve to `boost::vecS` / `boost::vecS`,
+but direct `Graph<...>` instantiation can now use non-default selectors.
 
-So operations such as `remove_node()` must also repair `nxpp`'s own translation layer.
+That flexibility means `nxpp` cannot rely on descriptor-as-index assumptions anymore,
+so the wrapper maintains its own vertex index normalization layer.
 That is why some public-call costs differ from the textbook complexity of the wrapped algorithm alone.
 
 ---
@@ -311,11 +358,12 @@ These are **practical public-call notes**, not formal proofs.
 
 | Type | Meaning |
 |---|---|
-| `nxpp::Graph<NodeID, EdgeWeight, false, false>` | Undirected simple weighted graph |
-| `nxpp::Graph<NodeID, EdgeWeight, true, false>` | Directed simple weighted graph |
-| `nxpp::Graph<NodeID, EdgeWeight, false, true>` | Undirected multigraph |
-| `nxpp::Graph<NodeID, EdgeWeight, true, true>` | Directed multigraph |
-| `nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, false>` | Unweighted variant |
+| `nxpp::Graph<NodeID, EdgeWeight, false, false>` | Undirected simple weighted graph with default selectors |
+| `nxpp::Graph<NodeID, EdgeWeight, true, false>` | Directed simple weighted graph with default selectors |
+| `nxpp::Graph<NodeID, EdgeWeight, false, true>` | Undirected multigraph with default selectors |
+| `nxpp::Graph<NodeID, EdgeWeight, true, true>` | Directed multigraph with default selectors |
+| `nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, false>` | Unweighted variant with default selectors |
+| `nxpp::Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>` | Advanced form with explicit BGL selectors |
 
 ### Common aliases
 
@@ -348,6 +396,7 @@ These are **practical public-call notes**, not formal proofs.
 
 The `Weighted*` aliases are the clearest explicit names.
 The shorter aliases such as `GraphInt` and `DiGraph` are kept as compatibility-friendly synonyms.
+All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` backend.
 
 ---
 
@@ -383,8 +432,10 @@ The shorter aliases such as `GraphInt` and `DiGraph` are kept as compatibility-f
 | `node` | `(u)` | `NodeAttrBaseProxy` | avg `O(1)` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
 | `operator[]` | `(u)` | `NodeProxy` | avg `O(1)` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
 | `get_impl` | `()` | `const GraphType&` | `O(1)` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |
-| `get_bgl_to_id_map` | `()` | `const std::vector<NodeID>&` | `O(1)` | Exposes descriptor-to-ID mapping. | `auto& map = G.get_bgl_to_id_map();` |
+| `get_bgl_to_id_map` | `()` | `const std::vector<NodeID>&` | `O(1)` | Exposes the wrapper's maintained index-ordered node list used by result normalization. | `auto& map = G.get_bgl_to_id_map();` |
 | `get_id_to_bgl_map` | `()` | `const std::unordered_map<NodeID, VertexDesc>&` | `O(1)` | Exposes ID-to-descriptor mapping. | `auto& map = G.get_id_to_bgl_map();` |
+| `get_node_id` | `(vertex_descriptor)` | `const NodeID&` | `O(1)` | Returns the user-facing node ID for a descriptor. Mostly useful for advanced integrations. | `auto id = G.get_node_id(v);` |
+| `get_vertex_index` | `(vertex_descriptor)` | `size_t` | `O(1)` | Returns the wrapper-maintained vertex index used by normalized result containers. | `auto i = G.get_vertex_index(v);` |
 
 ---
 
@@ -590,12 +641,13 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `scripts/test_single_snippet.sh` | compiles/runs implementations in one snippet folder and compares outputs pairwise |
 | `scripts/log_snippet_folder.sh` | runs all implementations in one snippet folder and writes a combined log |
 | `.github/workflows/snippet-review.yml` | CI snippet review workflow |
-| `main.cpp` | smoke/demo-style local entry point |
-| `main.py` | older Python-side demo / comparison script |
+| `main.cpp` | smoke/demo-style local entry point aligned with the current method-based API |
+| `main.py` | older Python-side demo / comparison script; not a full mirrored spec of current C++ coverage |
 | `TODO.md` | open work |
 | `CHANGELOG.md` | dated changes |
 | `SESSION.md` | historical development notes |
-| `docs/README.md` | placeholder for fuller docs |
+| `docs/README.md` | index for fuller docs |
+| `docs/GRAPH_CONFIGURATION.md` | graph-selector/configuration policy |
 
 ---
 
@@ -611,6 +663,12 @@ The repository includes a visible snippet-based verification workflow:
 This is a useful regression / parity harness.
 
 It is **not yet a substitute** for a dedicated test suite with assertion-based unit tests and focused edge-case coverage.
+
+Today, the practical split is:
+
+- `main.cpp` = smoke/demo entry point
+- `snippet/` + scripts + workflow = parity/regression harness
+- formal assertion-based tests = still open work tracked by issues such as `#8`, `#9`, `#10`, `#11`, `#12`
 
 ---
 
@@ -690,6 +748,7 @@ The most important open work visible from the repository today is:
 - stronger edge-case coverage
 - packaging / install story beyond manual header inclusion
 - clearer documentation generation and source-of-truth discipline
+- a minimal compiler/platform support matrix in the README
 - eventual API stabilization
 
 See [`TODO.md`](TODO.md) for the open list.

@@ -1,7 +1,19 @@
 # Changelog
 
+This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
+
+## [0.4.1] - 2026-03-29
+
+- Extended `nxpp::Graph` so advanced users can customize both the BGL out-edge selector and vertex selector directly, while all existing aliases continue to use the default `boost::vecS` / `boost::vecS` backend.
+- Removed the remaining internal assumption that vertex descriptors behave like dense indices by maintaining wrapper-side vertex index bookkeeping compatible with non-`vecS` vertex selectors.
+- Added compile-time validation for unsupported selector combinations, including `Multi=true` with `boost::setS`.
+- Updated `main.cpp` to the current method-based API and removed reliance on deprecated free-function entry points in the demo/smoke path.
+- Updated `README.md` and `docs/GRAPH_CONFIGURATION.md` to describe the actual configuration surface, current support matrix, testing story, and open issue areas.
+
 ## 2026-03-28
 
+- Added `docs/GRAPH_CONFIGURATION.md` to define the supported BGL graph-configuration surface and the current policy for advanced selector-level customization.
+- Extended `nxpp::Graph` so advanced users can override the BGL out-edge selector directly while keeping existing aliases on the default `boost::vecS` / `boost::vecS` backend.
 - Added a MIT `LICENSE` file at the repository root.
 - Completed the manual snippet parity/review pass across the folders under `snippet/` and backed it with a GitHub Actions snippet-review workflow summary.
 - Renamed and aligned several Boost-style wrappers and snippet examples, including `dijkstra_shortest_paths()`, `dag_shortest_paths()`, `successive_shortest_path_nonnegative_weights()`, and the SCC representative/map helpers.
