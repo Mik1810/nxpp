@@ -270,3 +270,6 @@
 ## 2026-03-29
 - Tightened test output formatting in tests/test_core.cpp and scripts/run_tests.sh to print only one colored [TEST] ... | PASS/FAIL line per test plus a colored final summary.
 - Added a dedicated GitHub Actions workflow for the formal test suite in `.github/workflows/tests.yml`; it installs Boost, runs `bash scripts/run_tests.sh`, and publishes the captured output as a Markdown job summary.
+
+## 2026-03-29
+- Added `.tmp/` to `.gitignore` so local test/build scratch output stays out of git status.
