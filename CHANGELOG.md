@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.1] - 2026-03-29
+
+- Added a first assertion-based test binary under `tests/test_core.cpp` and a matching `scripts/run_tests.sh` runner, establishing a real test-suite entry point beyond snippet parity and showcase demos.
+- Covered the most recently stabilized core behavior with executable assertions: typed node/edge attributes, Dijkstra result wrappers, explicit multigraph `edge_id` operations, multigraph removal cleanup, and C-string attribute normalization.
+- Added a dedicated GitHub Actions workflow for the formal test suite under `.github/workflows/tests.yml`, with a Markdown job summary that records the test command and output.
+
 ## [0.5.0] - 2026-03-29
 
 - Closed the previous critical issue block around graph configuration and multigraph behavior: `#24`, `#3`, `#2`, and `#1`.

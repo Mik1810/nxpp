@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Boost Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
+
+      - name: Run test suite
+        id: tests
+        run: |
+          set +e
+          bash scripts/run_tests.sh | tee test-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Write Markdown report
+        if: always()
+        env:
+          TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
+        run: |
+          if [ "${TEST_EXIT_CODE:-1}" = "0" ]; then
+            status_word="PASS"
+            status_icon="SUCCESS"
+          else
+            status_word="FAIL"
+            status_icon="FAILURE"
+          fi
+
+          {
+            echo "## Test Suite Report"
+            echo
+            echo "- Status: ${status_icon} (${status_word})"
+            echo "- Command: \`bash scripts/run_tests.sh\`"
+            echo
+            echo "### Output"
+            echo
+            echo '```text'
+            cat test-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

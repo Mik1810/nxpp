@@ -265,3 +265,8 @@
    - Tightened `main.py` so it reads as a true companion to `main_boost.cpp` and `main_nxpp.cpp`, and replaced `single_source_dijkstra(...)` with the more explicit path-length/path helpers to avoid the Pylance union-type warning on `distances[...]`.
    - Prepared the `0.5.0` release after closing the previous critical issue block, updated the versioned docs (`README.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`), and framed the next project phase around formal tests and packaging polish rather than multigraph correctness triage.
    - Packaged the current showcase/docs state for release, including the aligned `main_boost.cpp` / `main_nxpp.cpp` / `main.py` trio and the plan to ship `include/nxpp.hpp` as a dedicated release asset alongside the standard source archives.
+   - Added `ISSUE_HEADER_SPLIT.md` at the repository root with a ready-to-file issue proposal for splitting the current single-header public surface into semantic headers while preserving `include/nxpp.hpp` as the umbrella include.
+
+## 2026-03-29
+- Tightened test output formatting in tests/test_core.cpp and scripts/run_tests.sh to print only one colored [TEST] ... | PASS/FAIL line per test plus a colored final summary.
+- Added a dedicated GitHub Actions workflow for the formal test suite in `.github/workflows/tests.yml`; it installs Boost, runs `bash scripts/run_tests.sh`, and publishes the captured output as a Markdown job summary.

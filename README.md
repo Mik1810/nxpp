@@ -239,7 +239,27 @@ The repo now keeps three aligned showcase entry points:
 - `main_nxpp.cpp` for the `nxpp` wrapper version
 - `main.py` as the NetworkX/Python companion to the two C++ demos
 
+The assertion-based test suite now has a dedicated runner:
+
+```bash
+bash scripts/run_tests.sh
+```
+
+and a dedicated GitHub Actions workflow:
+
+- `.github/workflows/tests.yml`
+
+That workflow is intentionally narrow: it installs Boost, runs the formal test suite, and publishes the test output as a Markdown job summary.
+
 These are showcase demos, not formal tests or parity harnesses.
+
+There is now also a minimal assertion-based test entry point:
+
+- `tests/test_core.cpp`
+- `scripts/run_tests.sh`
+
+That test binary is intentionally small for now, but it gives the project a real
+formal test path in addition to snippets, showcases, and benchmarks.
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without
@@ -257,6 +277,7 @@ having to spell `std::string(...)` at the call site.
 g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_boost.cpp -o main_boost
 g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_nxpp.cpp -o main_nxpp
 python3 main.py
+bash scripts/run_tests.sh
 ```
 
 ### Install Boost Graph Library
