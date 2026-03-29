@@ -320,6 +320,7 @@ The standalone-header workflow is equally narrow in scope:
 - runs `bash scripts/build_single_header.sh`
 - smoke-tests the generated `dist/nxpp.hpp`
 - uploads the generated header as a workflow artifact
+- on published releases, uploads that tested file to the GitHub release as `nxpp.hpp`
 
 These are showcase demos, not formal tests or parity harnesses.
 

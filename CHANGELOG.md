@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.4] - 2026-03-29
+
+- Extended `.github/workflows/single-header.yml` so published GitHub releases now receive the tested CI-built `nxpp.hpp` asset instead of relying on a locally generated upload.
+- The standalone-header workflow still uploads `dist/nxpp.hpp` as a workflow artifact, and now also pushes the same tested file into the release assets on `release.published`.
+
 ## [0.7.3] - 2026-03-29
 
 - Added a dedicated GitHub Actions workflow for the generated standalone header under `.github/workflows/single-header.yml`.

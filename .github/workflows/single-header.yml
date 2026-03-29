@@ -3,11 +3,15 @@ name: Single Header
 on:
   push:
   pull_request:
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
   build-single-header:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -50,6 +54,13 @@ jobs:
           name: nxpp-single-header
           path: dist/nxpp.hpp
 
+      - name: Upload tested header to release assets
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" dist/nxpp.hpp#nxpp.hpp --clobber
+
       - name: Publish single-header summary
         if: always()
         run: |
@@ -59,4 +70,7 @@ jobs:
             echo "- Command: \`bash scripts/build_single_header.sh\`"
             echo "- Output: \`dist/nxpp.hpp\`"
             echo "- Smoke test: compiled and executed a small program against the generated header"
+            if [ "${{ github.event_name }}" = "release" ]; then
+              echo "- Release asset: uploaded the tested header to release \`${{ github.event.release.tag_name }}\` as \`nxpp.hpp\`"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

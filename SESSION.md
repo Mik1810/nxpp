@@ -382,3 +382,7 @@
 - Added a dedicated GitHub Actions workflow at `.github/workflows/single-header.yml` to build `dist/nxpp.hpp`, smoke-test the generated header by compiling and running a tiny C++ program against it, upload the generated file as an artifact, and publish a short Markdown job summary.
 - Clarified the README wording so the formal-test workflow and the standalone-header workflow are described separately instead of sharing one ambiguous paragraph.
 - Re-verified the standalone-header path locally by running `bash scripts/build_single_header.sh` and compiling a smoke test against `/workspaces/nxpp/dist/nxpp.hpp`, which printed `2`.
+
+## 2026-03-29
+- Extended `.github/workflows/single-header.yml` to also run on `release.published`, so the CI-built `dist/nxpp.hpp` that passes the smoke test can be uploaded directly into the GitHub release assets as `nxpp.hpp`.
+- Kept the workflow artifact upload in place for push and pull-request runs, and updated the README plus `CHANGELOG.md` (`0.7.4`) to explain that releases now receive the tested header built in CI rather than relying on a local upload.
