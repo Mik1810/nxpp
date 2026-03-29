@@ -257,6 +257,7 @@ There is now also a minimal assertion-based test entry point:
 
 - `tests/test_core.cpp`
 - `tests/test_attributes.cpp`
+- `tests/test_edge_cases.cpp`
 - `tests/test_multigraph.cpp`
 - `scripts/run_tests.sh`
 
@@ -278,6 +279,14 @@ The attribute-specific part of the suite now also checks failure behavior:
 - type mismatches that should throw
 - `try_get_*_attr(...)` returning empty on missing keys or wrong types
 - numeric edge-attribute lookup rejecting non-numeric stored values
+
+The edge-case part of the suite now checks common boundary conditions:
+
+- empty graphs returning empty collections and component views
+- singleton graphs producing empty neighbor/traversal results
+- missing-node operations throwing in a defined way
+- disconnected shortest paths preserving unreachable distances and missing paths
+- disconnected component grouping staying stable across separate subgraphs
 
 String attributes passed as `"..."` are normalized internally, so typed reads like
 `get_node_attr<std::string>(...)` and `get_edge_attr<std::string>(...)` work without

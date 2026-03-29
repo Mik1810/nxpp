@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.5.4] - 2026-03-29
+
+- Added `tests/test_edge_cases.cpp` and wired it into `scripts/run_tests.sh` to cover empty, singleton, missing-node, and disconnected-graph cases in the formal test suite.
+- Added executable checks for empty graph views, singleton traversal behavior, failure on missing-node operations, unreachable shortest-path state, and disconnected component grouping.
+
 ## [0.5.3] - 2026-03-29
 
 - Added `tests/test_attributes.cpp` and wired it into `scripts/run_tests.sh` to cover attribute failure paths in the formal test suite.
