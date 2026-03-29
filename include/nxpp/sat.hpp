@@ -1,6 +1,9 @@
 #pragma once
 
-#include "components.hpp"
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/strong_components.hpp>
+#include <utility>
+#include <vector>
 
 namespace nxpp {
 

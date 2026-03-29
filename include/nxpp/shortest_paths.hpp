@@ -1,6 +1,11 @@
 #pragma once
 
-#include "traversal.hpp"
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/bellman_ford_shortest_paths.hpp>
+#include <boost/graph/dag_shortest_paths.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+
+#include "graph.hpp"
 
 namespace nxpp {
 

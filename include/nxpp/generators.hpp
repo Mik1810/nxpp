@@ -1,6 +1,6 @@
 #pragma once
 
-#include "flow.hpp"
+#include "graph.hpp"
 
 namespace nxpp {
 

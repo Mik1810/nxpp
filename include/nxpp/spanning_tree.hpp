@@ -1,6 +1,10 @@
 #pragma once
 
-#include "components.hpp"
+#include <boost/graph/topological_sort.hpp>
+#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <boost/graph/prim_minimum_spanning_tree.hpp>
+
+#include "graph.hpp"
 
 namespace nxpp {
 

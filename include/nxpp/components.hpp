@@ -1,6 +1,9 @@
 #pragma once
 
-#include "shortest_paths.hpp"
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/strong_components.hpp>
+
+#include "graph.hpp"
 
 namespace nxpp {
 

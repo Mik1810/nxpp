@@ -1,6 +1,9 @@
 #pragma once
 
-#include "multigraph.hpp"
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/depth_first_search.hpp>
+
+#include "graph.hpp"
 
 namespace nxpp {
 class visitor {

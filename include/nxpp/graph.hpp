@@ -9,22 +9,6 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/bellman_ford_shortest_paths.hpp>
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/strong_components.hpp>
-#include <boost/graph/topological_sort.hpp>
-#include <boost/graph/kruskal_min_spanning_tree.hpp>
-#include <boost/graph/prim_minimum_spanning_tree.hpp>
-#include <boost/graph/dag_shortest_paths.hpp>
-#include <boost/graph/floyd_warshall_shortest.hpp>
-#include <boost/graph/edmonds_karp_max_flow.hpp>
-#include <boost/graph/push_relabel_max_flow.hpp>
-#include <boost/graph/cycle_canceling.hpp>
-#include <boost/graph/find_flow_cost.hpp>
-#include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 #include <boost/functional/hash.hpp>
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop

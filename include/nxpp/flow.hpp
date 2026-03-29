@@ -1,6 +1,12 @@
 #pragma once
 
-#include "spanning_tree.hpp"
+#include <boost/graph/edmonds_karp_max_flow.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+#include <boost/graph/cycle_canceling.hpp>
+#include <boost/graph/find_flow_cost.hpp>
+#include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
+
+#include "attributes.hpp"
 
 namespace nxpp {
 
