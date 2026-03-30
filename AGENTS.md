@@ -81,6 +81,8 @@ When completing a task:
 - Prefer the narrowest semantic header that keeps a file readable, especially in snippets and focused tests.
 - Keep `include/nxpp.hpp` for broad showcase code or files that genuinely span multiple semantic areas.
 
+- Compile benchmark runs that generate benchmark CSV files are always user-driven: the assistant must not launch them autonomously and should wait for the user to run them.
+
 ## GitHub Actions
 - Prefer up-to-date major versions of official GitHub actions such as `actions/checkout` and `actions/setup-python`, especially when GitHub announces runtime deprecations.
 

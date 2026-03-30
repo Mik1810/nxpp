@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="614">
+<style>
+text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 24px; font-weight: 700; }
+.label { font-size: 14px; }
+.value { font-size: 13px; fill: #374151; }
+.axis { stroke: #94a3b8; stroke-width: 1.2; }
+</style>
+<text x="220" y="38" class="title">Parallel Minus Serial Mean Overhead</text>
+<line x1="778.0" y1="58" x2="778.0" y2="584" class="axis"/>
+<text x="208" y="88" text-anchor="end" class="label">ts</text>
+<rect x="220.0" y="76" width="558.0" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="128.0" y="88" class="value">-9.67 pts</text>
+<text x="208" y="116" text-anchor="end" class="label">mcmf_ssp</text>
+<rect x="422.5" y="104" width="355.5" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="330.5" y="116" class="value">-6.16 pts</text>
+<text x="208" y="144" text-anchor="end" class="label">flow</text>
+<rect x="554.7" y="132" width="223.3" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="462.7" y="144" class="value">-3.87 pts</text>
+<text x="208" y="172" text-anchor="end" class="label">dijkstra</text>
+<rect x="615.9" y="160" width="162.1" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="523.9" y="172" class="value">-2.81 pts</text>
+<text x="208" y="200" text-anchor="end" class="label">scc_named</text>
+<rect x="618.7" y="188" width="159.3" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="526.7" y="200" class="value">-2.76 pts</text>
+<text x="208" y="228" text-anchor="end" class="label">graph_example</text>
+<rect x="730.7" y="216" width="47.3" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="638.7" y="228" class="value">-0.82 pts</text>
+<text x="208" y="256" text-anchor="end" class="label">bellman_ford</text>
+<rect x="761.3" y="244" width="16.7" height="14" fill="#059669" rx="3" ry="3"/>
+<text x="669.3" y="256" class="value">-0.29 pts</text>
+<text x="208" y="284" text-anchor="end" class="label">bfs</text>
+<rect x="778.0" y="272" width="5.2" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="791.2" y="284" class="value">0.09 pts</text>
+<text x="208" y="312" text-anchor="end" class="label">cc</text>
+<rect x="778.0" y="300" width="47.9" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="833.9" y="312" class="value">0.83 pts</text>
+<text x="208" y="340" text-anchor="end" class="label">floyd_warshall</text>
+<rect x="778.0" y="328" width="48.5" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="834.5" y="340" class="value">0.84 pts</text>
+<text x="208" y="368" text-anchor="end" class="label">graph_weights</text>
+<rect x="778.0" y="356" width="67.5" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="853.5" y="368" class="value">1.17 pts</text>
+<text x="208" y="396" text-anchor="end" class="label">mcmf_cc</text>
+<rect x="778.0" y="384" width="69.2" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="855.2" y="396" class="value">1.20 pts</text>
+<text x="208" y="424" text-anchor="end" class="label">kruskal</text>
+<rect x="778.0" y="412" width="140.2" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="926.2" y="424" class="value">2.43 pts</text>
+<text x="208" y="452" text-anchor="end" class="label">dfs</text>
+<rect x="778.0" y="440" width="206.6" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="992.6" y="452" class="value">3.58 pts</text>
+<text x="208" y="480" text-anchor="end" class="label">scc</text>
+<rect x="778.0" y="468" width="226.8" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="1012.8" y="480" class="value">3.93 pts</text>
+<text x="208" y="508" text-anchor="end" class="label">dag_sp</text>
+<rect x="778.0" y="496" width="227.9" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="1013.9" y="508" class="value">3.95 pts</text>
+<text x="208" y="536" text-anchor="end" class="label">prim</text>
+<rect x="778.0" y="524" width="242.9" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="1028.9" y="536" class="value">4.21 pts</text>
+<text x="208" y="564" text-anchor="end" class="label">2sat</text>
+<rect x="778.0" y="552" width="352.0" height="14" fill="#dc2626" rx="3" ry="3"/>
+<text x="1138.0" y="564" class="value">6.10 pts</text>
+</svg>

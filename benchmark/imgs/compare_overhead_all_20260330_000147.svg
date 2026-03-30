@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="722">
+<style>
+text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 24px; font-weight: 700; }
+.label { font-size: 14px; }
+.legend { font-size: 13px; }
+.axis { stroke: #94a3b8; stroke-width: 1.2; }
+</style>
+<text x="220" y="38" class="title">Serial vs Parallel Mean Overhead</text>
+<line x1="220.0" y1="58" x2="220.0" y2="692" class="axis"/>
+<rect x="1190" y="18" width="16" height="16" fill="#2563eb" rx="3" ry="3"/>
+<text x="1214" y="31" class="legend">Serial</text>
+<rect x="1280" y="18" width="16" height="16" fill="#f97316" rx="3" ry="3"/>
+<text x="1304" y="31" class="legend">Parallel</text>
+<text x="208" y="90" text-anchor="end" class="label">2sat</text>
+<rect x="220.0" y="74" width="137.6" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="88" width="267.0" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="124" text-anchor="end" class="label">ts</text>
+<rect x="220.0" y="108" width="315.6" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="122" width="110.5" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="158" text-anchor="end" class="label">dfs</text>
+<rect x="220.0" y="142" width="320.7" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="156" width="396.6" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="192" text-anchor="end" class="label">scc_named</text>
+<rect x="220.0" y="176" width="331.1" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="190" width="272.5" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="226" text-anchor="end" class="label">cc</text>
+<rect x="220.0" y="210" width="348.9" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="224" width="366.5" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="260" text-anchor="end" class="label">scc</text>
+<rect x="220.0" y="244" width="353.3" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="258" width="436.7" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="294" text-anchor="end" class="label">prim</text>
+<rect x="220.0" y="278" width="396.4" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="292" width="485.7" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="328" text-anchor="end" class="label">bfs</text>
+<rect x="220.0" y="312" width="419.1" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="326" width="421.0" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="362" text-anchor="end" class="label">kruskal</text>
+<rect x="220.0" y="346" width="430.7" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="360" width="482.3" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="396" text-anchor="end" class="label">dag_sp</text>
+<rect x="220.0" y="380" width="467.0" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="394" width="550.8" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="430" text-anchor="end" class="label">floyd_warshall</text>
+<rect x="220.0" y="414" width="524.5" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="428" width="542.3" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="464" text-anchor="end" class="label">bellman_ford</text>
+<rect x="220.0" y="448" width="555.9" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="462" width="549.7" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="498" text-anchor="end" class="label">dijkstra</text>
+<rect x="220.0" y="482" width="604.2" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="496" width="544.6" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="532" text-anchor="end" class="label">graph_example</text>
+<rect x="220.0" y="516" width="621.0" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="530" width="603.6" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="566" text-anchor="end" class="label">graph_weights</text>
+<rect x="220.0" y="550" width="630.3" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="564" width="655.1" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="600" text-anchor="end" class="label">mcmf_cc</text>
+<rect x="220.0" y="584" width="911.1" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="598" width="936.6" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="634" text-anchor="end" class="label">mcmf_ssp</text>
+<rect x="220.0" y="618" width="939.1" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="632" width="808.5" height="10" fill="#f97316" rx="3" ry="3"/>
+<text x="208" y="668" text-anchor="end" class="label">flow</text>
+<rect x="220.0" y="652" width="1060.0" height="10" fill="#2563eb" rx="3" ry="3"/>
+<rect x="220.0" y="666" width="977.9" height="10" fill="#f97316" rx="3" ry="3"/>
+</svg>

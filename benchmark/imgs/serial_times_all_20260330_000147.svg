@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="722">
+<style>
+text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 24px; font-weight: 700; }
+.label { font-size: 14px; }
+.legend { font-size: 13px; }
+</style>
+<text x="220" y="38" class="title">Serial Absolute Compile Times</text>
+<rect x="1180" y="18" width="16" height="16" fill="#0f766e" rx="3" ry="3"/>
+<text x="1204" y="31" class="legend">Baseline</text>
+<rect x="1280" y="18" width="16" height="16" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1304" y="31" class="legend">nxpp</text>
+<text x="208" y="90" text-anchor="end" class="label">mcmf_cc</text>
+<rect x="220" y="74" width="741.5" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="969.5" y="84" class="legend">2.95s</text>
+<rect x="220" y="88" width="1060.0" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1288.0" y="98" class="legend">4.21s</text>
+<text x="208" y="124" text-anchor="end" class="label">mcmf_ssp</text>
+<rect x="220" y="108" width="681.8" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="909.8" y="118" class="legend">2.71s</text>
+<rect x="220" y="122" width="983.8" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1211.8" y="132" class="legend">3.91s</text>
+<text x="208" y="158" text-anchor="end" class="label">flow</text>
+<rect x="220" y="142" width="600.6" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="828.6" y="152" class="legend">2.39s</text>
+<rect x="220" y="156" width="900.7" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1128.7" y="166" class="legend">3.58s</text>
+<text x="208" y="192" text-anchor="end" class="label">dijkstra</text>
+<rect x="220" y="176" width="618.2" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="846.2" y="186" class="legend">2.46s</text>
+<rect x="220" y="190" width="794.3" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1022.3" y="200" class="legend">3.16s</text>
+<text x="208" y="226" text-anchor="end" class="label">bellman_ford</text>
+<rect x="220" y="210" width="585.5" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="813.5" y="220" class="legend">2.33s</text>
+<rect x="220" y="224" width="739.0" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="967.0" y="234" class="legend">2.94s</text>
+<text x="208" y="260" text-anchor="end" class="label">dag_sp</text>
+<rect x="220" y="244" width="659.2" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="887.2" y="254" class="legend">2.62s</text>
+<rect x="220" y="258" width="804.4" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="1032.4" y="268" class="legend">3.20s</text>
+<text x="208" y="294" text-anchor="end" class="label">floyd_warshall</text>
+<rect x="220" y="278" width="576.9" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="804.9" y="288" class="legend">2.29s</text>
+<rect x="220" y="292" width="719.6" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="947.6" y="302" class="legend">2.86s</text>
+<text x="208" y="328" text-anchor="end" class="label">graph_weights</text>
+<rect x="220" y="312" width="457.2" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="685.2" y="322" class="legend">1.82s</text>
+<rect x="220" y="326" width="593.0" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="821.0" y="336" class="legend">2.36s</text>
+<text x="208" y="362" text-anchor="end" class="label">graph_example</text>
+<rect x="220" y="346" width="452.9" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="680.9" y="356" class="legend">1.80s</text>
+<rect x="220" y="360" width="585.5" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="813.5" y="370" class="legend">2.33s</text>
+<text x="208" y="396" text-anchor="end" class="label">prim</text>
+<rect x="220" y="380" width="624.7" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="852.7" y="390" class="legend">2.48s</text>
+<rect x="220" y="394" width="741.5" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="969.5" y="404" class="legend">2.95s</text>
+<text x="208" y="430" text-anchor="end" class="label">kruskal</text>
+<rect x="220" y="414" width="573.7" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="801.7" y="424" class="legend">2.28s</text>
+<rect x="220" y="428" width="690.1" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="918.1" y="438" class="legend">2.74s</text>
+<text x="208" y="464" text-anchor="end" class="label">bfs</text>
+<rect x="220" y="448" width="572.9" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="800.9" y="458" class="legend">2.28s</text>
+<rect x="220" y="462" width="686.1" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="914.1" y="472" class="legend">2.73s</text>
+<text x="208" y="498" text-anchor="end" class="label">scc</text>
+<rect x="220" y="482" width="643.3" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="871.3" y="492" class="legend">2.56s</text>
+<rect x="220" y="496" width="750.5" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="978.5" y="506" class="legend">2.98s</text>
+<text x="208" y="532" text-anchor="end" class="label">cc</text>
+<rect x="220" y="516" width="616.4" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="844.4" y="526" class="legend">2.45s</text>
+<rect x="220" y="530" width="717.8" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="945.8" y="540" class="legend">2.85s</text>
+<text x="208" y="566" text-anchor="end" class="label">scc_named</text>
+<rect x="220" y="550" width="644.9" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="872.9" y="560" class="legend">2.56s</text>
+<rect x="220" y="564" width="745.5" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="973.5" y="574" class="legend">2.96s</text>
+<text x="208" y="600" text-anchor="end" class="label">dfs</text>
+<rect x="220" y="584" width="615.7" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="843.7" y="594" class="legend">2.45s</text>
+<rect x="220" y="598" width="708.8" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="936.8" y="608" class="legend">2.82s</text>
+<text x="208" y="634" text-anchor="end" class="label">ts</text>
+<rect x="220" y="618" width="625.7" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="853.7" y="628" class="legend">2.49s</text>
+<rect x="220" y="632" width="718.8" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="946.8" y="642" class="legend">2.86s</text>
+<text x="208" y="668" text-anchor="end" class="label">2sat</text>
+<rect x="220" y="652" width="709.5" height="10" fill="#0f766e" rx="3" ry="3"/>
+<text x="937.5" y="662" class="legend">2.82s</text>
+<rect x="220" y="666" width="755.6" height="10" fill="#7c3aed" rx="3" ry="3"/>
+<text x="983.6" y="676" class="legend">3.00s</text>
+</svg>

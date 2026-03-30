@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="614">
+<style>
+text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 24px; font-weight: 700; }
+.label { font-size: 14px; }
+.value { font-size: 13px; fill: #374151; }
+.axis { stroke: #94a3b8; stroke-width: 1.2; }
+</style>
+<text x="220" y="38" class="title">Serial Mean Overhead</text>
+<line x1="220.0" y1="58" x2="220.0" y2="584" class="axis"/>
+<text x="208" y="88" text-anchor="end" class="label">2sat</text>
+<rect x="220.0" y="76" width="118.2" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="346.2" y="88" class="value">6.49%</text>
+<text x="208" y="116" text-anchor="end" class="label">ts</text>
+<rect x="220.0" y="104" width="270.9" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="498.9" y="116" class="value">14.88%</text>
+<text x="208" y="144" text-anchor="end" class="label">dfs</text>
+<rect x="220.0" y="132" width="275.3" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="503.3" y="144" class="value">15.12%</text>
+<text x="208" y="172" text-anchor="end" class="label">scc_named</text>
+<rect x="220.0" y="160" width="284.2" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="512.2" y="172" class="value">15.61%</text>
+<text x="208" y="200" text-anchor="end" class="label">cc</text>
+<rect x="220.0" y="188" width="299.5" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="527.5" y="200" class="value">16.45%</text>
+<text x="208" y="228" text-anchor="end" class="label">scc</text>
+<rect x="220.0" y="216" width="303.3" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="531.3" y="228" class="value">16.66%</text>
+<text x="208" y="256" text-anchor="end" class="label">prim</text>
+<rect x="220.0" y="244" width="340.3" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="568.3" y="256" class="value">18.69%</text>
+<text x="208" y="284" text-anchor="end" class="label">bfs</text>
+<rect x="220.0" y="272" width="359.8" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="587.8" y="284" class="value">19.76%</text>
+<text x="208" y="312" text-anchor="end" class="label">kruskal</text>
+<rect x="220.0" y="300" width="369.8" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="597.8" y="312" class="value">20.31%</text>
+<text x="208" y="340" text-anchor="end" class="label">dag_sp</text>
+<rect x="220.0" y="328" width="400.9" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="628.9" y="340" class="value">22.02%</text>
+<text x="208" y="368" text-anchor="end" class="label">floyd_warshall</text>
+<rect x="220.0" y="356" width="450.3" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="678.3" y="368" class="value">24.73%</text>
+<text x="208" y="396" text-anchor="end" class="label">bellman_ford</text>
+<rect x="220.0" y="384" width="477.2" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="705.2" y="396" class="value">26.21%</text>
+<text x="208" y="424" text-anchor="end" class="label">dijkstra</text>
+<rect x="220.0" y="412" width="518.7" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="746.7" y="424" class="value">28.49%</text>
+<text x="208" y="452" text-anchor="end" class="label">graph_example</text>
+<rect x="220.0" y="440" width="533.1" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="761.1" y="452" class="value">29.28%</text>
+<text x="208" y="480" text-anchor="end" class="label">graph_weights</text>
+<rect x="220.0" y="468" width="541.1" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="769.1" y="480" class="value">29.72%</text>
+<text x="208" y="508" text-anchor="end" class="label">mcmf_cc</text>
+<rect x="220.0" y="496" width="782.2" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="1010.2" y="508" class="value">42.96%</text>
+<text x="208" y="536" text-anchor="end" class="label">mcmf_ssp</text>
+<rect x="220.0" y="524" width="806.2" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="1034.2" y="536" class="value">44.28%</text>
+<text x="208" y="564" text-anchor="end" class="label">flow</text>
+<rect x="220.0" y="552" width="910.0" height="14" fill="#2563eb" rx="3" ry="3"/>
+<text x="1138.0" y="564" class="value">49.98%</text>
+</svg>
