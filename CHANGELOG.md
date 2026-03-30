@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.11] - 2026-03-30
+
+- Added a minimal compiler/platform support matrix to `README.md` that states the currently verified support story conservatively instead of implying broader CI coverage than the repository actually has.
+- Documented Linux plus `g++`/C++20 with Boost Graph as the main tested path, while marking macOS, Windows, and Clang as expected or possible follow-up environments rather than current CI-backed guarantees.
+
 ## [0.7.10] - 2026-03-29
 
 - Added `scripts/run_benchmark_report.py` as a benchmark orchestrator that runs the serial snippet-compile benchmark first, then the parallel one, and produces a single Markdown report with embedded SVG plots.

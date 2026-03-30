@@ -3,6 +3,22 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.11]
+
+### Highlights
+
+- Added a minimal compiler and platform support matrix to `README.md` so the repository now states its current support story more explicitly and conservatively.
+- Documented Linux with Boost Graph and a C++20-capable `g++` toolchain as the main verified path based on the current GitHub Actions workflows and local repo scripts.
+- Clarified that macOS and Windows are expected follow-up environments rather than current CI-backed guarantees, and that Clang is not yet claimed as a supported CI-verified toolchain.
+
+### Verification
+
+- `timeout 30s bash scripts/run_tests.sh`
+
+### Assets
+
+- This change does not add a new release asset, but it improves the public support and build expectations documented for external users.
+
 ## [0.7.10]
 
 ### Highlights

@@ -436,7 +436,27 @@ having to spell `std::string(...)` at the call site.
 
 ## Build and requirements
 
-`nxpp` is header-only, but it depends on **Boost Graph Library**.
+`nxpp` is a modular library in the repository, and releases also ship a generated
+single-header distribution asset. It depends on **Boost Graph Library**.
+
+### Minimal support matrix
+
+This matrix is intentionally conservative and reflects what the repository
+currently verifies directly:
+
+| Area | Current status |
+|---|---|
+| Language level | C++20 required |
+| Standard library / toolchain used in repo scripts | `g++`-based workflow and local scripts |
+| Continuous integration | GitHub Actions on `ubuntu-latest` |
+| Boost dependency | `libboost-graph-dev` on Ubuntu CI |
+| Standalone single header | Generated in CI and tested on Ubuntu |
+| macOS | Expected to work with Homebrew Boost, but not covered by CI yet |
+| Windows | Expected to work with vcpkg Boost, but not covered by CI yet |
+| Clang | Not claimed as a supported CI-verified toolchain yet |
+
+In practice, the repository currently has its strongest support story on Linux
+with Boost Graph installed and a C++20-capable `g++` toolchain.
 
 ### Minimal local build
 

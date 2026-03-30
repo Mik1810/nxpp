@@ -419,3 +419,7 @@
 - Documented the new benchmark entry point in `README.md` and started ignoring generated `benchmark/*.csv`, `benchmark/*.svg`, and `benchmark/*.md` outputs so repeated local benchmark runs do not keep polluting `git status`.
 - Simplified the benchmark orchestrator so it now runs serial first and parallel second, produces exactly two CSV outputs, writes the report to `benchmark/BENCHMARK.md`, writes plots under `benchmark/imgs/`, and backs up the previous benchmark CSVs plus `benchmark/imgs/` into `backups/benchmark/<timestamp>/`.
 - Added an explicit operating rule to `AGENTS.md`: benchmark runs that generate CSV outputs are always launched by the user, so the assistant must not start them autonomously.
+
+## 2026-03-30
+- Added a minimal support matrix to `README.md` for issue `#31`, keeping the wording conservative and aligned with the actual repository evidence instead of implying broader compiler/platform support than CI currently proves.
+- Recorded Linux with Boost Graph plus a C++20-capable `g++` toolchain as the strongest verified path, while documenting macOS, Windows, and Clang as not yet CI-backed support claims.
