@@ -304,6 +304,35 @@ The assertion-based test suite now has a dedicated runner:
 bash scripts/run_tests.sh
 ```
 
+There is also an opt-in large-graph comparison runner:
+
+```bash
+bash scripts/run_large_graph_compare.sh
+```
+
+That path compiles `tests/test_large_graph_compare.cpp`, generates
+deterministic larger graph instances, and compares `nxpp` against raw Boost for:
+
+- BFS depth results
+- DFS tree edges
+- connected-component partitions
+- strongly connected-component partitions
+- Dijkstra distance maps
+- Bellman-Ford distance maps
+- DAG shortest-path distance maps
+- reachable negative-cycle detection behavior
+- post-`remove_node()` graph state on large graphs
+- large multigraph mutation and cleanup behavior
+- large attribute preservation and cleanup after repeated mutations
+- large combined weighted-graph mutation sequences with raw-Boost comparison
+- large Floyd-Warshall all-pairs agreement with a raw-Boost all-pairs baseline
+- large maximum-flow / minimum-cut agreement with Boost
+- large successive-shortest-path min-cost-flow agreement with Boost
+
+It is intentionally kept outside `bash scripts/run_tests.sh` so the default
+formal suite stays fast while the larger comparison path remains available when
+you want extra confidence on wrapper behavior at scale.
+
 and a dedicated GitHub Actions workflow:
 
 - `.github/workflows/tests.yml`
@@ -311,6 +340,7 @@ and a dedicated GitHub Actions workflow:
 There is also a dedicated workflow for the generated standalone header:
 
 - `.github/workflows/single-header.yml`
+- `.github/workflows/large-graph-compare.yml`
 - `.github/workflows/release.yml`
 
 The formal-test workflow is intentionally narrow: it installs Boost, runs the
@@ -321,6 +351,14 @@ The standalone-header workflow is equally narrow in scope:
 - runs `bash scripts/build_single_header.sh`
 - smoke-tests the generated `dist/nxpp.hpp`
 - uploads the generated header as a workflow artifact
+
+The large-graph comparison workflow is dedicated to the new scale-oriented
+verification path:
+
+- runs `bash scripts/run_large_graph_compare.sh` against the modular headers
+- builds `dist/nxpp.hpp`
+- reruns the same large-graph comparison against the generated single header
+- publishes both outputs as a separate Markdown job summary
 
 The release workflow handles automated GitHub releases from pushed version tags:
 
@@ -359,7 +397,9 @@ There is now also a minimal assertion-based test entry point:
 - `tests/test_flow.cpp`
 - `tests/test_remove_node.cpp`
 - `tests/test_multigraph.cpp`
+- `tests/test_large_graph_compare.cpp`
 - `scripts/run_tests.sh`
+- `scripts/run_large_graph_compare.sh`
 
 Where it stays readable, the test files now mirror the semantic-header split too:
 
@@ -370,6 +410,13 @@ Where it stays readable, the test files now mirror the semantic-header split too
 
 That test binary is intentionally small for now, but it gives the project a real
 formal test path in addition to snippets, showcases, and benchmarks.
+
+The large-graph comparison path is intentionally separate:
+
+- it reuses deterministic generated graphs instead of committed fixtures
+- it compares `nxpp` against raw Boost implementations directly
+- it is meant as scale-oriented verification, not as a benchmark claim
+- it stays opt-in so the normal test path remains quick to run locally and in CI
 
 For benchmark runs that should produce both CSV data and a ready-to-read report,
 you can use:

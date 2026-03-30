@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.12]
+
+### Highlights
+
+- Added an opt-in large-graph comparison path through `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh`.
+- The new driver generates deterministic larger graph instances and compares `nxpp` directly against raw Boost for BFS depth, DFS tree edges, connected components, strongly connected components, Dijkstra, Bellman-Ford, DAG shortest paths, reachable negative-cycle detection, post-`remove_node()` state, large multigraph mutation behavior, attribute preservation/cleanup after repeated mutations, combined weighted-graph mutation sequences, Floyd-Warshall all-pairs shortest paths, large maximum-flow/minimum-cut results, and large successive-shortest-path min-cost flow.
+- Added `.github/workflows/large-graph-compare.yml` so GitHub Actions can run the same comparison path separately against both the modular headers and the generated standalone `dist/nxpp.hpp`.
+- Kept this verification path separate from `bash scripts/run_tests.sh`, so the default formal suite remains fast while larger scale checks stay available when needed.
+
+### Verification
+
+- `timeout 30s bash scripts/run_tests.sh`
+- `timeout 30s bash scripts/run_large_graph_compare.sh`
+
+### Assets
+
+- This change does not add a new release asset, but it adds a new scale-oriented correctness check for the modular and single-header library surfaces.
+
 ## [0.7.11]
 
 ### Highlights

@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.12] - 2026-03-30
+
+- Added `tests/test_large_graph_compare.cpp` plus `scripts/run_large_graph_compare.sh` as an opt-in large-graph verification path that generates deterministic graph instances and compares `nxpp` results against raw Boost on BFS, DFS, connected components, strongly connected components, Dijkstra, Bellman-Ford, DAG shortest paths, reachable negative-cycle detection, post-`remove_node()` graph state, large multigraph mutation behavior, attribute preservation/cleanup after repeated mutations, combined weighted-graph mutation sequences, Floyd-Warshall all-pairs shortest paths, large maximum-flow/minimum-cut results, and large successive-shortest-path min-cost flow.
+- Added `.github/workflows/large-graph-compare.yml` as a dedicated workflow that runs the new large-graph comparison path against both the modular headers and the generated `dist/nxpp.hpp`, then publishes a separate Markdown job summary.
+- Kept the large-graph path outside `scripts/run_tests.sh` so the normal formal suite stays fast while the repository still gains a scale-oriented correctness check beyond the smaller snippet and assertion-based cases.
+
 ## [0.7.11] - 2026-03-30
 
 - Added a minimal compiler/platform support matrix to `README.md` that states the currently verified support story conservatively instead of implying broader CI coverage than the repository actually has.

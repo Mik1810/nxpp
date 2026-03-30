@@ -423,3 +423,11 @@
 ## 2026-03-30
 - Added a minimal support matrix to `README.md` for issue `#31`, keeping the wording conservative and aligned with the actual repository evidence instead of implying broader compiler/platform support than CI currently proves.
 - Recorded Linux with Boost Graph plus a C++20-capable `g++` toolchain as the strongest verified path, while documenting macOS, Windows, and Clang as not yet CI-backed support claims.
+- Added `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh` as an opt-in large-graph verification path that generates deterministic graph instances and compares `nxpp` against raw Boost on BFS depth, connected components, and Dijkstra distances.
+- Kept the new large-graph path out of `scripts/run_tests.sh`, and documented it in `README.md` as a scale-oriented correctness check rather than a benchmark or a replacement for the normal fast suite.
+- Added `.github/workflows/large-graph-compare.yml` so the new large-graph comparison path also has its own dedicated GitHub Actions run and summary, separate from the normal formal test suite.
+- Expanded the large-graph comparison driver so it now also covers DFS tree edges, strongly connected components, Bellman-Ford, DAG shortest paths, and reachable negative-cycle detection against raw Boost.
+- Extended the same driver further with large post-`remove_node()` verification against raw Boost plus large multigraph mutation and cleanup checks around `edge_id`, bundle removal, and node removal behavior.
+- Extended the large-graph driver again with wrapper-specific attribute-preservation checks after repeated mutations plus larger max-flow/min-cut and successive-shortest-path min-cost-flow comparisons against raw Boost.
+- Extended the large-graph driver once more with a combined weighted-graph mutation sequence that mixes `remove_edge(u, v)`, `add_edge(...)`, and `remove_node()` while comparing final graph state and Dijkstra results against raw Boost.
+- Added a large Floyd-Warshall all-pairs comparison that checks both the matrix and the NodeID-keyed map result against a raw Boost all-pairs baseline built from repeated single-source shortest-path runs, including unreachable-pair handling.

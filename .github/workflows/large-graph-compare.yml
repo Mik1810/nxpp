@@ -1,0 +1,95 @@
+name: Large Graph Compare
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  large-graph-compare:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Boost Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Run large-graph comparison against modular headers
+        id: modular
+        run: |
+          set +e
+          bash scripts/run_large_graph_compare.sh | tee large-graph-modular-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Build standalone single header
+        if: success()
+        run: |
+          bash scripts/build_single_header.sh
+
+      - name: Run large-graph comparison against dist/nxpp.hpp
+        if: success()
+        id: single_header
+        run: |
+          set +e
+          env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/run_large_graph_compare.sh | tee large-graph-single-header-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Publish large-graph comparison summary
+        if: always()
+        env:
+          MODULAR_EXIT_CODE: ${{ steps.modular.outputs.exit_code }}
+          SINGLE_HEADER_EXIT_CODE: ${{ steps.single_header.outputs.exit_code }}
+        run: |
+          status_word() {
+            if [ "${1:-1}" = "0" ]; then
+              echo "SUCCESS"
+            else
+              echo "FAILURE"
+            fi
+          }
+
+          if [ -f large-graph-modular-output.txt ]; then
+            perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' large-graph-modular-output.txt > large-graph-modular-output-clean.txt
+          fi
+
+          if [ -f large-graph-single-header-output.txt ]; then
+            perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' large-graph-single-header-output.txt > large-graph-single-header-output-clean.txt
+          fi
+
+          {
+            echo "## Large-Graph Comparison"
+            echo
+            echo "- Modular header run: $(status_word "${MODULAR_EXIT_CODE:-1}")"
+            echo "- Single-header run: $(status_word "${SINGLE_HEADER_EXIT_CODE:-1}")"
+            echo "- Modular command: \`bash scripts/run_large_graph_compare.sh\`"
+            echo "- Single-header command: \`env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/run_large_graph_compare.sh\`"
+            echo
+            if [ -f large-graph-modular-output-clean.txt ]; then
+              echo "### Modular Output"
+              echo
+              echo '```text'
+              cat large-graph-modular-output-clean.txt
+              echo '```'
+              echo
+            fi
+            if [ -f large-graph-single-header-output-clean.txt ]; then
+              echo "### Single-Header Output"
+              echo
+              echo '```text'
+              cat large-graph-single-header-output-clean.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
