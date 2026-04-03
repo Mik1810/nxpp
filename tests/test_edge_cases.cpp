@@ -9,6 +9,7 @@
 #ifdef NXPP_HEADER_UNDER_TEST
 #include NXPP_HEADER_UNDER_TEST
 #else
+#include "include/nxpp/attributes.hpp"
 #include "include/nxpp/graph.hpp"
 #include "include/nxpp/traversal.hpp"
 #include "include/nxpp/shortest_paths.hpp"
@@ -113,6 +114,82 @@ void test_disconnected_component_groups_split_graph_correctly() {
            "disconnected pairs should land in different components");
 }
 
+struct OrderedOnlyNodeId {
+    std::string value;
+
+    bool operator<(const OrderedOnlyNodeId& other) const {
+        return value < other.value;
+    }
+
+    bool operator==(const OrderedOnlyNodeId& other) const {
+        return value == other.value;
+    }
+};
+
+OrderedOnlyNodeId make_node_id(const char* value) {
+    return OrderedOnlyNodeId{value};
+}
+
+void test_ordered_only_node_ids_work_without_hash_support() {
+    nxpp::Graph<OrderedOnlyNodeId, int, false, false, true> graph;
+    const auto a = make_node_id("A");
+    const auto b = make_node_id("B");
+    const auto c = make_node_id("C");
+
+    graph.add_edge(a, b, 4);
+    graph.add_edge(b, c, 5);
+    graph.node(a)["population"] = 7;
+
+    expect(graph.has_node(a), "ordered-only source node should be present");
+    expect(graph.has_edge(a, b), "ordered-only edge should be present");
+    expect(graph.get_node_attr<int>(a, "population") == 7,
+           "ordered-only node attribute lookup should succeed");
+
+    const auto shortest = graph.dijkstra_shortest_paths(a);
+    expect(shortest.distance.at(c) == 9,
+           "ordered-only node IDs should work through shortest-path result maps");
+    expect(shortest.paths.at(c).size() == 3,
+           "ordered-only node IDs should preserve reconstructed paths");
+
+    const auto components = graph.connected_components();
+    expect(components.at(a) == components.at(c),
+           "ordered-only node IDs should work through indexed component results");
+
+    const auto centrality = graph.degree_centrality();
+    expect(std::abs(centrality.at(b) - 1.0) < 1e-9,
+           "ordered-only node IDs should work through indexed centrality results");
+
+    nxpp::Graph<OrderedOnlyNodeId, int, true, false, true> directed_graph;
+    directed_graph.add_edge(a, b, 1);
+    directed_graph.add_edge(b, a, 1);
+    directed_graph.add_edge(b, c, 1);
+    directed_graph.add_edge(c, b, 1);
+
+    const auto roots = directed_graph.strong_components();
+    expect(roots.at(a) == roots.at(c),
+           "ordered-only node IDs should work through indexed SCC root results");
+
+    nxpp::Graph<OrderedOnlyNodeId, int, true, false, true> traversal_graph;
+    traversal_graph.add_edge(a, b, 1);
+    traversal_graph.add_edge(b, c, 1);
+
+    const auto bfs_successors = traversal_graph.bfs_successors(a);
+    expect(bfs_successors.at(a) == std::vector<OrderedOnlyNodeId>({b}),
+           "ordered-only node IDs should work through indexed BFS successor results");
+    expect(bfs_successors.at(b) == std::vector<OrderedOnlyNodeId>({c}),
+           "indexed BFS successor results should keep linear traversal structure");
+
+    const auto dfs_predecessors = traversal_graph.dfs_predecessors(a);
+    expect(dfs_predecessors.at(b) == a && dfs_predecessors.at(c) == b,
+           "ordered-only node IDs should work through indexed DFS predecessor results");
+
+    const auto dfs_successors = traversal_graph.dfs_successors(a);
+    expect(dfs_successors.at(a) == std::vector<OrderedOnlyNodeId>({b}),
+           "ordered-only node IDs should work through indexed DFS successor results");
+    expect(dfs_successors.at(b) == std::vector<OrderedOnlyNodeId>({c}),
+           "indexed DFS successor results should keep linear traversal structure");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -127,13 +204,14 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 5;
+    constexpr int total = 6;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
     passed += run_test("missing node operations throw", test_missing_node_operations_throw) ? 1 : 0;
     passed += run_test("disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state) ? 1 : 0;
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
+    passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

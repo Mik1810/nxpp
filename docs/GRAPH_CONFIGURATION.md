@@ -75,7 +75,7 @@ The wrapper no longer relies on "descriptor == index" assumptions.
 Instead, `nxpp` now maintains:
 
 - `NodeID <-> vertex_descriptor` translation maps
-- a wrapper-owned vertex index map for algorithm result normalization
+- a wrapper-owned vertex index property for algorithm result normalization
 - rebuilt index/descriptor state after destructive operations such as `remove_node()`
 
 That is what makes non-`vecS` vertex selectors usable while preserving the current public API shape.

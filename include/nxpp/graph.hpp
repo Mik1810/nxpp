@@ -13,7 +13,7 @@
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
-#include <unordered_map>
+#include <functional>
 #include <vector>
 #include <stdexcept>
 #include <tuple>
@@ -30,6 +30,17 @@
 #include <limits>
 #include <queue>
 #include <memory>
+
+namespace nxpp {
+
+} // namespace nxpp
+
+namespace boost {
+
+enum vertex_wrapper_index_t { vertex_wrapper_index };
+BOOST_INSTALL_PROPERTY(vertex, wrapper_index);
+
+} // namespace boost
 
 namespace nxpp {
 
@@ -57,7 +68,7 @@ struct built_in_weight_traits<GraphType, false> {
 template <typename Key, typename Value>
 class lookup_map {
 public:
-    using storage_type = std::unordered_map<Key, Value>;
+    using storage_type = std::map<Key, Value>;
     using iterator = typename storage_type::iterator;
     using const_iterator = typename storage_type::const_iterator;
 
@@ -88,6 +99,101 @@ private:
     storage_type data;
 };
 
+template <typename Key, typename Value>
+class indexed_lookup_map {
+public:
+    using storage_type = std::vector<std::pair<Key, Value>>;
+    using iterator = typename storage_type::iterator;
+    using const_iterator = typename storage_type::const_iterator;
+
+    void reserve(std::size_t count) {
+        data.reserve(count);
+    }
+
+    void push_back(const Key& key, const Value& value) {
+        data.emplace_back(key, value);
+    }
+
+    void push_back(const Key& key, Value&& value) {
+        data.emplace_back(key, std::move(value));
+    }
+
+    Value& at(const Key& key) {
+        auto it = find(key);
+        if (it == data.end()) {
+            throw std::out_of_range("indexed_lookup_map::at");
+        }
+        return it->second;
+    }
+
+    const Value& at(const Key& key) const {
+        auto it = find(key);
+        if (it == data.end()) {
+            throw std::out_of_range("indexed_lookup_map::at");
+        }
+        return it->second;
+    }
+
+    Value& operator[](const Key& key) {
+        return at(key);
+    }
+
+    const Value& operator[](const Key& key) const {
+        return at(key);
+    }
+
+    bool contains(const Key& key) const {
+        return find(key) != data.end();
+    }
+
+    iterator find(const Key& key) {
+        auto it = lower_bound_for(key);
+        if (it == data.end() || key < it->first) {
+            return data.end();
+        }
+        return it;
+    }
+
+    const_iterator find(const Key& key) const {
+        auto it = lower_bound_for(key);
+        if (it == data.end() || key < it->first) {
+            return data.end();
+        }
+        return it;
+    }
+
+    iterator begin() { return data.begin(); }
+    iterator end() { return data.end(); }
+    const_iterator begin() const { return data.begin(); }
+    const_iterator end() const { return data.end(); }
+    const_iterator cbegin() const { return data.cbegin(); }
+    const_iterator cend() const { return data.cend(); }
+
+    bool empty() const { return data.empty(); }
+    std::size_t size() const { return data.size(); }
+
+private:
+    iterator lower_bound_for(const Key& key) {
+        return std::lower_bound(
+            data.begin(),
+            data.end(),
+            key,
+            [](const auto& entry, const Key& value) { return entry.first < value; }
+        );
+    }
+
+    const_iterator lower_bound_for(const Key& key) const {
+        return std::lower_bound(
+            data.begin(),
+            data.end(),
+            key,
+            [](const auto& entry, const Key& value) { return entry.first < value; }
+        );
+    }
+
+    storage_type data;
+};
+
 // Core Graph Class
 
 template <
@@ -106,7 +212,11 @@ public:
     using OutEdgeListSelector = OutEdgeSelector;
     using VertexListSelector = VertexSelector;
     using DirectedSelector = typename std::conditional<Directed, boost::bidirectionalS, boost::undirectedS>::type;
-    using VertexProperty = boost::property<boost::vertex_name_t, NodeID>;
+    using VertexProperty = boost::property<
+        boost::vertex_name_t,
+        NodeID,
+        boost::property<boost::vertex_wrapper_index_t, std::size_t>
+    >;
     using EdgeProperty = typename std::conditional<
         Weighted,
         boost::property<boost::edge_weight_t, EdgeWeight, boost::property<boost::edge_index_t, std::size_t>>,
@@ -118,26 +228,34 @@ public:
     using EdgeDesc = typename boost::graph_traits<GraphType>::edge_descriptor;
     using WeightMap = typename built_in_weight_traits<GraphType, Weighted>::map_type;
     using VertexNameMap = typename boost::property_map<GraphType, boost::vertex_name_t>::type;
+    using WrapperIndexMap = typename boost::property_map<GraphType, boost::vertex_wrapper_index_t>::type;
+    using VertexIndexMap = WrapperIndexMap;
     using EdgeIdMap = typename boost::property_map<GraphType, boost::edge_index_t>::type;
-    using VertexIndexStorage = std::unordered_map<VertexDesc, std::size_t, boost::hash<VertexDesc>>;
-    using VertexIndexMap = boost::associative_property_map<VertexIndexStorage>;
+    using IdMap = std::map<NodeID, VertexDesc>;
+    using AttrMap = std::map<std::string, std::any>;
+    using NodeAttrStorage = std::map<NodeID, AttrMap>;
+    using EdgeAttrStorage = std::map<std::size_t, AttrMap>;
     static constexpr bool is_directed = Directed;
     static constexpr bool has_builtin_edge_weight = Weighted;
 
 private:
+    static_assert(
+        std::is_invocable_r_v<bool, std::less<NodeID>, const NodeID&, const NodeID&>,
+        "nxpp::Graph requires NodeID to be orderable with std::less because wrapper-owned maps now use std::map."
+    );
+
     GraphType g;
     WeightMap weight_map;
     VertexNameMap vertex_name_map;
-    EdgeIdMap edge_id_map;
-    VertexIndexStorage vertex_index_storage;
     VertexIndexMap vertex_index_map;
-    std::unordered_map<NodeID, VertexDesc> id_to_bgl;
+    EdgeIdMap edge_id_map;
+    IdMap id_to_bgl;
     std::vector<NodeID> bgl_to_id;
     std::size_t next_edge_id = 0;
 
 public:
-    std::unordered_map<NodeID, std::unordered_map<std::string, std::any>> node_properties;
-    std::unordered_map<std::size_t, std::unordered_map<std::string, std::any>> edge_properties;
+    NodeAttrStorage node_properties;
+    EdgeAttrStorage edge_properties;
 
 private:
     static_assert(
@@ -145,7 +263,7 @@ private:
         "nxpp does not support Multi=true with boost::setS because setS suppresses parallel edges."
     );
 
-    using EdgeAttrMap = std::unordered_map<std::string, std::any>;
+    using EdgeAttrMap = AttrMap;
 
     static std::any normalize_attr_any(std::any value) {
         if (value.type() == typeid(const char*)) {
@@ -172,6 +290,30 @@ private:
 
     const NodeID& node_id_of(VertexDesc v) const {
         return boost::get(vertex_name_map, v);
+    }
+
+    template <typename Value, typename BuildValue>
+    indexed_lookup_map<NodeID, Value> build_node_indexed_result(BuildValue&& build_value) const {
+        indexed_lookup_map<NodeID, Value> result;
+        result.reserve(id_to_bgl.size());
+        for (const auto& [id, desc] : id_to_bgl) {
+            result.push_back(id, build_value(desc));
+        }
+        return result;
+    }
+
+    template <typename Value>
+    indexed_lookup_map<NodeID, Value> build_sparse_node_indexed_result(
+        const std::vector<std::optional<Value>>& values
+    ) const {
+        indexed_lookup_map<NodeID, Value> result;
+        for (const auto& [id, desc] : id_to_bgl) {
+            const auto index = get_vertex_index(desc);
+            if (index < values.size() && values[index].has_value()) {
+                result.push_back(id, *values[index]);
+            }
+        }
+        return result;
     }
 
     void rebuild_vertex_maps() {
@@ -275,9 +417,9 @@ public:
         : g(),
           weight_map(built_in_weight_traits<GraphType, Weighted>::get(g)),
           vertex_name_map(boost::get(boost::vertex_name, g)),
+          vertex_index_map(boost::get(boost::vertex_wrapper_index, g)),
           edge_id_map(boost::get(boost::edge_index, g)),
-          vertex_index_storage(),
-          vertex_index_map(vertex_index_storage) {}
+          id_to_bgl() {}
 
     void add_node(const NodeID& id) {
         get_or_create_vertex(id);
@@ -396,8 +538,8 @@ public:
         edge_properties.clear();
         weight_map = built_in_weight_traits<GraphType, Weighted>::get(g);
         vertex_name_map = boost::get(boost::vertex_name, g);
+        vertex_index_map = boost::get(boost::vertex_wrapper_index, g);
         edge_id_map = boost::get(boost::edge_index, g);
-        vertex_index_storage.clear();
         next_edge_id = 0;
     }
 
@@ -554,7 +696,7 @@ public:
     // Accessors for BGL algorithms
     const GraphType& get_impl() const { return g; }
     const std::vector<NodeID>& get_bgl_to_id_map() const { return bgl_to_id; }
-    const std::unordered_map<NodeID, VertexDesc>& get_id_to_bgl_map() const { return id_to_bgl; }
+    const IdMap& get_id_to_bgl_map() const { return id_to_bgl; }
     const NodeID& get_node_id(VertexDesc v) const { return node_id_of(v); }
     std::size_t get_vertex_index(VertexDesc v) const { return vertex_index_of(v); }
 
@@ -793,12 +935,18 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::degree_centrality() const {
     const auto node_count = boost::num_vertices(g);
-    std::unordered_map<NodeID, double> centrality;
-    if (node_count == 0) return centrality;
-    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
-        centrality[get_node_id(*v)] = 0.0;
+    std::vector<double> centrality_by_index(static_cast<std::size_t>(node_count), 0.0);
+    if (node_count == 0) {
+        return indexed_lookup_map<NodeID, double>{};
     }
-    if (node_count <= 1) return centrality;
+    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
+        centrality_by_index[get_vertex_index(*v)] = 0.0;
+    }
+    if (node_count <= 1) {
+        return build_node_indexed_result<double>([&](VertexDesc v) {
+            return centrality_by_index[get_vertex_index(v)];
+        });
+    }
     const double scale = 1.0 / static_cast<double>(node_count - 1);
     for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
         double degree = 0.0;
@@ -807,9 +955,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         } else {
             degree = static_cast<double>(boost::degree(*v, g));
         }
-        centrality[get_node_id(*v)] = degree * scale;
+        centrality_by_index[get_vertex_index(*v)] = degree * scale;
     }
-    return centrality;
+    return build_node_indexed_result<double>([&](VertexDesc v) {
+        return centrality_by_index[get_vertex_index(v)];
+    });
 }
 
 template <typename GraphWrapper>

@@ -61,7 +61,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
             .vertex_index_map(vertex_index_map)
             .color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
     );
-    std::unordered_map<NodeID, NodeID> result;
+    std::map<NodeID, NodeID> result;
     for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
         const auto index = get_vertex_index(*v);
         result[get_node_id(*v)] = get_node_id(parent[index]);

@@ -10,9 +10,18 @@ version entries in `CHANGELOG.md`.
 - Strengthened the opt-in large-graph comparison path so several of the most valuable wrapper-vs-Boost checks now run across multiple fixed seeds instead of trusting a single deterministic graph per scenario.
 - The multi-seed pass currently covers representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` alignment checks.
 - Added a non-default selector regression using `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` so the large-graph path now validates one of the advanced supported graph configurations against raw Boost as well.
+- Started the first `#26` complexity-hardening pass by switching several public result wrappers from hash-backed storage to `std::map`, including `lookup_map`, `SingleSourceShortestPathResult`, Floyd-Warshall's map view, and the rooted Prim parent map.
+- Continued `#26` by switching the core `NodeID -> vertex_descriptor` translation map plus the external node/edge attribute stores to `std::map`, keeping the dominant Boost algorithmic phases unchanged while giving wrapper-managed lookups real tree-based bounds.
+- Updated the public complexity notes so the ordered map costs now cover both the earlier result wrappers and the wrapper-managed node / attribute lookup paths instead of relying on expected hash-table costs.
+- Added a second result-wrapper path for `#26`: `indexed_lookup_map`, which lets `connected_components()`, `strong_component_map()`, and `degree_centrality()` keep linear materialization and the same dominant Boost-side asymptotic order while still offering `O(log V)` key lookup without hash-table assumptions.
+- Extended `indexed_lookup_map` to `strong_components()` too, so the SCC representative/root map now follows the same real-bound, no-hash, linear-materialization story as the other component helpers.
+- Extended the same wrapper to `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()`, so the traversal tree-view helpers now keep the same dominant BFS/DFS complexity as Boost while exposing real `O(log V)` key lookup instead of hash-backed results.
+- Replaced the old external `VertexDesc -> index` hash map inside `Graph` with an internal wrapper-index vertex property, which removes the last big hash-backed dependency from the core BGL algorithm path without narrowing the supported selector combinations.
+- Removed the remaining local `NodeID -> index` hash maps from the flow helpers too, reusing the wrapper's maintained vertex indices directly so the library implementation under `include/nxpp` no longer depends on `std::unordered_map`.
 
 ### Verification
 
+- `timeout 30s bash scripts/run_tests.sh`
 - `timeout 30s bash scripts/run_large_graph_compare.sh`
 
 ### Assets

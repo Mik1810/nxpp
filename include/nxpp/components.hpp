@@ -93,9 +93,9 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         boost::color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
             .vertex_index_map(vertex_index_map)
     );
-    lookup_map<NodeID, int> result;
-    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) result[get_node_id(*v)] = comp[get_vertex_index(*v)];
-    return result;
+    return build_node_indexed_result<int>([&](VertexDesc v) {
+        return comp[get_vertex_index(v)];
+    });
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -128,9 +128,9 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         boost::color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
             .vertex_index_map(vertex_index_map)
     );
-    lookup_map<NodeID, int> result;
-    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) result[get_node_id(*v)] = comp[get_vertex_index(*v)];
-    return result;
+    return build_node_indexed_result<int>([&](VertexDesc v) {
+        return comp[get_vertex_index(v)];
+    });
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -146,12 +146,9 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
             .color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
             .vertex_index_map(vertex_index_map)
     );
-    std::unordered_map<NodeID, NodeID> result;
-    for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
-        const auto index = get_vertex_index(*v);
-        result[get_node_id(*v)] = get_node_id(roots[index]);
-    }
-    return result;
+    return build_node_indexed_result<NodeID>([&](VertexDesc v) {
+        return get_node_id(roots[get_vertex_index(v)]);
+    });
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

@@ -58,7 +58,6 @@ struct MinCostFlowState {
     CapacityMap capacity;
     ResidualMap residual;
     ReverseMap reverse;
-    std::unordered_map<NodeID, std::size_t> node_to_index;
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
     NodeID source_id;
     NodeID target_id;
@@ -76,7 +75,7 @@ struct MinCostFlowState {
 template <typename GraphWrapper>
 auto& min_cost_flow_cache() {
     using NodeID = typename GraphWrapper::NodeType;
-    static std::unordered_map<const void*, std::unique_ptr<MinCostFlowState<NodeID>>> cache;
+    static std::map<const void*, std::unique_ptr<MinCostFlowState<NodeID>>> cache;
     return cache;
 }
 
@@ -166,14 +165,19 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     FlowGraph flow_graph;
     CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
     ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto all_nodes = nodes();
-    std::unordered_map<NodeID, std::size_t> node_to_index;
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); node_to_index[all_nodes[i]] = i; }
+    const auto& all_nodes = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
-        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
         capacity[e] = static_cast<long>(get_edge_numeric_attr(u, v, capacity_attr));
         capacity[rev] = 0;
@@ -182,7 +186,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         original_edges[{u, v}] = e;
     }
 
-    const long flow_value = boost::edmonds_karp_max_flow(flow_graph, node_to_index.at(source_id), node_to_index.at(target_id));
+    const long flow_value = boost::edmonds_karp_max_flow(
+        flow_graph,
+        get_vertex_index(id_to_bgl.at(source_id)),
+        get_vertex_index(id_to_bgl.at(target_id))
+    );
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     MaximumFlowResult<NodeID> result;
     result.value = flow_value;
@@ -207,14 +215,19 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     FlowGraph flow_graph;
     CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
     ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto all_nodes = nodes();
-    std::unordered_map<NodeID, std::size_t> node_to_index;
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); node_to_index[all_nodes[i]] = i; }
+    const auto& all_nodes = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
 
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
-        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
         capacity[e] = static_cast<long>(get_edge_numeric_attr(u, v, capacity_attr));
         capacity[rev] = 0;
@@ -223,7 +236,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         original_edges[{u, v}] = e;
     }
 
-    const long flow_value = boost::push_relabel_max_flow(flow_graph, node_to_index.at(source_id), node_to_index.at(target_id));
+    const long flow_value = boost::push_relabel_max_flow(
+        flow_graph,
+        get_vertex_index(id_to_bgl.at(source_id)),
+        get_vertex_index(id_to_bgl.at(target_id))
+    );
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     MaximumFlowResult<NodeID> result;
     result.value = flow_value;
@@ -250,25 +267,28 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     FlowGraph flow_graph;
     CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
     ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto all_nodes = nodes();
-    std::unordered_map<NodeID, std::size_t> node_to_index;
-    std::vector<NodeID> index_to_node;
-    index_to_node.reserve(all_nodes.size());
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); node_to_index[all_nodes[i]] = i; index_to_node.push_back(all_nodes[i]); }
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
-        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+    const auto& index_to_node = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < index_to_node.size(); ++i) { boost::add_vertex(flow_graph); }
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
         capacity[e] = static_cast<long>(get_edge_numeric_attr(u, v, capacity_attr));
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;
     }
-    const auto source_index = node_to_index.at(source_id);
-    const auto target_index = node_to_index.at(target_id);
+    const auto source_index = get_vertex_index(id_to_bgl.at(source_id));
+    const auto target_index = get_vertex_index(id_to_bgl.at(target_id));
     const long cut_value = boost::edmonds_karp_max_flow(flow_graph, source_index, target_index);
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
-    std::vector<bool> visited(all_nodes.size(), false);
+    std::vector<bool> visited(index_to_node.size(), false);
     std::queue<std::size_t> q;
     visited[source_index] = true;
     q.push(source_index);
@@ -286,7 +306,15 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         if (visited[i]) result.reachable.push_back(index_to_node[i]);
         else result.non_reachable.push_back(index_to_node[i]);
     }
-    for (const auto& [u, v] : edge_pairs()) if (visited[node_to_index.at(u)] && !visited[node_to_index.at(v)]) result.cut_edges.emplace_back(u, v);
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index_for_cut = get_vertex_index(source);
+        const auto target_index_for_cut = get_vertex_index(target);
+        if (visited[source_index_for_cut] && !visited[target_index_for_cut]) {
+            result.cut_edges.emplace_back(get_node_id(source), get_node_id(target));
+        }
+    }
     return result;
 }
 
@@ -310,13 +338,18 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     WeightMap weight = boost::get(boost::edge_weight, flow_graph);
     CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
     ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto all_nodes = nodes();
-    std::unordered_map<NodeID, std::size_t> node_to_index;
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); node_to_index[all_nodes[i]] = i; }
+    const auto& all_nodes = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
-        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
         weight[e] = static_cast<long>(get_edge_numeric_attr(u, v, weight_attr));
         weight[rev] = -weight[e];
@@ -326,7 +359,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         reverse[rev] = e;
         original_edges[{u, v}] = e;
     }
-    boost::push_relabel_max_flow(flow_graph, node_to_index.at(source_id), node_to_index.at(target_id));
+    boost::push_relabel_max_flow(
+        flow_graph,
+        get_vertex_index(id_to_bgl.at(source_id)),
+        get_vertex_index(id_to_bgl.at(target_id))
+    );
     boost::cycle_canceling(flow_graph);
     const long cost = boost::find_flow_cost(flow_graph);
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
@@ -345,11 +382,17 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     auto state = std::make_unique<detail::MinCostFlowState<NodeID>>();
     state->source_id = source_id;
     state->target_id = target_id;
-    const auto all_nodes = nodes();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(state->flow_graph); state->node_to_index[all_nodes[i]] = i; }
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(state->node_to_index.at(u), state->node_to_index.at(v), state->flow_graph);
-        auto [rev, rev_added] = boost::add_edge(state->node_to_index.at(v), state->node_to_index.at(u), state->flow_graph);
+    const auto& all_nodes = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(state->flow_graph); }
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, state->flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, state->flow_graph);
         (void)added; (void)rev_added;
         state->weight[e] = static_cast<long>(get_edge_numeric_attr(u, v, weight_attr));
         state->weight[rev] = -state->weight[e];
@@ -359,7 +402,11 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         state->reverse[rev] = e;
         state->original_edges[{u, v}] = e;
     }
-    state->value = boost::push_relabel_max_flow(state->flow_graph, state->node_to_index.at(source_id), state->node_to_index.at(target_id));
+    state->value = boost::push_relabel_max_flow(
+        state->flow_graph,
+        get_vertex_index(id_to_bgl.at(source_id)),
+        get_vertex_index(id_to_bgl.at(target_id))
+    );
     auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
     cache[static_cast<const void*>(this)] = std::move(state);
     return cache.at(static_cast<const void*>(this))->value;
@@ -401,13 +448,18 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     WeightMap weight = boost::get(boost::edge_weight, flow_graph);
     CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
     ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto all_nodes = nodes();
-    std::unordered_map<NodeID, std::size_t> node_to_index;
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); node_to_index[all_nodes[i]] = i; }
+    const auto& all_nodes = get_bgl_to_id_map();
+    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
     std::map<std::pair<NodeID, NodeID>, FlowEdgeDesc> original_edges;
-    for (const auto& [u, v] : edge_pairs()) {
-        auto [e, added] = boost::add_edge(node_to_index.at(u), node_to_index.at(v), flow_graph);
-        auto [rev, rev_added] = boost::add_edge(node_to_index.at(v), node_to_index.at(u), flow_graph);
+    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, g);
+        const auto target = boost::target(*eit, g);
+        const auto source_index = get_vertex_index(source);
+        const auto target_index = get_vertex_index(target);
+        const auto& u = get_node_id(source);
+        const auto& v = get_node_id(target);
+        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
+        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
         weight[e] = static_cast<long>(get_edge_numeric_attr(u, v, weight_attr));
         weight[rev] = -weight[e];
@@ -417,10 +469,12 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         reverse[rev] = e;
         original_edges[{u, v}] = e;
     }
-    boost::successive_shortest_path_nonnegative_weights(flow_graph, node_to_index.at(source_id), node_to_index.at(target_id));
+    const auto source_index = get_vertex_index(id_to_bgl.at(source_id));
+    const auto target_index = get_vertex_index(id_to_bgl.at(target_id));
+    boost::successive_shortest_path_nonnegative_weights(flow_graph, source_index, target_index);
     ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     long flow_value = 0;
-    for (auto [eit, eend] = boost::out_edges(node_to_index.at(source_id), flow_graph); eit != eend; ++eit) flow_value += capacity[*eit] - residual[*eit];
+    for (auto [eit, eend] = boost::out_edges(source_index, flow_graph); eit != eend; ++eit) flow_value += capacity[*eit] - residual[*eit];
     const long cost = boost::find_flow_cost(flow_graph);
     MinCostMaxFlowResult<NodeID> result;
     result.flow = flow_value;

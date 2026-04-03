@@ -7,6 +7,14 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Strengthened the opt-in large-graph comparison driver so representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` checks now run across multiple fixed deterministic seeds instead of relying on one seed per scenario.
 - Added a large-graph regression that builds `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` and verifies that non-default selector usage still matches raw Boost after large `remove_node()` mutations and Dijkstra recomputation.
 - Kept the expanded verification path inside `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh`, so the extra confidence stays opt-in without slowing down the default fast suite in `scripts/run_tests.sh`.
+- Began the first implementation pass for `#26` by moving `lookup_map`, `SingleSourceShortestPathResult`, `floyd_warshall_all_pairs_shortest_paths_map()`, and the rooted Prim parent-map result onto `std::map`, so those public result paths now rely on real tree-based bounds instead of expected hash-table behavior.
+- Continued `#26` by moving the wrapper-owned `NodeID -> vertex_descriptor` translation map and external node/edge attribute stores onto `std::map`, so the core wrapper lookup path now has real tree-based bounds too.
+- Updated the complexity documentation to reflect the new ordered-map costs explicitly, including the extra `V log V` materialization work for the affected shortest-path and component-map helpers and the `log` terms now paid by wrapper-managed node/attribute lookups.
+- Added an `indexed_lookup_map` result wrapper and switched `connected_components()`, `strong_component_map()`, and `degree_centrality()` onto it, so those helpers keep linear materialization and their Boost-dominant asymptotic order while still exposing `O(log V)` key lookup with no hash-table assumptions.
+- Extended the same indexed-wrapper approach to `strong_components()` / `strongly_connected_component_roots()`, so the SCC representative map also keeps linear materialization while exposing real `O(log V)` key lookup.
+- Extended `indexed_lookup_map` to `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()`, so the traversal tree-view helpers also keep linear materialization while dropping the earlier hash-table-based result containers.
+- Replaced the old external `VertexDesc -> index` hash map with an internal per-vertex wrapper-index property in `Graph`, so the main BGL algorithm path no longer depends on `std::unordered_map` for vertex-index normalization.
+- Removed the local `NodeID -> flow-graph-index` hash maps from the flow helpers and switched those auxiliary builders to the existing wrapper index, so the library implementation no longer relies on `std::unordered_map` in `include/nxpp`.
 
 ## [0.7.12] - 2026-03-30
 

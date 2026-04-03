@@ -78,6 +78,16 @@ That matters because `nxpp` often does extra work around the Boost call itself, 
 
 So the complexity tables below describe the cost of the **full `nxpp` function call**.
 
+Where `nxpp` now materializes ordered map-like public results, those notes also
+count the real `O(log n)` insertion/lookup behavior of the underlying
+`std::map` storage instead of treating hash-table behavior as expected `O(1)`.
+Some other results now use indexed wrappers that keep linear materialization
+cost while still giving `O(log n)` key lookup. The detailed API reference calls
+out which helpers use ordered maps and which use indexed wrappers.
+
+See [`docs/COMPLEXITY.md`](docs/COMPLEXITY.md) for the fuller distinction
+between Boost's algorithmic complexity and `nxpp`'s full public-call cost.
+
 ### 2. Multigraph APIs are still the weakest part of the public surface
 
 For simple graphs, calls such as `has_edge(u, v)`, `get_edge_weight(u, v)`, `get_edge_attr(u, v, key)`, `G[u][v]`, and `remove_edge(u, v)` are straightforward.
@@ -145,6 +155,7 @@ These repository files should have clearly separated roles:
 - [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md): detailed public API tables and technical reference
 - [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
 - [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md): supported BGL configurability surface and advanced-knob policy
+- [`docs/COMPLEXITY.md`](docs/COMPLEXITY.md): complexity policy and Boost-vs-`nxpp` cost model
 - [`docs/TEST.md`](docs/TEST.md): testing layers, test commands, and verification scope
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
@@ -594,7 +605,7 @@ This shows the three main ideas of the library:
 
 - graph mutation through a small wrapper API
 - checked node / edge attribute access
-- richer result wrappers such as `dijkstra_shortest_paths()`
+- richer result wrappers such as `dijkstra_shortest_paths()` and indexed component views
 
 ---
 
@@ -604,9 +615,9 @@ This shows the three main ideas of the library:
 
 - `id_to_bgl`: `NodeID -> vertex_descriptor`
 - `bgl_to_id`: index-ordered `NodeID` storage used for normalized wrapper results
-- a maintained `vertex_index_map`: `vertex_descriptor -> stable wrapper index`
+- a maintained wrapper index property on each vertex, exposed as `vertex_index_map` for BGL algorithms
 
-This lets the public API use `std::string`, `int`, or other hashable node IDs while running algorithms on a normal BGL graph internally.
+This lets the public API use `std::string`, `int`, or other orderable node IDs while running algorithms on a normal BGL graph internally.
 
 ### Consequence
 

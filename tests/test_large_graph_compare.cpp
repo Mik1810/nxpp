@@ -3,6 +3,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <optional>
 #include <queue>
 #include <random>
@@ -658,7 +659,7 @@ void raw_remove_node_named(GraphType& graph, int node_id) {
     boost::remove_vertex(it->second, graph);
 }
 
-std::unordered_map<int, int> raw_named_dijkstra_distances(
+std::map<int, int> raw_named_dijkstra_distances(
     const RawNamedDirectedWeightedGraph& graph,
     int source_id
 ) {
@@ -680,7 +681,7 @@ std::unordered_map<int, int> raw_named_dijkstra_distances(
         )
     );
 
-    std::unordered_map<int, int> result;
+    std::map<int, int> result;
     const auto name_map = boost::get(boost::vertex_name, graph);
     for (auto [vertex_it, vertex_end] = boost::vertices(graph); vertex_it != vertex_end; ++vertex_it) {
         result.emplace(boost::get(name_map, *vertex_it), distances[static_cast<std::size_t>(*vertex_it)]);
@@ -755,12 +756,11 @@ void raw_named_remove_weighted_edges_between(
     }
 }
 
-std::unordered_map<int, std::unordered_map<int, int>> raw_named_all_pairs_dijkstra_map(
+std::map<int, std::map<int, int>> raw_named_all_pairs_dijkstra_map(
     const RawNamedDirectedWeightedGraph& graph
 ) {
-    std::unordered_map<int, std::unordered_map<int, int>> result;
+    std::map<int, std::map<int, int>> result;
     const auto nodes = raw_named_nodes_sorted(graph);
-    result.reserve(nodes.size());
     for (const int source_id : nodes) {
         result.emplace(source_id, raw_named_dijkstra_distances(graph, source_id));
     }
@@ -1078,8 +1078,9 @@ std::vector<int> normalized_component_labels(const std::vector<int>& labels) {
     return normalized;
 }
 
+template <typename DistanceMap>
 std::vector<int> extract_distance_vector(
-    const std::unordered_map<int, int>& distance_map,
+    const DistanceMap& distance_map,
     int num_nodes
 ) {
     std::vector<int> distances(static_cast<std::size_t>(num_nodes));

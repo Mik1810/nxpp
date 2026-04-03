@@ -11,19 +11,19 @@ namespace nxpp {
 
 template <typename NodeID, typename Distance = double>
 struct SingleSourceShortestPathResult {
-    std::unordered_map<NodeID, Distance> distance;
-    std::unordered_map<NodeID, NodeID> predecessor;
-    std::unordered_map<NodeID, std::vector<NodeID>> paths;
+    std::map<NodeID, Distance> distance;
+    std::map<NodeID, NodeID> predecessor;
+    std::map<NodeID, std::vector<NodeID>> paths;
 };
 
 template <typename GraphWrapper, typename Distance, typename VertexDesc>
-std::unordered_map<typename GraphWrapper::NodeType, std::vector<typename GraphWrapper::NodeType>> build_single_source_paths(
+std::map<typename GraphWrapper::NodeType, std::vector<typename GraphWrapper::NodeType>> build_single_source_paths(
     const GraphWrapper& graph_wrapper,
     const std::vector<Distance>& dist,
     const std::vector<VertexDesc>& pred
 ) {
     using NodeID = typename GraphWrapper::NodeType;
-    std::unordered_map<NodeID, std::vector<NodeID>> paths;
+    std::map<NodeID, std::vector<NodeID>> paths;
     const auto unreachable = std::numeric_limits<Distance>::max();
     const auto& bgl_to_id = graph_wrapper.get_bgl_to_id_map();
 
@@ -614,7 +614,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         std::sort(order.begin(), order.end(), [&](size_t lhs, size_t rhs) { return bgl_to_id[lhs] < bgl_to_id[rhs]; });
     }
     const auto matrix = floyd_warshall_all_pairs_shortest_paths();
-    std::unordered_map<NodeID, std::unordered_map<NodeID, EdgeWeight>> result;
+    std::map<NodeID, std::map<NodeID, EdgeWeight>> result;
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
             result[bgl_to_id[order[i]]][bgl_to_id[order[j]]] = matrix[i][j];
