@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.7.13] - 2026-04-03
+
+- Strengthened the opt-in large-graph comparison driver so representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` checks now run across multiple fixed deterministic seeds instead of relying on one seed per scenario.
+- Added a large-graph regression that builds `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` and verifies that non-default selector usage still matches raw Boost after large `remove_node()` mutations and Dijkstra recomputation.
+- Kept the expanded verification path inside `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh`, so the extra confidence stays opt-in without slowing down the default fast suite in `scripts/run_tests.sh`.
+
 ## [0.7.12] - 2026-03-30
 
 - Added `tests/test_large_graph_compare.cpp` plus `scripts/run_large_graph_compare.sh` as an opt-in large-graph verification path that generates deterministic graph instances and compares `nxpp` results against raw Boost on BFS, DFS, connected components, strongly connected components, Dijkstra, Bellman-Ford, DAG shortest paths, reachable negative-cycle detection, post-`remove_node()` graph state, large multigraph mutation behavior, attribute preservation/cleanup after repeated mutations, combined weighted-graph mutation sequences, Floyd-Warshall all-pairs shortest paths, large maximum-flow/minimum-cut results, and large successive-shortest-path min-cost flow.

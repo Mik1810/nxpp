@@ -97,6 +97,9 @@ using RawCostFlowGraph = boost::adjacency_list<
                 long,
                 boost::property<boost::edge_reverse_t, RawFlowTraits::edge_descriptor>>>>>;
 
+using NxppWeightedDiGraphIntListSelectors =
+    nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>;
+
 struct LargeUndirectedGraphInput {
     int num_nodes;
     std::vector<std::pair<int, int>> edges;
@@ -564,6 +567,18 @@ nxpp::UnweightedGraphInt build_nxpp_undirected_graph(const LargeUndirectedGraphI
     return graph;
 }
 
+template <typename GraphType>
+GraphType build_nxpp_undirected_graph_typed(const LargeUndirectedGraphInput& input) {
+    GraphType graph;
+    for (int node = 0; node < input.num_nodes; ++node) {
+        graph.add_node(node);
+    }
+    for (const auto& [u, v] : input.edges) {
+        graph.add_edge(u, v);
+    }
+    return graph;
+}
+
 nxpp::WeightedDiGraphInt build_nxpp_directed_weighted_graph(const LargeDirectedWeightedGraphInput& input) {
     nxpp::WeightedDiGraphInt graph;
     for (int node = 0; node < input.num_nodes; ++node) {
@@ -575,8 +590,32 @@ nxpp::WeightedDiGraphInt build_nxpp_directed_weighted_graph(const LargeDirectedW
     return graph;
 }
 
+template <typename GraphType>
+GraphType build_nxpp_directed_weighted_graph_typed(const LargeDirectedWeightedGraphInput& input) {
+    GraphType graph;
+    for (int node = 0; node < input.num_nodes; ++node) {
+        graph.add_node(node);
+    }
+    for (const auto& [u, v, weight] : input.edges) {
+        graph.add_edge(u, v, weight);
+    }
+    return graph;
+}
+
 nxpp::UnweightedDiGraphInt build_nxpp_directed_graph(const LargeDirectedGraphInput& input) {
     nxpp::UnweightedDiGraphInt graph;
+    for (int node = 0; node < input.num_nodes; ++node) {
+        graph.add_node(node);
+    }
+    for (const auto& [u, v] : input.edges) {
+        graph.add_edge(u, v);
+    }
+    return graph;
+}
+
+template <typename GraphType>
+GraphType build_nxpp_directed_graph_typed(const LargeDirectedGraphInput& input) {
+    GraphType graph;
     for (int node = 0; node < input.num_nodes; ++node) {
         graph.add_node(node);
     }
@@ -1075,61 +1114,70 @@ std::vector<int> raw_dag_shortest_path_distances(
     return distances;
 }
 
+const std::vector<std::uint32_t>& large_graph_regression_seeds() {
+    static const std::vector<std::uint32_t> seeds = {1337u, 2026u, 42424u};
+    return seeds;
+}
+
 void test_large_bfs_matches_raw_boost() {
     constexpr int start_node = 0;
-    const auto input = generate_large_partitioned_undirected_graph(
-        {1500, 1200, 900},
-        {4500, 3600, 2700},
-        1337u
-    );
+    for (const auto seed : large_graph_regression_seeds()) {
+        const auto input = generate_large_partitioned_undirected_graph(
+            {1500, 1200, 900},
+            {4500, 3600, 2700},
+            seed
+        );
 
-    const auto nxpp_graph = build_nxpp_undirected_graph(input);
-    const auto raw_graph = build_raw_undirected_graph(input);
+        const auto nxpp_graph = build_nxpp_undirected_graph(input);
+        const auto raw_graph = build_raw_undirected_graph(input);
 
-    const auto nxpp_tree_edges = nxpp_graph.bfs_edges(start_node);
-    const auto nxpp_depth = bfs_tree_edges_to_depths(input.num_nodes, start_node, nxpp_tree_edges);
+        const auto nxpp_tree_edges = nxpp_graph.bfs_edges(start_node);
+        const auto nxpp_depth = bfs_tree_edges_to_depths(input.num_nodes, start_node, nxpp_tree_edges);
 
-    std::vector<std::pair<int, int>> raw_tree_edges;
-    std::vector<boost::default_color_type> color(static_cast<std::size_t>(input.num_nodes));
-    RawBfsTreeEdgeCollector visitor(raw_graph, raw_tree_edges);
-    boost::breadth_first_search(
-        raw_graph,
-        boost::vertex(start_node, raw_graph),
-        boost::visitor(visitor).color_map(
-            boost::make_iterator_property_map(color.begin(), boost::get(boost::vertex_index, raw_graph))
-        )
-    );
-    const auto raw_depth = bfs_tree_edges_to_depths(input.num_nodes, start_node, raw_tree_edges);
+        std::vector<std::pair<int, int>> raw_tree_edges;
+        std::vector<boost::default_color_type> color(static_cast<std::size_t>(input.num_nodes));
+        RawBfsTreeEdgeCollector visitor(raw_graph, raw_tree_edges);
+        boost::breadth_first_search(
+            raw_graph,
+            boost::vertex(start_node, raw_graph),
+            boost::visitor(visitor).color_map(
+                boost::make_iterator_property_map(color.begin(), boost::get(boost::vertex_index, raw_graph))
+            )
+        );
+        const auto raw_depth = bfs_tree_edges_to_depths(input.num_nodes, start_node, raw_tree_edges);
 
-    expect(nxpp_depth == raw_depth, "large-graph BFS depth map should match raw Boost");
+        expect(nxpp_depth == raw_depth, "large-graph BFS depth map should match raw Boost across regression seeds");
+    }
 }
 
 void test_large_connected_components_match_raw_boost() {
-    const auto input = generate_large_partitioned_undirected_graph(
-        {1500, 1200, 900, 1},
-        {4500, 3600, 2700, 0},
-        1337u
-    );
+    for (const auto seed : large_graph_regression_seeds()) {
+        const auto input = generate_large_partitioned_undirected_graph(
+            {1500, 1200, 900, 1},
+            {4500, 3600, 2700, 0},
+            seed
+        );
 
-    const auto nxpp_graph = build_nxpp_undirected_graph(input);
-    const auto raw_graph = build_raw_undirected_graph(input);
+        const auto nxpp_graph = build_nxpp_undirected_graph(input);
+        const auto raw_graph = build_raw_undirected_graph(input);
 
-    const auto nxpp_component_map = nxpp_graph.connected_components();
-    std::vector<int> nxpp_labels(static_cast<std::size_t>(input.num_nodes));
-    for (int node = 0; node < input.num_nodes; ++node) {
-        nxpp_labels[static_cast<std::size_t>(node)] = nxpp_component_map.at(node);
+        const auto nxpp_component_map = nxpp_graph.connected_components();
+        std::vector<int> nxpp_labels(static_cast<std::size_t>(input.num_nodes));
+        for (int node = 0; node < input.num_nodes; ++node) {
+            nxpp_labels[static_cast<std::size_t>(node)] = nxpp_component_map.at(node);
+        }
+
+        std::vector<int> raw_labels(static_cast<std::size_t>(input.num_nodes), -1);
+        boost::connected_components(
+            raw_graph,
+            boost::make_iterator_property_map(raw_labels.begin(), boost::get(boost::vertex_index, raw_graph))
+        );
+
+        expect(
+            normalized_component_labels(nxpp_labels) == normalized_component_labels(raw_labels),
+            "large-graph connected-component partition should match raw Boost across regression seeds"
+        );
     }
-
-    std::vector<int> raw_labels(static_cast<std::size_t>(input.num_nodes), -1);
-    boost::connected_components(
-        raw_graph,
-        boost::make_iterator_property_map(raw_labels.begin(), boost::get(boost::vertex_index, raw_graph))
-    );
-
-    expect(
-        normalized_component_labels(nxpp_labels) == normalized_component_labels(raw_labels),
-        "large-graph connected-component partition should match raw Boost"
-    );
 }
 
 void test_large_dfs_tree_matches_raw_boost() {
@@ -1159,68 +1207,72 @@ void test_large_dfs_tree_matches_raw_boost() {
 }
 
 void test_large_strongly_connected_components_match_raw_boost() {
-    const auto input = generate_large_scc_digraph(
-        {900, 700, 500, 1},
-        {3500, 2500, 1800, 0},
-        200,
-        9090u
-    );
+    for (const auto seed : large_graph_regression_seeds()) {
+        const auto input = generate_large_scc_digraph(
+            {900, 700, 500, 1},
+            {3500, 2500, 1800, 0},
+            200,
+            seed
+        );
 
-    const auto nxpp_graph = build_nxpp_directed_graph(input);
-    const auto raw_graph = build_raw_directed_graph(input);
+        const auto nxpp_graph = build_nxpp_directed_graph(input);
+        const auto raw_graph = build_raw_directed_graph(input);
 
-    const auto nxpp_component_map = nxpp_graph.strongly_connected_component_map();
-    std::vector<int> nxpp_labels(static_cast<std::size_t>(input.num_nodes));
-    for (int node = 0; node < input.num_nodes; ++node) {
-        nxpp_labels[static_cast<std::size_t>(node)] = nxpp_component_map.at(node);
+        const auto nxpp_component_map = nxpp_graph.strongly_connected_component_map();
+        std::vector<int> nxpp_labels(static_cast<std::size_t>(input.num_nodes));
+        for (int node = 0; node < input.num_nodes; ++node) {
+            nxpp_labels[static_cast<std::size_t>(node)] = nxpp_component_map.at(node);
+        }
+
+        std::vector<int> raw_labels(static_cast<std::size_t>(input.num_nodes), -1);
+        boost::strong_components(
+            raw_graph,
+            boost::make_iterator_property_map(raw_labels.begin(), boost::get(boost::vertex_index, raw_graph))
+        );
+
+        expect(
+            normalized_component_labels(nxpp_labels) == normalized_component_labels(raw_labels),
+            "large-graph strongly-connected-component partition should match raw Boost across regression seeds"
+        );
     }
-
-    std::vector<int> raw_labels(static_cast<std::size_t>(input.num_nodes), -1);
-    boost::strong_components(
-        raw_graph,
-        boost::make_iterator_property_map(raw_labels.begin(), boost::get(boost::vertex_index, raw_graph))
-    );
-
-    expect(
-        normalized_component_labels(nxpp_labels) == normalized_component_labels(raw_labels),
-        "large-graph strongly-connected-component partition should match raw Boost"
-    );
 }
 
 void test_large_dijkstra_distances_match_raw_boost() {
     constexpr int source_node = 0;
-    const auto input = generate_component_weighted_digraph(
-        {2800, 399, 1},
-        {12000, 1200, 0},
-        2026u,
-        1,
-        20,
-        false
-    );
+    for (const auto seed : large_graph_regression_seeds()) {
+        const auto input = generate_component_weighted_digraph(
+            {2800, 399, 1},
+            {12000, 1200, 0},
+            seed,
+            1,
+            20,
+            false
+        );
 
-    const auto nxpp_graph = build_nxpp_directed_weighted_graph(input);
-    const auto raw_graph = build_raw_directed_weighted_graph(input);
+        const auto nxpp_graph = build_nxpp_directed_weighted_graph(input);
+        const auto raw_graph = build_raw_directed_weighted_graph(input);
 
-    const auto nxpp_result = nxpp_graph.dijkstra_shortest_paths(source_node);
-    std::vector<int> nxpp_distances(static_cast<std::size_t>(input.num_nodes));
-    for (int node = 0; node < input.num_nodes; ++node) {
-        nxpp_distances[static_cast<std::size_t>(node)] = nxpp_result.distance.at(node);
+        const auto nxpp_result = nxpp_graph.dijkstra_shortest_paths(source_node);
+        std::vector<int> nxpp_distances(static_cast<std::size_t>(input.num_nodes));
+        for (int node = 0; node < input.num_nodes; ++node) {
+            nxpp_distances[static_cast<std::size_t>(node)] = nxpp_result.distance.at(node);
+        }
+
+        std::vector<int> raw_distances(
+            static_cast<std::size_t>(input.num_nodes),
+            std::numeric_limits<int>::max()
+        );
+        boost::dijkstra_shortest_paths(
+            raw_graph,
+            boost::vertex(source_node, raw_graph),
+            boost::distance_map(
+                boost::make_iterator_property_map(raw_distances.begin(), boost::get(boost::vertex_index, raw_graph))
+            )
+        );
+
+        expect(nxpp_distances == raw_distances,
+               "large-graph Dijkstra distances should match raw Boost across regression seeds");
     }
-
-    std::vector<int> raw_distances(
-        static_cast<std::size_t>(input.num_nodes),
-        std::numeric_limits<int>::max()
-    );
-    boost::dijkstra_shortest_paths(
-        raw_graph,
-        boost::vertex(source_node, raw_graph),
-        boost::distance_map(
-            boost::make_iterator_property_map(raw_distances.begin(), boost::get(boost::vertex_index, raw_graph))
-        )
-    );
-
-    expect(nxpp_distances == raw_distances,
-           "large-graph Dijkstra distances should match raw Boost");
 }
 
 void test_large_bellman_ford_distances_match_raw_boost() {
@@ -1318,43 +1370,81 @@ void test_negative_cycle_detection_matches_raw_boost() {
 }
 
 void test_large_remove_node_state_stays_aligned_with_raw_boost() {
+    for (const auto seed : large_graph_regression_seeds()) {
+        const auto input = generate_component_weighted_digraph(
+            {2000, 400, 1},
+            {8000, 1200, 0},
+            seed,
+            1,
+            20,
+            false
+        );
+
+        auto nxpp_graph = build_nxpp_directed_weighted_graph(input);
+        auto raw_graph = build_raw_named_directed_weighted_graph(input);
+
+        nxpp_graph.node(400)["role"] = "remove-me";
+        nxpp_graph.node(2400)["role"] = "isolated";
+        nxpp_graph[399][400]["kind"] = "incident";
+        nxpp_graph[1200][1201]["kind"] = "survivor";
+
+        for (const int node_id : {400, 2399, 2400}) {
+            nxpp_graph.remove_node(node_id);
+            raw_remove_node_named(raw_graph, node_id);
+        }
+
+        expect(nxpp_nodes_sorted(nxpp_graph) == raw_named_nodes_sorted(raw_graph),
+               "remaining node ids after large remove_node should match raw Boost across regression seeds");
+        expect(nxpp_weighted_edges_sorted(nxpp_graph) == raw_named_weighted_edges_sorted(raw_graph),
+               "remaining weighted edge set after large remove_node should match raw Boost across regression seeds");
+        expect(nxpp_graph.dijkstra_shortest_paths(0).distance == raw_named_dijkstra_distances(raw_graph, 0),
+               "Dijkstra distances after large remove_node should match raw Boost across regression seeds");
+
+        expect(!nxpp_graph.has_node_attr(400, "role"),
+               "removed large-graph node should lose its stored attributes");
+        expect(!nxpp_graph.has_node(2400),
+               "removed isolated node should disappear from the graph");
+        expect(!nxpp_graph.has_edge_attr(399, 400, "kind"),
+               "incident edge attributes should be cleaned after large remove_node");
+        expect(nxpp_graph.has_edge_attr(1200, 1201, "kind"),
+               "non-incident edge attributes should survive large remove_node");
+    }
+}
+
+void test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost() {
     const auto input = generate_component_weighted_digraph(
-        {2000, 400, 1},
-        {8000, 1200, 0},
+        {1200, 250, 1},
+        {4800, 700, 0},
         8080u,
         1,
         20,
         false
     );
 
-    auto nxpp_graph = build_nxpp_directed_weighted_graph(input);
+    auto nxpp_graph = build_nxpp_directed_weighted_graph_typed<NxppWeightedDiGraphIntListSelectors>(input);
     auto raw_graph = build_raw_named_directed_weighted_graph(input);
 
-    nxpp_graph.node(400)["role"] = "remove-me";
-    nxpp_graph.node(2400)["role"] = "isolated";
-    nxpp_graph[399][400]["kind"] = "incident";
-    nxpp_graph[1200][1201]["kind"] = "survivor";
+    nxpp_graph.node(200)["role"] = "remove-me";
+    nxpp_graph[199][200]["kind"] = "incident";
+    nxpp_graph[700][701]["kind"] = "survivor";
 
-    for (const int node_id : {400, 2399, 2400}) {
+    for (const int node_id : {200, 1449, 1450}) {
         nxpp_graph.remove_node(node_id);
         raw_remove_node_named(raw_graph, node_id);
     }
 
     expect(nxpp_nodes_sorted(nxpp_graph) == raw_named_nodes_sorted(raw_graph),
-           "remaining node ids after large remove_node should match raw Boost");
+           "custom-selector graph nodes should stay aligned with raw Boost after remove_node");
     expect(nxpp_weighted_edges_sorted(nxpp_graph) == raw_named_weighted_edges_sorted(raw_graph),
-           "remaining weighted edge set after large remove_node should match raw Boost");
+           "custom-selector graph edges should stay aligned with raw Boost after remove_node");
     expect(nxpp_graph.dijkstra_shortest_paths(0).distance == raw_named_dijkstra_distances(raw_graph, 0),
-           "Dijkstra distances after large remove_node should match raw Boost");
-
-    expect(!nxpp_graph.has_node_attr(400, "role"),
-           "removed large-graph node should lose its stored attributes");
-    expect(!nxpp_graph.has_node(2400),
-           "removed isolated node should disappear from the graph");
-    expect(!nxpp_graph.has_edge_attr(399, 400, "kind"),
-           "incident edge attributes should be cleaned after large remove_node");
-    expect(nxpp_graph.has_edge_attr(1200, 1201, "kind"),
-           "non-incident edge attributes should survive large remove_node");
+           "custom-selector graph Dijkstra distances should match raw Boost after remove_node");
+    expect(!nxpp_graph.has_node_attr(200, "role"),
+           "custom-selector remove_node should clear removed node attributes");
+    expect(!nxpp_graph.has_edge_attr(199, 200, "kind"),
+           "custom-selector remove_node should clear incident edge attributes");
+    expect(nxpp_graph.has_edge_attr(700, 701, "kind"),
+           "custom-selector remove_node should preserve non-incident edge attributes");
 }
 
 void test_large_multigraph_mutations_stay_aligned_with_raw_boost() {
@@ -1643,7 +1733,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 15;
+    constexpr int total = 16;
 
     passed += run_test("large BFS matches raw Boost", test_large_bfs_matches_raw_boost) ? 1 : 0;
     passed += run_test("large DFS tree matches raw Boost", test_large_dfs_tree_matches_raw_boost) ? 1 : 0;
@@ -1654,6 +1744,7 @@ int main() {
     passed += run_test("large DAG shortest paths match raw Boost", test_large_dag_shortest_paths_match_raw_boost) ? 1 : 0;
     passed += run_test("negative cycle detection matches raw Boost", test_negative_cycle_detection_matches_raw_boost) ? 1 : 0;
     passed += run_test("large remove_node state stays aligned with raw Boost", test_large_remove_node_state_stays_aligned_with_raw_boost) ? 1 : 0;
+    passed += run_test("large custom-selector Dijkstra and remove_node match raw Boost", test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost) ? 1 : 0;
     passed += run_test("large multigraph mutations stay aligned with raw Boost", test_large_multigraph_mutations_stay_aligned_with_raw_boost) ? 1 : 0;
     passed += run_test("large attribute state survives repeated mutations", test_large_attribute_state_survives_repeated_mutations) ? 1 : 0;
     passed += run_test("large combined weighted mutation sequence matches raw Boost", test_large_combined_weighted_mutation_sequence_matches_raw_boost) ? 1 : 0;

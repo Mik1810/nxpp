@@ -3,6 +3,22 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.7.13]
+
+### Highlights
+
+- Strengthened the opt-in large-graph comparison path so several of the most valuable wrapper-vs-Boost checks now run across multiple fixed seeds instead of trusting a single deterministic graph per scenario.
+- The multi-seed pass currently covers representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` alignment checks.
+- Added a non-default selector regression using `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` so the large-graph path now validates one of the advanced supported graph configurations against raw Boost as well.
+
+### Verification
+
+- `timeout 30s bash scripts/run_large_graph_compare.sh`
+
+### Assets
+
+- This change does not add a new release asset, but it makes the large-graph correctness story materially stronger for both default and non-default supported graph configurations.
+
 ## [0.7.12]
 
 ### Highlights

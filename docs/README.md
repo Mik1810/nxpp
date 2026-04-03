@@ -9,6 +9,7 @@ What currently lives here:
 - [`API_REFERENCE.md`](API_REFERENCE.md): detailed public API tables, alias reference, proxy syntax, and algorithm/helper reference
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
+- [`TEST.md`](TEST.md): testing layers, commands, and verification-scope guide
 
 The repo now has a real semantic-header split under `include/nxpp/`:
 

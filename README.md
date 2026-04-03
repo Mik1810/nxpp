@@ -1,6 +1,6 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
-Current release: `v0.6.0` (March 29, 2026)
+Current release: `v0.7.12` (March 30, 2026)
 
 <p align="center">
   <img src="imgs/logo.svg" alt="nxpp logo" width="220">
@@ -36,13 +36,13 @@ with public aliases such as:
 
 ## Project status
 
-`nxpp` is now released as `v0.6.0`.
+`nxpp` is now released as `v0.7.12`.
 
 > [!WARNING]
 > The public API is still settling.
 > The biggest open work is no longer the critical multigraph block or the first
-> formal-test block, but the next round of documentation cleanup, packaging
-> polish, and support-matrix clarity.
+> formal-test block, but the next round of documentation cleanup, generated-docs
+> scaffolding, packaging polish, and broader CI / usage clarity.
 
 Today, the project is strongest as:
 
@@ -54,9 +54,9 @@ Today, the project is strongest as:
 
 The most important open issue groups right now are:
 
-- documentation/source-of-truth/testing-story cleanup: `#29`, `#30`, `#31`
-- broader follow-up verification and maintenance beyond the first formal-test block
-- packaging / release ergonomics after the first versioned releases
+- documentation/generated-docs/testing-story cleanup: `#28`, `#30`
+- API safety / complexity / attribute-system follow-up: `#25`, `#26`, `#27`
+- packaging / external-usage / CI follow-up: `#17`, `#18`, `#20`
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 
@@ -145,6 +145,7 @@ These repository files should have clearly separated roles:
 - [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md): detailed public API tables and technical reference
 - [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
 - [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md): supported BGL configurability surface and advanced-knob policy
+- [`docs/TEST.md`](docs/TEST.md): testing layers, test commands, and verification scope
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
 
@@ -304,6 +305,10 @@ The assertion-based test suite now has a dedicated runner:
 bash scripts/run_tests.sh
 ```
 
+See [`docs/TEST.md`](docs/TEST.md) for the full distinction between showcases,
+snippet parity, the formal suite, single-header validation, and the large-graph
+comparison path.
+
 There is also an opt-in large-graph comparison runner:
 
 ```bash
@@ -332,6 +337,13 @@ deterministic larger graph instances, and compares `nxpp` against raw Boost for:
 It is intentionally kept outside `bash scripts/run_tests.sh` so the default
 formal suite stays fast while the larger comparison path remains available when
 you want extra confidence on wrapper behavior at scale.
+
+The large-graph driver now also re-runs representative BFS, connected-component,
+strongly-connected-component, Dijkstra, and `remove_node()` comparisons across
+multiple fixed seeds instead of relying on one seed per scenario, and it
+includes a non-default `boost::listS` / `boost::listS` selector regression so
+the comparison path exercises more of the supported wrapper configuration
+surface than the default aliases alone.
 
 and a dedicated GitHub Actions workflow:
 
