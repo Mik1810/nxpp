@@ -134,3 +134,25 @@ This minimal CMake path currently assumes:
 - `nxpp` is available as a subdirectory or vendored checkout
 - Boost can be found by your normal CMake setup
 - you only need a header-only interface target
+
+## Repository-side CMake test path
+
+For repository development there is also a minimal CMake-driven path for the
+formal test suite.
+
+Configure with:
+
+```bash
+cmake -S . -B build -DNXPP_BUILD_TESTS=ON
+```
+
+Then build and run the registered tests with:
+
+```bash
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+This path currently covers the main formal modular test binaries. It is meant
+as a cross-platform repository build path, not as a replacement for the
+existing shell scripts or for the single-header validation flow.

@@ -29,26 +29,12 @@ jobs:
             shell: bash
             install_boost: brew install boost
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
-          - os: windows-latest
-            label: windows-ucrt64-gcc
-            compiler: g++
-            shell: msys2 {0}
-            msystem: UCRT64
-            install_boost: pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-boost
-            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Set up MSYS2
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{ matrix.msystem }}
-          update: true
 
       - name: Install Boost Graph
         shell: ${{ matrix.shell }}
@@ -106,3 +92,72 @@ jobs:
             cat test-output-clean.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  windows-native:
+    name: test-suite (windows-msvc)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up vcpkg and Boost Graph
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:RUNNER_TEMP\vcpkg"
+          & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+          & "$env:RUNNER_TEMP\vcpkg\vcpkg.exe" install boost-graph:x64-windows
+
+      - name: Configure CMake test build
+        shell: pwsh
+        run: |
+          cmake -S . -B build-windows `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            -DNXPP_BUILD_TESTS=ON `
+            -DCMAKE_TOOLCHAIN_FILE="$env:RUNNER_TEMP\vcpkg\scripts\buildsystems\vcpkg.cmake"
+
+      - name: Build CMake tests
+        shell: pwsh
+        run: |
+          cmake --build build-windows --config Debug
+
+      - name: Run CTest
+        id: tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          ctest --test-dir build-windows -C Debug --output-on-failure 2>&1 | Tee-Object -FilePath test-output.txt
+          $status = $LASTEXITCODE
+          "exit_code=$status" >> $env:GITHUB_OUTPUT
+          exit $status
+
+      - name: Publish test summary
+        if: always()
+        shell: pwsh
+        env:
+          TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
+        run: |
+          if ($env:TEST_EXIT_CODE -eq "0") {
+            $statusWord = "SUCCESS"
+          } else {
+            $statusWord = "FAILURE"
+          }
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Compatibility Matrix"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Label: `windows-msvc`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Runner: `windows-latest`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Build path: `CMake + vcpkg + Visual Studio 2022`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Command: `ctest --test-dir build-windows -C Debug --output-on-failure`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Output"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
+          if (Test-Path test-output.txt) {
+            Get-Content test-output.txt | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          } else {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "No ctest output was captured because the job failed before the test step completed."
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
