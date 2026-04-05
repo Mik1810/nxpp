@@ -87,8 +87,11 @@ void test_disconnected_shortest_paths_preserve_unreachable_state() {
     expect(result.distance.at("B") == 2.0, "reachable node should have finite distance");
     expect(result.distance.at("C") == std::numeric_limits<double>::max(),
            "unreachable node should keep max distance");
-    expect(result.paths.find("C") == result.paths.end(),
-           "unreachable node should not get a materialized path");
+    expect(!result.has_path_to("C"),
+           "unreachable node should not report an available path");
+    expect_throws(
+        [&] { (void)result.path_to("C"); },
+        "unreachable node path reconstruction should throw");
 
     expect_throws(
         [&] { (void)graph.shortest_path("A", "C", "weight"); },
@@ -148,8 +151,8 @@ void test_ordered_only_node_ids_work_without_hash_support() {
     const auto shortest = graph.dijkstra_shortest_paths(a);
     expect(shortest.distance.at(c) == 9,
            "ordered-only node IDs should work through shortest-path result maps");
-    expect(shortest.paths.at(c).size() == 3,
-           "ordered-only node IDs should preserve reconstructed paths");
+    expect(shortest.path_to(c).size() == 3,
+           "ordered-only node IDs should support on-demand path reconstruction");
 
     const auto components = graph.connected_components();
     expect(components.at(a) == components.at(c),

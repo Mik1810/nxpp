@@ -81,8 +81,8 @@ void test_algorithms_still_work_after_descriptor_remap() {
     expect(bfs.size() == 3, "BFS should still traverse the remapped graph correctly");
     expect(std::abs(dijkstra.distance.at("D") - 3.0) < 1e-9,
            "Dijkstra should still compute correct distances after remove_node()");
-    expect(dijkstra.paths.at("D") == std::vector<std::string>({"A", "C", "D"}),
-           "materialized paths should still be correct after descriptor remapping");
+    expect(dijkstra.path_to("D") == std::vector<std::string>({"A", "C", "D"}),
+           "on-demand paths should still be correct after descriptor remapping");
 }
 
 void test_remove_node_updates_component_views() {

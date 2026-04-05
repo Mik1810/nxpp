@@ -68,9 +68,6 @@ but `nxpp` adds a separate cost to build a user-facing result.
 
 Typical examples:
 
-- `dijkstra_shortest_paths()`
-- `bellman_ford_shortest_paths()`
-- `dag_shortest_paths()`
 - `floyd_warshall_all_pairs_shortest_paths_map()`
 - component-map style helpers
 
@@ -145,10 +142,10 @@ So these two statements are different:
 
 ### Example: single-source shortest-path result wrapper
 
-- Boost core: Dijkstra or Bellman-Ford
-- `nxpp` wrapper work: build `distance`, `predecessor`, and `paths`
-- practical reading: same algorithmic core as Boost, plus explicit result
-  materialization cost
+- Boost core: Dijkstra, Bellman-Ford, or DAG shortest paths
+- `nxpp` wrapper work: build ordered `distance` and `predecessor` maps
+- practical reading: same dominant order as Boost; full path reconstruction is
+  now on-demand through the returned result wrapper
 
 ### Example: component / centrality indexed wrapper
 
@@ -180,7 +177,7 @@ So these two statements are different:
 ### Example: `remove_node()`
 
 - Boost core: vertex removal
-- `nxpp` wrapper work: clear metadata, rebuild id/descriptor maps, rebuild
+- `nxpp` wrapper work: clear mehotadata, rebuild id/descriptor maps, rebuild
   maintained vertex indices
 - practical reading: this is a wrapper-managed `O(n + m)` public operation
 
@@ -232,11 +229,11 @@ The final column classifies the comparison like this:
 | `shortest_path_length(source, target)` | unweighted Boost shortest-path primitives based on BFS | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` adds endpoint translation. |
 | `dijkstra_path(...)` | `boost::dijkstra_shortest_paths` | `O((n + m) log n)` | `O((n + m) log n)` | `yes` | Path reconstruction is bounded by `O(n)` and stays lower-order than the Dijkstra core. |
 | `dijkstra_path_length(...)` | `boost::dijkstra_shortest_paths` | `O((n + m) log n)` | `O((n + m) log n)` | `yes` | `nxpp` adds endpoint translation only. |
-| `dijkstra_shortest_paths(source)` | `boost::dijkstra_shortest_paths` | `O((n + m) log n)` | `O(max((n + m) log n, n^2))` | `no` | Ordered `distance` / `predecessor` materialization is `O(n log n)`. Reconstructing all stored paths costs `O(P)`, where `P` is the sum of reconstructed path lengths and can reach `O(n^2)` in the worst case. |
+| `dijkstra_shortest_paths(source)` | `boost::dijkstra_shortest_paths` | `O((n + m) log n)` | `O((n + m) log n)` | `yes` | Ordered `distance` / `predecessor` materialization is `O(n log n)`, which stays lower-order than the Dijkstra core. Path reconstruction is now on-demand through `path_to(target)`. |
 | `bellman_ford_path(...)` | `boost::bellman_ford_shortest_paths` | `O(nm)` | `O(nm)` | `yes` | Path reconstruction is bounded by `O(n)` and does not change the dominant term. |
 | `bellman_ford_path_length(...)` | `boost::bellman_ford_shortest_paths` | `O(nm)` | `O(nm)` | `yes` | The final accumulation pass is `O(L)` with `L <= n - 1`, so it is lower-order and kept only in this note. |
-| `bellman_ford_shortest_paths(source)` | `boost::bellman_ford_shortest_paths` | `O(nm)` | `O(max(nm, n^2))` | `no` | Ordered `distance` / `predecessor` materialization is `O(n log n)`. Reconstructing all stored paths costs `O(P)`, where `P` is the sum of reconstructed path lengths and can reach `O(n^2)` in the worst case. |
-| `dag_shortest_paths(source)` | `boost::dag_shortest_paths` | `O(n + m)` | `O(max(n + m, n^2))` | `no` | Ordered `distance` / `predecessor` materialization is `O(n log n)`. Reconstructing all stored paths costs `O(P)`, where `P` is the sum of reconstructed path lengths and can reach `O(n^2)` in the worst case. |
+| `bellman_ford_shortest_paths(source)` | `boost::bellman_ford_shortest_paths` | `O(nm)` | `O(nm)` | `yes` | Ordered `distance` / `predecessor` materialization is `O(n log n)`, which stays lower-order than the Bellman-Ford core. Path reconstruction is now on-demand through `path_to(target)`. |
+| `dag_shortest_paths(source)` | `boost::dag_shortest_paths` | `O(n + m)` | `O(n + m)` | `yes` | Ordered `distance` / `predecessor` materialization is `O(n log n)`, which stays lower-order than the DAG shortest-path core. Path reconstruction is now on-demand through `path_to(target)`. |
 | `floyd_warshall_all_pairs_shortest_paths()` | `boost::floyd_warshall_all_pairs_shortest_paths` | `O(n^3)` | `O(n^3)` | `yes` | The matrix view preserves the same dominant order. |
 | `floyd_warshall_all_pairs_shortest_paths_map()` | `boost::floyd_warshall_all_pairs_shortest_paths` | `O(n^3)` | `O(n^3)` | `yes` | Converting the matrix into nested ordered maps adds `O(n^2 log n)`, which is lower-order than `O(n^3)`. |
 

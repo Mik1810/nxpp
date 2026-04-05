@@ -18,6 +18,7 @@ version entries in `CHANGELOG.md`.
 - Extended the same wrapper to `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()`, so the traversal tree-view helpers now keep the same dominant BFS/DFS complexity as Boost while exposing real `O(log V)` key lookup instead of hash-backed results.
 - Replaced the old external `VertexDesc -> index` hash map inside `Graph` with an internal wrapper-index vertex property, which removes the last big hash-backed dependency from the core BGL algorithm path without narrowing the supported selector combinations.
 - Removed the remaining local `NodeID -> index` hash maps from the flow helpers too, reusing the wrapper's maintained vertex indices directly so the library implementation under `include/nxpp` no longer depends on `std::unordered_map`.
+- Removed eager all-path storage from `SingleSourceShortestPathResult`, replacing it with on-demand `path_to(target)` reconstruction so the single-source Dijkstra, Bellman-Ford, and DAG shortest-path wrappers now stay aligned with the dominant complexity of their Boost counterparts.
 
 ### Verification
 

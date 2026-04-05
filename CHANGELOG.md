@@ -15,6 +15,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Extended `indexed_lookup_map` to `bfs_successors()`, `dfs_predecessors()`, and `dfs_successors()`, so the traversal tree-view helpers also keep linear materialization while dropping the earlier hash-table-based result containers.
 - Replaced the old external `VertexDesc -> index` hash map with an internal per-vertex wrapper-index property in `Graph`, so the main BGL algorithm path no longer depends on `std::unordered_map` for vertex-index normalization.
 - Removed the local `NodeID -> flow-graph-index` hash maps from the flow helpers and switched those auxiliary builders to the existing wrapper index, so the library implementation no longer relies on `std::unordered_map` in `include/nxpp`.
+- Removed eager all-path storage from `SingleSourceShortestPathResult`, so `dijkstra_shortest_paths()`, `bellman_ford_shortest_paths()`, and `dag_shortest_paths()` now return ordered `distance` / `predecessor` maps plus on-demand `path_to(target)` reconstruction while preserving the same dominant complexity as the underlying Boost algorithms.
 
 ## [0.7.12] - 2026-03-30
 

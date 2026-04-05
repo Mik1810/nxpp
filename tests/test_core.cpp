@@ -55,8 +55,8 @@ void test_dijkstra_result_wrapper() {
            "wrong predecessor for Bari");
 
     const std::vector<std::string> expected_path = {"Milan", "Florence", "Naples"};
-    expect(result.paths.at("Naples") == expected_path,
-           "wrong materialized path for Naples");
+    expect(result.path_to("Naples") == expected_path,
+           "wrong on-demand path for Naples");
 }
 
 void test_multigraph_edge_id_path() {

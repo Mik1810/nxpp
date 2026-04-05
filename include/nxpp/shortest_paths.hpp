@@ -13,42 +13,48 @@ template <typename NodeID, typename Distance = double>
 struct SingleSourceShortestPathResult {
     std::map<NodeID, Distance> distance;
     std::map<NodeID, NodeID> predecessor;
-    std::map<NodeID, std::vector<NodeID>> paths;
-};
 
-template <typename GraphWrapper, typename Distance, typename VertexDesc>
-std::map<typename GraphWrapper::NodeType, std::vector<typename GraphWrapper::NodeType>> build_single_source_paths(
-    const GraphWrapper& graph_wrapper,
-    const std::vector<Distance>& dist,
-    const std::vector<VertexDesc>& pred
-) {
-    using NodeID = typename GraphWrapper::NodeType;
-    std::map<NodeID, std::vector<NodeID>> paths;
-    const auto unreachable = std::numeric_limits<Distance>::max();
-    const auto& bgl_to_id = graph_wrapper.get_bgl_to_id_map();
+    bool has_path_to(const NodeID& target) const {
+        const auto it = distance.find(target);
+        return it != distance.end() && it->second != std::numeric_limits<Distance>::max();
+    }
 
-    for (size_t i = 0; i < bgl_to_id.size(); ++i) {
-        const NodeID target_id = bgl_to_id[i];
-        if (dist[i] == unreachable) {
-            continue;
+    std::vector<NodeID> path_to(const NodeID& target) const {
+        const auto distance_it = distance.find(target);
+        if (distance_it == distance.end()) {
+            throw std::runtime_error("Target node not found in shortest-path result.");
+        }
+        if (distance_it->second == std::numeric_limits<Distance>::max()) {
+            throw std::runtime_error("Node not reachable");
         }
 
         std::vector<NodeID> path;
-        VertexDesc current = graph_wrapper.get_id_to_bgl_map().at(target_id);
+        NodeID current = target;
+        size_t hops = 0;
+        const size_t max_hops = predecessor.size() + 1;
+
         while (true) {
-            path.push_back(graph_wrapper.get_node_id(current));
-            const auto current_index = graph_wrapper.get_vertex_index(current);
-            if (pred[current_index] == current) {
+            path.push_back(current);
+
+            const auto pred_it = predecessor.find(current);
+            if (pred_it == predecessor.end()) {
+                throw std::runtime_error("Broken predecessor map in shortest-path result.");
+            }
+            if (pred_it->second == current) {
                 break;
             }
-            current = pred[current_index];
-        }
-        std::reverse(path.begin(), path.end());
-        paths[target_id] = std::move(path);
-    }
 
-    return paths;
-}
+            current = pred_it->second;
+            ++hops;
+            if (hops > max_hops) {
+                throw std::runtime_error("Detected an invalid predecessor cycle while reconstructing a path.");
+            }
+        }
+
+        std::reverse(path.begin(), path.end());
+        return path;
+    }
+};
 
 template <typename Distance>
 Distance normalize_weighted_distance(Distance value) {
@@ -334,7 +340,6 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         result.distance[id] = dist[index];
         result.predecessor[id] = get_node_id(pred[index]);
     }
-    result.paths = build_single_source_paths(*this, dist, pred);
     return result;
 }
 
@@ -500,7 +505,6 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         result.distance[id] = dist[index];
         result.predecessor[id] = get_node_id(pred[index]);
     }
-    result.paths = build_single_source_paths(*this, dist, pred);
     return result;
 }
 
@@ -563,7 +567,6 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         result.distance[id] = normalized_dist[index];
         result.predecessor[id] = get_node_id(pred[index]);
     }
-    result.paths = build_single_source_paths(*this, normalized_dist, pred);
     return result;
 }
 

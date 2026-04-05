@@ -185,7 +185,7 @@ These types are part of the public API and are worth knowing because they make s
 | `MaximumFlowResult<NodeID>` | `value`, `flow` | max-flow total plus per-edge flow map |
 | `MinCostMaxFlowResult<NodeID>` | `flow`, `cost`, `edge_flows` | min-cost max-flow total flow, cost, and per-edge flows |
 | `MinimumCutResult<NodeID>` | `value`, `reachable`, `non_reachable`, `cut_edges` | cut value and partition information |
-| `SingleSourceShortestPathResult<NodeID, Distance>` | ordered `distance`, `predecessor`, `paths` maps | single-source shortest-path results in a C++-friendly shape with tree-based map bounds |
+| `SingleSourceShortestPathResult<NodeID, Distance>` | ordered `distance`, `predecessor`, plus `has_path_to(target)` / `path_to(target)` | single-source shortest-path results in a C++-friendly shape with tree-based map bounds and on-demand path reconstruction |
 | `lookup_map<Key, Value>` | `operator[]`, `at`, iterators over ordered storage | const-friendly ordered lookup wrapper returned by some component helpers |
 | `indexed_lookup_map<Key, Value>` | `at`, `operator[]`, `contains`, iterators over key-sorted storage | const-friendly indexed result wrapper that preserves linear materialization while keeping `O(log n)` key lookup |
 | `visitor` | no-op hooks `examine_vertex`, `tree_edge`, `back_edge` | small visitor base for traversal entry points |
@@ -241,11 +241,11 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `dijkstra_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Returns distances, predecessors, and reconstructed paths. | `auto r = G.dijkstra_shortest_paths(0);` |
+| `dijkstra_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Returns distances and predecessors, with on-demand path reconstruction through the result wrapper. | `auto r = G.dijkstra_shortest_paths(0);` |
 | `single_source_dijkstra` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Thin alias to `dijkstra_shortest_paths`. | `auto r = G.single_source_dijkstra(0);` |
-| `bellman_ford_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Returns distances, predecessors, and reconstructed paths. | `auto r = G.bellman_ford_shortest_paths(0);` |
+| `bellman_ford_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Returns distances and predecessors, with on-demand path reconstruction through the result wrapper. | `auto r = G.bellman_ford_shortest_paths(0);` |
 | `single_source_bellman_ford` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | Thin alias to `bellman_ford_shortest_paths`. | `auto r = G.single_source_bellman_ford(0);` |
-| `dag_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | DAG shortest-path helper returning distances, predecessors, and paths. | `auto r = G.dag_shortest_paths(0);` |
+| `dag_shortest_paths` | `(source)` | `SingleSourceShortestPathResult<NodeID, Distance>` | DAG shortest-path helper returning distances and predecessors, with on-demand path reconstruction through the result wrapper. | `auto r = G.dag_shortest_paths(0);` |
 | `floyd_warshall_all_pairs_shortest_paths` | `()` | `std::vector<std::vector<Distance>>` | Returns an all-pairs distance matrix. | `auto fw = G.floyd_warshall_all_pairs_shortest_paths();` |
 | `floyd_warshall_all_pairs_shortest_paths_map` | `()` | `std::map<NodeID, std::map<NodeID, Distance>>` | Convenience map wrapper around the Floyd-Warshall matrix. | `auto fw = G.floyd_warshall_all_pairs_shortest_paths_map();` |
 

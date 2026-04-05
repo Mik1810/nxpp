@@ -586,7 +586,7 @@ int main() {
 
     auto routes = G.dijkstra_shortest_paths("Milan");
     auto dist_to_naples = routes.distance.at("Naples");
-    auto path_to_naples = routes.paths.at("Naples");
+    auto path_to_naples = routes.path_to("Naples");
 
     auto operator_name =
         G.get_edge_attr<std::string>("Milan", "Rome", "company");
@@ -605,7 +605,7 @@ This shows the three main ideas of the library:
 
 - graph mutation through a small wrapper API
 - checked node / edge attribute access
-- richer result wrappers such as `dijkstra_shortest_paths()` and indexed component views
+- richer result wrappers such as `dijkstra_shortest_paths()` with on-demand path reconstruction and indexed component views
 
 ---
 
