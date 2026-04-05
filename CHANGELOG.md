@@ -2,11 +2,8 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
-## [0.7.13] - 2026-04-03
+## [0.8.0] - 2026-04-05
 
-- Strengthened the opt-in large-graph comparison driver so representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` checks now run across multiple fixed deterministic seeds instead of relying on one seed per scenario.
-- Added a large-graph regression that builds `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` and verifies that non-default selector usage still matches raw Boost after large `remove_node()` mutations and Dijkstra recomputation.
-- Kept the expanded verification path inside `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh`, so the extra confidence stays opt-in without slowing down the default fast suite in `scripts/run_tests.sh`.
 - Began the first implementation pass for `#26` by moving `lookup_map`, `SingleSourceShortestPathResult`, `floyd_warshall_all_pairs_shortest_paths_map()`, and the rooted Prim parent-map result onto `std::map`, so those public result paths now rely on real tree-based bounds instead of expected hash-table behavior.
 - Continued `#26` by moving the wrapper-owned `NodeID -> vertex_descriptor` translation map and external node/edge attribute stores onto `std::map`, so the core wrapper lookup path now has real tree-based bounds too.
 - Updated the complexity documentation to reflect the new ordered-map costs explicitly, including the extra `V log V` materialization work for the affected shortest-path and component-map helpers and the `log` terms now paid by wrapper-managed node/attribute lookups.
@@ -16,6 +13,12 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Replaced the old external `VertexDesc -> index` hash map with an internal per-vertex wrapper-index property in `Graph`, so the main BGL algorithm path no longer depends on `std::unordered_map` for vertex-index normalization.
 - Removed the local `NodeID -> flow-graph-index` hash maps from the flow helpers and switched those auxiliary builders to the existing wrapper index, so the library implementation no longer relies on `std::unordered_map` in `include/nxpp`.
 - Removed eager all-path storage from `SingleSourceShortestPathResult`, so `dijkstra_shortest_paths()`, `bellman_ford_shortest_paths()`, and `dag_shortest_paths()` now return ordered `distance` / `predecessor` maps plus on-demand `path_to(target)` reconstruction while preserving the same dominant complexity as the underlying Boost algorithms.
+
+## [0.7.13] - 2026-04-03
+
+- Strengthened the opt-in large-graph comparison driver so representative BFS, connected-components, strongly-connected-components, Dijkstra, and post-`remove_node()` checks now run across multiple fixed deterministic seeds instead of relying on one seed per scenario.
+- Added a large-graph regression that builds `nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>` and verifies that non-default selector usage still matches raw Boost after large `remove_node()` mutations and Dijkstra recomputation.
+- Kept the expanded verification path inside `tests/test_large_graph_compare.cpp` and `scripts/run_large_graph_compare.sh`, so the extra confidence stays opt-in without slowing down the default fast suite in `scripts/run_tests.sh`.
 
 ## [0.7.12] - 2026-03-30
 
