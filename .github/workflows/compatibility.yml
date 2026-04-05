@@ -13,12 +13,15 @@ jobs:
           - os: ubuntu-latest
             compiler: g++
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
+            cxxflags: ""
           - os: ubuntu-latest
             compiler: clang++
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
+            cxxflags: ""
           - os: macos-latest
             compiler: clang++
             install_boost: brew install boost
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0 -I$(brew --prefix boost)/include
 
     runs-on: ${{ matrix.os }}
 
@@ -30,16 +33,11 @@ jobs:
         run: |
           ${{ matrix.install_boost }}
 
-      - name: Export Boost include flags
-        if: runner.os == 'macOS'
-        run: |
-          echo "NXPP_EXTRA_CXXFLAGS=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
-
       - name: Run test suite
         id: tests
         env:
           CXX: ${{ matrix.compiler }}
-          CXXFLAGS: ${{ env.NXPP_EXTRA_CXXFLAGS }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -65,8 +63,8 @@ jobs:
             echo
             echo "- Runner: \`${{ matrix.os }}\`"
             echo "- Compiler: \`${{ matrix.compiler }}\`"
-            if [ -n "${NXPP_EXTRA_CXXFLAGS:-}" ]; then
-              echo "- Extra CXXFLAGS: \`${NXPP_EXTRA_CXXFLAGS}\`"
+            if [ -n "${{ matrix.cxxflags }}" ]; then
+              echo "- CXXFLAGS: \`${{ matrix.cxxflags }}\`"
             fi
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/run_tests.sh\`"
