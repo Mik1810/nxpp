@@ -21,6 +21,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 #include <utility>
 #include <iostream>
 #include <any>
@@ -46,6 +47,16 @@ namespace nxpp {
 
 template <typename GraphType, bool HasWeight>
 struct built_in_weight_traits;
+
+namespace detail {
+
+template <typename T>
+concept node_id_orderable =
+    requires(const T& lhs, const T& rhs) {
+        { std::less<T>{}(lhs, rhs) } -> std::convertible_to<bool>;
+    };
+
+} // namespace detail
 
 template <typename GraphType>
 struct built_in_weight_traits<GraphType, true> {
@@ -240,8 +251,18 @@ public:
 
 private:
     static_assert(
-        std::is_invocable_r_v<bool, std::less<NodeID>, const NodeID&, const NodeID&>,
-        "nxpp::Graph requires NodeID to be orderable with std::less because wrapper-owned maps now use std::map."
+        std::copy_constructible<NodeID>,
+        "nxpp::Graph requires NodeID to be copy-constructible because node IDs are stored and materialized across wrapper-owned containers."
+    );
+
+    static_assert(
+        std::equality_comparable<NodeID>,
+        "nxpp::Graph requires NodeID to support operator== because several wrapper result helpers compare reconstructed node IDs directly."
+    );
+
+    static_assert(
+        detail::node_id_orderable<NodeID>,
+        "nxpp::Graph requires NodeID to be orderable with std::less because wrapper-owned maps and key-sorted result containers rely on that ordering."
     );
 
     GraphType g;

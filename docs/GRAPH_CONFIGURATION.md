@@ -36,6 +36,25 @@ The stable, user-facing configuration knobs are:
 6. `OutEdgeSelector`
 7. `VertexSelector`
 
+`NodeID` is not unconstrained. The current wrapper expects it to be:
+
+- copy-constructible
+- equality comparable
+- orderable through `std::less`
+
+Those are the compile-time assumptions behind the wrapper-owned `NodeID <->
+vertex_descriptor` translation map, the key-sorted result wrappers, and the
+on-demand shortest-path reconstruction helpers.
+
+The free numeric generators are narrower still:
+
+- `complete_graph`
+- `path_graph`
+- `erdos_renyi_graph`
+
+These helpers synthesize node IDs `0..n-1`, so they additionally require
+`NodeID` to be constructible from `std::size_t`.
+
 The existing alias types remain the default presets and still resolve to the standard `boost::vecS` / `boost::vecS` backend.
 
 Example:

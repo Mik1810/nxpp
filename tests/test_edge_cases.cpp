@@ -10,6 +10,7 @@
 #include NXPP_HEADER_UNDER_TEST
 #else
 #include "include/nxpp/attributes.hpp"
+#include "include/nxpp/generators.hpp"
 #include "include/nxpp/graph.hpp"
 #include "include/nxpp/traversal.hpp"
 #include "include/nxpp/shortest_paths.hpp"
@@ -193,6 +194,20 @@ void test_ordered_only_node_ids_work_without_hash_support() {
            "indexed DFS successor results should keep linear traversal structure");
 }
 
+void test_integer_generators_still_work() {
+    const auto complete = nxpp::complete_graph<nxpp::GraphInt>(4);
+    expect(complete.num_vertices() == 4, "complete_graph should create the requested number of nodes");
+    expect(complete.has_edge(0, 1), "complete_graph should connect distinct node IDs");
+
+    const auto path = nxpp::path_graph<nxpp::GraphInt>(4);
+    expect(path.num_vertices() == 4, "path_graph should create the requested number of nodes");
+    expect(path.has_edge(0, 1) && path.has_edge(1, 2) && path.has_edge(2, 3),
+           "path_graph should link consecutive integer node IDs");
+
+    const auto er = nxpp::erdos_renyi_graph<nxpp::GraphInt>(6, 0.5, 7);
+    expect(er.num_vertices() <= 6, "erdos_renyi_graph should stay within the requested integer ID range");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -207,7 +222,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 6;
+    constexpr int total = 7;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -215,6 +230,7 @@ int main() {
     passed += run_test("disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state) ? 1 : 0;
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
+    passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

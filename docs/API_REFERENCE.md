@@ -67,6 +67,25 @@ The `Weighted*` aliases are the clearest explicit names.
 The shorter aliases such as `GraphInt` and `DiGraph` are kept as compatibility-friendly synonyms.
 All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` backend.
 
+### `NodeID` requirements
+
+`nxpp::Graph<NodeID, ...>` currently expects `NodeID` to be:
+
+- copy-constructible
+- equality comparable
+- orderable through `std::less`
+
+Those requirements come from the wrapper's ordered translation maps, ordered
+result wrappers, and shortest-path predecessor/path reconstruction helpers.
+
+The free numeric graph generators in `nxpp/generators.hpp` have one additional
+requirement:
+
+- `NodeID` must be constructible from `std::size_t`
+
+That extra generator constraint is not a global `Graph` requirement; it only
+applies to helpers that synthesize node IDs `0..n-1` themselves.
+
 ## Core graph API reference
 
 ### Construction, mutation, inspection

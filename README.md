@@ -202,6 +202,25 @@ Today, selector customization is broader than the default aliases, but it is sti
 - `VertexSelector` can also be changed for advanced use cases such as `boost::listS` or `boost::setS`
 - `Multi=true` is rejected with `boost::setS` because `setS` suppresses parallel edges by design
 
+`NodeID` now has an explicit compile-time contract too:
+
+- it must be copy-constructible
+- it must support equality comparison
+- it must be orderable through `std::less`
+
+That is the contract used by the wrapper-owned translation maps, ordered result
+wrappers, and on-demand shortest-path reconstruction.
+
+The free graph generators (`complete_graph`, `path_graph`, and
+`erdos_renyi_graph`) have one extra requirement on top of that:
+
+- `NodeID` must be constructible from `std::size_t`, because those helpers
+  synthesize node IDs `0..n-1`
+
+So `Graph<std::string>` remains a valid graph type, but the numeric generator
+helpers are intentionally aimed at integer-like node IDs unless you provide a
+custom generator path yourself.
+
 For example:
 
 ```cpp

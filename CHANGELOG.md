@@ -4,6 +4,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.0] - 2026-04-05
 
+- Closed `#7` by making the `NodeID` contract explicit: `Graph<NodeID, ...>` now fails early unless `NodeID` is copy-constructible, equality-comparable, and orderable via `std::less`, while the numeric generator helpers separately require `NodeID` to be constructible from `std::size_t`.
 - Began the first implementation pass for `#26` by moving `lookup_map`, `SingleSourceShortestPathResult`, `floyd_warshall_all_pairs_shortest_paths_map()`, and the rooted Prim parent-map result onto `std::map`, so those public result paths now rely on real tree-based bounds instead of expected hash-table behavior.
 - Continued `#26` by moving the wrapper-owned `NodeID -> vertex_descriptor` translation map and external node/edge attribute stores onto `std::map`, so the core wrapper lookup path now has real tree-based bounds too.
 - Updated the complexity documentation to reflect the new ordered-map costs explicitly, including the extra `V log V` materialization work for the affected shortest-path and component-map helpers and the `log` terms now paid by wrapper-managed node/attribute lookups.

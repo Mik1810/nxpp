@@ -7,6 +7,7 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#7` by documenting and enforcing the real `NodeID` contract at compile time: the main `Graph<NodeID, ...>` template now requires copyability, equality comparison, and `std::less` ordering, while the numeric generators keep a separate `std::size_t`-constructibility requirement because they synthesize node IDs `0..n-1`.
 - Started the first `#26` complexity-hardening pass by switching several public result wrappers from hash-backed storage to `std::map`, including `lookup_map`, `SingleSourceShortestPathResult`, Floyd-Warshall's map view, and the rooted Prim parent map.
 - Continued `#26` by switching the core `NodeID -> vertex_descriptor` translation map plus the external node/edge attribute stores to `std::map`, keeping the dominant Boost algorithmic phases unchanged while giving wrapper-managed lookups real tree-based bounds.
 - Updated the public complexity notes so the ordered map costs now cover both the earlier result wrappers and the wrapper-managed node / attribute lookup paths instead of relying on expected hash-table costs.
