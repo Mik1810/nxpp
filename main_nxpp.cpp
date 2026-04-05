@@ -37,8 +37,8 @@ void showcase_string_node_ids_and_attributes() {
 void showcase_materialized_shortest_path_results() {
     cout << "\nMaterialized Shortest Path Results\n";
 
-    // The result already comes back materialized as maps and paths, so the demo
-    // can talk about the answer directly instead of managing output buffers.
+    // Distances and predecessors are materialized up front, while full paths
+    // are reconstructed on demand from the stored predecessor map.
     nxpp::DiGraph graph;
     graph.add_edge("Milan", "Rome", 5.0);
     graph.add_edge("Rome", "Naples", 2.5);
@@ -50,8 +50,10 @@ void showcase_materialized_shortest_path_results() {
 
     cout << "Distance Milan -> Naples: " << result.distance.at("Naples") << '\n';
     cout << "Path Milan -> Naples:";
-    for (const auto& node : result.paths.at("Naples")) {
-        cout << " " << node;
+    if (result.has_path_to("Naples")) {
+        for (const auto& node : result.path_to("Naples")) {
+            cout << " " << node;
+        }
     }
     cout << '\n';
     cout << "Predecessor of Bari: " << result.predecessor.at("Bari") << '\n';

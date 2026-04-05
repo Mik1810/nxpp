@@ -2,9 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.7] - 2026-04-05
+
+- Finalized `#20` as a real cross-platform formal-suite matrix: the repository now verifies the full formal test suite on `ubuntu-latest` with both `g++` and `clang++`, on `macos-latest` with `clang++`, and on `windows-latest` with native MSVC (`cl`) plus Boost from the official archive cache, while keeping the snippet-review workflow separate.
+
 ## [0.8.6] - 2026-04-05
 
-- Closed `#20` by extending `.github/workflows/compatibility.yml` into a real cross-platform formal-suite matrix: the repository now verifies the full formal test suite on `ubuntu-latest` with both `g++` and `clang++`, on `macos-latest` with `clang++`, and on `windows-latest` with native MSVC (`cl`) plus Boost from the official archive cache, while leaving the snippet-review workflow unchanged.
+- Closed `#20` by extending `.github/workflows/compatibility.yml` beyond the old Ubuntu-only `g++` path: the formal suite now runs in a small readable matrix covering Ubuntu with both `g++` and `clang++`, plus `macos-latest` with `clang++`, while leaving the snippet-review workflow unchanged.
 
 ## [0.8.5] - 2026-04-05
 
