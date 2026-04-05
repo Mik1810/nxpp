@@ -1,6 +1,6 @@
 # nxpp — NetworkX-inspired graph utilities for modern C++
 
-Current release: `v0.7.13` (April 3, 2026)
+Current release: `v0.8.6` (April 5, 2026)
 
 <p align="center">
   <img src="imgs/logo.svg" alt="nxpp logo" width="220">
@@ -36,7 +36,7 @@ with public aliases such as:
 
 ## Project status
 
-`nxpp` is now released as `v0.7.13`.
+`nxpp` is now released as `v0.8.6`.
 
 > [!WARNING]
 > The public API is still settling.
@@ -54,13 +54,15 @@ Today, the project is strongest as:
 
 The most important open issue groups right now are:
 
-- documentation/generated-docs/testing-story cleanup: `#28`
 - API safety / attribute-system follow-up: `#25`, `#27`
+- documentation-source-of-truth cleanup: `#29`
 - packaging / CI follow-up: none immediately blocking
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 Runtime validation errors now use a more consistent `X failed: ...` wording
 across the public surface.
+The repo now also has a minimal Doxygen scaffold for generated API reference
+under [`Doxyfile`](Doxyfile) and [`docs/DOXYGEN_MAINPAGE.md`](docs/DOXYGEN_MAINPAGE.md).
 
 ---
 

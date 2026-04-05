@@ -10,12 +10,24 @@
 
 namespace nxpp {
 
+/**
+ * @brief Result of a maximum-flow computation.
+ *
+ * The value field stores the total flow, while @ref flow maps each original
+ * directed edge to the amount routed through it.
+ */
 template <typename NodeID>
 struct MaximumFlowResult {
     long value = 0;
     std::map<std::pair<NodeID, NodeID>, long> flow;
 };
 
+/**
+ * @brief Result of a min-cost max-flow computation.
+ *
+ * The total pushed flow and total cost are reported alongside the per-edge
+ * flow assignment on the original graph edges.
+ */
 template <typename NodeID>
 struct MinCostMaxFlowResult {
     long flow = 0;
@@ -81,6 +93,12 @@ auto& min_cost_flow_cache() {
 
 } // namespace detail
 
+/**
+ * @brief Result of a minimum-cut computation.
+ *
+ * The reachable and non-reachable partitions correspond to the residual graph
+ * after the max-flow phase.
+ */
 template <typename NodeID>
 struct MinimumCutResult {
     long value = 0;

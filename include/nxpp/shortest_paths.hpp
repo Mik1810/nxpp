@@ -9,16 +9,31 @@
 
 namespace nxpp {
 
+/**
+ * @brief Result container for single-source shortest-path routines.
+ *
+ * Distances and predecessors are materialized eagerly, while concrete
+ * source-to-target paths are reconstructed on demand through path_to().
+ */
 template <typename NodeID, typename Distance = double>
 struct SingleSourceShortestPathResult {
+    /// Final shortest-path distance for each node known to the result.
     std::map<NodeID, Distance> distance;
+    /// Predecessor tree keyed by target node ID.
     std::map<NodeID, NodeID> predecessor;
 
+    /// Returns true when the target exists in the result and is reachable.
     bool has_path_to(const NodeID& target) const {
         const auto it = distance.find(target);
         return it != distance.end() && it->second != std::numeric_limits<Distance>::max();
     }
 
+    /**
+     * @brief Reconstructs the path from the original source to @p target.
+     *
+     * @throws std::runtime_error If the target is missing, unreachable, or the
+     * predecessor map is inconsistent.
+     */
     std::vector<NodeID> path_to(const NodeID& target) const {
         const auto distance_it = distance.find(target);
         if (distance_it == distance.end()) {

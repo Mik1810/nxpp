@@ -12,6 +12,7 @@ What currently lives here:
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
 - [`EXTERNAL_USAGE.md`](EXTERNAL_USAGE.md): current external-consumption story for modular headers and the release single-header asset
 - [`TEST.md`](TEST.md): distinction between showcase programs, snippet parity, formal tests, single-header validation, and the large-graph comparison path
+- [`DOXYGEN_MAINPAGE.md`](DOXYGEN_MAINPAGE.md): landing page for the generated Doxygen reference scaffold
 
 The repo now has a real semantic-header split under `include/nxpp/`:
 
@@ -43,6 +44,18 @@ What should eventually live here:
 
 - longer guides that would make the root README too heavy
 - docs-generation instructions once the tooling is committed
+
+Generated API reference:
+
+- a minimal [`Doxyfile`](../Doxyfile) now exists at the repo root
+- local generation command:
+  - `doxygen Doxyfile`
+- HTML output path:
+  - `build/docs/doxygen/html/`
+
+This is intentionally a first scaffold rather than a polished published site.
+The goal is to give `nxpp` a real header-driven reference path that can later
+grow toward a more Javadoc-/Boost-style navigable documentation site.
 
 Current status:
 

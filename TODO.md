@@ -67,7 +67,6 @@ Relevant issues:
 - `#25` Audit and reduce exposure of internal mutable state
 - `#26` Clarify and strengthen public-call complexity guarantees
 - `#27` Re-evaluate the long-term attribute system design
-- `#28` Add inline public API docs and a generated-docs scaffold
 - `#29` Define markdown source-of-truth rules and reduce documentation drift
 - `#30` Separate examples, smoke checks, snippet parity, and formal tests more clearly
 

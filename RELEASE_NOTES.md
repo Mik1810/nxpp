@@ -3,6 +3,31 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.8]
+
+### Highlights
+
+- Closed `#28` by starting a real generated-docs path instead of leaving public API documentation entirely in handwritten markdown.
+- Added Doxygen-style inline comments to the most user-facing public API areas, including:
+  - the main `Graph<...>` wrapper surface
+  - key traversal entry points
+  - single-source shortest-path result helpers
+  - flow / minimum-cut result types
+  - the built-in graph generators
+- Added a minimal root `Doxyfile` and a dedicated `docs/DOXYGEN_MAINPAGE.md` so the repository now has a concrete local scaffold for a future Javadoc-/Boost-style navigable API reference site.
+- Updated the docs index and `README.md` so the generated-reference path is now part of the documented repository structure instead of only being an idea in the backlog.
+
+### Verification
+
+- `timeout 30s git diff --check`
+- `timeout 30s bash scripts/unix/run_tests.sh`
+- `timeout 30s bash scripts/unix/build_single_header.sh`
+- `timeout 30s g++ -std=c++20 -Wall -Wextra -pedantic -O0 -I/workspaces/nxpp/include main_nxpp.cpp -o /tmp/main_nxpp_check`
+
+### Assets
+
+- This change does not add a new release asset, but it introduces the first real generated-docs scaffold and makes IDE hover / header-driven API discovery materially better.
+
 ## [0.8.7]
 
 ### Highlights

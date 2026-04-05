@@ -216,6 +216,13 @@ template <
     typename OutEdgeSelector = boost::vecS,
     typename VertexSelector = boost::vecS
 >
+/**
+ * @brief Graph wrapper around Boost Graph Library with Python-inspired helpers.
+ *
+ * The template parameters control directedness, multigraph support, built-in
+ * edge weights, and the underlying Boost selectors. Public methods operate on
+ * stable wrapper-side node IDs instead of raw Boost descriptors.
+ */
 class Graph {
 public:
     using NodeType = NodeID;
@@ -442,6 +449,7 @@ public:
           edge_id_map(boost::get(boost::edge_index, g)),
           id_to_bgl() {}
 
+    /// Ensures that a node with the given ID exists in the graph.
     void add_node(const NodeID& id) {
         get_or_create_vertex(id);
     }
@@ -476,6 +484,15 @@ public:
 
     template <bool W = Weighted>
     requires(W)
+    /**
+     * @brief Adds or updates a weighted edge.
+     *
+     * In simple graphs, inserting an existing edge updates its stored weight.
+     *
+     * @param u Source node ID.
+     * @param v Target node ID.
+     * @param w Edge weight to store.
+     */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
@@ -495,10 +512,19 @@ public:
 
     template <bool W = Weighted>
     requires(W)
+    /// Adds a weighted edge and returns the wrapper-managed edge ID.
     std::size_t add_edge_with_id(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0);
 
     template <bool W = Weighted>
     requires(!W)
+    /**
+     * @brief Adds an unweighted edge.
+     *
+     * In simple graphs, inserting an existing edge is a no-op.
+     *
+     * @param u Source node ID.
+     * @param v Target node ID.
+     */
     void add_edge(const NodeID& u, const NodeID& v) {
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
@@ -517,6 +543,7 @@ public:
 
     template <bool W = Weighted>
     requires(!W)
+    /// Adds an unweighted edge and returns the wrapper-managed edge ID.
     std::size_t add_edge_with_id(const NodeID& u, const NodeID& v);
 
 
@@ -551,6 +578,7 @@ public:
         }
     }
 
+    /// Removes all nodes, edges, weights, attributes, and wrapper-side caches.
     void clear() {
         g = GraphType();
         id_to_bgl.clear();
@@ -564,6 +592,14 @@ public:
         next_edge_id = 0;
     }
 
+    /**
+     * @brief Removes all edges between two endpoints.
+     *
+     * @param u First endpoint.
+     * @param v Second endpoint.
+     *
+     * @throws std::runtime_error If either node is missing or no such edge exists.
+     */
     void remove_edge(const NodeID& u, const NodeID& v) {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -580,8 +616,16 @@ public:
         boost::remove_edge(it_u->second, it_v->second, g);
     }
 
+    /// Removes a single edge by its wrapper-managed edge ID.
     void remove_edge(std::size_t edge_id);
 
+    /**
+     * @brief Removes a node and all of its incident edges.
+     *
+     * @param u Node ID to erase.
+     *
+     * @throws std::runtime_error If the node is not present.
+     */
     void remove_node(const NodeID& u) {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -597,6 +641,7 @@ public:
         rebuild_vertex_maps();
     }
 
+    /// Returns the outgoing neighbors of a node.
     std::vector<NodeID> neighbors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -609,10 +654,12 @@ public:
         return res;
     }
 
+    /// Alias for neighbors() on directed graphs.
     std::vector<NodeID> successors(const NodeID& u) const {
         return neighbors(u);
     }
 
+    /// Returns incoming neighbors on directed graphs and adjacent nodes otherwise.
     std::vector<NodeID> predecessors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -676,6 +723,8 @@ public:
 
     template <typename T>
     void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value);
+
+    /// Returns all node IDs currently stored in the graph.
     std::vector<NodeID> nodes() const {
         std::vector<NodeID> res;
         for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
@@ -684,6 +733,7 @@ public:
         return res;
     }
 
+    /// Returns the public edge list using node IDs and, when enabled, built-in weights.
     auto edges() const {
         if constexpr (Weighted) {
             std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
@@ -829,6 +879,7 @@ public:
         return NodeAttrBaseProxy(this, u);
     }
 
+    /// Returns the tree edges discovered by breadth-first search from @p start.
     auto bfs_edges(const NodeID& start) const;
     auto bfs_tree(const NodeID& start) const;
     auto bfs_successors(const NodeID& start) const;
@@ -836,6 +887,7 @@ public:
     void breadth_first_search(const NodeID& start, Visitor& visitor) const;
     template <typename OnVertex, typename OnTreeEdge>
     void bfs_visit(const NodeID& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) const;
+    /// Returns the tree edges discovered by depth-first search from @p start.
     auto dfs_edges(const NodeID& start) const;
     auto dfs_tree(const NodeID& start) const;
     auto dfs_predecessors(const NodeID& start) const;
@@ -845,106 +897,150 @@ public:
     template <typename OnTreeEdge, typename OnBackEdge>
     void dfs_visit(const NodeID& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) const;
 
+    /// Computes an unweighted shortest path between two nodes.
     auto shortest_path(const NodeID& source_id, const NodeID& target_id) const;
+    /// Computes a shortest path using the named edge attribute as weight.
     auto shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
+    /// Returns the length of an unweighted shortest path.
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id) const;
+    /// Returns the length of a shortest path using the named edge attribute as weight.
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Computes the shortest path using the built-in edge-weight property.
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Computes the shortest path using the named edge attribute as weight.
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns distances and predecessors for all nodes reachable from @p source_id.
     auto dijkstra_shortest_paths(const NodeID& source_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns shortest-path distances from @p source_id using built-in weights.
     auto dijkstra_path_length(const NodeID& source_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the built-in-weight shortest-path length between two nodes.
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the named-weight shortest-path length between two nodes.
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Computes a shortest path using Bellman-Ford and built-in weights.
     auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns distances and predecessors for all nodes using Bellman-Ford.
     auto bellman_ford_shortest_paths(const NodeID& source_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Computes a shortest path using Bellman-Ford and a named edge attribute.
     auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the Bellman-Ford shortest-path length with built-in weights.
     auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the Bellman-Ford shortest-path length with a named edge attribute.
     auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns shortest-path distances in a directed acyclic graph.
     auto dag_shortest_paths(const NodeID& source_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns all-pairs shortest-path distances as a dense matrix-style result.
     auto floyd_warshall_all_pairs_shortest_paths() const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns all-pairs shortest-path distances keyed by node IDs.
     auto floyd_warshall_all_pairs_shortest_paths_map() const;
 
+    /// Groups each connected component as a vector of node IDs.
     auto connected_component_groups() const;
+    /// Returns the number of connected components in an undirected graph.
     auto connected_components() const;
+    /// Groups each strongly connected component as a vector of node IDs.
     auto strongly_connected_component_groups() const;
+    /// Returns the component index assigned to each node in a directed graph.
     auto strong_component_map() const;
+    /// Returns the number of strongly connected components in a directed graph.
     auto strong_components() const;
+    /// Returns the connected-component index assigned to each node.
     auto connected_component_map() const;
+    /// Alias for strongly_connected_component_groups().
     auto strongly_connected_components() const;
+    /// Alias for strong_component_map().
     auto strongly_connected_component_map() const;
+    /// Returns one representative root node for each strong component.
     auto strongly_connected_component_roots() const;
+    /// Returns a topological ordering for a directed acyclic graph.
     auto topological_sort() const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the edges selected by Kruskal's minimum-spanning-tree algorithm.
     auto kruskal_minimum_spanning_tree() const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the parent map produced by Prim's minimum-spanning-tree algorithm.
     auto prim_minimum_spanning_tree(const NodeID& root_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Convenience alias for kruskal_minimum_spanning_tree().
     auto minimum_spanning_tree() const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Convenience alias for prim_minimum_spanning_tree(root_id).
     auto minimum_spanning_tree(const NodeID& root_id) const;
 
+    /// Computes a maximum flow using the Edmonds-Karp algorithm.
     auto edmonds_karp_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
+    /// Computes a maximum flow using push-relabel and returns edge assignments.
     auto push_relabel_maximum_flow_result(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
+    /// Computes the maximum flow value and edge assignments using the named capacity attribute.
     auto maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
+    /// Computes a minimum cut between source and target using the named capacity attribute.
     auto minimum_cut(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
+    /// Computes a max-flow min-cost result using cycle canceling.
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
+    /// Runs push-relabel and caches the residual state for follow-up min-cost routines.
     long push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
+    /// Runs cycle canceling on the previously cached residual network.
     auto cycle_canceling(const std::string& weight_attr = "weight") const;
+    /// Computes a max-flow min-cost result using successive shortest path.
     auto successive_shortest_path_nonnegative_weights(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
+    /// Convenience alias for successive_shortest_path_nonnegative_weights().
     auto max_flow_min_cost_successive_shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
+    /// Convenience alias for the default max-flow min-cost wrapper.
     auto max_flow_min_cost(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
 
+    /// Returns the number of vertices currently stored in the graph.
     auto num_vertices() const;
+    /// Returns normalized degree centrality for each node.
     auto degree_centrality() const;
 };
 

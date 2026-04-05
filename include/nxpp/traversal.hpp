@@ -6,6 +6,13 @@
 #include "graph.hpp"
 
 namespace nxpp {
+
+/**
+ * @brief Minimal visitor interface for wrapper-level traversal callbacks.
+ *
+ * Override the hooks you care about and pass the visitor to
+ * breadth_first_search() or depth_first_search().
+ */
 class visitor {
 public:
     template <typename... Args>
