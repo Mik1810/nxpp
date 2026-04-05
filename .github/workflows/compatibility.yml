@@ -6,22 +6,26 @@ on:
 
 jobs:
   test-suite:
+    name: test-suite (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
+            label: ubuntu-gcc
             compiler: g++
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
-            cxxflags: ""
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
+            label: ubuntu-clang
             compiler: clang++
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
-            cxxflags: ""
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
+            label: macos-clang
             compiler: clang++
             install_boost: brew install boost
-            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0 -I$(brew --prefix boost)/include
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
 
     runs-on: ${{ matrix.os }}
 
@@ -33,11 +37,16 @@ jobs:
         run: |
           ${{ matrix.install_boost }}
 
+      - name: Export macOS Boost include path
+        if: runner.os == 'macOS'
+        run: |
+          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
+
       - name: Run test suite
         id: tests
         env:
           CXX: ${{ matrix.compiler }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
+          CXXFLAGS: ${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -61,10 +70,11 @@ jobs:
           {
             echo "## Compatibility Matrix"
             echo
+            echo "- Label: \`${{ matrix.label }}\`"
             echo "- Runner: \`${{ matrix.os }}\`"
             echo "- Compiler: \`${{ matrix.compiler }}\`"
-            if [ -n "${{ matrix.cxxflags }}" ]; then
-              echo "- CXXFLAGS: \`${{ matrix.cxxflags }}\`"
+            if [ -n "${{ matrix.cxxflags }}${{ env.NXPP_BOOST_INCLUDE }}" ]; then
+              echo "- CXXFLAGS: \`${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}\`"
             fi
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/run_tests.sh\`"
