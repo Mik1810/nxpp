@@ -402,20 +402,25 @@ verification path:
 - reruns the same large-graph comparison against the generated single header
 - publishes both outputs as a separate Markdown job summary
 
-The release workflow handles automated GitHub releases from pushed version tags:
-
-- extracts the matching release notes directly from `RELEASE_NOTES.md`
-- builds `dist/nxpp.hpp`
-- runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
-- creates the GitHub release only after that suite passes
-- uploads the tested file as `nxpp.hpp`
-
-The same workflow also supports manual `workflow_dispatch` runs:
+The release workflow is now fully automated from pushes to `main`:
 
 - reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`
 - fails if those top versions do not match
-- creates and pushes the matching `vX.Y.Z` tag
-- then continues in the same run to build, test, and publish the actual GitHub release
+- skips publication if the matching `vX.Y.Z` tag already exists
+- builds `dist/nxpp.hpp`
+- runs `bash scripts/run_tests.sh`
+- runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
+- creates and pushes the matching `vX.Y.Z` tag only after the release checks pass
+- creates the GitHub release from `RELEASE_NOTES.md`
+- uploads the tested file as `nxpp.hpp`
+
+`workflow_dispatch` remains available as a manual fallback, but it follows the
+same self-contained path: read the top version, skip if the tag already exists,
+otherwise build, test, tag, and publish in the same run.
+
+This means the top version in `RELEASE_NOTES.md` and `CHANGELOG.md` should now
+be treated as the concrete next release that the release workflow will publish
+on the next push to `main`.
 
 These are showcase demos, not formal tests or parity harnesses.
 

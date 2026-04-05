@@ -3,11 +3,28 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [0.8.0]
+## [0.8.1]
 
 ### Highlights
 
 - Closed `#7` by documenting and enforcing the real `NodeID` contract at compile time: the main `Graph<NodeID, ...>` template now requires copyability, equality comparison, and `std::less` ordering, while the numeric generators keep a separate `std::size_t`-constructibility requirement because they synthesize node IDs `0..n-1`.
+
+### Verification
+
+- `timeout 30s bash scripts/run_tests.sh`
+- `timeout 30s bash scripts/build_single_header.sh`
+- `timeout 30s bash scripts/run_single_header_tests.sh`
+- `timeout 30s bash scripts/run_large_graph_compare.sh`
+
+### Assets
+
+- This change does not add a new release asset, but it makes the `NodeID` contract explicit in both compile-time diagnostics and the user-facing docs.
+
+## [0.8.0]
+
+### Highlights
+
+- Switched the release workflow to a fully automatic main-branch path: a push to `main` now treats the top version in `CHANGELOG.md` and `RELEASE_NOTES.md` as the concrete next release, skips if that tag already exists, otherwise builds the standalone header, runs the modular and single-header suites, creates `vX.Y.Z`, and publishes the GitHub release in the same run.
 - Started the first `#26` complexity-hardening pass by switching several public result wrappers from hash-backed storage to `std::map`, including `lookup_map`, `SingleSourceShortestPathResult`, Floyd-Warshall's map view, and the rooted Prim parent map.
 - Continued `#26` by switching the core `NodeID -> vertex_descriptor` translation map plus the external node/edge attribute stores to `std::map`, keeping the dominant Boost algorithmic phases unchanged while giving wrapper-managed lookups real tree-based bounds.
 - Updated the public complexity notes so the ordered map costs now cover both the earlier result wrappers and the wrapper-managed node / attribute lookup paths instead of relying on expected hash-table costs.
