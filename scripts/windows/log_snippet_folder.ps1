@@ -1,12 +1,12 @@
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$SnippetFolder,
     [Parameter(Position = 1)]
     [string]$StdinFile = ""
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot/common.ps1"
 

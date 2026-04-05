@@ -178,22 +178,22 @@ jobs:
             $statusWord = "FAILURE"
           }
 
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Compatibility Matrix"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Label: `windows-msvc`"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Runner: `windows-latest`"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Build path: `PowerShell + cl + Boost zip include path`"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: `$env:NXPP_BOOST_CACHE_HIT`"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Scope: `smoke subset (test_core, test_edge_cases)`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Compatibility Matrix'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Label: windows-msvc'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Runner: windows-latest'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Build path: PowerShell + cl + Boost zip include path'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: $env:NXPP_BOOST_CACHE_HIT"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Scope: smoke subset (test_core, test_edge_cases)'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Command: `pwsh -File scripts/windows/run_tests.ps1 -Smoke`"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### Output"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Command: pwsh -File scripts/windows/run_tests.ps1 -Smoke'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '### Output'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
           if (Test-Path test-output.txt) {
             Get-Content test-output.txt | Add-Content -Path $env:GITHUB_STEP_SUMMARY
           } else {
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "No ctest output was captured because the job failed before the test step completed."
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'No test output was captured because the job failed before the test step completed.'
           }
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'

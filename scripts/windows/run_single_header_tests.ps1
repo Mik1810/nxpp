@@ -1,10 +1,10 @@
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
 param(
     [switch]$Smoke,
     [string]$HeaderUnderTest = "dist/nxpp.hpp"
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot/common.ps1"
 
