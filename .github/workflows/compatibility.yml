@@ -14,17 +14,27 @@ jobs:
           - os: ubuntu-latest
             label: ubuntu-gcc
             compiler: g++
+            shell: bash
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
+            shell: bash
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
+            shell: bash
             install_boost: brew install boost
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
+          - os: windows-latest
+            label: windows-ucrt64-gcc
+            compiler: g++
+            shell: msys2 {0}
+            msystem: UCRT64
+            install_boost: pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-boost
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
 
     runs-on: ${{ matrix.os }}
@@ -33,12 +43,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Set up MSYS2
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+
       - name: Install Boost Graph
+        shell: ${{ matrix.shell }}
         run: |
           ${{ matrix.install_boost }}
 
       - name: Export macOS Boost include path
         if: runner.os == 'macOS'
+        shell: ${{ matrix.shell }}
         run: |
           echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
 
@@ -47,6 +66,7 @@ jobs:
         env:
           CXX: ${{ matrix.compiler }}
           CXXFLAGS: ${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}
+        shell: ${{ matrix.shell }}
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -58,6 +78,7 @@ jobs:
         if: always()
         env:
           TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
+        shell: ${{ matrix.shell }}
         run: |
           if [ "${TEST_EXIT_CODE:-1}" = "0" ]; then
             status_word="SUCCESS"
