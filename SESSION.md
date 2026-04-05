@@ -214,6 +214,12 @@
    - `workflow_dispatch` remains self-contained: it creates and pushes the tag only after the release checks pass, then continues in the same run to publish the release.
    - Updated `README.md` and `AGENTS.md` so the documented release behavior matches the workflow again.
 
+5. **Windows Compatibility Cache Follow-up**:
+   - Added explicit cache-hit reporting for the Windows Boost archive/extract cache in `.github/workflows/compatibility.yml`.
+   - Tightened the Windows Boost setup so the job skips extraction when the cached extracted tree is already present.
+   - Switched the preferred extraction path from `Expand-Archive` to `tar -xf` when available, keeping `Expand-Archive` as a fallback.
+   - Added guard checks so the job now fails early and clearly if the Boost root or headers are still missing after setup.
+
 ## Session Audit: March 27-28, 2026
 
 1. **Snippet Review Completed**:

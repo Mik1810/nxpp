@@ -55,6 +55,7 @@ jobs:
 
       - name: Cache Boost archive and extract
         if: matrix.platform_family == 'windows'
+        id: boost_cache
         uses: actions/cache@v4
         with:
           path: |
@@ -68,15 +69,39 @@ jobs:
         run: |
           $boostZip = Join-Path $env:RUNNER_TEMP "boost_1_90_0.zip"
           $boostRoot = Join-Path $env:RUNNER_TEMP "boost_1_90_0"
+          $cacheHit = "${{ steps.boost_cache.outputs.cache-hit }}"
 
-          if (-not (Test-Path $boostZip)) {
-            Invoke-WebRequest `
-              -Uri "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.zip" `
-              -OutFile $boostZip
+          "NXPP_BOOST_CACHE_HIT=$cacheHit" >> $env:GITHUB_ENV
+
+          if ((Test-Path $boostRoot) -and $cacheHit -eq "true") {
+            Write-Host "Using cached extracted Boost tree at $boostRoot"
+          } else {
+            if (-not (Test-Path $boostZip)) {
+              Invoke-WebRequest `
+                -Uri "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.zip" `
+                -OutFile $boostZip
+            }
+
+            if (-not (Test-Path $boostRoot)) {
+              $tarCmd = Get-Command tar -ErrorAction SilentlyContinue
+
+              if ($null -ne $tarCmd) {
+                & $tarCmd.Source -xf $boostZip -C $env:RUNNER_TEMP
+                if ($LASTEXITCODE -ne 0) {
+                  throw "tar extraction failed with exit code $LASTEXITCODE"
+                }
+              } else {
+                Expand-Archive -Path $boostZip -DestinationPath $env:RUNNER_TEMP
+              }
+            }
           }
 
           if (-not (Test-Path $boostRoot)) {
-            Expand-Archive -Path $boostZip -DestinationPath $env:RUNNER_TEMP
+            throw "Boost root directory was not prepared at $boostRoot"
+          }
+
+          if (-not (Test-Path (Join-Path $boostRoot "boost"))) {
+            throw "Boost headers were not found under $boostRoot"
           }
 
           "BOOST_ROOT=$boostRoot" >> $env:GITHUB_ENV
@@ -158,6 +183,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Label: `windows-msvc`"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Runner: `windows-latest`"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Build path: `PowerShell + cl + Boost zip include path`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: `$env:NXPP_BOOST_CACHE_HIT`"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Scope: `smoke subset (test_core, test_edge_cases)`"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Command: `pwsh -File scripts/windows/run_tests.ps1 -Smoke`"
