@@ -24,10 +24,10 @@ The clearest mental model is:
 | Layer | Main artifacts | Primary purpose | What it is not |
 |---|---|---|---|
 | Showcase programs | `main_boost.cpp`, `main_nxpp.cpp`, `main.py` | Demonstrate usage and the wrapper-vs-reference story | Not the formal suite |
-| Snippet parity / regression | `snippet/`, `scripts/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
-| Formal assertion-based tests | `tests/test_*.cpp`, `scripts/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
-| Single-header verification | `scripts/build_single_header.sh`, `scripts/run_single_header_tests.sh`, `single-header.yml` | Validate the generated release artifact | Not a replacement for the modular formal suite |
-| Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
+| Snippet parity / regression | `snippet/`, `scripts/unix/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
+| Formal assertion-based tests | `tests/test_*.cpp`, `scripts/unix/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
+| Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml` | Validate the generated release artifact | Not a replacement for the modular formal suite |
+| Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
 
 ### 1. Showcase programs
 
@@ -53,8 +53,8 @@ What they are not:
 Relevant files:
 
 - [`snippet/`](../snippet)
-- [`scripts/test_single_snippet.sh`](../scripts/test_single_snippet.sh)
-- [`scripts/log_snippet_folder.sh`](../scripts/log_snippet_folder.sh)
+- [`scripts/unix/test_single_snippet.sh`](../scripts/unix/test_single_snippet.sh)
+- [`scripts/unix/log_snippet_folder.sh`](../scripts/unix/log_snippet_folder.sh)
 - [`.github/workflows/snippet-review.yml`](../.github/workflows/snippet-review.yml)
 
 Purpose:
@@ -79,7 +79,7 @@ What it is not:
 Entry point:
 
 ```bash
-bash scripts/run_tests.sh
+bash scripts/unix/run_tests.sh
 ```
 
 Main test files:
@@ -109,19 +109,19 @@ What it is not:
 Build command:
 
 ```bash
-bash scripts/build_single_header.sh
+bash scripts/unix/build_single_header.sh
 ```
 
 Test command:
 
 ```bash
-bash scripts/run_single_header_tests.sh
+bash scripts/unix/run_single_header_tests.sh
 ```
 
 Relevant files:
 
-- [`scripts/build_single_header.sh`](../scripts/build_single_header.sh)
-- [`scripts/run_single_header_tests.sh`](../scripts/run_single_header_tests.sh)
+- [`scripts/unix/build_single_header.sh`](../scripts/unix/build_single_header.sh)
+- [`scripts/unix/run_single_header_tests.sh`](../scripts/unix/run_single_header_tests.sh)
 - [`.github/workflows/single-header.yml`](../.github/workflows/single-header.yml)
 
 Purpose:
@@ -140,13 +140,13 @@ What it is not:
 Command:
 
 ```bash
-bash scripts/run_large_graph_compare.sh
+bash scripts/unix/run_large_graph_compare.sh
 ```
 
 Relevant files:
 
 - [`tests/test_large_graph_compare.cpp`](../tests/test_large_graph_compare.cpp)
-- [`scripts/run_large_graph_compare.sh`](../scripts/run_large_graph_compare.sh)
+- [`scripts/unix/run_large_graph_compare.sh`](../scripts/unix/run_large_graph_compare.sh)
 - [`.github/workflows/large-graph-compare.yml`](../.github/workflows/large-graph-compare.yml)
 
 Purpose:
@@ -180,7 +180,7 @@ What it is not:
 
 - not a proof that `nxpp` can never diverge from Boost
 - not exhaustive over every supported API or graph configuration
-- not meant to replace the fast suite in [`scripts/run_tests.sh`](../scripts/run_tests.sh)
+- not meant to replace the fast suite in [`scripts/unix/run_tests.sh`](../scripts/unix/run_tests.sh)
 - not a performance benchmark
 
 ## Which command to run
@@ -189,43 +189,43 @@ What it is not:
 
 | Situation | Command | Why use it |
 |---|---|---|
-| Normal development change | `bash scripts/run_tests.sh` | Fast default regression path for day-to-day work |
-| Single-header or release-path change | `bash scripts/build_single_header.sh` then `bash scripts/run_single_header_tests.sh` | Verifies the generated `dist/nxpp.hpp` artifact, not just the modular headers |
-| Extra confidence against raw Boost on larger graphs | `bash scripts/run_large_graph_compare.sh` | Runs the opt-in large deterministic wrapper-vs-Boost comparison path |
-| Snippet/example parity check | `bash scripts/test_single_snippet.sh snippet/bfs` | Checks one curated snippet folder against its companion references |
+| Normal development change | `bash scripts/unix/run_tests.sh` | Fast default regression path for day-to-day work |
+| Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Verifies the generated `dist/nxpp.hpp` artifact, not just the modular headers |
+| Extra confidence against raw Boost on larger graphs | `bash scripts/unix/run_large_graph_compare.sh` | Runs the opt-in large deterministic wrapper-vs-Boost comparison path |
+| Snippet/example parity check | `bash scripts/unix/test_single_snippet.sh snippet/bfs` | Checks one curated snippet folder against its companion references |
 
 For normal development:
 
 ```bash
-bash scripts/run_tests.sh
+bash scripts/unix/run_tests.sh
 ```
 
 When you changed the single-header build or release path:
 
 ```bash
-bash scripts/build_single_header.sh
-bash scripts/run_single_header_tests.sh
+bash scripts/unix/build_single_header.sh
+bash scripts/unix/run_single_header_tests.sh
 ```
 
 When you want extra wrapper-vs-Boost confidence on larger deterministic graphs:
 
 ```bash
-bash scripts/run_large_graph_compare.sh
+bash scripts/unix/run_large_graph_compare.sh
 ```
 
 When you want to inspect snippet parity behavior:
 
 ```bash
-bash scripts/test_single_snippet.sh snippet/bfs
+bash scripts/unix/test_single_snippet.sh snippet/bfs
 ```
 
 ## Practical interpretation
 
 The safest way to read the testing story is:
 
-- `run_tests.sh` is the default fast regression path
-- `run_single_header_tests.sh` validates the generated release artifact
-- `run_large_graph_compare.sh` adds scale-oriented cross-checks against raw Boost
+- `scripts/unix/run_tests.sh` is the default fast regression path
+- `scripts/unix/run_single_header_tests.sh` validates the generated release artifact
+- `scripts/unix/run_large_graph_compare.sh` adds scale-oriented cross-checks against raw Boost
 - snippet tooling protects the curated example/parity layer
 - showcase programs stay demos and should not be treated as proof on their own
 

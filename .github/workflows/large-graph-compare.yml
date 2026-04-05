@@ -27,7 +27,7 @@ jobs:
         id: modular
         run: |
           set +e
-          bash scripts/run_large_graph_compare.sh | tee large-graph-modular-output.txt
+          bash scripts/unix/run_large_graph_compare.sh | tee large-graph-modular-output.txt
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
@@ -35,14 +35,14 @@ jobs:
       - name: Build standalone single header
         if: success()
         run: |
-          bash scripts/build_single_header.sh
+          bash scripts/unix/build_single_header.sh
 
       - name: Run large-graph comparison against dist/nxpp.hpp
         if: success()
         id: single_header
         run: |
           set +e
-          env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/run_large_graph_compare.sh | tee large-graph-single-header-output.txt
+          env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/unix/run_large_graph_compare.sh | tee large-graph-single-header-output.txt
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
@@ -74,8 +74,8 @@ jobs:
             echo
             echo "- Modular header run: $(status_word "${MODULAR_EXIT_CODE:-1}")"
             echo "- Single-header run: $(status_word "${SINGLE_HEADER_EXIT_CODE:-1}")"
-            echo "- Modular command: \`bash scripts/run_large_graph_compare.sh\`"
-            echo "- Single-header command: \`env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/run_large_graph_compare.sh\`"
+            echo "- Modular command: \`bash scripts/unix/run_large_graph_compare.sh\`"
+            echo "- Single-header command: \`env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/unix/run_large_graph_compare.sh\`"
             echo
             if [ -f large-graph-modular-output-clean.txt ]; then
               echo "### Modular Output"

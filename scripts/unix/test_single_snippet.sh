@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SNIPPET_ROOT="$ROOT_DIR/snippet"
 LOG_ROOT="$ROOT_DIR/logs/snippet"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
@@ -24,12 +24,12 @@ resolve_gnu_time() {
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/test_single_snippet.sh <snippet_folder> [stdin_file]
+  scripts/unix/test_single_snippet.sh <snippet_folder> [stdin_file]
 
 Examples:
-  scripts/test_single_snippet.sh bfs
-  scripts/test_single_snippet.sh 2sat
-  scripts/test_single_snippet.sh 2sat /path/to/input.txt
+  scripts/unix/test_single_snippet.sh bfs
+  scripts/unix/test_single_snippet.sh 2sat
+  scripts/unix/test_single_snippet.sh 2sat /path/to/input.txt
 EOF
 }
 

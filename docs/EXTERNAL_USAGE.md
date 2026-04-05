@@ -156,3 +156,8 @@ ctest --test-dir build --output-on-failure
 This path currently covers the main formal modular test binaries. It is meant
 as a cross-platform repository build path, not as a replacement for the
 existing shell scripts or for the single-header validation flow.
+
+The repository now keeps platform-specific runners under:
+
+- `scripts/unix/` for the Unix/macOS `.sh` entry points
+- `scripts/windows/` for the PowerShell counterparts

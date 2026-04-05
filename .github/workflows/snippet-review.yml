@@ -70,7 +70,7 @@ jobs:
             snippet_description="$(describe_snippet "$snippet_name")"
             echo "Running snippet review for $snippet_name"
 
-            if bash scripts/test_single_snippet.sh "$snippet_name"; then
+            if bash scripts/unix/test_single_snippet.sh "$snippet_name"; then
               echo "| \`$snippet_name\` | $snippet_description | PASS |" >> "$summary_file"
             else
               echo "| \`$snippet_name\` | $snippet_description | FAIL |" >> "$summary_file"

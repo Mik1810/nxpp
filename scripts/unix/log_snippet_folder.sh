@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SNIPPET_ROOT="$ROOT_DIR/snippet"
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/log_snippet_folder.sh <snippet_folder> [stdin_file]
+  scripts/unix/log_snippet_folder.sh <snippet_folder> [stdin_file]
 
 Examples:
-  scripts/log_snippet_folder.sh 2sat
-  scripts/log_snippet_folder.sh scc
-  scripts/log_snippet_folder.sh 2sat /path/to/input.txt
+  scripts/unix/log_snippet_folder.sh 2sat
+  scripts/unix/log_snippet_folder.sh scc
+  scripts/unix/log_snippet_folder.sh 2sat /path/to/input.txt
 EOF
 }
 

@@ -25,7 +25,7 @@ jobs:
 
       - name: Build standalone single header
         run: |
-          bash scripts/build_single_header.sh
+          bash scripts/unix/build_single_header.sh
 
       - name: Smoke test generated header
         run: |
@@ -56,7 +56,7 @@ jobs:
           {
             echo "## Standalone Single Header"
             echo
-            echo "- Command: \`bash scripts/build_single_header.sh\`"
+            echo "- Command: \`bash scripts/unix/build_single_header.sh\`"
             echo "- Output: \`dist/nxpp.hpp\`"
             echo "- Smoke test: compiled and executed a small program against the generated header"
           } >> "$GITHUB_STEP_SUMMARY"

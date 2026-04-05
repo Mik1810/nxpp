@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SNIPPET_ROOT="$ROOT_DIR/snippet"
 
 resolve_gnu_time() {
@@ -22,21 +22,19 @@ resolve_gnu_time() {
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/benchmark_snippet_compile.sh [options]
-  scripts/benchmark_snippet_compile.sh <snippet_folder|all> [iterations]
+  scripts/unix/benchmark_snippet_compile_parallel.sh [options]
+  scripts/unix/benchmark_snippet_compile_parallel.sh <snippet_folder|all> [iterations]
 
 Examples:
-  scripts/benchmark_snippet_compile.sh --snippet mcmf_cc
-  scripts/benchmark_snippet_compile.sh --snippet mcmf_cc --iterations 5
-  scripts/benchmark_snippet_compile.sh --snippet mcmf_cc --opt-level O0
-  scripts/benchmark_snippet_compile.sh --all --iterations 3 --csv benchmark/compilation_snippet.csv
-  scripts/benchmark_snippet_compile.sh mcmf_cc 5
-  scripts/benchmark_snippet_compile.sh all 3
+  scripts/unix/benchmark_snippet_compile_parallel.sh --snippet mcmf_cc
+  scripts/unix/benchmark_snippet_compile_parallel.sh --all --iterations 10 --jobs 8
+  scripts/unix/benchmark_snippet_compile_parallel.sh --all --iterations 10 --opt-level O3 --csv benchmark/compile_bench_all_parallel.csv
 
 Options:
   --snippet <name>       Benchmark a single snippet folder
   --all                  Benchmark every snippet folder
   --iterations <n>       Number of compile runs per snippet (default: 3)
+  --jobs <n>             Number of snippet jobs to run in parallel (default: nproc, minimum 1)
   --opt-level <level>    Set optimization level: O0, O1, O2, O3, Og, Os, Oz
   --cxxflags "<flags>"   Override full compile flags used after `g++ -std=c++20`
   --csv <path>           Write per-snippet summary rows to CSV
@@ -45,15 +43,10 @@ Options:
 
 What it does:
   - compiles the C++ snippet implementations in snippet/<snippet_folder>/
-  - repeats compilation N times
-  - reports per-run times
-  - reports mean and median compile times
-  - reports nxpp overhead percentage relative to the baseline C++ implementation
-  - can benchmark one snippet folder or every snippet folder via `all`
-
-Expected naming:
-  - baseline C++: <name>.cpp
-  - nxpp C++:     <name>_nxpp.cpp
+  - repeats compilation N times per snippet
+  - keeps iterations serial inside each snippet
+  - runs different snippet folders in parallel when `--all` is used
+  - reports the same summary metrics and CSV schema as the serial benchmark script
 EOF
 }
 
@@ -64,6 +57,7 @@ CSV_PATH=""
 POSITIONAL=()
 TARGET=""
 ITERATIONS="3"
+JOBS="$(nproc 2>/dev/null || echo 1)"
 VERBOSE="0"
 
 while [[ $# -gt 0 ]]; do
@@ -80,6 +74,11 @@ while [[ $# -gt 0 ]]; do
     --iterations)
       [[ $# -ge 2 ]] || { echo "ERROR: --iterations requires a value" >&2; exit 1; }
       ITERATIONS="$2"
+      shift 2
+      ;;
+    --jobs)
+      [[ $# -ge 2 ]] || { echo "ERROR: --jobs requires a value" >&2; exit 1; }
+      JOBS="$2"
       shift 2
       ;;
     --opt-level)
@@ -132,6 +131,11 @@ if [[ ! "$ITERATIONS" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
+if [[ ! "$JOBS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: jobs must be a positive integer" >&2
+  exit 1
+fi
+
 if [[ -z "$TARGET" ]]; then
   echo "ERROR: specify --snippet <name> or --all" >&2
   exit 1
@@ -156,6 +160,8 @@ if [[ -z "$CXXFLAGS_OVERRIDE" ]]; then
 fi
 
 TMP_DIR="$(mktemp -d)"
+RESULTS_DIR="$TMP_DIR/results"
+mkdir -p "$RESULTS_DIR"
 cleanup() {
   rm -rf "$TMP_DIR"
 }
@@ -163,7 +169,6 @@ trap cleanup EXIT
 
 if [[ -n "$CSV_PATH" ]]; then
   mkdir -p "$(dirname "$CSV_PATH")"
-  printf "snippet,iterations,baseline_file,nxpp_file,baseline_mean_s,baseline_median_s,nxpp_mean_s,nxpp_median_s,overhead_mean_pct,overhead_median_pct\n" > "$CSV_PATH"
 fi
 
 compile_seconds() {
@@ -276,6 +281,7 @@ resolve_case_files() {
 benchmark_one() {
   local snippet_name="$1"
   local case_dir="$SNIPPET_ROOT/$snippet_name"
+  local result_file="$RESULTS_DIR/${snippet_name}.row"
   local resolved baseline_file nxpp_file
 
   if [[ ! -d "$case_dir" ]]; then
@@ -284,17 +290,6 @@ benchmark_one() {
   fi
 
   if ! resolved="$(resolve_case_files "$case_dir" "$snippet_name")"; then
-    if [[ "$VERBOSE" == "1" ]]; then
-      echo "NXPP compile benchmark"
-      echo "Snippet: $snippet_name"
-      echo "Case dir: $case_dir"
-      echo "Iterations: $ITERATIONS"
-      echo "CXXFLAGS: $CXXFLAGS_OVERRIDE"
-      echo
-      echo "Summary"
-      echo "  skipped: missing baseline or nxpp C++ file"
-      echo
-    fi
     echo "SKIP $snippet_name: missing baseline or nxpp C++ file" >&2
     return 0
   fi
@@ -308,10 +303,11 @@ benchmark_one() {
   : > "$nxpp_times"
 
   if [[ "$VERBOSE" == "1" ]]; then
-    echo "NXPP compile benchmark"
+    echo "NXPP parallel compile benchmark"
     echo "Snippet: $snippet_name"
     echo "Case dir: $case_dir"
     echo "Iterations: $ITERATIONS"
+    echo "Jobs: $JOBS"
     echo "Baseline: $(basename "$baseline_file")"
     echo "NXPP: $(basename "$nxpp_file")"
     echo "CXXFLAGS: $CXXFLAGS_OVERRIDE"
@@ -357,33 +353,43 @@ benchmark_one() {
     echo
   fi
 
-  if [[ -n "$CSV_PATH" ]]; then
-    printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" \
-      "$snippet_name" \
-      "$ITERATIONS" \
-      "$(basename "$baseline_file")" \
-      "$(basename "$nxpp_file")" \
-      "$baseline_mean" \
-      "$baseline_median" \
-      "$nxpp_mean" \
-      "$nxpp_median" \
-      "$(percent_overhead_number "$baseline_mean" "$nxpp_mean")" \
-      "$(percent_overhead_number "$baseline_median" "$nxpp_median")" \
-      >> "$CSV_PATH"
-  fi
+  printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" \
+    "$snippet_name" \
+    "$ITERATIONS" \
+    "$(basename "$baseline_file")" \
+    "$(basename "$nxpp_file")" \
+    "$baseline_mean" \
+    "$baseline_median" \
+    "$nxpp_mean" \
+    "$nxpp_median" \
+    "$(percent_overhead_number "$baseline_mean" "$nxpp_mean")" \
+    "$(percent_overhead_number "$baseline_median" "$nxpp_median")" \
+    > "$result_file"
 }
+
+run_one_exported() {
+  benchmark_one "$1"
+}
+
+export ROOT_DIR SNIPPET_ROOT CXXFLAGS_OVERRIDE OPT_LEVEL CSV_PATH ITERATIONS JOBS TIME_BIN TMP_DIR RESULTS_DIR VERBOSE
+export -f compile_seconds mean_file median_file percent_overhead_number percent_overhead_display resolve_case_files benchmark_one run_one_exported
 
 if [[ "$TARGET" == "all" ]]; then
   mapfile -t snippet_dirs < <(find "$SNIPPET_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
-  for dir in "${snippet_dirs[@]}"; do
-    benchmark_one "$(basename "$dir")"
-  done
+  printf "%s\n" "${snippet_dirs[@]##*/}" | xargs -I {} -P "$JOBS" bash -c 'run_one_exported "$1"' _ {}
+
   if [[ -n "$CSV_PATH" ]]; then
+    printf "snippet,iterations,baseline_file,nxpp_file,baseline_mean_s,baseline_median_s,nxpp_mean_s,nxpp_median_s,overhead_mean_pct,overhead_median_pct\n" > "$CSV_PATH"
+    find "$RESULTS_DIR" -maxdepth 1 -type f -name '*.row' | sort | while read -r row; do
+      cat "$row" >> "$CSV_PATH"
+    done
     echo "CSV written to: $CSV_PATH"
   fi
 else
   benchmark_one "$TARGET"
   if [[ -n "$CSV_PATH" ]]; then
+    printf "snippet,iterations,baseline_file,nxpp_file,baseline_mean_s,baseline_median_s,nxpp_mean_s,nxpp_median_s,overhead_mean_pct,overhead_median_pct\n" > "$CSV_PATH"
+    cat "$RESULTS_DIR/${TARGET}.row" >> "$CSV_PATH"
     echo "CSV written to: $CSV_PATH"
   fi
 fi

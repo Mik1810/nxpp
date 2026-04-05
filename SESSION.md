@@ -191,6 +191,29 @@
    - The shell harness coverage currently matches that checkpoint and stops at `cc`.
    - The next snippet queued for the same pass is `dag_sp`.
 
+## Session Audit: April 5, 2026
+
+1. **Script Layout Split**:
+   - Split the runnable helper scripts into `scripts/unix/` and `scripts/windows/`.
+   - Kept only the shared Python helpers at the top level of `scripts/`.
+   - Updated Unix workflows and docs to reference the new `scripts/unix/...` paths.
+
+2. **Windows PowerShell Runner Pass**:
+   - Added native PowerShell counterparts under `scripts/windows/` for the main runner surface, including formal tests, single-header tests, large-graph compare, snippet review helpers, and benchmark helpers.
+   - Removed the CMake dependency from the main PowerShell runners so they now compile and execute sources directly instead of relying on CMake/CTest as an intermediate layer.
+   - Centralized the shared Windows-side helper logic in `scripts/windows/common.ps1`.
+
+3. **Compatibility Workflow Reshaping**:
+   - Kept the Linux and macOS formal-suite coverage in a single matrix under `.github/workflows/compatibility.yml`.
+   - Folded Windows back into that same matrix instead of a separate job, while still using Windows-specific setup and execution steps.
+   - Switched the Windows compatibility path away from `vcpkg` and toward a direct Boost zip include-path setup paired with the new PowerShell runner.
+
+4. **Release Workflow Policy Realignment**:
+   - Reworked `.github/workflows/release.yml` so normal pushes to `main` no longer publish releases.
+   - The workflow now supports the two intended entry points: pushed `vX.Y.Z` tags and `workflow_dispatch`.
+   - `workflow_dispatch` remains self-contained: it creates and pushes the tag only after the release checks pass, then continues in the same run to publish the release.
+   - Updated `README.md` and `AGENTS.md` so the documented release behavior matches the workflow again.
+
 ## Session Audit: March 27-28, 2026
 
 1. **Snippet Review Completed**:
@@ -480,3 +503,8 @@
 - Started a first Windows pass on the compatibility matrix by adding a `windows-ucrt64-gcc` entry through `msys2/setup-msys2@v2`, with the goal of reusing the existing `bash scripts/run_tests.sh` path inside an MSYS2/UCRT64 environment instead of forking the test runner for Windows immediately; public docs and versioning were intentionally left untouched until the workflow proves itself on a real Actions run.
 - Added a minimal CMake-driven formal-test path behind `NXPP_BUILD_TESTS` in the root `CMakeLists.txt`, wiring the six main modular test binaries into `ctest` so the repository now has a shell-independent path that can serve as the basis for a future native Windows compatibility job without relying on MinGW/MSYS2.
 - Reworked the Windows direction for `#20` again: instead of continuing with the earlier MSYS2/UCRT64 bash-based experiment, the compatibility workflow now moves toward a native `windows-latest` path built around Visual Studio 2022, `vcpkg`, the new `NXPP_BUILD_TESTS` CMake option, and `ctest`, while leaving the existing Unix/macOS script-driven jobs unchanged.
+- Tightened that native Windows path for practicality by adding a dedicated `NXPP_BUILD_SMOKE_TESTS` CMake mode (`test_core` + `test_edge_cases`) and a simple `actions/cache` layer for `vcpkg` downloads/installed packages, so the Windows compatibility job can act as a fast native smoke check instead of rebuilding the full modular suite from scratch every time.
+- Split the repository script surface by platform: the real `.sh` runners now live under `scripts/unix/`, the top-level `scripts/` directory was reduced back to shared Python helpers only, and `scripts/windows/` now provides PowerShell counterparts for every moved shell runner, with native PowerShell/CMake entry points for the main test, single-header-test, and large-graph paths plus native PowerShell implementations for snippet logging/parity and the compile-benchmark commands.
+- Removed the CMake dependency from the main PowerShell runners in `scripts/windows/`: `run_tests.ps1`, `run_single_header_tests.ps1`, and `run_large_graph_compare.ps1` now compile and execute their targets directly, mirroring the Unix shell runners more closely and leaving CMake as a separate repository build path rather than the engine behind the Windows scripts.
+- Simplified the Windows compatibility job to match the new PowerShell runners: it no longer prepares `vcpkg` or calls CMake, and instead downloads an official Boost source zip, exports the include path through `BOOST_ROOT` / `NXPP_EXTRA_INCLUDE`, selects `cl`, and invokes `scripts/windows/run_tests.ps1 -Smoke` directly.
+- Folded the Windows path back into the main compatibility matrix instead of keeping it as a separate job: the workflow now has one `test-suite` matrix with Unix/macOS rows following the shell-runner path and a `windows-msvc` row that uses conditional setup and the PowerShell smoke runner.

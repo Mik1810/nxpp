@@ -323,7 +323,7 @@ The repository also now has a small helper script for rebuilding a distributable
 single header from the umbrella rooted at `include/nxpp.hpp`:
 
 ```bash
-bash scripts/build_single_header.sh
+bash scripts/unix/build_single_header.sh
 ```
 
 That command now generates a standalone `dist/nxpp.hpp` by expanding local
@@ -340,7 +340,7 @@ The repo now keeps three aligned showcase entry points:
 The assertion-based test suite now has a dedicated runner:
 
 ```bash
-bash scripts/run_tests.sh
+bash scripts/unix/run_tests.sh
 ```
 
 Use [`docs/TEST.md`](docs/TEST.md) as the source of truth for the testing
@@ -355,7 +355,7 @@ story. It now separates:
 There is also an opt-in large-graph comparison runner:
 
 ```bash
-bash scripts/run_large_graph_compare.sh
+bash scripts/unix/run_large_graph_compare.sh
 ```
 
 That path compiles `tests/test_large_graph_compare.cpp`, generates
@@ -377,7 +377,7 @@ deterministic larger graph instances, and compares `nxpp` against raw Boost for:
 - large maximum-flow / minimum-cut agreement with Boost
 - large successive-shortest-path min-cost-flow agreement with Boost
 
-It is intentionally kept outside `bash scripts/run_tests.sh` so the default
+It is intentionally kept outside `bash scripts/unix/run_tests.sh` so the default
 formal suite stays fast while the larger comparison path remains available when
 you want extra confidence on wrapper behavior at scale.
 
@@ -403,37 +403,46 @@ formal test suite, and publishes the test output as a Markdown job summary.
 
 The standalone-header workflow is equally narrow in scope:
 
-- runs `bash scripts/build_single_header.sh`
+- runs `bash scripts/unix/build_single_header.sh`
 - smoke-tests the generated `dist/nxpp.hpp`
 - uploads the generated header as a workflow artifact
 
 The large-graph comparison workflow is dedicated to the new scale-oriented
 verification path:
 
-- runs `bash scripts/run_large_graph_compare.sh` against the modular headers
+- runs `bash scripts/unix/run_large_graph_compare.sh` against the modular headers
 - builds `dist/nxpp.hpp`
 - reruns the same large-graph comparison against the generated single header
 - publishes both outputs as a separate Markdown job summary
 
-The release workflow is now fully automated from pushes to `main`:
+The release workflow is intentionally separate from normal pushes to `main`.
+
+It can start in two ways:
+
+- a pushed `vX.Y.Z` tag
+- `workflow_dispatch`
+
+In both cases it:
 
 - reads the top version from `RELEASE_NOTES.md` and `CHANGELOG.md`
 - fails if those top versions do not match
-- skips publication if the matching `vX.Y.Z` tag already exists
 - builds `dist/nxpp.hpp`
-- runs `bash scripts/run_tests.sh`
-- runs `bash scripts/run_single_header_tests.sh` against `dist/nxpp.hpp`
-- creates and pushes the matching `vX.Y.Z` tag only after the release checks pass
+- runs `bash scripts/unix/run_tests.sh`
+- runs `bash scripts/unix/run_single_header_tests.sh` against `dist/nxpp.hpp`
 - creates the GitHub release from `RELEASE_NOTES.md`
 - uploads the tested file as `nxpp.hpp`
 
-`workflow_dispatch` remains available as a manual fallback, but it follows the
-same self-contained path: read the top version, skip if the tag already exists,
-otherwise build, test, tag, and publish in the same run.
+When started by `workflow_dispatch`, the workflow is self-contained:
 
-This means the top version in `RELEASE_NOTES.md` and `CHANGELOG.md` should now
-be treated as the concrete next release that the release workflow will publish
-on the next push to `main`.
+- it creates and pushes the matching `vX.Y.Z` tag only after the release checks pass
+- then continues in the same run to publish the release
+
+When started by a pushed `vX.Y.Z` tag, it uses that tag directly and verifies
+that it matches the top documented version.
+
+So the top version in `RELEASE_NOTES.md` and `CHANGELOG.md` should be treated as
+the concrete next release candidate, but a normal push to `main` alone should
+not publish a release.
 
 These are showcase demos, not formal tests or parity harnesses.
 
@@ -465,8 +474,8 @@ There is now also a minimal assertion-based test entry point:
 - `tests/test_remove_node.cpp`
 - `tests/test_multigraph.cpp`
 - `tests/test_large_graph_compare.cpp`
-- `scripts/run_tests.sh`
-- `scripts/run_large_graph_compare.sh`
+- `scripts/unix/run_tests.sh`
+- `scripts/unix/run_large_graph_compare.sh`
 
 Where it stays readable, the test files now mirror the semantic-header split too:
 
@@ -579,8 +588,19 @@ Windows still remains an expected but not yet CI-backed path.
 g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_boost.cpp -o main_boost
 g++ -std=c++20 -Wall -Wextra -pedantic -O3 main_nxpp.cpp -o main_nxpp
 python3 main.py
-bash scripts/run_tests.sh
+bash scripts/unix/run_tests.sh
 ```
+
+## Script layout
+
+Repository automation scripts are now split by platform:
+
+- `scripts/unix/` contains the `.sh` runners used by the existing Unix/macOS CI paths
+- `scripts/windows/` contains the PowerShell counterparts for Windows-oriented flows
+
+The top-level `scripts/` directory now keeps only the shared Python helpers,
+while platform-specific runners live under the explicit `unix/` and `windows/`
+subdirectories.
 
 ### Install Boost Graph Library
 

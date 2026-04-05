@@ -65,12 +65,13 @@ When completing a task:
 - Every time an issue is finished and the related work is pushed, the assistant must always remember to update `README.md`, `CHANGELOG.md`, and `SESSION.md`.
 
 ## Release Process
-- A push to `main` may create a GitHub release automatically when the top version in `CHANGELOG.md` and `RELEASE_NOTES.md` matches and the corresponding `vX.Y.Z` tag does not already exist.
+- A normal push to `main` must not create a GitHub release automatically.
 - Releases are driven by `.github/workflows/release.yml`.
-- The release workflow is driven primarily by pushes to `main`; `workflow_dispatch` remains a fallback path that follows the same self-contained logic.
+- The release workflow may be started from a pushed `vX.Y.Z` tag or from `workflow_dispatch`.
 - The top version in `CHANGELOG.md` and `RELEASE_NOTES.md` should be treated as the concrete next release candidate, not as an open-ended future bucket.
-- The workflow must skip publication when the matching `vX.Y.Z` tag already exists.
-- When the workflow publishes a release, it must create and push the tag only after the release checks pass, then continue in the same run to publish the release.
+- When `workflow_dispatch` is used, the workflow must treat itself as self-contained: it may create and push the tag, but it must also continue in the same run to build, test, and publish the release.
+- When the workflow is started from a pushed `vX.Y.Z` tag, it must verify that the pushed tag matches the top documented version before publishing the release.
+- The workflow must skip publication when the matching GitHub release already exists.
 - Before a release is created, the workflow must verify that the top version in `CHANGELOG.md` matches the top version in `RELEASE_NOTES.md`.
 
 ## Single Header

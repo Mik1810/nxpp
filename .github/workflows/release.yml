@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -39,42 +39,42 @@ jobs:
             exit 1
           fi
 
-          echo "version=$notes_version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$notes_version" >> "$GITHUB_OUTPUT"
+          tag_name="v$notes_version"
 
-      - name: Check whether the release tag already exists
-        id: release_state
-        env:
-          TAG_NAME: ${{ steps.version.outputs.tag }}
-        run: |
-          if git ls-remote --tags origin "refs/tags/$TAG_NAME" | grep -q "$TAG_NAME"; then
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            if [ "${GITHUB_REF_NAME}" != "$tag_name" ]; then
+              echo "Pushed tag ${GITHUB_REF_NAME} does not match top documented version $tag_name" >&2
+              exit 1
+            fi
+
+            echo "mode=tag-push" >> "$GITHUB_OUTPUT"
+            echo "should_create_tag=false" >> "$GITHUB_OUTPUT"
           else
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "mode=workflow_dispatch" >> "$GITHUB_OUTPUT"
+            echo "should_create_tag=true" >> "$GITHUB_OUTPUT"
           fi
 
+          echo "version=$notes_version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag_name" >> "$GITHUB_OUTPUT"
+
       - name: Extract release notes
-        if: steps.release_state.outputs.should_release == 'true'
         run: |
           python3 scripts/extract_release_notes.py "${{ steps.version.outputs.tag }}" > /tmp/nxpp_release_notes.md
 
       - name: Build standalone single header
-        if: steps.release_state.outputs.should_release == 'true'
         run: |
-          bash scripts/build_single_header.sh
+          bash scripts/unix/build_single_header.sh
 
       - name: Run modular formal test suite
-        if: steps.release_state.outputs.should_release == 'true'
         run: |
-          bash scripts/run_tests.sh
+          bash scripts/unix/run_tests.sh
 
       - name: Run standalone-header test suite
-        if: steps.release_state.outputs.should_release == 'true'
         run: |
-          bash scripts/run_single_header_tests.sh
+          bash scripts/unix/run_single_header_tests.sh
 
       - name: Create and push release tag
-        if: steps.release_state.outputs.should_release == 'true'
+        if: steps.version.outputs.should_create_tag == 'true'
         env:
           TAG_NAME: ${{ steps.version.outputs.tag }}
         run: |
@@ -88,8 +88,19 @@ jobs:
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
 
+      - name: Check whether the GitHub release already exists
+        id: release_state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub release with tested header
-        if: steps.release_state.outputs.should_release == 'true'
+        if: steps.release_state.outputs.should_publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -103,18 +114,20 @@ jobs:
             echo
             echo "- Version: \`${{ steps.version.outputs.version }}\`"
             echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
-            if [ "${{ steps.release_state.outputs.should_release }}" = "true" ]; then
-              echo "- Mode: read the top version from \`RELEASE_NOTES.md\` and \`CHANGELOG.md\`, built and tested the release, then created and pushed the matching tag and GitHub release in the same run"
+            echo "- Trigger mode: \`${{ steps.version.outputs.mode }}\`"
+            if [ "${{ steps.version.outputs.should_create_tag }}" = "true" ]; then
+              echo "- Tag handling: created and pushed the matching tag after the release checks passed"
             else
-              echo "- Mode: no-op because tag \`${{ steps.version.outputs.tag }}\` already exists"
+              echo "- Tag handling: used the pushed tag that triggered the workflow"
+            fi
+            if [ "${{ steps.release_state.outputs.should_publish }}" = "true" ]; then
+              echo "- Release publication: created the GitHub release from the tested artifacts"
+            else
+              echo "- Release publication: skipped because the GitHub release already exists"
             fi
             echo "- Release notes source: \`RELEASE_NOTES.md\`"
-            echo "- Header build: \`bash scripts/build_single_header.sh\`"
-            echo "- Modular tests: \`bash scripts/run_tests.sh\`"
-            echo "- Header test suite: \`bash scripts/run_single_header_tests.sh\`"
-            if [ "${{ steps.release_state.outputs.should_release }}" = "true" ]; then
-              echo "- Release asset: created GitHub release with tested \`nxpp.hpp\`"
-            else
-              echo "- Release asset: skipped because the release already exists"
-            fi
+            echo "- Header build: \`bash scripts/unix/build_single_header.sh\`"
+            echo "- Modular tests: \`bash scripts/unix/run_tests.sh\`"
+            echo "- Header test suite: \`bash scripts/unix/run_single_header_tests.sh\`"
+            echo "- Release asset: tested \`dist/nxpp.hpp\` published as \`nxpp.hpp\` when a new release is created"
           } >> "$GITHUB_STEP_SUMMARY"
