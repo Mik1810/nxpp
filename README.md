@@ -571,16 +571,17 @@ currently verifies directly:
 |---|---|
 | Language level | C++20 required |
 | Standard library / toolchain used in repo scripts | local scripts are still primarily `g++`-oriented |
-| Continuous integration | GitHub Actions on `ubuntu-latest` and `macos-latest` |
-| Boost dependency | `libboost-graph-dev` on Ubuntu CI |
+| Continuous integration | GitHub Actions on `ubuntu-latest`, `macos-latest`, and `windows-latest` |
+| Boost dependency | `libboost-graph-dev` on Ubuntu CI, Homebrew Boost on macOS CI, official Boost archive on Windows CI |
 | Standalone single header | Generated in CI and tested on Ubuntu |
 | macOS | Covered by the formal test workflow with Homebrew Boost |
-| Windows | Expected to work with vcpkg Boost, but not covered by CI yet |
+| Windows | Covered by the formal test workflow with native MSVC (`cl`) and the repository's PowerShell runners |
 | Clang | Covered by the formal test workflow on Ubuntu and macOS |
 
-In practice, the repository now has a stronger verified story on Linux and
-macOS, with both `g++` and `clang++` covered in the formal test workflow, while
-Windows still remains an expected but not yet CI-backed path.
+In practice, the repository now has a CI-backed compatibility story across
+Linux, macOS, and Windows. Linux covers both `g++` and `clang++`, macOS covers
+`clang++`, and Windows uses a native MSVC (`cl`) path through the repository's
+PowerShell runners.
 
 ### Minimal local build
 

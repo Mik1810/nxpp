@@ -12,14 +12,19 @@ version entries in `CHANGELOG.md`.
   - `ubuntu-latest` with `g++`
   - `ubuntu-latest` with `clang++`
   - `macos-latest` with `clang++`
+- `windows-latest` is now covered too through a native MSVC (`cl`) path, using the repository's PowerShell runners plus a cached Boost archive/extract setup instead of the earlier Linux-centric shell assumptions.
 - Kept the snippet-review workflow unchanged so the example/parity layer remains intact and easy to read.
 - Updated the support matrix in `README.md` so it now matches the real CI-backed story instead of the older Ubuntu-only wording.
+- Cleaned the compatibility summaries so optional environment values are handled more safely and the Windows job strips ANSI escapes before publishing its Markdown output.
 
 ### Verification
 
 - `timeout 30s git diff --check`
 - `timeout 30s python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
 - `timeout 30s python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+- `timeout 30s bash scripts/unix/run_tests.sh`
+- `timeout 30s bash scripts/unix/run_single_header_tests.sh`
+- `timeout 30s bash scripts/unix/run_large_graph_compare.sh`
 
 ### Assets
 
