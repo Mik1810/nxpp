@@ -48,18 +48,21 @@ private:
 };
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for bfs_edges(start).
 [[deprecated("Use G.bfs_edges(start) instead.")]]
 auto bfs_edges(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.bfs_edges(start);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for bfs_tree(start).
 [[deprecated("Use G.bfs_tree(start) instead.")]]
 auto bfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.bfs_tree(start);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for bfs_successors(start).
 [[deprecated("Use G.bfs_successors(start) instead.")]]
 auto bfs_successors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.bfs_successors(start);
@@ -130,12 +133,14 @@ private:
 };
 
 template <typename GraphWrapper, typename Visitor>
+/// @brief Deprecated free-function alias for breadth_first_search(start, visitor).
 [[deprecated("Use G.breadth_first_search(start, visitor) instead.")]]
 void breadth_first_search(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, Visitor& visitor) {
     G.breadth_first_search(start, visitor);
 }
 
 template <typename GraphWrapper, typename OnVertex, typename OnTreeEdge>
+/// @brief Deprecated free-function alias for bfs_visit(start, on_vertex, on_tree_edge).
 [[deprecated("Use G.bfs_visit(start, on_vertex, on_tree_edge) instead.")]]
 void bfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) {
     G.bfs_visit(start, std::forward<OnVertex>(on_vertex), std::forward<OnTreeEdge>(on_tree_edge));
@@ -161,24 +166,28 @@ private:
 };
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for dfs_edges(start).
 [[deprecated("Use G.dfs_edges(start) instead.")]]
 auto dfs_edges(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.dfs_edges(start);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for dfs_tree(start).
 [[deprecated("Use G.dfs_tree(start) instead.")]]
 auto dfs_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.dfs_tree(start);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for dfs_predecessors(start).
 [[deprecated("Use G.dfs_predecessors(start) instead.")]]
 auto dfs_predecessors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.dfs_predecessors(start);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for dfs_successors(start).
 [[deprecated("Use G.dfs_successors(start) instead.")]]
 auto dfs_successors(const GraphWrapper& G, const typename GraphWrapper::NodeType& start) {
     return G.dfs_successors(start);
@@ -252,12 +261,14 @@ private:
 };
 
 template <typename GraphWrapper, typename Visitor>
+/// @brief Deprecated free-function alias for depth_first_search(start, visitor).
 [[deprecated("Use G.depth_first_search(start, visitor) instead.")]]
 void depth_first_search(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, Visitor& visitor) {
     G.depth_first_search(start, visitor);
 }
 
 template <typename GraphWrapper, typename OnTreeEdge, typename OnBackEdge>
+/// @brief Deprecated free-function alias for dfs_visit(start, on_tree_edge, on_back_edge).
 [[deprecated("Use G.dfs_visit(start, on_tree_edge, on_back_edge) instead.")]]
 void dfs_visit(const GraphWrapper& G, const typename GraphWrapper::NodeType& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) {
     G.dfs_visit(start, std::forward<OnTreeEdge>(on_tree_edge), std::forward<OnBackEdge>(on_back_edge));

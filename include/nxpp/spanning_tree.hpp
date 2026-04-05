@@ -9,6 +9,7 @@ namespace nxpp {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
+/// @brief Deprecated free-function alias for kruskal_minimum_spanning_tree().
 [[deprecated("Use G.kruskal_minimum_spanning_tree() instead.")]]
 auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
     return G.kruskal_minimum_spanning_tree();
@@ -16,6 +17,7 @@ auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
+/// @brief Deprecated free-function alias for prim_minimum_spanning_tree(root).
 [[deprecated("Use G.prim_minimum_spanning_tree(root) instead.")]]
 auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     return G.prim_minimum_spanning_tree(root_id);
@@ -23,6 +25,7 @@ auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapp
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
+/// @brief Deprecated free-function alias for minimum_spanning_tree().
 [[deprecated("Use G.minimum_spanning_tree() instead.")]]
 auto minimum_spanning_tree(const GraphWrapper& G) {
     return G.minimum_spanning_tree();
@@ -30,6 +33,7 @@ auto minimum_spanning_tree(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
+/// @brief Deprecated free-function alias for minimum_spanning_tree(root).
 [[deprecated("Use G.minimum_spanning_tree(root) instead.")]]
 auto minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     return G.minimum_spanning_tree(root_id);

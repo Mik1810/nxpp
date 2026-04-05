@@ -7,6 +7,7 @@
 namespace nxpp {
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for topological_sort().
 [[deprecated("Use G.topological_sort() instead.")]]
 auto topological_sort(const GraphWrapper& G) {
     return G.topological_sort();

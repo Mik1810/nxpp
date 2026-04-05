@@ -7,10 +7,17 @@
 
 namespace nxpp {
 
+/// Converts a signed 2-SAT literal into the internal implication-graph vertex ID.
 inline int to_2sat_vertex_id(int literal) {
     return (literal > 0) ? (2 * literal - 2) : (-2 * literal - 1);
 }
 
+/**
+ * @brief Returns whether a 2-SAT instance is satisfiable.
+ *
+ * @param num_variables Number of Boolean variables in the instance.
+ * @param clauses Vector of `(x, y)` clauses representing `(x OR y)`.
+ */
 inline bool two_sat_satisfiable(int num_variables, const std::vector<std::pair<int, int>>& clauses) {
     using SatGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
 

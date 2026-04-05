@@ -454,12 +454,14 @@ public:
         get_or_create_vertex(id);
     }
 
+    /// Adds every node ID contained in the input vector.
     void add_nodes_from(const std::vector<NodeID>& nodes) {
         for (const auto& n : nodes) {
             add_node(n);
         }
     }
 
+    /// Returns the underlying Boost edge descriptor for an existing edge.
     EdgeDesc get_edge_desc(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -469,6 +471,7 @@ public:
         return e;
     }
 
+    /// Returns true when at least one edge exists between @p u and @p v.
     bool has_edge(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -477,9 +480,13 @@ public:
         return exists;
     }
 
+    /// Returns true when an edge with the given wrapper-managed ID exists.
     bool has_edge_id(std::size_t edge_id) const;
+    /// Returns all wrapper-managed edge IDs currently present in the graph.
     std::vector<std::size_t> edge_ids() const;
+    /// Returns all wrapper-managed edge IDs between the given endpoints.
     std::vector<std::size_t> edge_ids(const NodeID& u, const NodeID& v) const;
+    /// Returns the endpoints of an edge identified by its wrapper-managed ID.
     std::pair<NodeID, NodeID> get_edge_endpoints(std::size_t edge_id) const;
 
     template <bool W = Weighted>
@@ -547,31 +554,39 @@ public:
     std::size_t add_edge_with_id(const NodeID& u, const NodeID& v);
 
 
+    /// Adds or updates a weighted edge and attaches the supplied attribute map.
     template <bool W = Weighted>
     requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const EdgeAttrMap& attrs);
 
+    /// Adds an unweighted edge and attaches the supplied attribute map.
     void add_edge(const NodeID& u, const NodeID& v, const EdgeAttrMap& attrs);
 
     template <bool W = Weighted>
     requires(W)
+    /// Adds or updates a weighted edge and attaches one attribute.
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const std::pair<std::string, std::any>& attr);
 
+    /// Adds an unweighted edge and attaches one attribute.
     void add_edge(const NodeID& u, const NodeID& v, const std::pair<std::string, std::any>& attr);
 
     template <bool W = Weighted>
     requires(W)
+    /// Adds or updates a weighted edge and attaches an initializer-list of attributes.
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, std::initializer_list<std::pair<std::string, std::any>> attrs);
 
+    /// Adds an unweighted edge and attaches an initializer-list of attributes.
     void add_edge(const NodeID& u, const NodeID& v, std::initializer_list<std::pair<std::string, std::any>> attrs);
     template <bool W = Weighted>
     requires(W)
+    /// Adds a batch of weighted edges from `(u, v, w)` tuples.
     void add_edges_from(const std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>& edges) {
         for (const auto& edge : edges) {
             add_edge(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
         }
     }
 
+    /// Adds a batch of unweighted edges from `(u, v)` pairs.
     void add_edges_from(const std::vector<std::pair<NodeID, NodeID>>& edges) {
         for (const auto& edge : edges) {
             add_edge(edge.first, edge.second);
@@ -679,49 +694,65 @@ public:
         return res;
     }
 
+    /// Returns true when the graph already contains the given node ID.
     bool has_node(const NodeID& u) const {
         return id_to_bgl.find(u) != id_to_bgl.end();
     }
 
 
+    /// Returns true when the node has the named attribute.
     bool has_node_attr(const NodeID& u, const std::string& key) const;
+    /// Returns true when an endpoint-selected edge has the named attribute.
     bool has_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
+    /// Returns true when an edge-ID-selected edge has the named attribute.
     bool has_edge_attr(std::size_t edge_id, const std::string& key) const;
 
     template <typename T>
+    /// Reads a typed node attribute and throws on missing keys or type mismatch.
     T get_node_attr(const NodeID& u, const std::string& key) const;
 
     template <typename T>
+    /// Reads a typed edge attribute selected by endpoints.
     T get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
 
     template <typename T>
+    /// Reads a typed edge attribute selected by edge ID.
     T get_edge_attr(std::size_t edge_id, const std::string& key) const;
 
     template <typename T>
+    /// Attempts to read a typed node attribute without throwing on failure.
     std::optional<T> try_get_node_attr(const NodeID& u, const std::string& key) const;
 
     template <typename T>
+    /// Attempts to read a typed edge attribute selected by endpoints.
     std::optional<T> try_get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
 
     template <typename T>
+    /// Attempts to read a typed edge attribute selected by edge ID.
     std::optional<T> try_get_edge_attr(std::size_t edge_id, const std::string& key) const;
 
+    /// Reads an edge attribute as a numeric value selected by endpoints.
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
+    /// Reads an edge attribute as a numeric value selected by edge ID.
     double get_edge_numeric_attr(std::size_t edge_id, const std::string& key) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the built-in edge weight selected by endpoints.
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Returns the built-in edge weight selected by edge ID.
     EdgeWeight get_edge_weight(std::size_t edge_id) const;
 
     template <bool W = Weighted>
     requires(W)
+    /// Updates the built-in weight of an edge identified by edge ID.
     void set_edge_weight(std::size_t edge_id, EdgeWeight w);
 
     template <typename T>
+    /// Stores a typed attribute on an edge identified by edge ID.
     void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value);
 
     /// Returns all node IDs currently stored in the graph.
@@ -754,6 +785,7 @@ public:
         }
     }
 
+    /// Returns all edges as endpoint pairs, ignoring built-in weights.
     std::vector<std::pair<NodeID, NodeID>> edge_pairs() const {
         std::vector<std::pair<NodeID, NodeID>> res;
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
@@ -764,11 +796,15 @@ public:
         return res;
     }
 
-    // Accessors for BGL algorithms
+    /// Exposes the underlying Boost graph for advanced integrations.
     const GraphType& get_impl() const { return g; }
+    /// Returns the maintained vertex-index-to-node-ID translation table.
     const std::vector<NodeID>& get_bgl_to_id_map() const { return bgl_to_id; }
+    /// Returns the maintained node-ID-to-vertex translation table.
     const IdMap& get_id_to_bgl_map() const { return id_to_bgl; }
+    /// Returns the wrapper-side node ID associated with a Boost vertex descriptor.
     const NodeID& get_node_id(VertexDesc v) const { return node_id_of(v); }
+    /// Returns the wrapper-maintained dense vertex index used by algorithms.
     std::size_t get_vertex_index(VertexDesc v) const { return vertex_index_of(v); }
 
     // Proxy Pattern per simulare G[u][v] = weight
@@ -866,6 +902,7 @@ public:
         }
     };
 
+    /// Returns the proxy used for `G[u][v]` edge access syntax.
     NodeProxy operator[](const NodeID& u) {
         if (!has_node(u)) {
             add_node(u);
@@ -873,6 +910,7 @@ public:
         return NodeProxy(this, u);
     }
 
+    /// Returns the proxy used for `G.node(u)[key]` node-attribute syntax.
     NodeAttrBaseProxy node(const NodeID& u) {
         if (!has_node(u) && !Multi) add_node(u);
         else if (!has_node(u)) add_node(u);
@@ -1080,12 +1118,14 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for num_vertices().
 [[deprecated("Use G.num_vertices() instead.")]]
 auto num_vertices(const GraphWrapper& G) {
     return G.num_vertices();
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for degree_centrality().
 [[deprecated("Use G.degree_centrality() instead.")]]
 auto degree_centrality(const GraphWrapper& G) {
     return G.degree_centrality();

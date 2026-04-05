@@ -108,59 +108,69 @@ struct MinimumCutResult {
 };
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for edmonds_karp_maximum_flow(...).
 [[deprecated("Use G.edmonds_karp_maximum_flow(source, target, capacity_attr) instead.")]]
 auto edmonds_karp_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.edmonds_karp_maximum_flow(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for push_relabel_maximum_flow_result(...).
 [[deprecated("Use G.push_relabel_maximum_flow_result(source, target, capacity_attr) instead.")]]
 auto push_relabel_maximum_flow_result(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.push_relabel_maximum_flow_result(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for maximum_flow(...).
 [[deprecated("Use G.maximum_flow(source, target, capacity_attr) instead.")]]
 auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.maximum_flow(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for minimum_cut(...).
 [[deprecated("Use G.minimum_cut(source, target, capacity_attr) instead.")]]
 auto minimum_cut(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.minimum_cut(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for max_flow_min_cost_cycle_canceling(...).
 [[deprecated("Use G.max_flow_min_cost_cycle_canceling(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost_cycle_canceling(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for push_relabel_maximum_flow(...).
 [[deprecated("Use G.push_relabel_maximum_flow(source, target, capacity_attr, weight_attr) instead.")]]
 long push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.push_relabel_maximum_flow(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for cycle_canceling(weight_attr).
 [[deprecated("Use G.cycle_canceling(weight_attr) instead.")]]
 auto cycle_canceling(const GraphWrapper& G, const std::string& weight_attr = "weight") {
     return G.cycle_canceling(weight_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for successive_shortest_path_nonnegative_weights(...).
 [[deprecated("Use G.successive_shortest_path_nonnegative_weights(source, target, capacity_attr, weight_attr) instead.")]]
 auto successive_shortest_path_nonnegative_weights(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.successive_shortest_path_nonnegative_weights(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for max_flow_min_cost_successive_shortest_path(...).
 [[deprecated("Use G.max_flow_min_cost_successive_shortest_path(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost_successive_shortest_path(source_id, target_id, capacity_attr, weight_attr);
 }
 template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for max_flow_min_cost(...).
 [[deprecated("Use G.max_flow_min_cost(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost(source_id, target_id, capacity_attr, weight_attr);

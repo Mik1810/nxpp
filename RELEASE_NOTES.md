@@ -14,6 +14,11 @@ version entries in `CHANGELOG.md`.
   - single-source shortest-path result helpers
   - flow / minimum-cut result types
   - the built-in graph generators
+- Extended that same pass to the remaining public semantic-header surface, including:
+  - component helpers
+  - minimum-spanning-tree and topological-sort wrappers
+  - 2-SAT helpers
+  - the deprecated free-function aliases that still remain part of the public reference for migration purposes
 - Added a minimal root `Doxyfile` and a dedicated `docs/DOXYGEN_MAINPAGE.md` so the repository now has a concrete local scaffold for a future Javadoc-/Boost-style navigable API reference site.
 - Updated the docs index and `README.md` so the generated-reference path is now part of the documented repository structure instead of only being an idea in the backlog.
 
