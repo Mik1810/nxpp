@@ -779,45 +779,91 @@ public:
     }
 
 
-    /// Returns true when the node has the named attribute.
+    /**
+     * @brief Returns whether a node has the named attribute.
+     *
+     * Missing nodes are treated as "attribute not present" rather than as an
+     * exceptional case.
+     */
     bool has_node_attr(const NodeID& u, const std::string& key) const;
-    /// Returns true when an endpoint-selected edge has the named attribute.
+    /**
+     * @brief Returns whether an endpoint-selected edge has the named attribute.
+     *
+     * In multigraphs this follows the same `(u, v)` caveat as the other
+     * endpoint-based edge accessors and should not be treated as precise
+     * parallel-edge identification.
+     */
     bool has_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
-    /// Returns true when an edge-ID-selected edge has the named attribute.
+    /// Returns whether an edge-ID-selected edge has the named attribute.
     bool has_edge_attr(std::size_t edge_id, const std::string& key) const;
 
     template <typename T>
-    /// Reads a typed node attribute and throws on missing keys or type mismatch.
+    /**
+     * @brief Reads a typed node attribute.
+     *
+     * This throws if the node has no attributes, the key is missing, or the
+     * stored value cannot be converted to the requested type.
+     */
     T get_node_attr(const NodeID& u, const std::string& key) const;
 
     template <typename T>
-    /// Reads a typed edge attribute selected by endpoints.
+    /**
+     * @brief Reads a typed edge attribute selected by endpoints.
+     *
+     * Prefer the edge-id overload in multigraphs when you need stable
+     * per-parallel-edge access.
+     */
     T get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
 
     template <typename T>
-    /// Reads a typed edge attribute selected by edge ID.
+    /**
+     * @brief Reads a typed edge attribute selected by edge ID.
+     *
+     * This is the precise typed read path for multigraph edge metadata.
+     */
     T get_edge_attr(std::size_t edge_id, const std::string& key) const;
 
     template <typename T>
-    /// Attempts to read a typed node attribute without throwing on failure.
+    /**
+     * @brief Attempts to read a typed node attribute without throwing.
+     *
+     * Returns `std::nullopt` for missing nodes, missing keys, and type
+     * mismatches.
+     */
     std::optional<T> try_get_node_attr(const NodeID& u, const std::string& key) const;
 
     template <typename T>
-    /// Attempts to read a typed edge attribute selected by endpoints.
+    /**
+     * @brief Attempts to read a typed edge attribute selected by endpoints.
+     *
+     * Returns `std::nullopt` instead of throwing when the edge, key, or type
+     * does not match.
+     */
     std::optional<T> try_get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
 
     template <typename T>
     /// Attempts to read a typed edge attribute selected by edge ID.
     std::optional<T> try_get_edge_attr(std::size_t edge_id, const std::string& key) const;
 
-    /// Reads an edge attribute as a numeric value selected by endpoints.
+    /**
+     * @brief Reads an endpoint-selected edge attribute as a numeric value.
+     *
+     * The special key `"weight"` resolves to the built-in edge-weight property
+     * when the graph is weighted.
+     */
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
     /// Reads an edge attribute as a numeric value selected by edge ID.
     double get_edge_numeric_attr(std::size_t edge_id, const std::string& key) const;
 
     template <bool W = Weighted>
     requires(W)
-    /// Returns the built-in edge weight selected by endpoints.
+    /**
+     * @brief Returns the built-in edge weight selected by endpoints.
+     *
+     * In multigraphs this follows the wrapper's endpoint-based edge-selection
+     * semantics and is therefore not a stable way to identify one specific
+     * parallel edge.
+     */
     EdgeWeight get_edge_weight(const NodeID& u, const NodeID& v) const;
 
     template <bool W = Weighted>
@@ -831,7 +877,12 @@ public:
     void set_edge_weight(std::size_t edge_id, EdgeWeight w);
 
     template <typename T>
-    /// Stores a typed attribute on an edge identified by edge ID.
+    /**
+     * @brief Stores a typed attribute on an edge identified by edge ID.
+     *
+     * String-like values are normalized through the wrapper's attribute
+     * storage helpers in the same way as other public attribute APIs.
+     */
     void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value);
 
     /**
