@@ -57,6 +57,7 @@ The most important open issue groups right now are:
 - documentation/generated-docs/testing-story cleanup: `#28`
 - API safety / attribute-system follow-up: `#25`, `#27`
 - packaging / external-usage / CI follow-up: `#17`, `#20`
+- packaging / CI follow-up: `#20`
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 Runtime validation errors now use a more consistent `X failed: ...` wording
@@ -160,6 +161,11 @@ These repository files should have clearly separated roles:
 - [`docs/COMPLEXITY.md`](docs/COMPLEXITY.md): complexity policy and Boost-vs-`nxpp` cost model
 - [`docs/EXTERNAL_USAGE.md`](docs/EXTERNAL_USAGE.md): how to consume `nxpp` from another project today
 - [`docs/TEST.md`](docs/TEST.md): testing layers, test commands, and verification scope
+
+The external-consumption story now also includes a minimal root
+[`CMakeLists.txt`](CMakeLists.txt) for vendored `add_subdirectory(...)` usage,
+in addition to the plain compiler examples documented in
+[`docs/EXTERNAL_USAGE.md`](docs/EXTERNAL_USAGE.md).
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
 

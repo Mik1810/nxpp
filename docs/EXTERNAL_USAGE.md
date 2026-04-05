@@ -108,7 +108,29 @@ Today the documented external-consumption story is intentionally minimal:
 It does not yet assume:
 
 - a packaged install target
-- a committed `CMakeLists.txt`
 - a system package manager integration
 
-Those remain separate packaging/build topics.
+There is now a committed minimal `CMakeLists.txt`, but it is intentionally only
+an entry point for vendored/add-subdirectory consumption, not a full packaging
+or install story yet.
+
+## Minimal CMake consumption
+
+If you vendor the repository, you can also consume it through CMake:
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(my_app LANGUAGES CXX)
+
+find_package(Boost REQUIRED)
+add_subdirectory(external/nxpp)
+
+add_executable(my_app app.cpp)
+target_link_libraries(my_app PRIVATE nxpp)
+```
+
+This minimal CMake path currently assumes:
+
+- `nxpp` is available as a subdirectory or vendored checkout
+- Boost can be found by your normal CMake setup
+- you only need a header-only interface target

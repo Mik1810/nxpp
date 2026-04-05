@@ -3,6 +3,27 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.5]
+
+### Highlights
+
+- Closed `#17` by adding a minimal root `CMakeLists.txt`.
+- The repo now exposes `nxpp` as a header-only `INTERFACE` target named `nxpp`, intended for the simplest vendored `add_subdirectory(...)` use case.
+- Updated the external-usage docs with a matching minimal CMake example.
+- Kept the scope deliberately small:
+  - no install rules yet
+  - no exported package config yet
+  - no CMake-driven test matrix yet
+
+### Verification
+
+- `timeout 30s cmake -S /tmp/nxpp-cmake-consumer -B /tmp/nxpp-cmake-consumer/build`
+- `timeout 30s cmake --build /tmp/nxpp-cmake-consumer/build`
+
+### Assets
+
+- This change does not add a new release asset, but it gives external users a minimal CMake entry point in addition to the plain compiler-based integration path.
+
 ## [0.8.4]
 
 ### Highlights
