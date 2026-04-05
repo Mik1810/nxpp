@@ -31,6 +31,22 @@ void expect_throws(Fn&& fn, const std::string& message) {
     throw std::runtime_error(message);
 }
 
+template <typename Fn>
+void expect_runtime_error_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
+    try {
+        fn();
+    } catch (const std::runtime_error& ex) {
+        if (std::string(ex.what()) == expected_message) {
+            return;
+        }
+        throw std::runtime_error(
+            failure_message + ": expected \"" + expected_message + "\", got \"" + ex.what() + "\""
+        );
+    }
+
+    throw std::runtime_error(failure_message + ": no std::runtime_error thrown");
+}
+
 nxpp::UnweightedDiGraphInt make_max_flow_graph() {
     nxpp::UnweightedDiGraphInt graph;
 
@@ -94,8 +110,9 @@ void test_push_relabel_and_cycle_canceling_match_reference_cost() {
 void test_cycle_canceling_requires_cached_flow_state() {
     auto graph = make_min_cost_flow_graph();
 
-    expect_throws(
+    expect_runtime_error_message(
         [&] { (void)graph.cycle_canceling(); },
+        "Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.",
         "cycle_canceling should require a prior push_relabel_maximum_flow call");
 }
 
@@ -138,10 +155,10 @@ int main() {
     int passed = 0;
     constexpr int total = 6;
 
+    passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
     passed += run_test("maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case) ? 1 : 0;
     passed += run_test("minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition) ? 1 : 0;
     passed += run_test("push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost) ? 1 : 0;
-    passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
     passed += run_test("successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost) ? 1 : 0;
     passed += run_test("min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers) ? 1 : 0;
 

@@ -51,7 +51,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::prim_minimum_spanning_tree(const NodeID& root_id) const {
-    if (id_to_bgl.find(root_id) == id_to_bgl.end()) throw std::runtime_error("Root node not found in graph.");
+    if (id_to_bgl.find(root_id) == id_to_bgl.end()) throw std::runtime_error("Minimum spanning tree failed: root node not found.");
     std::vector<VertexDesc> parent(boost::num_vertices(g));
     std::vector<boost::default_color_type> color(boost::num_vertices(g));
     boost::prim_minimum_spanning_tree(

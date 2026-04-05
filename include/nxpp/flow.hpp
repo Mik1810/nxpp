@@ -150,7 +150,7 @@ auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeT
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::edmonds_karp_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS, boost::vecS, boost::directedS, boost::no_property,
@@ -200,7 +200,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::push_relabel_maximum_flow_result(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS, boost::vecS, boost::directedS, boost::no_property,
@@ -253,7 +253,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::minimum_cut(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS, boost::vecS, boost::directedS, boost::no_property,
@@ -320,7 +320,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr, const std::string& weight_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS, boost::vecS, boost::directedS, boost::no_property,
@@ -378,7 +378,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr, const std::string& weight_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     auto state = std::make_unique<detail::MinCostFlowState<NodeID>>();
     state->source_id = source_id;
     state->target_id = target_id;
@@ -416,7 +416,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::cycle_canceling(const std::string& weight_attr) const {
     auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
     auto it = cache.find(static_cast<const void*>(this));
-    if (it == cache.end()) throw std::runtime_error("Cycle-canceling state unavailable: run push_relabel_maximum_flow(...) first.");
+    if (it == cache.end()) throw std::runtime_error("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
     auto& state = *it->second;
     for (const auto& [key, edge_desc] : state.original_edges) {
         state.weight[edge_desc] = static_cast<long>(get_edge_numeric_attr(key.first, key.second, weight_attr));
@@ -430,7 +430,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::successive_shortest_path_nonnegative_weights(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr, const std::string& weight_attr) const {
-    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Source or target node not found in graph.");
+    if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS, boost::vecS, boost::directedS, boost::no_property,

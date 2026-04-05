@@ -83,7 +83,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::remove_edge(std::size_t edge_id) {
     auto edge_desc = try_find_edge_desc_by_id(edge_id);
     if (!edge_desc.has_value()) {
-        throw std::runtime_error("NetworkXError: The edge is not in the graph.");
+        throw std::runtime_error("Edge lookup failed: edge not found.");
     }
     edge_properties.erase(edge_id);
     boost::remove_edge(*edge_desc, g);

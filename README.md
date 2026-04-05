@@ -59,6 +59,8 @@ The most important open issue groups right now are:
 - packaging / external-usage / CI follow-up: `#17`, `#20`
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
+Runtime validation errors now use a more consistent `X failed: ...` wording
+across the public surface.
 
 ---
 

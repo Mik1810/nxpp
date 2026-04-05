@@ -38,6 +38,22 @@ void expect_throws(Fn&& fn, const std::string& message) {
     throw std::runtime_error(message);
 }
 
+template <typename Fn>
+void expect_runtime_error_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
+    try {
+        fn();
+    } catch (const std::runtime_error& ex) {
+        if (std::string(ex.what()) == expected_message) {
+            return;
+        }
+        throw std::runtime_error(
+            failure_message + ": expected \"" + expected_message + "\", got \"" + ex.what() + "\""
+        );
+    }
+
+    throw std::runtime_error(failure_message + ": no std::runtime_error thrown");
+}
+
 void test_empty_graph_reports_empty_collections() {
     nxpp::Graph<> graph;
 
@@ -66,15 +82,18 @@ void test_missing_node_operations_throw() {
     nxpp::DiGraph graph;
     graph.add_node("Rome");
 
-    expect_throws(
+    expect_runtime_error_message(
         [&] { (void)graph.neighbors("Milan"); },
-        "neighbors() on a missing node should throw");
-    expect_throws(
+        "Node lookup failed: node not found.",
+        "neighbors() on a missing node should report the standardized lookup error");
+    expect_runtime_error_message(
         [&] { (void)graph.bfs_edges("Milan"); },
-        "bfs_edges() on a missing start node should throw");
-    expect_throws(
+        "Traversal failed: start node not found.",
+        "bfs_edges() on a missing start node should report the standardized traversal error");
+    expect_runtime_error_message(
         [&] { (void)graph.shortest_path("Rome", "Milan"); },
-        "shortest_path() with a missing target should throw");
+        "Shortest-path lookup failed: source or target node not found.",
+        "shortest_path() with a missing target should report the standardized shortest-path lookup error");
 }
 
 void test_disconnected_shortest_paths_preserve_unreachable_state() {
@@ -90,13 +109,15 @@ void test_disconnected_shortest_paths_preserve_unreachable_state() {
            "unreachable node should keep max distance");
     expect(!result.has_path_to("C"),
            "unreachable node should not report an available path");
-    expect_throws(
+    expect_runtime_error_message(
         [&] { (void)result.path_to("C"); },
-        "unreachable node path reconstruction should throw");
+        "Path reconstruction failed: target node is unreachable.",
+        "unreachable node path reconstruction should report the standardized path reconstruction error");
 
-    expect_throws(
+    expect_runtime_error_message(
         [&] { (void)graph.shortest_path("A", "C", "weight"); },
-        "weighted shortest_path() should throw for unreachable targets");
+        "Shortest-path lookup failed: target node is unreachable.",
+        "weighted shortest_path() should report the standardized unreachable-target error");
 }
 
 void test_disconnected_component_groups_split_graph_correctly() {

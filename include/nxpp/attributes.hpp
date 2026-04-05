@@ -227,9 +227,9 @@ requires(W)
 EdgeWeight Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::get_edge_weight(const NodeID& u, const NodeID& v) const {
     auto it_u = id_to_bgl.find(u);
     auto it_v = id_to_bgl.find(v);
-    if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) throw std::runtime_error("Node not found in graph");
+    if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) throw std::runtime_error("Node lookup failed: node not found.");
     auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
-    if (!exists) throw std::runtime_error("Edge not found in graph");
+    if (!exists) throw std::runtime_error("Edge lookup failed: edge not found.");
     return weight_map[e];
 }
 

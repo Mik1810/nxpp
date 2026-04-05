@@ -262,7 +262,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
 
     if (!has_node(start)) {
-        throw std::runtime_error("Start node not found in graph");
+        throw std::runtime_error("Traversal failed: start node not found.");
     }
 
     const auto start_bgl = get_id_to_bgl_map().at(start);
@@ -276,7 +276,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     Graph<NodeID, double, Directed> tree;
 
     if (!has_node(start)) {
-        throw std::runtime_error("Start node not found in graph");
+        throw std::runtime_error("Traversal failed: start node not found.");
     }
 
     tree.add_node(start);
@@ -288,7 +288,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bfs_successors(const NodeID& start) const {
-    if (!has_node(start)) throw std::runtime_error("Start node not found in graph");
+    if (!has_node(start)) throw std::runtime_error("Traversal failed: start node not found.");
     std::vector<std::optional<std::vector<NodeID>>> successors(boost::num_vertices(g));
     for (const auto& [u, v] : bfs_edges(start)) {
         const auto parent_index = get_vertex_index(get_id_to_bgl_map().at(u));
@@ -304,7 +304,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <typename Visitor>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::breadth_first_search(const NodeID& start, Visitor& visitor) const {
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
-    if (!has_node(start)) throw std::runtime_error("Start node not found in graph");
+    if (!has_node(start)) throw std::runtime_error("Traversal failed: start node not found.");
     const auto start_bgl = get_id_to_bgl_map().at(start);
     std::vector<boost::default_color_type> color(boost::num_vertices(g));
     GenericBfsObjectVisitor<NodeID, EdgeType, Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>, Visitor> vis(*this, visitor);
@@ -336,7 +336,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
 
     if (!has_node(start)) {
-        throw std::runtime_error("Start node not found in graph");
+        throw std::runtime_error("Traversal failed: start node not found.");
     }
 
     const auto start_bgl = get_id_to_bgl_map().at(start);
@@ -356,7 +356,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     Graph<NodeID, double, Directed> tree;
 
     if (!has_node(start)) {
-        throw std::runtime_error("Start node not found in graph");
+        throw std::runtime_error("Traversal failed: start node not found.");
     }
 
     tree.add_node(start);
@@ -368,7 +368,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dfs_predecessors(const NodeID& start) const {
-    if (!has_node(start)) throw std::runtime_error("Start node not found in graph");
+    if (!has_node(start)) throw std::runtime_error("Traversal failed: start node not found.");
     std::vector<std::optional<NodeID>> predecessors(boost::num_vertices(g));
     for (const auto& [u, v] : dfs_edges(start)) {
         predecessors[get_vertex_index(get_id_to_bgl_map().at(v))] = u;
@@ -378,7 +378,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dfs_successors(const NodeID& start) const {
-    if (!has_node(start)) throw std::runtime_error("Start node not found in graph");
+    if (!has_node(start)) throw std::runtime_error("Traversal failed: start node not found.");
     std::vector<std::optional<std::vector<NodeID>>> successors(boost::num_vertices(g));
     for (const auto& [u, v] : dfs_edges(start)) {
         const auto parent_index = get_vertex_index(get_id_to_bgl_map().at(u));
@@ -394,7 +394,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <typename Visitor>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::depth_first_search(const NodeID& start, Visitor& visitor) const {
     using EdgeType = typename boost::graph_traits<GraphType>::edge_descriptor;
-    if (!has_node(start)) throw std::runtime_error("Start node not found in graph");
+    if (!has_node(start)) throw std::runtime_error("Traversal failed: start node not found.");
     const auto start_bgl = get_id_to_bgl_map().at(start);
     std::vector<boost::default_color_type> color(boost::num_vertices(g));
     GenericDfsObjectVisitor<NodeID, EdgeType, Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>, Visitor> vis(*this, visitor);

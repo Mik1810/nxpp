@@ -22,10 +22,10 @@ struct SingleSourceShortestPathResult {
     std::vector<NodeID> path_to(const NodeID& target) const {
         const auto distance_it = distance.find(target);
         if (distance_it == distance.end()) {
-            throw std::runtime_error("Target node not found in shortest-path result.");
+            throw std::runtime_error("Path reconstruction failed: target node not found in result.");
         }
         if (distance_it->second == std::numeric_limits<Distance>::max()) {
-            throw std::runtime_error("Node not reachable");
+            throw std::runtime_error("Path reconstruction failed: target node is unreachable.");
         }
 
         std::vector<NodeID> path;
@@ -38,7 +38,7 @@ struct SingleSourceShortestPathResult {
 
             const auto pred_it = predecessor.find(current);
             if (pred_it == predecessor.end()) {
-                throw std::runtime_error("Broken predecessor map in shortest-path result.");
+                throw std::runtime_error("Path reconstruction failed: predecessor map is incomplete.");
             }
             if (pred_it->second == current) {
                 break;
@@ -47,7 +47,7 @@ struct SingleSourceShortestPathResult {
             current = pred_it->second;
             ++hops;
             if (hops > max_hops) {
-                throw std::runtime_error("Detected an invalid predecessor cycle while reconstructing a path.");
+                throw std::runtime_error("Path reconstruction failed: predecessor cycle detected.");
             }
         }
 
@@ -168,7 +168,7 @@ auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::No
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path(const NodeID& source_id, const NodeID& target_id) const {
     if (id_to_bgl.find(source_id) == id_to_bgl.end() || id_to_bgl.find(target_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source or target node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: source or target node not found.");
     }
 
     const VertexDesc source = id_to_bgl.at(source_id);
@@ -212,7 +212,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     }
 
     if (!visited[target_index]) {
-        throw std::runtime_error("Node not reachable");
+        throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
     }
 
     std::vector<NodeID> path;
@@ -233,17 +233,17 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         if constexpr (Weighted) {
             return dijkstra_path(source_id, target_id);
         } else {
-            throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+            throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
         }
     }
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path_length(const NodeID& source_id, const NodeID& target_id) const {
     const auto path = shortest_path(source_id, target_id);
     if (path.empty()) {
-        throw std::runtime_error("Node not reachable");
+        throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
     }
     return static_cast<double>(path.size() - 1);
 }
@@ -257,10 +257,10 @@ double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Ver
         if constexpr (Weighted) {
             return dijkstra_path_length(source_id, target_id);
         } else {
-            throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+            throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
         }
     }
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -268,7 +268,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_path(const NodeID& source_id, const NodeID& target_id) const {
     if (id_to_bgl.find(source_id) == id_to_bgl.end() || id_to_bgl.find(target_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source or target node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: source or target node not found.");
     }
 
     const VertexDesc source = id_to_bgl.at(source_id);
@@ -287,7 +287,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     );
 
     if (pred[target_index] == target && source != target) {
-        throw std::runtime_error("Node not reachable");
+        throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
     }
 
     std::vector<NodeID> path;
@@ -306,7 +306,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     if (weight.empty() || weight == "weight") {
         return dijkstra_path(source_id, target_id);
     }
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -314,7 +314,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_shortest_paths(const NodeID& source_id) const {
     if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: source node not found.");
     }
 
     const VertexDesc source = id_to_bgl.at(source_id);
@@ -357,7 +357,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const auto distances = dijkstra_path_length(source_id);
     const auto it = distances.find(target_id);
     if (it == distances.end()) {
-        throw std::runtime_error("Target node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: target node not found.");
     }
     return it->second;
 }
@@ -369,7 +369,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     if (weight.empty() || weight == "weight") {
         return dijkstra_path_length(source_id, target_id);
     }
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename GraphWrapper>
@@ -441,7 +441,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path(const NodeID& source_id, const NodeID& target_id) const {
     if (id_to_bgl.find(source_id) == id_to_bgl.end() || id_to_bgl.find(target_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source or target node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: source or target node not found.");
     }
 
     const VertexDesc source = id_to_bgl.at(source_id);
@@ -463,7 +463,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
             .root_vertex(source)
     );
     if (!ok) throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
-    if (dist[target_index] == std::numeric_limits<EdgeWeight>::max()) throw std::runtime_error("Node not reachable");
+    if (dist[target_index] == std::numeric_limits<EdgeWeight>::max()) throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
 
     std::vector<NodeID> path;
     for (VertexDesc curr = target; curr != source; curr = pred[get_vertex_index(curr)]) path.push_back(get_node_id(curr));
@@ -477,7 +477,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_shortest_paths(const NodeID& source_id) const {
     if (id_to_bgl.find(source_id) == id_to_bgl.end()) {
-        throw std::runtime_error("Source node not found in graph.");
+        throw std::runtime_error("Shortest-path lookup failed: source node not found.");
     }
 
     const VertexDesc source = id_to_bgl.at(source_id);
@@ -513,7 +513,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
     if (weight.empty() || weight == "weight") return bellman_ford_path(source_id, target_id);
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -531,7 +531,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
     if (weight.empty() || weight == "weight") return bellman_ford_path_length(source_id, target_id);
-    throw std::runtime_error("Unsupported weight attribute: nxpp currently supports only the built-in edge weight property named 'weight'.");
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -539,7 +539,7 @@ template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dag_shortest_paths(const NodeID& source_id) const {
     using CalcDistance = shortest_path_calc_type<EdgeWeight>;
-    if (id_to_bgl.find(source_id) == id_to_bgl.end()) throw std::runtime_error("Source node not found in graph.");
+    if (id_to_bgl.find(source_id) == id_to_bgl.end()) throw std::runtime_error("Shortest-path lookup failed: source node not found.");
 
     const VertexDesc source = id_to_bgl.at(source_id);
     const size_t n = boost::num_vertices(g);

@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.3] - 2026-04-05
+
+- Closed `#6` by standardizing the main runtime-error wording across the public surface: node, edge, traversal, shortest-path, spanning-tree, and flow failures now use a consistent `X failed: ...` style instead of the earlier mix of generic messages, legacy `NetworkXError` text, and inconsistent punctuation.
+
 ## [0.8.2] - 2026-04-05
 
 - Closed `#18` by documenting the external-usage story explicitly: the docs now explain the modular include path, the tested single-header release asset, the Boost dependency, and minimal consumer-side compile commands for both integration styles.

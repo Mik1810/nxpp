@@ -3,6 +3,31 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.3]
+
+### Highlights
+
+- Closed `#6` by standardizing the main runtime-error wording across `nxpp`'s public surface.
+- Replaced the older mix of generic messages, legacy `NetworkXError` text, and inconsistent punctuation with a simpler family of messages such as:
+  - `Node lookup failed: ...`
+  - `Traversal failed: ...`
+  - `Shortest-path lookup failed: ...`
+  - `Path reconstruction failed: ...`
+  - `Minimum spanning tree failed: ...`
+  - `Flow setup failed: ...`
+- Kept the change intentionally conservative: behavior and exception types stay the same, while the wording becomes easier to read and easier to test consistently.
+
+### Verification
+
+- `timeout 30s bash scripts/run_tests.sh`
+- `timeout 30s bash scripts/build_single_header.sh`
+- `timeout 30s bash scripts/run_single_header_tests.sh`
+- `timeout 30s bash scripts/run_large_graph_compare.sh`
+
+### Assets
+
+- This change does not add a new release asset, but it makes runtime failures more consistent for users and easier to assert in focused tests.
+
 ## [0.8.2]
 
 ### Highlights

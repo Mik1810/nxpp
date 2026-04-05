@@ -379,7 +379,7 @@ private:
     EdgeDesc get_edge_desc_by_id(std::size_t edge_id) const {
         auto edge_desc = try_find_edge_desc_by_id(edge_id);
         if (!edge_desc.has_value()) {
-            throw std::runtime_error("Edge not found");
+            throw std::runtime_error("Edge lookup failed: edge not found.");
         }
         return *edge_desc;
     }
@@ -455,9 +455,9 @@ public:
     EdgeDesc get_edge_desc(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
-        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) throw std::runtime_error("Node not found");
+        if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) throw std::runtime_error("Node lookup failed: node not found.");
         auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
-        if (!exists) throw std::runtime_error("Edge not found");
+        if (!exists) throw std::runtime_error("Edge lookup failed: edge not found.");
         return e;
     }
 
@@ -568,11 +568,11 @@ public:
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
         if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
-            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+            throw std::runtime_error("Node lookup failed: node not found.");
         }
         auto [e, exists] = boost::edge(it_u->second, it_v->second, g);
         if (!exists) {
-            throw std::runtime_error("NetworkXError: The edge is not in the graph.");
+            throw std::runtime_error("Edge lookup failed: edge not found.");
         }
         for (auto edge_id : collect_edge_ids_between(it_u->second, it_v->second)) {
             edge_properties.erase(edge_id);
@@ -585,7 +585,7 @@ public:
     void remove_node(const NodeID& u) {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
-            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+            throw std::runtime_error("Node lookup failed: node not found.");
         }
         VertexDesc v = it->second;
 
@@ -600,7 +600,7 @@ public:
     std::vector<NodeID> neighbors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
-            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+            throw std::runtime_error("Node lookup failed: node not found.");
         }
         std::vector<NodeID> res;
         for (auto [e, eend] = boost::out_edges(it->second, g); e != eend; ++e) {
@@ -616,7 +616,7 @@ public:
     std::vector<NodeID> predecessors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
-            throw std::runtime_error("NetworkXError: The node is not in the graph.");
+            throw std::runtime_error("Node lookup failed: node not found.");
         }
 
         std::vector<NodeID> res;
