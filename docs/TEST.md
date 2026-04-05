@@ -12,6 +12,23 @@ Use this file when you want the repository's testing story in one place.
 The repository intentionally uses several different verification paths instead
 of one giant test command.
 
+The clearest mental model is:
+
+- showcase programs are demos
+- `snippet/` is the curated example-plus-parity layer
+- `tests/` is the formal assertion-based regression suite
+- `test_large_graph_compare.cpp` is the separate scale-oriented raw-Boost comparison path
+
+## Quick map
+
+| Layer | Main artifacts | Primary purpose | What it is not |
+|---|---|---|---|
+| Showcase programs | `main_boost.cpp`, `main_nxpp.cpp`, `main.py` | Demonstrate usage and the wrapper-vs-reference story | Not the formal suite |
+| Snippet parity / regression | `snippet/`, `scripts/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
+| Formal assertion-based tests | `tests/test_*.cpp`, `scripts/run_tests.sh`, `tests.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
+| Single-header verification | `scripts/build_single_header.sh`, `scripts/run_single_header_tests.sh`, `single-header.yml` | Validate the generated release artifact | Not a replacement for the modular formal suite |
+| Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
+
 ### 1. Showcase programs
 
 Files:
@@ -43,8 +60,14 @@ Relevant files:
 Purpose:
 
 - compare curated `nxpp` snippets against their companion reference snippets
-- protect the snippet-backed core surface from obvious regressions
+- protect the example-backed core surface from obvious regressions
 - keep the repository aligned with the examples it presents
+
+How to read this layer:
+
+- each snippet folder is primarily an example set
+- the parity tooling turns those examples into a lightweight regression harness
+- this is why `snippet/` sits between showcase code and the formal test suite
 
 What it is not:
 
@@ -204,6 +227,7 @@ The safest way to read the testing story is:
 - `run_single_header_tests.sh` validates the generated release artifact
 - `run_large_graph_compare.sh` adds scale-oriented cross-checks against raw Boost
 - snippet tooling protects the curated example/parity layer
+- showcase programs stay demos and should not be treated as proof on their own
 
 Together these paths provide much stronger evidence than any one of them alone,
 but they still should be described as a practical regression strategy rather

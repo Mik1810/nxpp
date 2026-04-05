@@ -3,6 +3,29 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.4]
+
+### Highlights
+
+- Closed `#30` by clarifying how the repository's verification layers should be read.
+- The docs now distinguish more explicitly between:
+  - showcase programs
+  - the curated snippet parity / regression layer
+  - the formal assertion-based suite
+  - the generated single-header validation path
+  - the opt-in large-graph raw-Boost comparison path
+- Tightened the wording around `snippet/` specifically so it is now described as an example-backed parity layer rather than as a substitute for the formal suite.
+
+### Verification
+
+- `timeout 30s rg -n "snippet|example|showcase|formal test|large-graph|parity|TEST.md|testing" README.md docs tests scripts snippet .github/workflows`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+
+### Assets
+
+- This change does not add a new release asset, but it makes the repository's verification story easier to read and less ambiguous for contributors.
+
 ## [0.8.3]
 
 ### Highlights

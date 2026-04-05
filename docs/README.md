@@ -11,7 +11,7 @@ What currently lives here:
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
 - [`EXTERNAL_USAGE.md`](EXTERNAL_USAGE.md): current external-consumption story for modular headers and the release single-header asset
-- [`TEST.md`](TEST.md): testing layers, commands, and verification-scope guide
+- [`TEST.md`](TEST.md): distinction between showcase programs, snippet parity, formal tests, single-header validation, and the large-graph comparison path
 
 The repo now has a real semantic-header split under `include/nxpp/`:
 

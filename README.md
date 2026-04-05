@@ -54,7 +54,7 @@ Today, the project is strongest as:
 
 The most important open issue groups right now are:
 
-- documentation/generated-docs/testing-story cleanup: `#28`, `#30`
+- documentation/generated-docs/testing-story cleanup: `#28`
 - API safety / attribute-system follow-up: `#25`, `#27`
 - packaging / external-usage / CI follow-up: `#17`, `#20`
 
@@ -338,9 +338,14 @@ The assertion-based test suite now has a dedicated runner:
 bash scripts/run_tests.sh
 ```
 
-See [`docs/TEST.md`](docs/TEST.md) for the full distinction between showcases,
-snippet parity, the formal suite, single-header validation, and the large-graph
-comparison path.
+Use [`docs/TEST.md`](docs/TEST.md) as the source of truth for the testing
+story. It now separates:
+
+- showcase programs
+- snippet parity / regression
+- formal assertion-based tests
+- single-header validation
+- large-graph raw-Boost comparison
 
 There is also an opt-in large-graph comparison runner:
 
@@ -438,6 +443,13 @@ pulling in the full umbrella header by default. For example:
 
 This keeps the snippet layer closer to the real modular include story and makes
 compile-time comparisons more meaningful.
+
+The intended split is:
+
+- `main_*` files are showcase demos
+- `snippet/` is the curated example-plus-parity layer
+- `tests/` is the formal regression suite
+- `test_large_graph_compare.cpp` is the separate large deterministic raw-Boost comparison path
 
 There is now also a minimal assertion-based test entry point:
 
