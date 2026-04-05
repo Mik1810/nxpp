@@ -112,18 +112,20 @@ jobs:
         if: matrix.platform_family == 'windows'
         shell: pwsh
         run: |
-          $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat'
-
-          if (-not (Test-Path $vsDevCmd)) {
-            $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $vswhere)) {
+            throw 'vswhere.exe was not found on the GitHub Actions Windows runner.'
           }
 
-          if (-not (Test-Path $vsDevCmd)) {
-            $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat'
+          $vsInstallPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstallPath)) {
+            throw 'Unable to locate a Visual Studio installation with C++ tools via vswhere.'
           }
 
+          $vsInstallPath = $vsInstallPath.Trim()
+          $vsDevCmd = Join-Path $vsInstallPath 'Common7\Tools\VsDevCmd.bat'
           if (-not (Test-Path $vsDevCmd)) {
-            throw 'VsDevCmd.bat was not found on the GitHub Actions Windows runner.'
+            throw "VsDevCmd.bat was not found under $vsInstallPath."
           }
 
           $envDump = cmd.exe /c "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && set"
