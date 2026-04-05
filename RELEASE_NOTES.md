@@ -21,6 +21,7 @@ version entries in `CHANGELOG.md`.
   - the deprecated free-function aliases that still remain part of the public reference for migration purposes
 - Added a minimal root `Doxyfile` and a dedicated `docs/DOXYGEN_MAINPAGE.md` so the repository now has a concrete local scaffold for a future Javadoc-/Boost-style navigable API reference site.
 - Updated the docs index and `README.md` so the generated-reference path is now part of the documented repository structure instead of only being an idea in the backlog.
+- Polished the most frequently used `Graph` entry points again with richer multi-line comments, so the IDE hover text is closer to real API guidance than to a terse signature label.
 
 ### Verification
 

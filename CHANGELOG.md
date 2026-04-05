@@ -4,7 +4,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.8] - 2026-04-05
 
-- Closed `#28` by adding a first Doxygen-based public-doc pass: the semantic public headers now carry inline API comments across the core graph wrapper, traversal helpers, shortest-path and flow result types, generators, topological sort / spanning-tree / component wrappers, 2-SAT helpers, and the deprecated free-function aliases, while the repository also gains a minimal root `Doxyfile` plus `docs/DOXYGEN_MAINPAGE.md` as the first generated-reference scaffold.
+- Closed `#28` by adding a first Doxygen-based public-doc pass: the semantic public headers now carry inline API comments across the core graph wrapper, traversal helpers, shortest-path and flow result types, generators, topological sort / spanning-tree / component wrappers, 2-SAT helpers, and the deprecated free-function aliases, while the repository also gains a minimal root `Doxyfile` plus `docs/DOXYGEN_MAINPAGE.md` as the first generated-reference scaffold. Follow-up polish also expanded the most frequently hovered `Graph` methods into richer multi-line descriptions so IDE hovers explain behavior, implicit node creation, multigraph caveats, and edge-ID usage more clearly.
 
 ## [0.8.7] - 2026-04-05
 

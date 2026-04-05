@@ -449,19 +449,35 @@ public:
           edge_id_map(boost::get(boost::edge_index, g)),
           id_to_bgl() {}
 
-    /// Ensures that a node with the given ID exists in the graph.
+    /**
+     * @brief Ensures that a node with the given ID exists in the graph.
+     *
+     * This is idempotent: if the node is already present, the call leaves the
+     * graph unchanged. Use it when you want to materialize isolated nodes
+     * explicitly instead of relying on edge insertion to create them.
+     */
     void add_node(const NodeID& id) {
         get_or_create_vertex(id);
     }
 
-    /// Adds every node ID contained in the input vector.
+    /**
+     * @brief Adds a batch of nodes from a vector of node IDs.
+     *
+     * Each element is forwarded to add_node(), so duplicate IDs are ignored in
+     * the same way as repeated single-node insertion.
+     */
     void add_nodes_from(const std::vector<NodeID>& nodes) {
         for (const auto& n : nodes) {
             add_node(n);
         }
     }
 
-    /// Returns the underlying Boost edge descriptor for an existing edge.
+    /**
+     * @brief Returns the underlying Boost edge descriptor for an existing edge.
+     *
+     * This is mainly for advanced integrations with raw Boost algorithms. Most
+     * users should prefer the higher-level wrapper methods and edge-id helpers.
+     */
     EdgeDesc get_edge_desc(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -471,7 +487,13 @@ public:
         return e;
     }
 
-    /// Returns true when at least one edge exists between @p u and @p v.
+    /**
+     * @brief Returns whether at least one edge exists between two endpoints.
+     *
+     * In multigraphs this answers an existence question only: it does not tell
+     * you which parallel edge matched. Use edge_ids(u, v) for precise
+     * parallel-edge inspection.
+     */
     bool has_edge(const NodeID& u, const NodeID& v) const {
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
@@ -480,7 +502,7 @@ public:
         return exists;
     }
 
-    /// Returns true when an edge with the given wrapper-managed ID exists.
+    /// Returns whether an edge with the given wrapper-managed ID exists.
     bool has_edge_id(std::size_t edge_id) const;
     /// Returns all wrapper-managed edge IDs currently present in the graph.
     std::vector<std::size_t> edge_ids() const;
@@ -494,7 +516,9 @@ public:
     /**
      * @brief Adds or updates a weighted edge.
      *
-     * In simple graphs, inserting an existing edge updates its stored weight.
+     * Missing endpoint nodes are created automatically. In simple graphs,
+     * inserting an existing edge updates its stored built-in weight instead of
+     * creating a parallel edge.
      *
      * @param u Source node ID.
      * @param v Target node ID.
@@ -519,7 +543,12 @@ public:
 
     template <bool W = Weighted>
     requires(W)
-    /// Adds a weighted edge and returns the wrapper-managed edge ID.
+    /**
+     * @brief Adds a weighted edge and returns its wrapper-managed edge ID.
+     *
+     * This is the precise insertion form to prefer when you need stable edge
+     * identity later, especially in multigraphs.
+     */
     std::size_t add_edge_with_id(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0);
 
     template <bool W = Weighted>
@@ -527,7 +556,8 @@ public:
     /**
      * @brief Adds an unweighted edge.
      *
-     * In simple graphs, inserting an existing edge is a no-op.
+     * Missing endpoint nodes are created automatically. In simple graphs,
+     * inserting an existing edge is a no-op instead of creating a duplicate.
      *
      * @param u Source node ID.
      * @param v Target node ID.
@@ -550,21 +580,42 @@ public:
 
     template <bool W = Weighted>
     requires(!W)
-    /// Adds an unweighted edge and returns the wrapper-managed edge ID.
+    /**
+     * @brief Adds an unweighted edge and returns its wrapper-managed edge ID.
+     *
+     * This is useful when later lookups or mutations should target one
+     * specific edge through the explicit edge-id API.
+     */
     std::size_t add_edge_with_id(const NodeID& u, const NodeID& v);
 
 
-    /// Adds or updates a weighted edge and attaches the supplied attribute map.
+    /**
+     * @brief Adds or updates a weighted edge and attaches an attribute map.
+     *
+     * The built-in weight is stored in the graph edge property, while the
+     * supplied attributes are copied into the wrapper-managed edge attribute
+     * storage.
+     */
     template <bool W = Weighted>
     requires(W)
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const EdgeAttrMap& attrs);
 
-    /// Adds an unweighted edge and attaches the supplied attribute map.
+    /**
+     * @brief Adds an unweighted edge and attaches an attribute map.
+     *
+     * This overload is the attribute-bearing counterpart of the plain
+     * unweighted add_edge(u, v) form.
+     */
     void add_edge(const NodeID& u, const NodeID& v, const EdgeAttrMap& attrs);
 
     template <bool W = Weighted>
     requires(W)
-    /// Adds or updates a weighted edge and attaches one attribute.
+    /**
+     * @brief Adds or updates a weighted edge and attaches one attribute.
+     *
+     * This is a compact convenience overload when a full attribute map would
+     * be unnecessarily verbose.
+     */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const std::pair<std::string, std::any>& attr);
 
     /// Adds an unweighted edge and attaches one attribute.
@@ -572,7 +623,12 @@ public:
 
     template <bool W = Weighted>
     requires(W)
-    /// Adds or updates a weighted edge and attaches an initializer-list of attributes.
+    /**
+     * @brief Adds or updates a weighted edge and attaches an initializer-list of attributes.
+     *
+     * This overload is convenient for literal-style calls such as
+     * `add_edge(u, v, w, {{"capacity", 3}, {"label", "fast"}})`.
+     */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, std::initializer_list<std::pair<std::string, std::any>> attrs);
 
     /// Adds an unweighted edge and attaches an initializer-list of attributes.
@@ -593,7 +649,13 @@ public:
         }
     }
 
-    /// Removes all nodes, edges, weights, attributes, and wrapper-side caches.
+    /**
+     * @brief Clears the entire graph and all wrapper-managed metadata.
+     *
+     * After this call, nodes, edges, edge IDs, built-in weights, attributes,
+     * and translation tables are reset to the same logical state as a freshly
+     * default-constructed graph.
+     */
     void clear() {
         g = GraphType();
         id_to_bgl.clear();
@@ -610,8 +672,9 @@ public:
     /**
      * @brief Removes all edges between two endpoints.
      *
-     * @param u First endpoint.
-     * @param v Second endpoint.
+     * In simple graphs this removes the unique matching edge. In multigraphs
+     * it removes every parallel edge between the same endpoints and cleans the
+     * associated wrapper-managed edge attributes.
      *
      * @throws std::runtime_error If either node is missing or no such edge exists.
      */
@@ -631,13 +694,19 @@ public:
         boost::remove_edge(it_u->second, it_v->second, g);
     }
 
-    /// Removes a single edge by its wrapper-managed edge ID.
+    /**
+     * @brief Removes a single edge by its wrapper-managed edge ID.
+     *
+     * This is the precise removal form to prefer in multigraphs.
+     */
     void remove_edge(std::size_t edge_id);
 
     /**
      * @brief Removes a node and all of its incident edges.
      *
-     * @param u Node ID to erase.
+     * Wrapper-side node/edge attributes and maintained translation/index maps
+     * are updated too, so the graph stays internally consistent after
+     * descriptor remapping.
      *
      * @throws std::runtime_error If the node is not present.
      */
@@ -656,7 +725,12 @@ public:
         rebuild_vertex_maps();
     }
 
-    /// Returns the outgoing neighbors of a node.
+    /**
+     * @brief Returns the outgoing neighbors of a node.
+     *
+     * For undirected graphs this is the standard adjacency view. For directed
+     * graphs this corresponds to successor nodes.
+     */
     std::vector<NodeID> neighbors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -669,12 +743,17 @@ public:
         return res;
     }
 
-    /// Alias for neighbors() on directed graphs.
+    /// Alias for neighbors(), mainly to mirror directed-graph terminology.
     std::vector<NodeID> successors(const NodeID& u) const {
         return neighbors(u);
     }
 
-    /// Returns incoming neighbors on directed graphs and adjacent nodes otherwise.
+    /**
+     * @brief Returns predecessor nodes for directed graphs.
+     *
+     * For undirected graphs this falls back to the ordinary adjacency view, so
+     * the result matches neighbors(u).
+     */
     std::vector<NodeID> predecessors(const NodeID& u) const {
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
@@ -694,7 +773,7 @@ public:
         return res;
     }
 
-    /// Returns true when the graph already contains the given node ID.
+    /// Returns whether the graph already contains the given node ID.
     bool has_node(const NodeID& u) const {
         return id_to_bgl.find(u) != id_to_bgl.end();
     }
@@ -755,7 +834,12 @@ public:
     /// Stores a typed attribute on an edge identified by edge ID.
     void set_edge_attr(std::size_t edge_id, const std::string& key, const T& value);
 
-    /// Returns all node IDs currently stored in the graph.
+    /**
+     * @brief Returns all node IDs currently stored in the graph.
+     *
+     * The order follows the wrapper-maintained vertex order used by the public
+     * API helpers.
+     */
     std::vector<NodeID> nodes() const {
         std::vector<NodeID> res;
         for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
@@ -764,7 +848,12 @@ public:
         return res;
     }
 
-    /// Returns the public edge list using node IDs and, when enabled, built-in weights.
+    /**
+     * @brief Returns the public edge list.
+     *
+     * Weighted graphs expose `(u, v, w)` tuples, while unweighted graphs expose
+     * `(u, v)` pairs. The return type follows the `Weighted` template flag.
+     */
     auto edges() const {
         if constexpr (Weighted) {
             std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
@@ -902,7 +991,12 @@ public:
         }
     };
 
-    /// Returns the proxy used for `G[u][v]` edge access syntax.
+    /**
+     * @brief Returns the proxy used for `G[u][v]` edge-access syntax.
+     *
+     * This keeps the NetworkX-inspired indexing style available for reads and
+     * writes on existing-graph operations.
+     */
     NodeProxy operator[](const NodeID& u) {
         if (!has_node(u)) {
             add_node(u);
@@ -910,7 +1004,11 @@ public:
         return NodeProxy(this, u);
     }
 
-    /// Returns the proxy used for `G.node(u)[key]` node-attribute syntax.
+    /**
+     * @brief Returns the proxy used for `G.node(u)[key]` node-attribute syntax.
+     *
+     * The node is created implicitly when it does not exist yet.
+     */
     NodeAttrBaseProxy node(const NodeID& u) {
         if (!has_node(u) && !Multi) add_node(u);
         else if (!has_node(u)) add_node(u);
