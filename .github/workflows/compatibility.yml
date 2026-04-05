@@ -14,19 +14,16 @@ jobs:
           - os: ubuntu-latest
             label: ubuntu-gcc
             compiler: g++
-            shell: bash
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
-            shell: bash
             install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
-            shell: bash
             install_boost: brew install boost
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
 
@@ -37,13 +34,13 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Boost Graph
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
           ${{ matrix.install_boost }}
 
       - name: Export macOS Boost include path
         if: runner.os == 'macOS'
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
           echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
 
@@ -52,7 +49,7 @@ jobs:
         env:
           CXX: ${{ matrix.compiler }}
           CXXFLAGS: ${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -64,7 +61,7 @@ jobs:
         if: always()
         env:
           TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
-        shell: ${{ matrix.shell }}
+        shell: bash
         run: |
           if [ "${TEST_EXIT_CODE:-1}" = "0" ]; then
             status_word="SUCCESS"
