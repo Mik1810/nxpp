@@ -25,7 +25,7 @@ The clearest mental model is:
 |---|---|---|---|
 | Showcase programs | `main_boost.cpp`, `main_nxpp.cpp`, `main.py` | Demonstrate usage and the wrapper-vs-reference story | Not the formal suite |
 | Snippet parity / regression | `snippet/`, `scripts/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
-| Formal assertion-based tests | `tests/test_*.cpp`, `scripts/run_tests.sh`, `tests.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
+| Formal assertion-based tests | `tests/test_*.cpp`, `scripts/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
 | Single-header verification | `scripts/build_single_header.sh`, `scripts/run_single_header_tests.sh`, `single-header.yml` | Validate the generated release artifact | Not a replacement for the modular formal suite |
 | Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
 
@@ -90,7 +90,7 @@ Main test files:
 - [`tests/test_flow.cpp`](../tests/test_flow.cpp)
 - [`tests/test_remove_node.cpp`](../tests/test_remove_node.cpp)
 - [`tests/test_multigraph.cpp`](../tests/test_multigraph.cpp)
-- [`.github/workflows/tests.yml`](../.github/workflows/tests.yml)
+- [`.github/workflows/compatibility.yml`](../.github/workflows/compatibility.yml)
 
 Purpose:
 

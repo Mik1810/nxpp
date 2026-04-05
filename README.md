@@ -390,7 +390,7 @@ surface than the default aliases alone.
 
 and a dedicated GitHub Actions workflow:
 
-- `.github/workflows/tests.yml`
+- `.github/workflows/compatibility.yml`
 
 There is also a dedicated workflow for the generated standalone header:
 

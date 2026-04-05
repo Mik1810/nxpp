@@ -1,4 +1,4 @@
-name: Tests
+name: Compatibility
 
 on:
   push:
@@ -30,10 +30,16 @@ jobs:
         run: |
           ${{ matrix.install_boost }}
 
+      - name: Export Boost include flags
+        if: runner.os == 'macOS'
+        run: |
+          echo "NXPP_EXTRA_CXXFLAGS=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
+
       - name: Run test suite
         id: tests
         env:
           CXX: ${{ matrix.compiler }}
+          CXXFLAGS: ${{ env.NXPP_EXTRA_CXXFLAGS }}
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -55,10 +61,13 @@ jobs:
           perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' test-output.txt > test-output-clean.txt
 
           {
-            echo "## Formal Test Suite"
+            echo "## Compatibility Matrix"
             echo
             echo "- Runner: \`${{ matrix.os }}\`"
             echo "- Compiler: \`${{ matrix.compiler }}\`"
+            if [ -n "${NXPP_EXTRA_CXXFLAGS:-}" ]; then
+              echo "- Extra CXXFLAGS: \`${NXPP_EXTRA_CXXFLAGS}\`"
+            fi
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/run_tests.sh\`"
             echo

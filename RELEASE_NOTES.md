@@ -8,7 +8,7 @@ version entries in `CHANGELOG.md`.
 ### Highlights
 
 - Closed `#20` by extending the formal-test workflow beyond the old Linux-only `g++` path.
-- `.github/workflows/tests.yml` now runs a small, readable matrix covering:
+- `.github/workflows/compatibility.yml` now runs a small, readable matrix covering:
   - `ubuntu-latest` with `g++`
   - `ubuntu-latest` with `clang++`
   - `macos-latest` with `clang++`
