@@ -3,6 +3,28 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.6]
+
+### Highlights
+
+- Closed `#20` by extending the formal-test workflow beyond the old Linux-only `g++` path.
+- `.github/workflows/tests.yml` now runs a small, readable matrix covering:
+  - `ubuntu-latest` with `g++`
+  - `ubuntu-latest` with `clang++`
+  - `macos-latest` with `clang++`
+- Kept the snippet-review workflow unchanged so the example/parity layer remains intact and easy to read.
+- Updated the support matrix in `README.md` so it now matches the real CI-backed story instead of the older Ubuntu-only wording.
+
+### Verification
+
+- `timeout 30s git diff --check`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+
+### Assets
+
+- This change does not add a new release asset, but it broadens the CI-backed support story for the formal suite and makes that support matrix more honest in the docs.
+
 ## [0.8.5]
 
 ### Highlights

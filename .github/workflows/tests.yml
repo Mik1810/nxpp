@@ -6,7 +6,21 @@ on:
 
 jobs:
   test-suite:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: g++
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
+          - os: ubuntu-latest
+            compiler: clang++
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
+          - os: macos-latest
+            compiler: clang++
+            install_boost: brew install boost
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -14,11 +28,12 @@ jobs:
 
       - name: Install Boost Graph
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev
+          ${{ matrix.install_boost }}
 
       - name: Run test suite
         id: tests
+        env:
+          CXX: ${{ matrix.compiler }}
         run: |
           set +e
           bash scripts/run_tests.sh | tee test-output.txt
@@ -42,6 +57,8 @@ jobs:
           {
             echo "## Formal Test Suite"
             echo
+            echo "- Runner: \`${{ matrix.os }}\`"
+            echo "- Compiler: \`${{ matrix.compiler }}\`"
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/run_tests.sh\`"
             echo

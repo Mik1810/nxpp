@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.6] - 2026-04-05
+
+- Closed `#20` by extending `.github/workflows/tests.yml` beyond the old Ubuntu-only `g++` path: the formal suite now runs in a small readable matrix covering Ubuntu with both `g++` and `clang++`, plus `macos-latest` with `clang++`, while leaving the snippet-review workflow unchanged.
+
 ## [0.8.5] - 2026-04-05
 
 - Closed `#17` by adding a minimal root `CMakeLists.txt` that exposes `nxpp` as a header-only `INTERFACE` target for vendored `add_subdirectory(...)` consumption, while keeping packaging/install/export logic explicitly out of scope for now.

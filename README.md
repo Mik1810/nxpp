@@ -56,8 +56,7 @@ The most important open issue groups right now are:
 
 - documentation/generated-docs/testing-story cleanup: `#28`
 - API safety / attribute-system follow-up: `#25`, `#27`
-- packaging / external-usage / CI follow-up: `#17`, `#20`
-- packaging / CI follow-up: `#20`
+- packaging / CI follow-up: none immediately blocking
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 Runtime validation errors now use a more consistent `X failed: ...` wording
@@ -562,16 +561,17 @@ currently verifies directly:
 | Area | Current status |
 |---|---|
 | Language level | C++20 required |
-| Standard library / toolchain used in repo scripts | `g++`-based workflow and local scripts |
-| Continuous integration | GitHub Actions on `ubuntu-latest` |
+| Standard library / toolchain used in repo scripts | local scripts are still primarily `g++`-oriented |
+| Continuous integration | GitHub Actions on `ubuntu-latest` and `macos-latest` |
 | Boost dependency | `libboost-graph-dev` on Ubuntu CI |
 | Standalone single header | Generated in CI and tested on Ubuntu |
-| macOS | Expected to work with Homebrew Boost, but not covered by CI yet |
+| macOS | Covered by the formal test workflow with Homebrew Boost |
 | Windows | Expected to work with vcpkg Boost, but not covered by CI yet |
-| Clang | Not claimed as a supported CI-verified toolchain yet |
+| Clang | Covered by the formal test workflow on Ubuntu and macOS |
 
-In practice, the repository currently has its strongest support story on Linux
-with Boost Graph installed and a C++20-capable `g++` toolchain.
+In practice, the repository now has a stronger verified story on Linux and
+macOS, with both `g++` and `clang++` covered in the formal test workflow, while
+Windows still remains an expected but not yet CI-backed path.
 
 ### Minimal local build
 
