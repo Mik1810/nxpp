@@ -108,6 +108,35 @@ jobs:
           "NXPP_EXTRA_INCLUDE=$boostRoot" >> $env:GITHUB_ENV
           "CXX=${{ matrix.compiler }}" >> $env:GITHUB_ENV
 
+      - name: Initialize MSVC environment
+        if: matrix.platform_family == 'windows'
+        shell: pwsh
+        run: |
+          $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat'
+
+          if (-not (Test-Path $vsDevCmd)) {
+            $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat'
+          }
+
+          if (-not (Test-Path $vsDevCmd)) {
+            $vsDevCmd = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat'
+          }
+
+          if (-not (Test-Path $vsDevCmd)) {
+            throw 'VsDevCmd.bat was not found on the GitHub Actions Windows runner.'
+          }
+
+          $envDump = cmd.exe /c "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && set"
+          if ($LASTEXITCODE -ne 0) {
+            throw "VsDevCmd.bat failed with exit code $LASTEXITCODE"
+          }
+
+          foreach ($line in $envDump) {
+            if ($line -match '^(PATH|INCLUDE|LIB|LIBPATH|VCToolsInstallDir|VSINSTALLDIR)=(.*)$') {
+              Add-Content -Path $env:GITHUB_ENV -Value $line
+            }
+          }
+
       - name: Run test suite
         if: matrix.platform_family == 'unix'
         id: tests
