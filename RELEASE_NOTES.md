@@ -3,6 +3,28 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.2]
+
+### Highlights
+
+- Closed `#18` by documenting the external consumer story directly: the repo now explains how to consume `nxpp` either from the modular `include/` tree or from the tested single-header release asset.
+- Added a dedicated external-usage guide with:
+  - the expected include-path layout for modular headers
+  - the intended use of the released `nxpp.hpp` asset
+  - the plain Boost Graph dependency story
+  - minimal `g++` compile examples for both integration styles
+- Clarified that `dist/nxpp.hpp` inside the repo is a generated validation artifact, while external consumers should prefer the tested `nxpp.hpp` release asset.
+
+### Verification
+
+- `timeout 30s bash scripts/build_single_header.sh`
+- `timeout 30s g++ -std=c++20 -I/workspaces/nxpp/include /tmp/nxpp_external_modular.cpp -o /tmp/nxpp_external_modular`
+- `timeout 30s g++ -std=c++20 -I/workspaces/nxpp/dist /tmp/nxpp_external_single.cpp -o /tmp/nxpp_external_single`
+
+### Assets
+
+- This change does not add a new release asset, but it makes the current external-consumption story much easier to follow from the repository docs.
+
 ## [0.8.1]
 
 ### Highlights

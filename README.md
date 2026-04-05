@@ -56,7 +56,7 @@ The most important open issue groups right now are:
 
 - documentation/generated-docs/testing-story cleanup: `#28`, `#30`
 - API safety / attribute-system follow-up: `#25`, `#27`
-- packaging / external-usage / CI follow-up: `#17`, `#18`, `#20`
+- packaging / external-usage / CI follow-up: `#17`, `#20`
 
 Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 
@@ -156,6 +156,7 @@ These repository files should have clearly separated roles:
 - [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
 - [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md): supported BGL configurability surface and advanced-knob policy
 - [`docs/COMPLEXITY.md`](docs/COMPLEXITY.md): complexity policy and Boost-vs-`nxpp` cost model
+- [`docs/EXTERNAL_USAGE.md`](docs/EXTERNAL_USAGE.md): how to consume `nxpp` from another project today
 - [`docs/TEST.md`](docs/TEST.md): testing layers, test commands, and verification scope
 
 If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
@@ -582,6 +583,51 @@ vcpkg install boost-graph
 ```
 
 The header performs a compile-time include check and fails early if BGL headers are missing.
+
+### External usage
+
+Today there are two supported ways to consume `nxpp` from another project:
+
+1. the modular header tree under `include/`
+2. the tested single-header release asset `nxpp.hpp`
+
+For the modular layout, add the repo's `include/` directory to your compiler
+include path and write includes like:
+
+```cpp
+#include <nxpp.hpp>
+```
+
+or, when you only need one area:
+
+```cpp
+#include <nxpp/shortest_paths.hpp>
+```
+
+Minimal modular compile example:
+
+```bash
+g++ -std=c++20 -I/path/to/nxpp/include app.cpp -o app
+```
+
+For the single-header path, use the tested `nxpp.hpp` asset attached to a GitHub
+release, place it in a vendor/include directory, and compile with that
+directory on your include path:
+
+```cpp
+#include <nxpp.hpp>
+```
+
+```bash
+g++ -std=c++20 -I/path/to/vendor/include app.cpp -o app
+```
+
+In both cases, `nxpp` is still header-only and still depends on **Boost Graph
+Library** headers being available to the compiler.
+
+See [`docs/EXTERNAL_USAGE.md`](docs/EXTERNAL_USAGE.md) for the fuller external
+consumer story, including the difference between the repo-local generated
+`dist/nxpp.hpp` artifact and the tested release asset.
 
 ---
 
