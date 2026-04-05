@@ -33,7 +33,6 @@ jobs:
             label: windows-msvc
             compiler: cl
             platform_family: windows
-            scope: smoke
 
     runs-on: ${{ matrix.os }}
 
@@ -144,10 +143,10 @@ jobs:
         id: tests
         env:
           CXX: ${{ matrix.compiler }}
-          CXXFLAGS: ${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}
         shell: bash
         run: |
           set +e
+          export CXXFLAGS="${{ matrix.cxxflags }} ${NXPP_BOOST_INCLUDE:-}"
           bash scripts/unix/run_tests.sh | tee test-output.txt
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
@@ -159,7 +158,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Continue"
-          & "$env:GITHUB_WORKSPACE\scripts\windows\run_tests.ps1" -Smoke 2>&1 | Tee-Object -FilePath test-output.txt
+          & "$env:GITHUB_WORKSPACE\scripts\windows\run_tests.ps1" 2>&1 | Tee-Object -FilePath test-output.txt
           $status = $LASTEXITCODE
           "exit_code=$status" >> $env:GITHUB_OUTPUT
           exit $status
@@ -184,8 +183,10 @@ jobs:
             echo "- Label: \`${{ matrix.label }}\`"
             echo "- Runner: \`${{ matrix.os }}\`"
             echo "- Compiler: \`${{ matrix.compiler }}\`"
-            if [ -n "${{ matrix.cxxflags }}${{ env.NXPP_BOOST_INCLUDE }}" ]; then
-              echo "- CXXFLAGS: \`${{ matrix.cxxflags }} ${{ env.NXPP_BOOST_INCLUDE }}\`"
+            cxxflags="${{ matrix.cxxflags }} ${NXPP_BOOST_INCLUDE:-}"
+            cxxflags="$(printf '%s' "$cxxflags" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+            if [ -n "$cxxflags" ]; then
+              echo "- CXXFLAGS: \`$cxxflags\`"
             fi
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/unix/run_tests.sh\`"
@@ -209,21 +210,26 @@ jobs:
             $statusWord = "FAILURE"
           }
 
+          $ansiRegex = [regex]"`e\[[0-9;]*[A-Za-z]"
+          if (Test-Path test-output.txt) {
+            $cleanOutput = $ansiRegex.Replace((Get-Content -Raw -Path test-output.txt), "")
+            Set-Content -Path test-output-clean.txt -Value $cleanOutput -NoNewline
+          }
+
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Compatibility Matrix'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Label: windows-msvc'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Runner: windows-latest'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Build path: PowerShell + cl + Boost zip include path'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: $env:NXPP_BOOST_CACHE_HIT"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Scope: smoke subset (test_core, test_edge_cases)'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Command: pwsh -File scripts/windows/run_tests.ps1 -Smoke'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Command: pwsh -File scripts/windows/run_tests.ps1'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '### Output'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
-          if (Test-Path test-output.txt) {
-            Get-Content test-output.txt | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          if (Test-Path test-output-clean.txt) {
+            Get-Content test-output-clean.txt | Add-Content -Path $env:GITHUB_STEP_SUMMARY
           } else {
             Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'No test output was captured because the job failed before the test step completed.'
           }
