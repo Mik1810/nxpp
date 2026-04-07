@@ -7,6 +7,15 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#34` by adding `pagerank()` as a first class graph method.
+- The new surface:
+  - returns `indexed_lookup_map<NodeID, double>`
+  - keeps the result keyed by public node IDs
+  - includes a deprecated free-function alias for consistency with the rest of the method-first API migration
+- The implementation stays conservative:
+  - no extra configuration overloads yet
+  - no new dependencies
+  - explicit handling for dangling nodes in the fixed-iteration wrapper implementation
 - Closed `#19` by turning the already-emerging versioning/release practice into an explicit documented policy.
 - The docs now state clearly that:
   - `CHANGELOG.md` is the concise technical history

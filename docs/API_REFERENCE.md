@@ -306,6 +306,7 @@ These wrappers exist because they make the result shape more usable from C++:
 | `MinCostMaxFlowResult<NodeID>` | Bundles total flow, total cost, and per-edge flows into one C++-friendly return type |
 | `indexed_lookup_map<Key, Value>` | Keeps linear materialization and ordered key lookup for public results without baking hash-table assumptions into the API |
 | `degree_centrality()` | Exposes a normalized C++-friendly wrapper result rather than raw lower-level bookkeeping |
+| `pagerank()` | Exposes a ready-to-consume PageRank wrapper result keyed by `NodeID` instead of forcing callers to manage property maps and iteration state directly |
 | `two_sat_satisfiable(...)` | Exposes a direct utility surface built on top of the SCC machinery instead of requiring users to assemble the implication-graph workflow themselves |
 
 The intended project shape is:
@@ -503,5 +504,6 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
 | `num_vertices` | `()` | `int` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
 | `degree_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns degree centrality with NetworkX-like normalization by `n - 1`, using linear materialization plus `O(log n)` key lookup. | `auto c = G.degree_centrality();` |
+| `pagerank` | `()` | `indexed_lookup_map<NodeID, double>` | Returns PageRank scores keyed by `NodeID`, using a small fixed-iteration wrapper result instead of raw property-map plumbing. | `auto rank = G.pagerank();` |
 | `to_2sat_vertex_id` | `(literal)` | `int` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
 | `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |

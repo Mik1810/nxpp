@@ -1,3 +1,4 @@
+#include <cmath>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -229,6 +230,29 @@ void test_integer_generators_still_work() {
     expect(er.num_vertices() <= 6, "erdos_renyi_graph should stay within the requested integer ID range");
 }
 
+void test_pagerank_returns_normalized_ranking() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 1.0);
+    graph.add_edge("C", "B", 1.0);
+    graph.add_edge("C", "D", 1.0);
+
+    const auto rank = graph.pagerank();
+
+    expect(rank.contains("A"), "pagerank should include node A");
+    expect(rank.contains("B"), "pagerank should include node B");
+    expect(rank.contains("C"), "pagerank should include node C");
+    expect(rank.contains("D"), "pagerank should include node D");
+
+    const double total = rank.at("A") + rank.at("B") + rank.at("C") + rank.at("D");
+    expect(std::abs(total - 1.0) < 1e-9,
+           "pagerank scores should stay normalized");
+    expect(rank.at("B") > rank.at("A"),
+           "pagerank should rank the more referenced node above a source-only node");
+    expect(rank.at("C") > rank.at("D"),
+           "pagerank should rank an internally linked node above a sink-only leaf");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -243,7 +267,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 7;
+    constexpr int total = 8;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -252,6 +276,7 @@ int main() {
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
+    passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

@@ -4,6 +4,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.11] - 2026-04-07
 
+- Closed `#34` by adding a first `pagerank()` wrapper on `Graph`, returning `indexed_lookup_map<NodeID, double>` plus a deprecated free-function alias for consistency with the rest of the graph-local API migration.
 - Closed `#19` by making the versioning and release policy explicit in the repository docs: `README.md` and `docs/README.md` now document the roles of `CHANGELOG.md`, `RELEASE_NOTES.md`, and `SESSION.md`, the fact that normal pushes to `main` do not publish releases, and the rule that the top documented version is the concrete next release candidate.
 - Closed `#15` by adding an explicit docs section on the utility wrappers that go beyond direct NetworkX/BGL parity, explaining why wrappers such as `SingleSourceShortestPathResult`, `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult`, and `indexed_lookup_map` are intentional parts of the public C++ surface rather than accidental extras.
 - Closed `#14` by adding concrete examples for the richer public result wrappers in the main docs: `README.md` and `docs/API_REFERENCE.md` now show direct usage of `SingleSourceShortestPathResult`, flow/cut wrappers, and `indexed_lookup_map` instead of only naming those types abstractly.
