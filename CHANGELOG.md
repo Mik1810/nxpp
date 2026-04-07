@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.10] - 2026-04-07
+
+- Closed `#14` by adding concrete examples for the richer public result wrappers in the main docs: `README.md` and `docs/API_REFERENCE.md` now show direct usage of `SingleSourceShortestPathResult`, flow/cut wrappers, and `indexed_lookup_map` instead of only naming those types abstractly.
+
 ## [0.8.9] - 2026-04-07
 
 - Closed `#13` by documenting the thin alias story explicitly: the docs now distinguish between explicit graph type presets, short compatibility-friendly synonym aliases, convenience method aliases, and the remaining deprecated free-function compatibility wrappers.

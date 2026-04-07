@@ -290,6 +290,74 @@ These types are part of the public API and are worth knowing because they make s
 This is one of the design directions that makes `nxpp` more than a thin parity layer:
 some wrappers return results that are easier to work with directly in C++ than raw Boost primitives.
 
+### Result-wrapper examples
+
+#### `SingleSourceShortestPathResult`
+
+```cpp
+auto result = G.dijkstra_shortest_paths("Milan");
+
+if (result.has_path_to("Naples")) {
+    auto distance = result.distance.at("Naples");
+    auto predecessor = result.predecessor.at("Naples");
+    auto path = result.path_to("Naples");
+}
+```
+
+Use this wrapper when you want:
+
+- one run of a single-source algorithm
+- ordered distance / predecessor lookup by `NodeID`
+- on-demand path reconstruction without storing every path eagerly
+
+#### `MaximumFlowResult` and `MinimumCutResult`
+
+```cpp
+auto flow = G.maximum_flow("s", "t");
+auto cut = G.minimum_cut("s", "t");
+
+auto total_flow = flow.value;
+auto flow_on_edge = flow.flow.at({"s", "a"});
+auto reachable = cut.reachable;
+auto cut_edges = cut.cut_edges;
+```
+
+Use these wrappers when you want the aggregate answer plus the structured side
+information in one return object, instead of re-deriving it from lower-level
+algorithm output.
+
+#### `MinCostMaxFlowResult`
+
+```cpp
+auto result = G.max_flow_min_cost("s", "t");
+
+auto total_flow = result.flow;
+auto total_cost = result.cost;
+auto per_edge = result.edge_flows;
+```
+
+This wrapper is the one-shot return shape for the min-cost flow helpers.
+
+#### `indexed_lookup_map`
+
+```cpp
+auto components = G.connected_components();
+
+if (components.contains("Rome")) {
+    auto component_id = components.at("Rome");
+}
+
+for (const auto& [node, id] : components) {
+    // ordered iteration by node id
+}
+```
+
+Use this wrapper when you want:
+
+- a materialized result that still iterates like a small container
+- `NodeID`-keyed lookup without the public API depending on hash-table assumptions
+- a result shape that stays easy to inspect in docs, tests, and examples
+
 ## Traversal API reference
 
 For operations on an existing graph, the canonical form is method-based: `G.foo(...)`.

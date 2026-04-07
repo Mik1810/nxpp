@@ -800,6 +800,41 @@ This shows the three main ideas of the library:
 - checked node / edge attribute access
 - richer result wrappers such as `dijkstra_shortest_paths()` with on-demand path reconstruction and indexed component views
 
+Those richer wrappers are meant to be used directly, not just unpacked mentally.
+For example:
+
+```cpp
+auto routes = G.dijkstra_shortest_paths("Milan");
+
+if (routes.has_path_to("Naples")) {
+    auto distance = routes.distance.at("Naples");
+    auto path = routes.path_to("Naples");
+}
+```
+
+Likewise, flow and cut wrappers expose structured fields instead of forcing the
+caller to reconstruct them from raw Boost output:
+
+```cpp
+auto flow = G.maximum_flow("s", "t");
+auto cut = G.minimum_cut("s", "t");
+
+std::cout << "max flow = " << flow.value << "\n";
+std::cout << "cut value = " << cut.value << "\n";
+std::cout << "reachable side size = " << cut.reachable.size() << "\n";
+```
+
+And the indexed map wrappers returned by component and traversal helpers are
+still easy to consume as ordered key/value views:
+
+```cpp
+auto components = G.connected_components();
+
+for (const auto& [node, component_id] : components) {
+    std::cout << node << " -> " << component_id << "\n";
+}
+```
+
 ---
 
 ## Internal model in one minute

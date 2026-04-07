@@ -3,6 +3,29 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.10]
+
+### Highlights
+
+- Closed `#14` by adding direct usage examples for the richer result wrappers instead of only listing their fields and names.
+- The docs now show practical examples for:
+  - `SingleSourceShortestPathResult`
+  - `MaximumFlowResult`
+  - `MinimumCutResult`
+- `MinCostMaxFlowResult`
+- `indexed_lookup_map`
+- The new examples live in `README.md` and `docs/API_REFERENCE.md`, so the public docs now explain not just what those wrappers are, but how callers are expected to use them.
+
+### Verification
+
+- `timeout 30s git diff --check`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+
+### Assets
+
+- This change does not add a new binary asset, but it makes the richer wrapper-returning APIs easier to learn from the repository docs and the future release page.
+
 ## [0.8.9]
 
 ### Highlights
