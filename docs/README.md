@@ -93,3 +93,13 @@ Current status:
 - the root README is intentionally the overview / navigation entry point
 - the files under `docs/` should stay focused on policy, rationale, examples,
   and curated technical guidance rather than becoming a second full API dump
+
+Versioning / release policy:
+
+- `CHANGELOG.md` is the concise technical history
+- `RELEASE_NOTES.md` is the richer release-facing narrative
+- `SESSION.md` is the append-only chronological context log
+- the top version in `CHANGELOG.md` and `RELEASE_NOTES.md` is the concrete next release candidate
+- new work should move to the next version once the current one is already tagged/published
+- normal pushes to `main` do not publish releases by themselves
+- releases are driven by [`release.yml`](../.github/workflows/release.yml) from a pushed `vX.Y.Z` tag or from `workflow_dispatch`

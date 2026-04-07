@@ -526,6 +526,34 @@ So the top version in `RELEASE_NOTES.md` and `CHANGELOG.md` should be treated as
 the concrete next release candidate, but a normal push to `main` alone should
 not publish a release.
 
+## Versioning and release policy
+
+The repository now follows an explicit versioned-release policy.
+
+The intended roles are:
+
+- `CHANGELOG.md`: concise technical history
+- `RELEASE_NOTES.md`: richer release-facing narrative used for GitHub release bodies
+- `SESSION.md`: append-only chronological work log used to preserve context across sessions
+
+The main rules are:
+
+- normal pushes to `main` must not create GitHub releases automatically
+- releases are driven by [release.yml](.github/workflows/release.yml)
+- the release workflow may start from:
+  - a pushed `vX.Y.Z` tag
+  - `workflow_dispatch`
+- the top version in `CHANGELOG.md` and `RELEASE_NOTES.md` is the concrete next release candidate
+- if a version is already tagged/published, new work must move to the next version instead of continuing under the old one
+- before publication, the workflow verifies that the top version in `CHANGELOG.md` matches the top version in `RELEASE_NOTES.md`
+
+In practice:
+
+- finish issue work
+- update docs/version files consistently
+- push the work to `main`
+- publish through the release workflow / matching tag when that version is actually ready
+
 These are showcase demos, not formal tests or parity harnesses.
 
 The `*_nxpp.cpp` snippets now also follow the semantic-header split instead of

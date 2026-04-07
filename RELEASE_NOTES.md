@@ -7,6 +7,14 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#19` by turning the already-emerging versioning/release practice into an explicit documented policy.
+- The docs now state clearly that:
+  - `CHANGELOG.md` is the concise technical history
+  - `RELEASE_NOTES.md` is the richer release-facing narrative
+  - `SESSION.md` is the append-only chronological context log
+  - normal pushes to `main` do not publish releases by themselves
+  - the top version in `CHANGELOG.md` / `RELEASE_NOTES.md` is the concrete next release candidate
+  - once a version is already tagged/published, new work must move to the next version
 - Closed `#15` by adding an explicit docs section for the utility wrappers that are intentionally beyond direct one-to-one NetworkX/BGL parity.
 - The docs now explain why the public surface includes wrappers such as:
   - `SingleSourceShortestPathResult`
