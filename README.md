@@ -107,6 +107,11 @@ The packaging and distribution strategy is now explicit:
 4. evaluate vcpkg after that
 5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
 
+The repository now also includes a first local Conan recipe in
+[conanfile.py](conanfile.py) for header-only packaging work. See
+[docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md) for the current scope and how
+to test it locally in an environment where Conan is installed.
+
 ## Features
 
 - **Header-only** C++20 API over **Boost Graph Library**

@@ -143,9 +143,26 @@ Today the documented external-consumption story is intentionally minimal:
 
 It does not yet assume:
 
-- Conan support
 - vcpkg support
 - a system package manager integration such as Debian / Ubuntu packaging
+
+Conan support now exists as a local recipe in the repository:
+
+- `conanfile.py` models `nxpp` as a header-only package
+- the recipe declares Boost as a Conan dependency
+- the intended first step is local recipe validation, not remote publication
+
+Minimal local Conan validation command:
+
+```bash
+conan create .
+```
+
+This assumes:
+
+- Conan is installed in your environment
+- you have a usable default Conan profile
+- Boost can be resolved by Conan in the configured remotes/profile setup
 
 ## Minimal vendored CMake consumption
 

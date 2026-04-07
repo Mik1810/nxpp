@@ -28,6 +28,12 @@ version entries in `CHANGELOG.md`.
   - installed-package `find_package(nxpp CONFIG REQUIRED)` usage
   - tested single-header release-asset usage
 - The README and external-usage guide now use the same story for include style, Boost expectations, and when each path is appropriate, so users no longer need to infer whether they should follow the repo-local include model or the installed-package model.
+- Closed `#62` by adding a first Conan recipe to the repository.
+- The new `conanfile.py`:
+  - models `nxpp` as a header-only package
+  - declares Boost as a Conan dependency
+  - is intended first for local validation with `conan create .`
+  - does not yet introduce CI publication or remote package-upload workflow
 
 ### Notes
 
