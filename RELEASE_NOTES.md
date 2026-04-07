@@ -7,7 +7,7 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
-- Closed `#28` by starting a real generated-docs path instead of leaving public API documentation entirely in handwritten markdown.
+- Closed `#28` by turning the generated-docs path into a real repository feature instead of leaving public API documentation entirely in handwritten markdown.
 - Added Doxygen-style inline comments to the most user-facing public API areas, including:
   - the main `Graph<...>` wrapper surface
   - key traversal entry points
@@ -21,18 +21,21 @@ version entries in `CHANGELOG.md`.
   - the deprecated free-function aliases that still remain part of the public reference for migration purposes
 - Added a minimal root `Doxyfile` and a dedicated `docs/DOXYGEN_MAINPAGE.md` so the repository now has a concrete local scaffold for a future Javadoc-/Boost-style navigable API reference site.
 - Updated the docs index and `README.md` so the generated-reference path is now part of the documented repository structure instead of only being an idea in the backlog.
-- Polished the most frequently used `Graph` entry points again with richer multi-line comments, so the IDE hover text is closer to real API guidance than to a terse signature label, especially around edge insertion, removal, attribute access, and explicit edge-ID usage.
+- Polished the most frequently used `Graph` entry points again with richer multi-line comments, so the IDE hover text is closer to real API guidance than to a terse signature label, especially around edge insertion, removal, attribute access, explicit edge-ID usage, traversal results, shortest-path result shapes, flow wrappers, and minimum-spanning-tree helpers.
+- Tightened the Doxygen configuration itself so local generation now runs cleanly with the expected toolchain, and added a dedicated GitHub Pages workflow that can publish the generated HTML reference site directly from `main`.
+- The generated reference is now also live-publishable through GitHub Pages at the repository level, without introducing a committed `CNAME` or coupling the docs deploy to an external personal domain.
 
 ### Verification
 
 - `timeout 30s git diff --check`
+- `timeout 30s rm -rf build/docs/doxygen && mkdir -p build/docs/doxygen && doxygen Doxyfile`
 - `timeout 30s bash scripts/unix/run_tests.sh`
 - `timeout 30s bash scripts/unix/build_single_header.sh`
 - `timeout 30s g++ -std=c++20 -Wall -Wextra -pedantic -O0 -I/workspaces/nxpp/include main_nxpp.cpp -o /tmp/main_nxpp_check`
 
 ### Assets
 
-- This change does not add a new release asset, but it introduces the first real generated-docs scaffold and makes IDE hover / header-driven API discovery materially better.
+- This change does not add a new release asset, but it introduces the first real generated-docs scaffold, improves IDE hover / header-driven API discovery substantially, and adds a GitHub Pages publication path for the generated reference site.
 
 ## [0.8.7]
 

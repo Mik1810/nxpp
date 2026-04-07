@@ -4,7 +4,9 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.8] - 2026-04-05
 
-- Closed `#28` by adding a first Doxygen-based public-doc pass: the semantic public headers now carry inline API comments across the core graph wrapper, traversal helpers, shortest-path and flow result types, generators, topological sort / spanning-tree / component wrappers, 2-SAT helpers, and the deprecated free-function aliases, while the repository also gains a minimal root `Doxyfile` plus `docs/DOXYGEN_MAINPAGE.md` as the first generated-reference scaffold. Follow-up polish expanded the most frequently hovered `Graph` methods into richer multi-line descriptions so IDE hovers explain behavior, implicit node creation, multigraph caveats, edge-ID usage, and attribute-access semantics more clearly.
+- Closed `#28` by turning the generated-docs idea into a real documentation path: the semantic public headers now carry Doxygen-style inline API comments across the core graph wrapper, traversal helpers, shortest-path and flow result types, generators, topological sort / spanning-tree / component wrappers, 2-SAT helpers, and the deprecated free-function aliases, while the repository also gains a root `Doxyfile` plus `docs/DOXYGEN_MAINPAGE.md` as the generated-reference scaffold.
+- Follow-up polish made the IDE hover text materially richer by moving weighted/template-gated declarations into hover-friendlier documentation positions and by expanding `@brief` / `@param` / `@return` guidance for traversal, shortest paths, spanning tree, flow, and result-wrapper APIs so the public surface now explains concrete return shapes instead of only naming the delegated algorithm.
+- Validated the Doxygen generation path locally, tightened the remaining Doxygen references and markdown inputs so the generated HTML builds cleanly, and added `.github/workflows/docs-pages.yml` so the generated reference can now be published automatically to GitHub Pages when the repository Pages source is set to `GitHub Actions`.
 
 ## [0.8.7] - 2026-04-05
 
