@@ -45,6 +45,13 @@ Examples:
 - `get_node_attr<T>`
 - `get_edge_attr<T>`
 
+Attribute-specific note:
+
+- proxy syntax such as `G[u][v]["key"]` and `G.node(u)["key"]` is acceptable
+  as part of the graph-local ergonomic surface
+- checked accessors such as `get_*_attr<T>` and `try_get_*_attr<T>` should still
+  be treated as the primary read-oriented API for robust user code
+
 ## Rule 2: Prefer graph methods for algorithms on an existing graph
 
 Operations should prefer methods on `Graph` when they primarily:

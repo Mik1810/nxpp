@@ -1208,11 +1208,14 @@ public:
      */
     auto shortest_path(const NodeID& source_id, const NodeID& target_id) const;
     /**
-     * @brief Computes a shortest path using the named edge attribute as weight.
+     * @brief Computes a shortest path using the built-in edge-weight property.
+     *
+     * This overload accepts the compatibility-shaped `"weight"` name, but it
+     * does not support arbitrary user-defined weight keys.
      *
      * @param source_id Source node ID.
      * @param target_id Target node ID.
-     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @param weight Compatibility name for the built-in edge-weight property.
      * @return A `std::vector<NodeID>` describing the path from source to target.
      * @throws std::runtime_error If either node is missing, the target is unreachable, or the weight name is unsupported.
      */
@@ -1227,11 +1230,14 @@ public:
      */
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id) const;
     /**
-     * @brief Returns the length of a shortest path using the named edge attribute as weight.
+     * @brief Returns the length of a shortest path using the built-in edge-weight property.
+     *
+     * This overload accepts the compatibility-shaped `"weight"` name, but it
+     * does not support arbitrary user-defined weight keys.
      *
      * @param source_id Source node ID.
      * @param target_id Target node ID.
-     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @param weight Compatibility name for the built-in edge-weight property.
      * @return The weighted shortest-path length as a `double`.
      * @throws std::runtime_error If either node is missing, the target is unreachable, or the weight name is unsupported.
      */
@@ -1250,12 +1256,15 @@ public:
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id) const;
 
     /**
-     * @brief Computes the shortest path using a named edge attribute as weight.
+     * @brief Computes the shortest path using the built-in edge-weight property.
+     *
+     * This overload accepts the compatibility-shaped `"weight"` name, not an
+     * arbitrary user-defined weight attribute.
      *
      * @tparam W Internal enable/disable gate for weighted graph specializations.
      * @param source_id Source node ID.
      * @param target_id Target node ID.
-     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @param weight Compatibility name for the built-in edge-weight property.
      * @return A `std::vector<NodeID>` describing the shortest path from source to target.
      */
     template <bool W = Weighted>
@@ -1298,12 +1307,15 @@ public:
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id) const;
 
     /**
-     * @brief Returns the shortest-path length using a named edge attribute as weight.
+     * @brief Returns the shortest-path length using the built-in edge-weight property.
+     *
+     * This overload accepts the compatibility-shaped `"weight"` name, not an
+     * arbitrary user-defined weight attribute.
      *
      * @tparam W Internal enable/disable gate for weighted graph specializations.
      * @param source_id Source node ID.
      * @param target_id Target node ID.
-     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @param weight Compatibility name for the built-in edge-weight property.
      * @return The shortest-path distance as `EdgeWeight`.
      */
     template <bool W = Weighted>
@@ -1523,17 +1535,17 @@ public:
      * @param source_id Source node ID.
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
-     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
      * and the per-edge flow assignment keyed by `(u, v)`.
      */
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Runs push-relabel and caches the residual state for follow-up min-cost routines.
+    /// Runs push-relabel and caches the residual state for follow-up min-cost routines. The default `"weight"` still refers to the built-in edge-weight property.
     long push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /**
      * @brief Runs cycle canceling on the previously cached residual network.
      *
-     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
      * and the per-edge flow assignment keyed by `(u, v)`.
      */
@@ -1544,7 +1556,7 @@ public:
      * @param source_id Source node ID.
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
-     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
      * and the per-edge flow assignment keyed by `(u, v)`.
      */
@@ -1555,7 +1567,7 @@ public:
      * @param source_id Source node ID.
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
-     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
      * and the per-edge flow assignment keyed by `(u, v)`.
      */
@@ -1566,7 +1578,7 @@ public:
      * @param source_id Source node ID.
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
-     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
      * and the per-edge flow assignment keyed by `(u, v)`.
      */

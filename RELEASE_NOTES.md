@@ -7,6 +7,16 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#16` by making the weighted-overload semantics explicit:
+  - shortest-path overloads that accept `"weight"` are now documented as compatibility-shaped wrappers around the built-in edge-weight property
+  - flow/min-cost APIs now say more clearly that their default `weight_attr = "weight"` still refers to the built-in edge-weight property
+  - the docs no longer imply that arbitrary custom attribute names are broadly supported as interchangeable weight backends unless a specific API says so
+- Closed `#27` at the design level by making the attribute-system direction explicit instead of leaving it implicit in the code and tests.
+- Documented that:
+  - `std::any` remains the pragmatic attribute-storage model for now
+  - proxy syntax is kept for ergonomic writes and demos
+  - checked accessors are the recommended read path
+  - `edge_id` is the precise attribute path for multigraph usage
 - Closed `#25` by removing `Graph::node_properties` and `Graph::edge_properties` from the public mutable surface, so callers can no longer bypass wrapper invariants by mutating those stores directly.
 - Kept the advanced read-only escape hatches such as `get_impl()`, `get_bgl_to_id_map()`, and `get_id_to_bgl_map()` documented as intentional `const` integration hooks rather than treating them as normal day-to-day API entry points.
 - Clarified the source-of-truth split between:

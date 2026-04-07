@@ -136,6 +136,56 @@ In particular, `remove_node()` must also:
 
 In practice, this is still an **`O(V + E)` public operation**.
 
+### 4. Attribute ergonomics are intentionally dynamic, but reads should be explicit
+
+`nxpp` currently keeps node and edge attributes in wrapper-owned stores backed
+by `std::any`.
+
+That is a deliberate pragmatic choice for now:
+
+- it keeps the API flexible
+- it supports compact NetworkX-like proxy syntax
+- it avoids forcing a rigid attribute schema on every graph
+
+The tradeoff is that attribute reads are not strongly type-safe by default.
+
+So the intended usage rule is:
+
+- proxy syntax is primarily for ergonomic writes and demos
+- checked accessors are the recommended read path in real code
+
+Prefer these for reads:
+
+- `has_*_attr(...)`
+- `get_*_attr<T>(...)`
+- `try_get_*_attr<T>(...)`
+- `get_edge_numeric_attr(...)` when the value is expected to be numeric
+
+For multigraphs, the same precision rule still applies:
+
+- endpoint-based attribute access is convenience-oriented
+- edge-id-based attribute access is the precise path
+
+### 5. The string `"weight"` is not a general weight-key abstraction
+
+Several APIs accept a string parameter spelled `"weight"`.
+
+Today, that should be read narrowly:
+
+- `"weight"` refers to the built-in edge-weight property
+- it is not a general promise that arbitrary user-defined attribute names can
+  stand in for the weight backend everywhere
+
+So, for example:
+
+- shortest-path overloads that accept `"weight"` are compatibility-shaped
+  wrappers around the built-in edge weight
+- flow/min-cost routines may accept a named numeric attribute such as
+  `capacity_attr`, and some of them also accept `weight_attr`, but the default
+  `"weight"` there still refers to the built-in weight property
+- unsupported custom weight-key usage should be treated as out of scope unless
+  the specific API explicitly documents otherwise
+
 ---
 
 ## What `nxpp` is and what it is not

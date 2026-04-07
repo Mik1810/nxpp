@@ -149,6 +149,14 @@ longer part of the public surface.
 Node and edge attributes are stored outside the BGL graph using `std::any` in
 ordered `std::map`-backed stores.
 
+Current direction:
+
+- `std::any` remains the pragmatic storage model for now
+- proxy syntax remains part of the ergonomic public surface
+- checked accessors are the recommended read path
+- in multigraphs, `edge_id`-based access is the precise path while `(u, v)`
+  access remains convenience-oriented
+
 ### Checked helpers
 
 | Function | Parameters | Returns | Description | Example |
@@ -210,6 +218,21 @@ For reads, prefer:
 
 because they make type expectations and failure behavior much clearer.
 
+This is the intended long-term direction for the current attribute system too:
+
+- keep proxy syntax for ergonomics and simple write flows
+- keep `std::any` as the pragmatic storage backend unless a clearer replacement
+  justifies a larger redesign
+- treat the checked accessors as the normal robust read path
+- treat edge-id overloads as the main precision path for multigraph attributes
+
+Weight-name note:
+
+- the string `"weight"` is treated specially
+- in shortest-path APIs, `"weight"` refers to the built-in edge-weight property
+- this is a compatibility-shaped name, not a promise that arbitrary attribute
+  names can replace the built-in weight property in every weighted overload
+
 ## Result-wrapper and helper types
 
 These types are part of the public API and are worth knowing because they make some results easier to consume than raw BGL output.
@@ -260,16 +283,16 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 |---|---|---:|---|---|
 | `shortest_path` | `(source, target)` | `std::vector<NodeID>` | Unweighted shortest path by edge count. | `auto p = G.shortest_path(0, 3);` |
 | `shortest_path_length` | `(source, target)` | `double` | Unweighted shortest-path length in edge count. | `auto d = G.shortest_path_length(0, 3);` |
-| `shortest_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Weighted shortest path through the built-in edge weight. | `auto p = G.shortest_path(0, 3, "weight");` |
-| `shortest_path_length` | `(source, target, "weight")` | `double` | Weighted shortest-path length through the built-in edge weight. | `auto d = G.shortest_path_length(0, 3, "weight");` |
+| `shortest_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Weighted shortest path through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto p = G.shortest_path(0, 3, "weight");` |
+| `shortest_path_length` | `(source, target, "weight")` | `double` | Weighted shortest-path length through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto d = G.shortest_path_length(0, 3, "weight");` |
 | `dijkstra_path` | `(source, target)` | `std::vector<NodeID>` | Direct Dijkstra source-target path wrapper. | `auto p = G.dijkstra_path(0, 3);` |
-| `dijkstra_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above; explicit `"weight"` overload for compatibility-shaped usage. | `auto p = G.dijkstra_path(0, 3, "weight");` |
+| `dijkstra_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above; explicit `"weight"` overload for compatibility-shaped usage around the built-in edge weight. | `auto p = G.dijkstra_path(0, 3, "weight");` |
 | `dijkstra_path_length` | `(source, target)` | `Distance` | Dijkstra distance to one target. | `auto d = G.dijkstra_path_length(0, 3);` |
-| `dijkstra_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload. | `auto d = G.dijkstra_path_length(0, 3, "weight");` |
+| `dijkstra_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.dijkstra_path_length(0, 3, "weight");` |
 | `bellman_ford_path` | `(source, target)` | `std::vector<NodeID>` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = G.bellman_ford_path(0, 3);` |
-| `bellman_ford_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above with explicit `"weight"` overload. | `auto p = G.bellman_ford_path(0, 3, "weight");` |
+| `bellman_ford_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto p = G.bellman_ford_path(0, 3, "weight");` |
 | `bellman_ford_path_length` | `(source, target)` | `Distance` | Bellman-Ford distance wrapper with a final accumulation over the reconstructed path. | `auto d = G.bellman_ford_path_length(0, 3);` |
-| `bellman_ford_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload. | `auto d = G.bellman_ford_path_length(0, 3, "weight");` |
+| `bellman_ford_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.bellman_ford_path_length(0, 3, "weight");` |
 
 ### Single-source result helpers
 
@@ -324,17 +347,17 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | Computes max flow and caches staged state for a later `cycle_canceling()`. | `long f = G.push_relabel_maximum_flow(0, 5);` |
-| `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. | `long c = G.cycle_canceling();` |
+| `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | Computes max flow and caches staged state for a later `cycle_canceling()`. The default `"weight"` still refers to the built-in edge-weight property. | `long f = G.push_relabel_maximum_flow(0, 5);` |
+| `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. The default `"weight"` still refers to the built-in edge-weight property. | `long c = G.cycle_canceling();` |
 
 ### One-shot min-cost max-flow wrappers
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `max_flow_min_cost_cycle_canceling` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using cycle canceling. | `auto r = G.max_flow_min_cost_cycle_canceling(0, 5);` |
-| `successive_shortest_path_nonnegative_weights` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using SSP. | `auto r = G.successive_shortest_path_nonnegative_weights(0, 5);` |
-| `max_flow_min_cost_successive_shortest_path` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Thin alias to the SSP wrapper. | `auto r = G.max_flow_min_cost_successive_shortest_path(0, 5);` |
-| `max_flow_min_cost` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Default min-cost max-flow wrapper; currently delegates to cycle canceling. | `auto r = G.max_flow_min_cost(0, 5);` |
+| `max_flow_min_cost_cycle_canceling` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using cycle canceling. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_cycle_canceling(0, 5);` |
+| `successive_shortest_path_nonnegative_weights` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using SSP. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.successive_shortest_path_nonnegative_weights(0, 5);` |
+| `max_flow_min_cost_successive_shortest_path` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Thin alias to the SSP wrapper. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_successive_shortest_path(0, 5);` |
+| `max_flow_min_cost` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Default min-cost max-flow wrapper; currently delegates to cycle canceling. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost(0, 5);` |
 
 ## Generators and extra utilities
 
