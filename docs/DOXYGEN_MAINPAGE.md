@@ -1,7 +1,7 @@
 # nxpp API Reference
 
 This generated reference complements the hand-written markdown guides in
-[`docs/`](./README.md).
+[`docs/README.md`](README.md).
 
 Use the generated pages for:
 

@@ -1066,101 +1066,352 @@ public:
         return NodeAttrBaseProxy(this, u);
     }
 
-    /// Returns the tree edges discovered by breadth-first search from @p start.
+    /**
+     * @brief Returns the tree edges discovered by breadth-first search.
+     *
+     * @param start Node ID used as the BFS root.
+     * @return A `std::vector<std::pair<NodeID, NodeID>>` containing the ordered
+     * BFS tree edges as `(parent, child)` pairs.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto bfs_edges(const NodeID& start) const;
+    /**
+     * @brief Materializes the breadth-first-search tree rooted at @p start.
+     *
+     * The returned graph contains the root node and each tree edge reported by
+     * @ref bfs_edges.
+     *
+     * @param start Node ID used as the BFS root.
+     * @return A `Graph<NodeID, double, Directed>` containing only the BFS tree.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto bfs_tree(const NodeID& start) const;
+    /**
+     * @brief Groups BFS tree children by their discovered parent.
+     *
+     * Only nodes that actually gain at least one tree child appear in the
+     * sparse result map.
+     *
+     * @param start Node ID used as the BFS root.
+     * @return A sparse node-indexed map from each BFS parent to a
+     * `std::vector<NodeID>` of discovered children.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto bfs_successors(const NodeID& start) const;
+    /**
+     * @brief Runs breadth-first search with an object-style visitor.
+     *
+     * The visitor may implement wrapper-level hooks such as
+     * `examine_vertex(u, G)` and `tree_edge(u, v, G)`.
+     *
+     * @tparam Visitor Visitor object type accepted by the wrapper dispatcher.
+     * @param start Node ID used as the BFS root.
+     * @param visitor Visitor instance that receives traversal callbacks.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     template <typename Visitor>
     void breadth_first_search(const NodeID& start, Visitor& visitor) const;
+    /**
+     * @brief Runs breadth-first search with lightweight callback hooks.
+     *
+     * This is a convenience wrapper over @ref breadth_first_search that avoids
+     * defining a dedicated visitor type when only vertex and tree-edge events
+     * are needed.
+     *
+     * @tparam OnVertex Callback invoked as `on_vertex(u)`.
+     * @tparam OnTreeEdge Callback invoked as `on_tree_edge(u, v)`.
+     * @param start Node ID used as the BFS root.
+     * @param on_vertex Callback for discovered vertices.
+     * @param on_tree_edge Callback for BFS tree edges.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     template <typename OnVertex, typename OnTreeEdge>
     void bfs_visit(const NodeID& start, OnVertex&& on_vertex, OnTreeEdge&& on_tree_edge) const;
-    /// Returns the tree edges discovered by depth-first search from @p start.
+    /**
+     * @brief Returns the tree edges discovered by depth-first search.
+     *
+     * @param start Node ID used as the DFS root.
+     * @return A `std::vector<std::pair<NodeID, NodeID>>` containing the ordered
+     * DFS tree edges as `(parent, child)` pairs.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto dfs_edges(const NodeID& start) const;
+    /**
+     * @brief Materializes the depth-first-search tree rooted at @p start.
+     *
+     * The returned graph contains the root node and each tree edge reported by
+     * @ref dfs_edges.
+     *
+     * @param start Node ID used as the DFS root.
+     * @return A `Graph<NodeID, double, Directed>` containing only the DFS tree.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto dfs_tree(const NodeID& start) const;
+    /**
+     * @brief Returns the DFS predecessor assigned to each discovered node.
+     *
+     * The sparse result omits the root node and any node not reached from
+     * @p start.
+     *
+     * @param start Node ID used as the DFS root.
+     * @return A sparse node-indexed map from each discovered node to its parent `NodeID`.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto dfs_predecessors(const NodeID& start) const;
+    /**
+     * @brief Groups DFS tree children by their discovered parent.
+     *
+     * Only nodes that actually gain at least one tree child appear in the
+     * sparse result map.
+     *
+     * @param start Node ID used as the DFS root.
+     * @return A sparse node-indexed map from each DFS parent to a
+     * `std::vector<NodeID>` of discovered children.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     auto dfs_successors(const NodeID& start) const;
+    /**
+     * @brief Runs depth-first search with an object-style visitor.
+     *
+     * The visitor may implement wrapper-level hooks such as
+     * `tree_edge(u, v, G)` and `back_edge(u, v, G)`.
+     *
+     * @tparam Visitor Visitor object type accepted by the wrapper dispatcher.
+     * @param start Node ID used as the DFS root.
+     * @param visitor Visitor instance that receives traversal callbacks.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     template <typename Visitor>
     void depth_first_search(const NodeID& start, Visitor& visitor) const;
+    /**
+     * @brief Runs depth-first search with lightweight callback hooks.
+     *
+     * This is a convenience wrapper over @ref depth_first_search that avoids
+     * defining a dedicated visitor type when only tree-edge and back-edge
+     * events are needed.
+     *
+     * @tparam OnTreeEdge Callback invoked as `on_tree_edge(u, v)`.
+     * @tparam OnBackEdge Callback invoked as `on_back_edge(u, v)`.
+     * @param start Node ID used as the DFS root.
+     * @param on_tree_edge Callback for DFS tree edges.
+     * @param on_back_edge Callback for DFS back edges.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
     template <typename OnTreeEdge, typename OnBackEdge>
     void dfs_visit(const NodeID& start, OnTreeEdge&& on_tree_edge, OnBackEdge&& on_back_edge) const;
 
-    /// Computes an unweighted shortest path between two nodes.
+    /**
+     * @brief Computes an unweighted shortest path between two nodes.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return A `std::vector<NodeID>` describing the path from source to target.
+     * @throws std::runtime_error If either node is missing or the target is unreachable.
+     */
     auto shortest_path(const NodeID& source_id, const NodeID& target_id) const;
-    /// Computes a shortest path using the named edge attribute as weight.
+    /**
+     * @brief Computes a shortest path using the named edge attribute as weight.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return A `std::vector<NodeID>` describing the path from source to target.
+     * @throws std::runtime_error If either node is missing, the target is unreachable, or the weight name is unsupported.
+     */
     auto shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
-    /// Returns the length of an unweighted shortest path.
+    /**
+     * @brief Returns the length of an unweighted shortest path.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return The path length as a `double`, measured in edge count.
+     * @throws std::runtime_error If either node is missing or the target is unreachable.
+     */
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id) const;
-    /// Returns the length of a shortest path using the named edge attribute as weight.
+    /**
+     * @brief Returns the length of a shortest path using the named edge attribute as weight.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return The weighted shortest-path length as a `double`.
+     * @throws std::runtime_error If either node is missing, the target is unreachable, or the weight name is unsupported.
+     */
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
+    /**
+     * @brief Computes the shortest path using the built-in edge-weight property.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return A `std::vector<NodeID>` describing the shortest path from source to target.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Computes the shortest path using the built-in edge-weight property.
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id) const;
 
+    /**
+     * @brief Computes the shortest path using a named edge attribute as weight.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return A `std::vector<NodeID>` describing the shortest path from source to target.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Computes the shortest path using the named edge attribute as weight.
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
+    /**
+     * @brief Returns distances and predecessors for all nodes reachable from a source.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @return A @ref SingleSourceShortestPathResult carrying ordered
+     * `distance` and `predecessor` maps keyed by `NodeID`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns distances and predecessors for all nodes reachable from @p source_id.
     auto dijkstra_shortest_paths(const NodeID& source_id) const;
 
+    /**
+     * @brief Returns built-in-weight shortest-path distances from a source node.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @return An ordered `std::map<NodeID, EdgeWeight>` of distances from @p source_id.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns shortest-path distances from @p source_id using built-in weights.
     auto dijkstra_path_length(const NodeID& source_id) const;
 
+    /**
+     * @brief Returns the built-in-weight shortest-path length between two nodes.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return The shortest-path distance as `EdgeWeight`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the built-in-weight shortest-path length between two nodes.
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id) const;
 
+    /**
+     * @brief Returns the shortest-path length using a named edge attribute as weight.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return The shortest-path distance as `EdgeWeight`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the named-weight shortest-path length between two nodes.
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
+    /**
+     * @brief Computes a shortest path using Bellman-Ford and built-in weights.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return A `std::vector<NodeID>` describing the shortest path from source to target.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Computes a shortest path using Bellman-Ford and built-in weights.
     auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id) const;
 
+    /**
+     * @brief Returns distances and predecessors for all nodes using Bellman-Ford.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @return A @ref SingleSourceShortestPathResult carrying ordered
+     * `distance` and `predecessor` maps keyed by `NodeID`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns distances and predecessors for all nodes using Bellman-Ford.
     auto bellman_ford_shortest_paths(const NodeID& source_id) const;
 
+    /**
+     * @brief Computes a shortest path using Bellman-Ford and a named edge attribute.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return A `std::vector<NodeID>` describing the shortest path from source to target.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Computes a shortest path using Bellman-Ford and a named edge attribute.
     auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
+    /**
+     * @brief Returns the Bellman-Ford shortest-path length with built-in weights.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @return The shortest-path distance as `EdgeWeight`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the Bellman-Ford shortest-path length with built-in weights.
     auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id) const;
 
+    /**
+     * @brief Returns the Bellman-Ford shortest-path length with a named edge attribute.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param weight Name of the edge attribute interpreted as a numeric weight.
+     * @return The shortest-path distance as `EdgeWeight`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the Bellman-Ford shortest-path length with a named edge attribute.
     auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const;
 
+    /**
+     * @brief Returns shortest-path distances in a directed acyclic graph.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param source_id Source node ID.
+     * @return A @ref SingleSourceShortestPathResult carrying ordered
+     * `distance` and `predecessor` maps keyed by `NodeID`.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns shortest-path distances in a directed acyclic graph.
     auto dag_shortest_paths(const NodeID& source_id) const;
 
+    /**
+     * @brief Returns all-pairs shortest-path distances as a dense matrix.
+     *
+     * The returned matrix follows the wrapper's stable node-ordering, so row
+     * and column positions correspond to the order reported by @ref nodes.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @return A dense `std::vector<std::vector<EdgeWeight>>` shortest-path
+     * matrix ordered by the stable node order reported by @ref nodes.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns all-pairs shortest-path distances as a dense matrix-style result.
     auto floyd_warshall_all_pairs_shortest_paths() const;
 
+    /**
+     * @brief Returns all-pairs shortest-path distances keyed by node IDs.
+     *
+     * This wrapper expands the dense Floyd-Warshall matrix into nested ordered
+     * maps so callers can address results directly by source and target ID.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @return A nested `std::map<NodeID, std::map<NodeID, EdgeWeight>>`
+     * keyed first by source node and then by target node.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns all-pairs shortest-path distances keyed by node IDs.
     auto floyd_warshall_all_pairs_shortest_paths_map() const;
 
     /// Groups each connected component as a vector of node IDs.
@@ -1184,45 +1435,143 @@ public:
     /// Returns a topological ordering for a directed acyclic graph.
     auto topological_sort() const;
 
+    /**
+     * @brief Returns the edges selected by Kruskal's minimum-spanning-tree algorithm.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @return A `std::vector<std::pair<NodeID, NodeID>>` containing the
+     * selected spanning-tree edges as `(u, v)` pairs.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the edges selected by Kruskal's minimum-spanning-tree algorithm.
     auto kruskal_minimum_spanning_tree() const;
 
+    /**
+     * @brief Returns the parent map produced by Prim's minimum-spanning-tree algorithm.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param root_id Root node used to seed Prim's algorithm.
+     * @return An ordered `std::map<NodeID, NodeID>` parent map for the spanning tree.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Returns the parent map produced by Prim's minimum-spanning-tree algorithm.
     auto prim_minimum_spanning_tree(const NodeID& root_id) const;
 
+    /**
+     * @brief Convenience alias for @ref kruskal_minimum_spanning_tree().
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @return A `std::vector<std::pair<NodeID, NodeID>>` containing the
+     * selected spanning-tree edges as `(u, v)` pairs.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Convenience alias for kruskal_minimum_spanning_tree().
     auto minimum_spanning_tree() const;
 
+    /**
+     * @brief Convenience alias for `prim_minimum_spanning_tree(root_id)`.
+     *
+     * @tparam W Internal enable/disable gate for weighted graph specializations.
+     * @param root_id Root node used to seed Prim's algorithm.
+     * @return An ordered `std::map<NodeID, NodeID>` parent map for the spanning tree.
+     */
     template <bool W = Weighted>
     requires(W)
-    /// Convenience alias for prim_minimum_spanning_tree(root_id).
     auto minimum_spanning_tree(const NodeID& root_id) const;
 
-    /// Computes a maximum flow using the Edmonds-Karp algorithm.
+    /**
+     * @brief Computes a maximum flow using the Edmonds-Karp algorithm.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @return A @ref MaximumFlowResult containing the total flow value and the
+     * per-edge flow assignment keyed by `(u, v)`.
+     */
     auto edmonds_karp_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
-    /// Computes a maximum flow using push-relabel and returns edge assignments.
+    /**
+     * @brief Computes a maximum flow using push-relabel and returns edge assignments.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @return A @ref MaximumFlowResult containing the total flow value and the
+     * per-edge flow assignment keyed by `(u, v)`.
+     */
     auto push_relabel_maximum_flow_result(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
-    /// Computes the maximum flow value and edge assignments using the named capacity attribute.
+    /**
+     * @brief Computes the maximum flow value and edge assignments using the named capacity attribute.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @return A @ref MaximumFlowResult containing the total flow value and the
+     * per-edge flow assignment keyed by `(u, v)`.
+     */
     auto maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
-    /// Computes a minimum cut between source and target using the named capacity attribute.
+    /**
+     * @brief Computes a minimum cut between source and target using the named capacity attribute.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @return A @ref MinimumCutResult containing the cut value, the two partitions,
+     * and the cut edges crossing from reachable to non-reachable nodes.
+     */
     auto minimum_cut(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
-    /// Computes a max-flow min-cost result using cycle canceling.
+    /**
+     * @brief Computes a max-flow min-cost result using cycle canceling.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
+     * and the per-edge flow assignment keyed by `(u, v)`.
+     */
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /// Runs push-relabel and caches the residual state for follow-up min-cost routines.
     long push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Runs cycle canceling on the previously cached residual network.
+    /**
+     * @brief Runs cycle canceling on the previously cached residual network.
+     *
+     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
+     * and the per-edge flow assignment keyed by `(u, v)`.
+     */
     auto cycle_canceling(const std::string& weight_attr = "weight") const;
-    /// Computes a max-flow min-cost result using successive shortest path.
+    /**
+     * @brief Computes a max-flow min-cost result using successive shortest path.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
+     * and the per-edge flow assignment keyed by `(u, v)`.
+     */
     auto successive_shortest_path_nonnegative_weights(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Convenience alias for successive_shortest_path_nonnegative_weights().
+    /**
+     * @brief Convenience alias for successive_shortest_path_nonnegative_weights().
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
+     * and the per-edge flow assignment keyed by `(u, v)`.
+     */
     auto max_flow_min_cost_successive_shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Convenience alias for the default max-flow min-cost wrapper.
+    /**
+     * @brief Convenience alias for the default max-flow min-cost wrapper.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Sink node ID.
+     * @param capacity_attr Name of the numeric edge attribute used as capacity.
+     * @param weight_attr Name of the numeric edge attribute used as cost.
+     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
+     * and the per-edge flow assignment keyed by `(u, v)`.
+     */
     auto max_flow_min_cost(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
 
     /// Returns the number of vertices currently stored in the graph.

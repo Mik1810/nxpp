@@ -13,8 +13,8 @@ namespace nxpp {
 /**
  * @brief Result of a maximum-flow computation.
  *
- * The value field stores the total flow, while @ref flow maps each original
- * directed edge to the amount routed through it.
+ * The value field stores the total flow, while the `flow` member maps each
+ * original directed edge to the amount routed through it.
  */
 template <typename NodeID>
 struct MaximumFlowResult {

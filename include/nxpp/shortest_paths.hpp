@@ -31,6 +31,8 @@ struct SingleSourceShortestPathResult {
     /**
      * @brief Reconstructs the path from the original source to @p target.
      *
+     * @param target Target node ID.
+     * @return A `std::vector<NodeID>` describing the source-to-target path.
      * @throws std::runtime_error If the target is missing, unreachable, or the
      * predecessor map is inconsistent.
      */
