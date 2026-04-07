@@ -1587,13 +1587,43 @@ public:
      */
     auto max_flow_min_cost(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
 
-    /// Returns the number of vertices currently stored in the graph.
+    /// @brief Returns the number of vertices currently stored in the graph.
+    /// @return The current vertex count as an `int`.
     auto num_vertices() const;
-    /// Returns normalized degree centrality for each node.
+    /**
+     * @brief Computes normalized degree centrality for every node.
+     *
+     * For undirected graphs this uses the standard degree. For directed graphs
+     * it uses `in_degree + out_degree`. The result is normalized by `n - 1`,
+     * matching the usual NetworkX-style convention.
+     *
+     * @return An `indexed_lookup_map<NodeID, double>` keyed by public node ID
+     * that stores one normalized degree-centrality score per node.
+     */
     auto degree_centrality() const;
-    /// Returns PageRank scores for each node as an indexed wrapper keyed by node ID.
+    /**
+     * @brief Computes PageRank scores for every node.
+     *
+     * The current wrapper uses a small fixed-iteration implementation with
+     * damping factor `0.85` and explicit redistribution of dangling-node mass.
+     * It is intentionally conservative and returns a ready-to-consume result
+     * keyed by public node ID instead of exposing lower-level property-map
+     * plumbing.
+     *
+     * @return An `indexed_lookup_map<NodeID, double>` keyed by public node ID
+     * containing one PageRank score per node.
+     */
     auto pagerank() const;
-    /// Returns normalized betweenness centrality for each node.
+    /**
+     * @brief Computes normalized betweenness centrality for every node.
+     *
+     * The current implementation uses a self-contained Brandes shortest-path
+     * accumulation pass and normalizes the result with semantics matching
+     * `betweenness_centrality(G, normalized=True)` in NetworkX.
+     *
+     * @return An `indexed_lookup_map<NodeID, double>` keyed by public node ID
+     * containing one normalized betweenness-centrality score per node.
+     */
     auto betweenness_centrality() const;
 };
 

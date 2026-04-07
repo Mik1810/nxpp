@@ -81,14 +81,26 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for pagerank().
+/**
+ * @brief Deprecated free-function alias for `G.pagerank()`.
+ *
+ * @param G Graph wrapper on which to compute PageRank.
+ * @return The same `indexed_lookup_map<NodeID, double>` result returned by
+ * `G.pagerank()`.
+ */
 [[deprecated("Use G.pagerank() instead.")]]
 auto pagerank(const GraphWrapper& G) {
     return G.pagerank();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for degree_centrality().
+/**
+ * @brief Deprecated free-function alias for `G.degree_centrality()`.
+ *
+ * @param G Graph wrapper on which to compute normalized degree centrality.
+ * @return The same `indexed_lookup_map<NodeID, double>` result returned by
+ * `G.degree_centrality()`.
+ */
 [[deprecated("Use G.degree_centrality() instead.")]]
 auto degree_centrality(const GraphWrapper& G) {
     return G.degree_centrality();
@@ -178,7 +190,13 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for betweenness_centrality().
+/**
+ * @brief Deprecated free-function alias for `G.betweenness_centrality()`.
+ *
+ * @param G Graph wrapper on which to compute normalized betweenness centrality.
+ * @return The same `indexed_lookup_map<NodeID, double>` result returned by
+ * `G.betweenness_centrality()`.
+ */
 [[deprecated("Use G.betweenness_centrality() instead.")]]
 auto betweenness_centrality(const GraphWrapper& G) {
     return G.betweenness_centrality();
