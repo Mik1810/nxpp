@@ -9,5 +9,6 @@
 #include "nxpp/topological_sort.hpp"
 #include "nxpp/spanning_tree.hpp"
 #include "nxpp/flow.hpp"
+#include "nxpp/centrality.hpp"
 #include "nxpp/generators.hpp"
 #include "nxpp/sat.hpp"

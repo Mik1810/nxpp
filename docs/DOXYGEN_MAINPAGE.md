@@ -25,6 +25,7 @@ result shapes, and header-level behavior notes.
 - [`include/nxpp/traversal.hpp`](traversal_8hpp_source.html): BFS / DFS helpers and visitor APIs
 - [`include/nxpp/shortest_paths.hpp`](shortest__paths_8hpp_source.html): shortest-path wrappers and result types
 - [`include/nxpp/flow.hpp`](flow_8hpp_source.html): flow, cut, and min-cost helpers
+- [`include/nxpp/centrality.hpp`](centrality_8hpp_source.html): centrality helpers such as `degree_centrality()` and `pagerank()`
 - [`include/nxpp/generators.hpp`](generators_8hpp_source.html): graph generators
 
 ## Quick navigation

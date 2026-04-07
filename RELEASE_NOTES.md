@@ -12,6 +12,10 @@ version entries in `CHANGELOG.md`.
   - returns `indexed_lookup_map<NodeID, double>`
   - keeps the result keyed by public node IDs
   - includes a deprecated free-function alias for consistency with the rest of the method-first API migration
+- Follow-up cleanup keeps the semantic header split consistent too:
+  - `degree_centrality()` and `pagerank()` now live under `include/nxpp/centrality.hpp`
+  - `include/nxpp.hpp` includes that new semantic header
+  - the docs now describe centrality as its own algorithm layer instead of leaving it in `graph.hpp`
 - The implementation stays conservative:
   - no extra configuration overloads yet
   - no new dependencies

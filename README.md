@@ -364,6 +364,7 @@ The repo now also has a semantic include layout under `include/nxpp/`:
 - `nxpp/components.hpp`
 - `nxpp/spanning_tree.hpp`
 - `nxpp/flow.hpp`
+- `nxpp/centrality.hpp`
 - `nxpp/generators.hpp`
 - `nxpp/multigraph.hpp`
 - `nxpp/sat.hpp`
@@ -385,6 +386,8 @@ That split is now real for the main public surface:
   deprecated wrappers, and the matching `Graph` method definitions
 - `nxpp/flow.hpp` owns flow/cut/min-cost helpers, deprecated wrappers,
   supporting result types, and the matching `Graph` method definitions
+- `nxpp/centrality.hpp` owns centrality helpers such as `degree_centrality()`
+  and `pagerank()`, plus the matching graph method definitions
 - `nxpp/generators.hpp` owns `complete_graph`, `path_graph`, and
   `erdos_renyi_graph`
 - `nxpp/sat.hpp` owns the 2-SAT helpers

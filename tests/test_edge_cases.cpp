@@ -16,6 +16,7 @@
 #include "include/nxpp/traversal.hpp"
 #include "include/nxpp/shortest_paths.hpp"
 #include "include/nxpp/components.hpp"
+#include "include/nxpp/centrality.hpp"
 #endif
 
 constexpr const char* green = "\033[32m";

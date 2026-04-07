@@ -50,6 +50,8 @@ The repo now has a real semantic-header split under `include/nxpp/`:
   deprecated wrappers, and the matching graph method definitions
 - `flow.hpp` owns flow/cut/min-cost helpers, deprecated wrappers, supporting
   result types, and the matching graph method definitions
+- `centrality.hpp` owns centrality helpers such as `degree_centrality()` and
+  `pagerank()`, plus the matching graph method definitions
 - `generators.hpp` owns `complete_graph`, `path_graph`, and
   `erdos_renyi_graph`
 - `sat.hpp` owns the 2-SAT helpers
