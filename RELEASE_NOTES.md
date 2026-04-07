@@ -34,6 +34,13 @@ version entries in `CHANGELOG.md`.
   - declares Boost as a Conan dependency in header-only mode
   - is intended first for local validation with `conan create .` or an explicit C++20 host-profile override
   - does not yet introduce CI publication or remote package-upload workflow
+- Closed `#63` by adding a first local vcpkg overlay-port path.
+- The new local vcpkg preparation includes:
+  - `packaging/vcpkg/ports/nxpp/portfile.cmake`
+  - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+  - docs for the intended local validation command shape:
+    - `vcpkg install nxpp --overlay-ports=/path/to/nxpp/packaging/vcpkg/ports`
+- This is intentionally framed as a local/overlay preparation step first, not yet as a public curated-registry submission.
 
 ### Notes
 

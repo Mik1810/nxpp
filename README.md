@@ -112,6 +112,10 @@ The repository now also includes a first local Conan recipe in
 [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md) for the current scope and how
 to test it locally in an environment where Conan is installed.
 
+The repository now also includes a first local vcpkg overlay port under
+[packaging/vcpkg/](packaging/vcpkg). It is intended as a local/overlay
+integration path first, before any public-registry submission story.
+
 ## Features
 
 - **Header-only** C++20 API over **Boost Graph Library**

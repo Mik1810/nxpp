@@ -104,6 +104,9 @@ Packaging / distribution strategy:
   - installed-package CMake usage through `find_package(nxpp CONFIG REQUIRED)`
 - the repository now also carries a first local `conanfile.py`, intended for
   local recipe validation before any remote publication story
+- the repository now also carries a first local vcpkg overlay port under
+  `packaging/vcpkg/ports/nxpp`, intended as a local preparation path before any
+  public-registry submission
 - the next packaging step is not Debian packaging and not package-manager fan-out
 - the preferred order is:
   1. keep the CMake install / export / package-config path as the foundation

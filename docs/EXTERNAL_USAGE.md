@@ -143,7 +143,6 @@ Today the documented external-consumption story is intentionally minimal:
 
 It does not yet assume:
 
-- vcpkg support
 - a system package manager integration such as Debian / Ubuntu packaging
 
 Conan support now exists as a local recipe in the repository:
@@ -163,6 +162,24 @@ This assumes:
 - Conan is installed in your environment
 - you have a usable default Conan profile
 - Boost can be resolved by Conan in the configured remotes/profile setup
+
+vcpkg support now exists as a local overlay-port path in the repository:
+
+- `packaging/vcpkg/ports/nxpp/portfile.cmake`
+- `packaging/vcpkg/ports/nxpp/vcpkg.json`
+- the current intent is local overlay-port validation first, not immediate public-registry publication
+
+Typical local overlay-port install shape:
+
+```bash
+vcpkg install nxpp --overlay-ports=/path/to/nxpp/packaging/vcpkg/ports
+```
+
+This assumes:
+
+- `vcpkg` is installed in your environment
+- the overlay port points at a local checkout of this repository
+- Boost Graph is available through the vcpkg dependency graph for the selected triplet
 
 ## Minimal vendored CMake consumption
 

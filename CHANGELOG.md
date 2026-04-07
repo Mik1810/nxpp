@@ -8,6 +8,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Closed `#60` by adding proper CMake install/export/package-config support: the repo now installs headers plus an exported `nxpp::nxpp` target, generates `nxppConfig.cmake` / `nxppConfigVersion.cmake`, and supports external `find_package(nxpp CONFIG REQUIRED)` consumption once installed into a CMake prefix.
 - Closed `#61` by making the external-consumer story explicit across the docs: the repository now distinguishes clearly between repository-local header usage, vendored `add_subdirectory(...)` usage, installed-package `find_package(nxpp CONFIG REQUIRED)` usage, and the tested single-header release asset, with consistent include and Boost-dependency guidance across `README.md` and `docs/EXTERNAL_USAGE.md`.
 - Closed `#62` by adding a first local Conan recipe: the repository now includes `conanfile.py` that models `nxpp` as a header-only package, declares Boost as a Conan dependency in header-only mode, and documents a `conan create . --profile:build=default --profile:host=default -s:h compiler.cppstd=20` validation path that now works locally with Conan 2.
+- Closed `#63` by preparing a first local vcpkg overlay port under `packaging/vcpkg/ports/nxpp`: the repository now includes `portfile.cmake` and `vcpkg.json` for local overlay-port consumption on top of the installed CMake package path, and the external-usage docs now explain the intended local `vcpkg install nxpp --overlay-ports=...` validation shape.
 
 ## [1.0.0] - 2026-04-07
 
