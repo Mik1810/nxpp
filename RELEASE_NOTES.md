@@ -7,6 +7,8 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#25` by removing `Graph::node_properties` and `Graph::edge_properties` from the public mutable surface, so callers can no longer bypass wrapper invariants by mutating those stores directly.
+- Kept the advanced read-only escape hatches such as `get_impl()`, `get_bgl_to_id_map()`, and `get_id_to_bgl_map()` documented as intentional `const` integration hooks rather than treating them as normal day-to-day API entry points.
 - Clarified the source-of-truth split between:
   - the generated Doxygen site for declaration-level API facts
   - `README.md` for overview and navigation

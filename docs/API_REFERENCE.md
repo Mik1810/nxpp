@@ -139,6 +139,11 @@ applies to helpers that synthesize node IDs `0..n-1` themselves.
 | `get_node_id` | `(vertex_descriptor)` | `const NodeID&` | Returns the user-facing node ID for a descriptor. Mostly useful for advanced integrations. | `auto id = G.get_node_id(v);` |
 | `get_vertex_index` | `(vertex_descriptor)` | `size_t` | Returns the wrapper-maintained vertex index used by normalized result containers. | `auto i = G.get_vertex_index(v);` |
 
+The `get_impl()` / translation-map getters above are advanced `const` escape
+hatches for integrations and wrapper-level utilities. They intentionally expose
+read-only internal state. The mutable wrapper-owned attribute stores are no
+longer part of the public surface.
+
 ## Attribute API reference
 
 Node and edge attributes are stored outside the BGL graph using `std::any` in

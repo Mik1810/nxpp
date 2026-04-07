@@ -280,8 +280,6 @@ private:
     IdMap id_to_bgl;
     std::vector<NodeID> bgl_to_id;
     std::size_t next_edge_id = 0;
-
-public:
     NodeAttrStorage node_properties;
     EdgeAttrStorage edge_properties;
 
