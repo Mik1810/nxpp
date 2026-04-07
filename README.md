@@ -835,6 +835,35 @@ for (const auto& [node, component_id] : components) {
 }
 ```
 
+## Utility wrappers beyond direct NetworkX/BGL parity
+
+`nxpp` is intentionally not only a one-to-one naming layer on top of Boost or
+NetworkX-inspired method names.
+
+Some public wrappers exist because they are more natural to consume in C++ than
+the lower-level raw algorithm outputs:
+
+- `SingleSourceShortestPathResult` keeps ordered `distance` / `predecessor`
+  views plus `has_path_to(...)` / `path_to(...)`
+- `MaximumFlowResult`, `MinimumCutResult`, and `MinCostMaxFlowResult` return
+  aggregate answers together with the structured side data that callers usually
+  want next
+- `indexed_lookup_map` gives component and traversal helpers a small,
+  inspectable container shape with ordered lookup, instead of forcing the API
+  toward hash-table assumptions
+- helpers such as `degree_centrality()` and `two_sat_satisfiable()` are useful
+  high-level convenience surfaces even when they are not just direct ports of
+  one single upstream function
+
+So the intended reading is:
+
+- parity-friendly method names are still important
+- but `nxpp` also deliberately adds small C++-oriented wrapper types and helper
+  surfaces when they make the result easier to use directly
+
+See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) for the more explicit
+catalog of these utility wrappers and result shapes.
+
 ---
 
 ## Internal model in one minute

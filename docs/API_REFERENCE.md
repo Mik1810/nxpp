@@ -290,6 +290,31 @@ These types are part of the public API and are worth knowing because they make s
 This is one of the design directions that makes `nxpp` more than a thin parity layer:
 some wrappers return results that are easier to work with directly in C++ than raw Boost primitives.
 
+## Utility wrappers beyond direct NetworkX/BGL parity
+
+The public surface intentionally includes a few utility wrappers that are not
+best described as direct one-to-one ports of a single NetworkX or Boost entry
+point.
+
+These wrappers exist because they make the result shape more usable from C++:
+
+| Wrapper / helper | Why it exists |
+|---|---|
+| `SingleSourceShortestPathResult<NodeID, Distance>` | Returns ordered `distance` / `predecessor` data plus on-demand `path_to(...)`, instead of forcing eager all-path materialization or lower-level reconstruction code into the caller |
+| `MaximumFlowResult<NodeID>` | Bundles the total flow value with the per-edge flow assignment a caller usually wants to inspect next |
+| `MinimumCutResult<NodeID>` | Bundles cut value, partitions, and cut-edge list into one directly usable return object |
+| `MinCostMaxFlowResult<NodeID>` | Bundles total flow, total cost, and per-edge flows into one C++-friendly return type |
+| `indexed_lookup_map<Key, Value>` | Keeps linear materialization and ordered key lookup for public results without baking hash-table assumptions into the API |
+| `degree_centrality()` | Exposes a normalized C++-friendly wrapper result rather than raw lower-level bookkeeping |
+| `two_sat_satisfiable(...)` | Exposes a direct utility surface built on top of the SCC machinery instead of requiring users to assemble the implication-graph workflow themselves |
+
+The intended project shape is:
+
+- keep parity-friendly graph methods where they help discovery
+- keep Boost-backed algorithmic behavior under the hood
+- allow a few focused C++-oriented wrappers where the raw result would be
+  unnecessarily awkward for normal callers
+
 ### Result-wrapper examples
 
 #### `SingleSourceShortestPathResult`

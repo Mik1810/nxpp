@@ -3,17 +3,26 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [0.8.10]
+## [0.8.11]
 
 ### Highlights
 
+- Closed `#15` by adding an explicit docs section for the utility wrappers that are intentionally beyond direct one-to-one NetworkX/BGL parity.
+- The docs now explain why the public surface includes wrappers such as:
+  - `SingleSourceShortestPathResult`
+  - `MaximumFlowResult`
+  - `MinimumCutResult`
+  - `MinCostMaxFlowResult`
+  - `indexed_lookup_map`
+  - small utility surfaces such as `degree_centrality()` and `two_sat_satisfiable(...)`
+- This makes it clearer that `nxpp` is not only a naming/parity layer: it also adds a few focused C++-oriented result shapes where raw lower-level output would be awkward to consume directly.
 - Closed `#14` by adding direct usage examples for the richer result wrappers instead of only listing their fields and names.
 - The docs now show practical examples for:
   - `SingleSourceShortestPathResult`
   - `MaximumFlowResult`
   - `MinimumCutResult`
-- `MinCostMaxFlowResult`
-- `indexed_lookup_map`
+  - `MinCostMaxFlowResult`
+  - `indexed_lookup_map`
 - The new examples live in `README.md` and `docs/API_REFERENCE.md`, so the public docs now explain not just what those wrappers are, but how callers are expected to use them.
 
 ### Verification

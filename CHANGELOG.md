@@ -2,8 +2,9 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
-## [0.8.10] - 2026-04-07
+## [0.8.11] - 2026-04-07
 
+- Closed `#15` by adding an explicit docs section on the utility wrappers that go beyond direct NetworkX/BGL parity, explaining why wrappers such as `SingleSourceShortestPathResult`, `MaximumFlowResult`, `MinimumCutResult`, `MinCostMaxFlowResult`, and `indexed_lookup_map` are intentional parts of the public C++ surface rather than accidental extras.
 - Closed `#14` by adding concrete examples for the richer public result wrappers in the main docs: `README.md` and `docs/API_REFERENCE.md` now show direct usage of `SingleSourceShortestPathResult`, flow/cut wrappers, and `indexed_lookup_map` instead of only naming those types abstractly.
 
 ## [0.8.9] - 2026-04-07
