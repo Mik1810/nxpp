@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.0] - 2026-04-07
+
+- Declared the first stable `1.0.0` release after the `0.8.x` hardening cycle.
+- Refined the root documentation for faster onboarding: `README.md` is now quick-start-first and includes CI, Boost, and C++20 badges.
+- Consolidated release messaging for `1.0.0` in `RELEASE_NOTES.md` with a summary of API scope, CI coverage, and documentation maturity.
+
 ## [0.8.14] - 2026-04-07
 
 - Closed `#40` by adding `docs/ATTRIBUTE_DESIGN.md`, a dedicated evaluation document that documents the explicit tradeoffs of the current `std::any` storage model, compares it against two plausible future alternatives (bounded `std::variant` and a typed attribute schema), and describes a conservative three-phase migration path from `std::any` to `std::variant`; the current decision (keep `std::any`) is justified explicitly in terms of the project's educational and prototyping scope; `docs/API_REFERENCE.md` now links to the new design doc at the end of the Attribute API section.

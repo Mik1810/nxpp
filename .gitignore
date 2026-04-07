@@ -18,3 +18,4 @@ create_github_issues.py
 backups/
 dist/
 build/
+CLAUDE.md

@@ -3,6 +3,32 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.0]
+
+### Summary
+
+`nxpp` reaches `1.0.0` as the first stable release milestone.
+
+This version consolidates the work completed across the `0.8.x` line into a
+clearer and more consumable public release:
+
+- Stable header-only C++20 graph API on top of Boost Graph Library
+- NetworkX-inspired ergonomics with graph-method-first usage
+- Full algorithm coverage already present in the wrapper surface:
+  - traversal, shortest paths, components, spanning tree/topological sort
+  - flow/min-cut/min-cost helpers
+  - centrality helpers (`degree_centrality`, `pagerank`, `betweenness_centrality`)
+- Explicit multigraph precision path based on `edge_id`
+- Cross-platform CI coverage for the formal suite (Linux/macOS/Windows)
+- Stronger documentation and onboarding, including a quick-start-first root README
+  plus the generated API reference and companion docs
+
+### Notes
+
+- This release marks maturity and stabilization of the current public surface.
+- No new architectural direction is introduced in `1.0.0`; it formalizes the
+  already-completed hardening and documentation work.
+
 ## [0.8.14]
 
 ### Highlights
