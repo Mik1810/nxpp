@@ -3,6 +3,31 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.1]
+
+### Highlights
+
+- Closed `#59` by making the packaging and distribution strategy explicit before starting the implementation-heavy packaging work.
+- The docs now state clearly that the currently supported consumption paths are still:
+  - direct repository-local header usage
+  - vendored CMake usage via `add_subdirectory(nxpp)`
+- The preferred distribution order is now documented as:
+  1. proper CMake install / export / package-config support
+  2. Conan support
+  3. vcpkg evaluation and support
+  4. Debian / Ubuntu packaging only as a later optional target if the maintenance tradeoff still makes sense
+- This also makes one important boundary explicit: `nxpp` is not yet documented as a `find_package(nxpp CONFIG REQUIRED)` package today, and that workflow remains a follow-up target rather than an implied public promise.
+
+### Notes
+
+- This is a strategy / project-shape issue, not the implementation of install rules or package-manager metadata yet.
+- The follow-up implementation path is now clearer:
+  - `#60` CMake install/export/package-config support
+  - `#62` Conan
+  - `#63` vcpkg
+  - `#64` Debian / Ubuntu packaging evaluation
+  - `#65` package-distribution release expectations
+
 ## [1.0.0]
 
 ### Summary

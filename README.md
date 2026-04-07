@@ -74,6 +74,24 @@ add_subdirectory(nxpp)
 target_link_libraries(your_target PRIVATE nxpp)
 ```
 
+## Packaging Status
+
+The current first-class consumption paths are still the simplest ones:
+
+- direct repository-local header usage
+- vendored CMake usage through `add_subdirectory(nxpp)`
+
+The packaging and distribution strategy is now explicit:
+
+1. keep the current direct-source and vendored-CMake paths working well
+2. make `nxpp` a proper installable/exported CMake package next
+3. add Conan support after the CMake package story is stable
+4. evaluate vcpkg after that
+5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
+
+In other words, `nxpp` is not yet advertised as an installable `find_package(nxpp CONFIG REQUIRED)` package today.
+That is an intentional follow-up target, not an undocumented half-support path.
+
 ## Features
 
 - **Header-only** C++20 API over **Boost Graph Library**

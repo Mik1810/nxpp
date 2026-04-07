@@ -96,6 +96,22 @@ Current status:
 - the files under `docs/` should stay focused on policy, rationale, examples,
   and curated technical guidance rather than becoming a second full API dump
 
+Packaging / distribution strategy:
+
+- today, the supported external-consumption paths are still:
+  - direct repository-local header usage
+  - vendored CMake usage through `add_subdirectory(nxpp)`
+- the next packaging step is not Debian packaging and not package-manager fan-out
+- the preferred order is:
+  1. proper CMake install / export / package-config support
+  2. Conan support
+  3. vcpkg evaluation and support
+  4. only later, if still worth the maintenance cost, Debian / Ubuntu packaging
+- this means `find_package(nxpp CONFIG REQUIRED)` is a planned follow-up,
+  not a currently supported public workflow
+- package-manager distribution should follow the installed CMake package story,
+  not bypass it
+
 Versioning / release policy:
 
 - `CHANGELOG.md` is the concise technical history
