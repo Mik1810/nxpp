@@ -12,6 +12,7 @@ vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME nxpp CONFIG_PATH lib/cmake/nxpp)
 
 file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/lib"
     "${CURRENT_PACKAGES_DIR}/debug"
 )
 

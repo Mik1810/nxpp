@@ -41,6 +41,10 @@ version entries in `CHANGELOG.md`.
   - docs for the intended local validation command shape:
     - `vcpkg install nxpp --overlay-ports=/path/to/nxpp/packaging/vcpkg/ports`
 - This is intentionally framed as a local/overlay preparation step first, not yet as a public curated-registry submission.
+- Follow-up validation tightened that local port further:
+  - the port now removes the empty `lib/` and `debug/` directories that vcpkg warns about in post-build checks
+  - the overlay install path was validated locally
+  - a small external CMake consumer using the vcpkg toolchain and `find_package(nxpp CONFIG REQUIRED)` was also validated locally
 
 ### Notes
 

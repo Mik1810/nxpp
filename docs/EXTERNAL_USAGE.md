@@ -168,6 +168,7 @@ vcpkg support now exists as a local overlay-port path in the repository:
 - `packaging/vcpkg/ports/nxpp/portfile.cmake`
 - `packaging/vcpkg/ports/nxpp/vcpkg.json`
 - the current intent is local overlay-port validation first, not immediate public-registry publication
+- the overlay install path has been validated locally with the command below
 
 Typical local overlay-port install shape:
 
