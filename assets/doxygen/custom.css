@@ -1,0 +1,190 @@
+body {
+  background: #f4f1ea;
+  color: #21303a;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+
+a,
+a.el,
+a.qindex,
+a.qindexHL {
+  color: #0b5c78;
+}
+
+a:hover,
+a.el:hover,
+a.qindex:hover,
+a.qindexHL:hover {
+  color: #083e52;
+}
+
+#top {
+  border-bottom: 1px solid #d7d0c3;
+  box-shadow: 0 1px 0 rgba(33, 48, 58, 0.06);
+}
+
+#titlearea {
+  background: linear-gradient(180deg, #fdfcf8 0%, #f1ede3 100%);
+}
+
+#projectname {
+  color: #132731;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+#projectbrief {
+  color: #4a5d67;
+  font-size: 0.98rem;
+  font-style: italic;
+  margin-top: 0.2rem;
+}
+
+div.header,
+div.contents {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+div.contents {
+  line-height: 1.6;
+}
+
+div.headertitle {
+  padding: 1.2rem 0 0.8rem;
+}
+
+div.title {
+  color: #132731;
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+div.summary {
+  background: #fbf9f3;
+  border: 1px solid #ddd5c7;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+}
+
+table.memberdecls,
+.directory table,
+.doxtable {
+  border: 1px solid #ddd5c7;
+  border-collapse: separate;
+  border-radius: 8px;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+table.memberdecls td,
+table.memberdecls th,
+.directory table td,
+.directory table th,
+.doxtable td,
+.doxtable th {
+  border-color: #e7e0d5;
+}
+
+.memitem,
+dl.reflist dt,
+dl.section {
+  background: #fbf9f3;
+  border: 1px solid #ddd5c7;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(20, 28, 36, 0.04);
+}
+
+.memitem {
+  margin: 1rem 0 1.4rem;
+}
+
+.memproto,
+dl.section dt {
+  background: linear-gradient(180deg, #f4efe5 0%, #ebe3d3 100%);
+  border-bottom: 1px solid #ddd5c7;
+  color: #20313b;
+}
+
+.memdoc,
+dl.section dd {
+  background: #fffdf8;
+}
+
+div.fragment,
+pre.fragment {
+  background: #18232c;
+  border: 1px solid #253845;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+div.fragment,
+pre.fragment,
+div.line {
+  color: #edf1f4;
+}
+
+.paramname,
+.memname,
+.memtitle {
+  color: #153645;
+}
+
+.mlabel,
+span.mlabels span.mlabel {
+  background: #2a5e72;
+  border: 0;
+  border-radius: 999px;
+  color: #f7fafb;
+  padding: 0.15rem 0.55rem;
+}
+
+#nav-tree,
+#doc-content,
+#side-nav {
+  background: #f8f4ec;
+}
+
+.sm-dox a,
+.sm-dox a span.sub-arrow {
+  color: #20313b;
+}
+
+.sm-dox a:hover,
+.sm-dox a:focus,
+.sm-dox a:active {
+  background: #e7ded0;
+  color: #10242d;
+}
+
+.tabs,
+.tabs2,
+.tabs3,
+.tablist li a {
+  background: #efe8da;
+}
+
+.tablist li.current a,
+.tablist li a:hover {
+  background: #dfe8ea;
+  color: #163545;
+}
+
+dl.note,
+dl.warning,
+dl.attention,
+dl.important {
+  border-left: 4px solid #2a5e72;
+  border-radius: 0 8px 8px 0;
+  padding-left: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  div.header,
+  div.contents {
+    max-width: none;
+    margin: 0 1rem;
+  }
+}

@@ -2,7 +2,23 @@ name: Snippet Review
 
 on:
   push:
+    paths:
+      - "include/**"
+      - "snippet/**"
+      - "main.py"
+      - "main_boost.cpp"
+      - "main_nxpp.cpp"
+      - "scripts/unix/test_single_snippet.sh"
+      - ".github/workflows/snippet-review.yml"
   pull_request:
+    paths:
+      - "include/**"
+      - "snippet/**"
+      - "main.py"
+      - "main_boost.cpp"
+      - "main_nxpp.cpp"
+      - "scripts/unix/test_single_snippet.sh"
+      - ".github/workflows/snippet-review.yml"
   workflow_dispatch:
 
 jobs:

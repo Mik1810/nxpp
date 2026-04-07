@@ -11,6 +11,9 @@ USE_MDFILE_AS_MAINPAGE = docs/DOXYGEN_MAINPAGE.md
 
 GENERATE_HTML          = YES
 HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+HTML_DYNAMIC_MENUS     = YES
+HTML_EXTRA_STYLESHEET  = assets/doxygen/custom.css
 GENERATE_LATEX         = NO
 GENERATE_XML           = NO
 GENERATE_MAN           = NO

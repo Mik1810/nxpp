@@ -24,11 +24,14 @@ version entries in `CHANGELOG.md`.
 - Polished the most frequently used `Graph` entry points again with richer multi-line comments, so the IDE hover text is closer to real API guidance than to a terse signature label, especially around edge insertion, removal, attribute access, explicit edge-ID usage, traversal results, shortest-path result shapes, flow wrappers, and minimum-spanning-tree helpers.
 - Tightened the Doxygen configuration itself so local generation now runs cleanly with the expected toolchain, and added a dedicated GitHub Pages workflow that can publish the generated HTML reference site directly from `main`.
 - The generated reference is now also live-publishable through GitHub Pages at the repository level, without introducing a committed `CNAME` or coupling the docs deploy to an external personal domain.
+- Added a small repo-local Doxygen stylesheet under `assets/doxygen/`, giving the generated site a more polished and formal visual presentation without depending on an external theme or custom post-processing step.
+- Tightened `.github/workflows/snippet-review.yml` so the expensive Boost-backed snippet parity workflow now runs only when snippet-related files, public headers, the snippet runner, or the showcase mains change, instead of firing on every generic documentation or release-note edit.
 
 ### Verification
 
 - `timeout 30s git diff --check`
 - `timeout 30s rm -rf build/docs/doxygen && mkdir -p build/docs/doxygen && doxygen Doxyfile`
+- `timeout 30s rg -n "custom.css" build/docs/doxygen/html/index.html`
 - `timeout 30s bash scripts/unix/run_tests.sh`
 - `timeout 30s bash scripts/unix/build_single_header.sh`
 - `timeout 30s g++ -std=c++20 -Wall -Wextra -pedantic -O0 -I/workspaces/nxpp/include main_nxpp.cpp -o /tmp/main_nxpp_check`
