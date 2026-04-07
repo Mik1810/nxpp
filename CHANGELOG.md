@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.14] - 2026-04-07
+
+- Closed `#40` by adding `docs/ATTRIBUTE_DESIGN.md`, a dedicated evaluation document that documents the explicit tradeoffs of the current `std::any` storage model, compares it against two plausible future alternatives (bounded `std::variant` and a typed attribute schema), and describes a conservative three-phase migration path from `std::any` to `std::variant`; the current decision (keep `std::any`) is justified explicitly in terms of the project's educational and prototyping scope; `docs/API_REFERENCE.md` now links to the new design doc at the end of the Attribute API section.
+
 ## [0.8.13] - 2026-04-07
 
 - Closed `#5` by formalizing the implicit-node-and-edge-creation policy: the docs now carry a dedicated "Implicit node and edge creation" section in `docs/API_REFERENCE.md` with explicit write-creates / read-does-not-create tables; `NodeAttrProxy::operator=`, `EdgeAttrProxy::operator=`, and `EdgeProxy::operator=` in `graph.hpp` now carry docstrings documenting that they create the target node or edge if absent; a new formal test `test_implicit_creation_policy` in `test_edge_cases.cpp` verifies each creation case and confirms that read-only accessors (`has_node`, `has_edge`, `neighbors`) do not create on access.

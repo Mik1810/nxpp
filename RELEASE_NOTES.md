@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.14]
+
+### Highlights
+
+- Closed `#40` by adding `docs/ATTRIBUTE_DESIGN.md`, a standalone design evaluation document for the attribute storage model.
+- The document covers:
+  - Explicit pros/cons of the current `std::any` model, including where it works well and where it falls short
+  - Alternative A: bounded `std::variant<bool, int, long, double, std::string>` — same storage shape, bounded type set, `std::visit`-compatible, but cannot store custom object types
+  - Alternative B: typed attribute schema — full compile-time type safety, but a major breaking change incompatible with the NetworkX dynamic style
+  - A side-by-side comparison table across six criteria
+  - A clear rationale for keeping `std::any` for now (educational/prototyping scope, no concrete blocking use case yet)
+  - A conservative three-phase migration path (parallel alias → deprecation → removal) if a future version decides to switch to `std::variant`
+- `docs/API_REFERENCE.md` now links to `ATTRIBUTE_DESIGN.md` at the end of the Attribute API section.
+
 ## [0.8.13]
 
 ### Highlights

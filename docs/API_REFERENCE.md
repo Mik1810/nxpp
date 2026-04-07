@@ -294,6 +294,10 @@ This is the intended long-term direction for the current attribute system too:
 - keep `std::any` as the pragmatic storage backend unless a clearer replacement
   justifies a larger redesign
 - treat the checked accessors as the normal robust read path
+
+For a pragmatic comparison of the current model against future alternatives
+(`std::variant`, typed schema) and a conservative migration path, see
+[`ATTRIBUTE_DESIGN.md`](ATTRIBUTE_DESIGN.md).
 - treat edge-id overloads as the main precision path for multigraph attributes
 
 Weight-name note:
