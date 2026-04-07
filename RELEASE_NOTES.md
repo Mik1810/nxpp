@@ -22,6 +22,12 @@ version entries in `CHANGELOG.md`.
   - the build generates and installs `nxppConfig.cmake` and `nxppConfigVersion.cmake`
   - external consumers can now use `find_package(nxpp CONFIG REQUIRED)` once the package is installed into a visible prefix
   - the external-usage docs now distinguish vendored `add_subdirectory(...)` consumption from installed-package consumption explicitly
+- Closed `#61` by tightening the external-consumer docs around the now-supported paths:
+  - repository-local header usage inside a clone of the repo
+  - vendored `add_subdirectory(...)` usage
+  - installed-package `find_package(nxpp CONFIG REQUIRED)` usage
+  - tested single-header release-asset usage
+- The README and external-usage guide now use the same story for include style, Boost expectations, and when each path is appropriate, so users no longer need to infer whether they should follow the repo-local include model or the installed-package model.
 
 ### Notes
 

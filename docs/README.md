@@ -98,7 +98,6 @@ Current status:
 
 Packaging / distribution strategy:
 
-- today, the supported external-consumption paths are still:
 - today, the supported external-consumption paths are:
   - direct repository-local header usage
   - vendored CMake usage through `add_subdirectory(nxpp)`

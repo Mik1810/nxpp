@@ -59,27 +59,37 @@ Requirements:
 - C++20 compiler
 - Boost headers
 
-Use nxpp in either of these ways:
+Use nxpp in one of these ways:
 
-1. Include directly from this repository:
+1. Repository-local headers
 
 ```cpp
 #include "include/nxpp.hpp"
 ```
 
-2. Add as a CMake subdirectory:
+Use this when you are compiling directly inside a clone of the repository.
+
+2. Vendored CMake subdirectory
 
 ```cmake
 add_subdirectory(nxpp)
 target_link_libraries(your_target PRIVATE nxpp::nxpp)
 ```
 
-3. Use the installed package config:
+Use this when `nxpp` lives inside your source tree as a vendored dependency.
+
+3. Installed CMake package
 
 ```cmake
 find_package(nxpp CONFIG REQUIRED)
 target_link_libraries(your_target PRIVATE nxpp::nxpp)
 ```
+
+Use this when `nxpp` has been installed into a prefix and you want a normal
+`find_package(...)` workflow.
+
+For a fuller external-consumer guide, including Boost expectations and a
+minimal installed-package example, see [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 
 ## Packaging Status
 

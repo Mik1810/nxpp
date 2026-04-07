@@ -126,6 +126,13 @@ For external users:
 - prefer the tested `nxpp.hpp` asset attached to a GitHub release
 - do not treat a locally edited `dist/nxpp.hpp` as the source of truth
 
+## Which option to choose
+
+- use repository-local headers when you are compiling directly inside a clone of the repo
+- use vendored `add_subdirectory(...)` when `nxpp` is checked into your source tree as a dependency
+- use the installed package when you want a normal `find_package(nxpp CONFIG REQUIRED)` workflow
+- use the release single-header asset when you want the narrowest possible single-file integration path
+
 ## Current scope of the external story
 
 Today the documented external-consumption story is intentionally minimal:
