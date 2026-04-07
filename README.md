@@ -306,6 +306,22 @@ See [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md) for the full po
 
 ---
 
+## Thin aliases
+
+`nxpp` intentionally keeps a few thin aliases visible, but they are not all on
+the same level.
+
+- `Weighted*` aliases are the clearest named presets for the default graph surface
+- shorter names such as `GraphInt`, `DiGraph`, and `MultiGraph` are thin compatibility-friendly synonyms of those weighted presets
+- `Unweighted*` aliases are explicit presets for graphs without the built-in edge-weight property
+- method aliases such as `single_source_dijkstra(...)`, `connected_component_map()`, or `minimum_spanning_tree(...)` are convenience wrappers around more explicit primary names
+- deprecated namespace-scope wrappers such as `nxpp::bfs_edges(G, ...)` remain only as migration-friendly compatibility aliases and should not be treated as canonical API entry points
+
+[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) now documents these thin aliases
+explicitly so the canonical entry points are easier to identify.
+
+---
+
 ## Current scope
 
 The current public surface covers these areas:

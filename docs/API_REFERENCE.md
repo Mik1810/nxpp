@@ -46,36 +46,76 @@ win on declaration-level detail.
 
 ### Common aliases
 
-| Alias | Expands to |
-|---|---|
-| `WeightedGraphInt` | `Graph<int, int>` |
-| `WeightedGraphStr` | `Graph<std::string>` |
-| `WeightedDiGraphInt` | `Graph<int, int, true>` |
-| `WeightedDiGraph` | `Graph<std::string, double, true>` |
-| `WeightedMultiGraphInt` | `Graph<int, int, false, true>` |
-| `WeightedMultiDiGraphInt` | `Graph<int, int, true, true>` |
-| `WeightedMultiGraph` | `Graph<std::string, double, false, true>` |
-| `WeightedMultiDiGraph` | `Graph<std::string, double, true, true>` |
-| `GraphInt` | `Graph<int, int>` |
-| `GraphStr` | `Graph<std::string>` |
-| `DiGraphInt` | `Graph<int, int, true>` |
-| `DiGraph` | `Graph<std::string, double, true>` |
-| `MultiGraphInt` | `Graph<int, int, false, true>` |
-| `MultiDiGraphInt` | `Graph<int, int, true, true>` |
-| `MultiGraph` | `Graph<std::string, double, false, true>` |
-| `MultiDiGraph` | `Graph<std::string, double, true, true>` |
-| `UnweightedGraphInt` | `Graph<int, double, false, false, false>` |
-| `UnweightedDiGraphInt` | `Graph<int, double, true, false, false>` |
-| `UnweightedGraphStr` | `Graph<std::string, double, false, false, false>` |
-| `UnweightedDiGraph` | `Graph<std::string, double, true, false, false>` |
-| `UnweightedMultiGraphInt` | `Graph<int, double, false, true, false>` |
-| `UnweightedMultiDiGraphInt` | `Graph<int, double, true, true, false>` |
-| `UnweightedMultiGraph` | `Graph<std::string, double, false, true, false>` |
-| `UnweightedMultiDiGraph` | `Graph<std::string, double, true, true, false>` |
+| Alias | Expands to | Role |
+|---|---|---|
+| `WeightedGraphInt` | `Graph<int, int>` | Explicit weighted preset |
+| `WeightedGraphStr` | `Graph<std::string>` | Explicit weighted preset |
+| `WeightedDiGraphInt` | `Graph<int, int, true>` | Explicit weighted preset |
+| `WeightedDiGraph` | `Graph<std::string, double, true>` | Explicit weighted preset |
+| `WeightedMultiGraphInt` | `Graph<int, int, false, true>` | Explicit weighted preset |
+| `WeightedMultiDiGraphInt` | `Graph<int, int, true, true>` | Explicit weighted preset |
+| `WeightedMultiGraph` | `Graph<std::string, double, false, true>` | Explicit weighted preset |
+| `WeightedMultiDiGraph` | `Graph<std::string, double, true, true>` | Explicit weighted preset |
+| `GraphInt` | `Graph<int, int>` | Thin synonym of `WeightedGraphInt` |
+| `GraphStr` | `Graph<std::string>` | Thin synonym of `WeightedGraphStr` |
+| `DiGraphInt` | `Graph<int, int, true>` | Thin synonym of `WeightedDiGraphInt` |
+| `DiGraph` | `Graph<std::string, double, true>` | Thin synonym of `WeightedDiGraph` |
+| `MultiGraphInt` | `Graph<int, int, false, true>` | Thin synonym of `WeightedMultiGraphInt` |
+| `MultiDiGraphInt` | `Graph<int, int, true, true>` | Thin synonym of `WeightedMultiDiGraphInt` |
+| `MultiGraph` | `Graph<std::string, double, false, true>` | Thin synonym of `WeightedMultiGraph` |
+| `MultiDiGraph` | `Graph<std::string, double, true, true>` | Thin synonym of `WeightedMultiDiGraph` |
+| `UnweightedGraphInt` | `Graph<int, double, false, false, false>` | Explicit unweighted preset |
+| `UnweightedDiGraphInt` | `Graph<int, double, true, false, false>` | Explicit unweighted preset |
+| `UnweightedGraphStr` | `Graph<std::string, double, false, false, false>` | Explicit unweighted preset |
+| `UnweightedDiGraph` | `Graph<std::string, double, true, false, false>` | Explicit unweighted preset |
+| `UnweightedMultiGraphInt` | `Graph<int, double, false, true, false>` | Explicit unweighted preset |
+| `UnweightedMultiDiGraphInt` | `Graph<int, double, true, true, false>` | Explicit unweighted preset |
+| `UnweightedMultiGraph` | `Graph<std::string, double, false, true, false>` | Explicit unweighted preset |
+| `UnweightedMultiDiGraph` | `Graph<std::string, double, true, true, false>` | Explicit unweighted preset |
 
 The `Weighted*` aliases are the clearest explicit names.
 The shorter aliases such as `GraphInt` and `DiGraph` are kept as compatibility-friendly synonyms.
 All aliases intentionally stay on the default `boost::vecS` / `boost::vecS` backend.
+
+## Thin aliases and compatibility wrappers
+
+This section makes the thin alias story explicit so the canonical entry points
+stay easier to recognize.
+
+### Type aliases
+
+- `Weighted*` aliases are the clearest named presets for the default graph surface
+- shorter names such as `GraphInt`, `DiGraph`, `MultiGraph`, and `MultiDiGraph` are thin compatibility-friendly synonyms of those weighted presets
+- `Unweighted*` aliases are explicit presets for graphs without the built-in edge-weight property
+
+### Convenience method aliases
+
+These methods are supported, but they mainly forward to a more explicit primary name:
+
+| Alias | Primary entry point | Note |
+|---|---|---|
+| `single_source_dijkstra(source)` | `dijkstra_shortest_paths(source)` | Same result wrapper under a shorter compatibility-friendly name |
+| `single_source_bellman_ford(source)` | `bellman_ford_shortest_paths(source)` | Same result wrapper under a shorter compatibility-friendly name |
+| `connected_component_map()` | `connected_components()` | Same `node -> component_id` result |
+| `strongly_connected_components()` | `strongly_connected_component_groups()` | Grouped SCC output under a shorter familiar name |
+| `strongly_connected_component_map()` | `strong_component_map()` | Same SCC map result under a longer explicit alias |
+| `strongly_connected_component_roots()` | `strong_components()` | Same SCC representative/root map |
+| `minimum_spanning_tree()` | `kruskal_minimum_spanning_tree()` | Default thin alias for the Kruskal path |
+| `minimum_spanning_tree(root)` | `prim_minimum_spanning_tree(root)` | Rooted thin alias for the Prim path |
+| `max_flow_min_cost_successive_shortest_path(...)` | `successive_shortest_path_nonnegative_weights(...)` | Compatibility-friendly SSP alias |
+| `max_flow_min_cost(...)` | `max_flow_min_cost_cycle_canceling(...)` | Current default min-cost max-flow wrapper |
+
+### Deprecated free-function aliases
+
+The repository still exposes deprecated namespace-scope wrappers such as:
+
+- `nxpp::bfs_edges(G, start)`
+- `nxpp::dijkstra_path(G, source, target)`
+- `nxpp::connected_components(G)`
+- `nxpp::topological_sort(G)`
+
+Those exist as migration-friendly compatibility aliases for the method-based API.
+For existing-graph operations, the canonical public form remains `G.foo(...)`.
 
 ### `NodeID` requirements
 

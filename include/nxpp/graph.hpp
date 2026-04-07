@@ -1640,7 +1640,12 @@ auto degree_centrality(const GraphWrapper& G) {
 }
 
 
-// NetworkX-style Aliases
+/**
+ * @brief Explicit weighted alias presets for the primary @ref Graph template.
+ *
+ * These aliases are the clearest names when a caller wants weightedness,
+ * directedness, and multigraph support to be visible directly in the type.
+ */
 using WeightedGraphInt = Graph<int, int>;
 using WeightedDiGraphInt = Graph<int, int, true>;
 using WeightedGraphStr = Graph<std::string>;
@@ -1651,6 +1656,13 @@ using WeightedDiGraph = Graph<std::string, double, true>;
 using WeightedMultiGraph = Graph<std::string, double, false, true>;
 using WeightedMultiDiGraph = Graph<std::string, double, true, true>;
 
+/**
+ * @brief Compatibility-friendly short aliases for the common weighted presets.
+ *
+ * These are thin synonyms of the corresponding `Weighted*` aliases. They stay
+ * in the public API for ergonomic parity, but the `Weighted*` forms are the
+ * more explicit names in the current docs.
+ */
 using GraphInt = Graph<int, int>;
 using DiGraphInt = Graph<int, int, true>;
 using GraphStr = Graph<std::string>;
@@ -1661,6 +1673,12 @@ using DiGraph = Graph<std::string, double, true>;
 using MultiGraph = Graph<std::string, double, false, true>;
 using MultiDiGraph = Graph<std::string, double, true, true>;
 
+/**
+ * @brief Explicit unweighted alias presets for the primary @ref Graph template.
+ *
+ * These aliases keep the default selectors but disable the built-in edge-weight
+ * property, making the unweighted choice visible at the type level.
+ */
 using UnweightedGraphInt = Graph<int, double, false, false, false>;
 using UnweightedDiGraphInt = Graph<int, double, true, false, false>;
 using UnweightedGraphStr = Graph<std::string, double, false, false, false>;

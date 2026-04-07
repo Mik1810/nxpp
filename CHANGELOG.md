@@ -4,6 +4,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.9] - 2026-04-07
 
+- Closed `#13` by documenting the thin alias story explicitly: the docs now distinguish between explicit graph type presets, short compatibility-friendly synonym aliases, convenience method aliases, and the remaining deprecated free-function compatibility wrappers.
 - Closed `#16` by clarifying the weighted-overload story in the docs and public comments: the string `"weight"` is now documented explicitly as the built-in edge-weight property name in the compatibility-shaped overloads, rather than as a promise that arbitrary user-defined attribute names are supported everywhere as interchangeable weight backends.
 - Closed `#27` at the design/policy level by documenting the intended direction of the current attribute system: `std::any` remains the pragmatic storage model for now, proxy syntax stays as the ergonomic write-friendly surface, checked accessors are the recommended read path, and `edge_id` remains the precise multigraph attribute path.
 - Closed `#25` by reducing one of the clearest invariant-bypass paths in the public surface: `Graph::node_properties` and `Graph::edge_properties` are no longer public mutable members, while the existing `const` advanced getters remain as explicit escape hatches for read-only integrations.

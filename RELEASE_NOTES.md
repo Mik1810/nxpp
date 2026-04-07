@@ -7,6 +7,13 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Closed `#13` by making the thin-alias story explicit instead of leaving it scattered across headers and guide text.
+- The docs now distinguish between:
+  - explicit graph type presets such as `WeightedDiGraph`
+  - shorter compatibility-friendly synonym aliases such as `DiGraph`
+  - convenience method aliases such as `single_source_dijkstra(...)` and `minimum_spanning_tree(...)`
+  - deprecated namespace-scope compatibility wrappers such as `nxpp::bfs_edges(G, ...)`
+- This makes the canonical entry points easier to identify without removing the migration-friendly alias layer.
 - Closed `#16` by making the weighted-overload semantics explicit:
   - shortest-path overloads that accept `"weight"` are now documented as compatibility-shaped wrappers around the built-in edge-weight property
   - flow/min-cost APIs now say more clearly that their default `weight_attr = "weight"` still refers to the built-in edge-weight property
