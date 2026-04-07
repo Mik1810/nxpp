@@ -1597,6 +1597,8 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     return static_cast<int>(boost::num_vertices(g));
 }
 
+
+template <typename GraphWrapper>
 /// @brief Deprecated free-function alias for num_vertices().
 [[deprecated("Use G.num_vertices() instead.")]]
 auto num_vertices(const GraphWrapper& G) {
