@@ -52,10 +52,20 @@ Generated API reference:
   - `doxygen Doxyfile`
 - HTML output path:
   - `build/docs/doxygen/html/`
+- optional GitHub Pages publication:
+  - set the repository Pages source to `GitHub Actions`
+  - let [docs-pages.yml](../.github/workflows/docs-pages.yml) publish the generated HTML
 
 This is intentionally a first scaffold rather than a polished published site.
 The goal is to give `nxpp` a real header-driven reference path that can later
 grow toward a more Javadoc-/Boost-style navigable documentation site.
+
+Notes for custom domains:
+
+- the GitHub Pages workflow publishes only the generated HTML artifact
+- no `CNAME` file is committed in the repository for now
+- if a custom domain is desired, configure it from the repository Pages settings
+- this keeps the workflow simpler and makes it easier to fall back to the default `github.io` URL if the custom domain is ever removed or allowed to expire
 
 Current status:
 

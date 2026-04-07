@@ -63,6 +63,8 @@ Runtime validation errors now use a more consistent `X failed: ...` wording
 across the public surface.
 The repo now also has a minimal Doxygen scaffold for generated API reference
 under [`Doxyfile`](Doxyfile) and [`docs/DOXYGEN_MAINPAGE.md`](docs/DOXYGEN_MAINPAGE.md).
+A dedicated GitHub Pages workflow can also publish that generated reference as
+a static site when the repository Pages source is set to `GitHub Actions`.
 
 ---
 
