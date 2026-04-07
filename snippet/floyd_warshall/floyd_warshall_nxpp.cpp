@@ -17,8 +17,7 @@ int main() {
 
     const auto M = G.floyd_warshall_all_pairs_shortest_paths();
 
-   for(auto row : M)
-    {
+    for(auto row : M) {
         for(int d : row)
             std::cout << d << " ";
         std::cout << "\n";

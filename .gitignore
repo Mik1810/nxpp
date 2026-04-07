@@ -22,3 +22,4 @@ logs/
 create_github_issues.py
 backups/
 dist/
+build/
