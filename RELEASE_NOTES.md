@@ -31,8 +31,8 @@ version entries in `CHANGELOG.md`.
 - Closed `#62` by adding a first Conan recipe to the repository.
 - The new `conanfile.py`:
   - models `nxpp` as a header-only package
-  - declares Boost as a Conan dependency
-  - is intended first for local validation with `conan create .`
+  - declares Boost as a Conan dependency in header-only mode
+  - is intended first for local validation with `conan create .` or an explicit C++20 host-profile override
   - does not yet introduce CI publication or remote package-upload workflow
 
 ### Notes

@@ -149,13 +149,13 @@ It does not yet assume:
 Conan support now exists as a local recipe in the repository:
 
 - `conanfile.py` models `nxpp` as a header-only package
-- the recipe declares Boost as a Conan dependency
+- the recipe declares Boost as a Conan dependency and forces the Boost package into header-only mode
 - the intended first step is local recipe validation, not remote publication
 
 Minimal local Conan validation command:
 
 ```bash
-conan create .
+conan create . --profile:build=default --profile:host=default -s:h compiler.cppstd=20
 ```
 
 This assumes:
