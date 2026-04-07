@@ -71,26 +71,31 @@ Use nxpp in either of these ways:
 
 ```cmake
 add_subdirectory(nxpp)
-target_link_libraries(your_target PRIVATE nxpp)
+target_link_libraries(your_target PRIVATE nxpp::nxpp)
+```
+
+3. Use the installed package config:
+
+```cmake
+find_package(nxpp CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE nxpp::nxpp)
 ```
 
 ## Packaging Status
 
-The current first-class consumption paths are still the simplest ones:
+The current first-class consumption paths are:
 
 - direct repository-local header usage
 - vendored CMake usage through `add_subdirectory(nxpp)`
+- installed-package CMake usage through `find_package(nxpp CONFIG REQUIRED)`
 
 The packaging and distribution strategy is now explicit:
 
 1. keep the current direct-source and vendored-CMake paths working well
-2. make `nxpp` a proper installable/exported CMake package next
+2. treat the installable/exported CMake package as the main distribution foundation
 3. add Conan support after the CMake package story is stable
 4. evaluate vcpkg after that
 5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
-
-In other words, `nxpp` is not yet advertised as an installable `find_package(nxpp CONFIG REQUIRED)` package today.
-That is an intentional follow-up target, not an undocumented half-support path.
 
 ## Features
 

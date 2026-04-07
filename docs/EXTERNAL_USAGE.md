@@ -9,8 +9,8 @@ That means:
 
 - there is no compiled `nxpp` library to link
 - your compiler must be able to find Boost Graph headers
-- you can consume `nxpp` either from the modular `include/` tree or from the
-  tested single-header release asset
+- you can consume `nxpp` from the modular `include/` tree, from the installed
+  CMake package, or from the tested single-header release asset
 
 ## Option 1: modular headers from the repo or a vendored checkout
 
@@ -51,7 +51,36 @@ g++ -std=c++20 -I/path/to/nxpp/include app.cpp -o app
 If Boost is not installed in a standard compiler search path, add the
 appropriate include directory for your Boost installation too.
 
-## Option 2: tested single-header release asset
+## Option 2: installed CMake package
+
+`nxpp` now provides an installable/exported CMake package config.
+
+After installing it into a prefix, consumers can use:
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(my_app LANGUAGES CXX)
+
+find_package(nxpp CONFIG REQUIRED)
+
+add_executable(my_app app.cpp)
+target_link_libraries(my_app PRIVATE nxpp::nxpp)
+```
+
+Minimal consumer-side configure example:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/nxpp/install/prefix
+cmake --build build
+```
+
+This path assumes:
+
+- the package was installed into a prefix visible to CMake
+- Boost is available to the consuming CMake project
+- the consumer wants the installed-package layout instead of a vendored checkout
+
+## Option 3: tested single-header release asset
 
 GitHub releases publish a tested `nxpp.hpp` asset.
 
@@ -101,20 +130,17 @@ For external users:
 
 Today the documented external-consumption story is intentionally minimal:
 
-- include the modular headers, or use the release single header
+- include the modular headers, use the installed CMake package, or use the release single header
 - install Boost Graph headers
 - compile as C++20
 
 It does not yet assume:
 
-- a packaged install target
-- a system package manager integration
+- Conan support
+- vcpkg support
+- a system package manager integration such as Debian / Ubuntu packaging
 
-There is now a committed minimal `CMakeLists.txt`, but it is intentionally only
-an entry point for vendored/add-subdirectory consumption, not a full packaging
-or install story yet.
-
-## Minimal CMake consumption
+## Minimal vendored CMake consumption
 
 If you vendor the repository, you can also consume it through CMake:
 
@@ -126,7 +152,7 @@ find_package(Boost REQUIRED)
 add_subdirectory(external/nxpp)
 
 add_executable(my_app app.cpp)
-target_link_libraries(my_app PRIVATE nxpp)
+target_link_libraries(my_app PRIVATE nxpp::nxpp)
 ```
 
 This minimal CMake path currently assumes:

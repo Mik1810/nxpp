@@ -99,16 +99,16 @@ Current status:
 Packaging / distribution strategy:
 
 - today, the supported external-consumption paths are still:
+- today, the supported external-consumption paths are:
   - direct repository-local header usage
   - vendored CMake usage through `add_subdirectory(nxpp)`
+  - installed-package CMake usage through `find_package(nxpp CONFIG REQUIRED)`
 - the next packaging step is not Debian packaging and not package-manager fan-out
 - the preferred order is:
-  1. proper CMake install / export / package-config support
+  1. keep the CMake install / export / package-config path as the foundation
   2. Conan support
   3. vcpkg evaluation and support
   4. only later, if still worth the maintenance cost, Debian / Ubuntu packaging
-- this means `find_package(nxpp CONFIG REQUIRED)` is a planned follow-up,
-  not a currently supported public workflow
 - package-manager distribution should follow the installed CMake package story,
   not bypass it
 

@@ -5,6 +5,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 ## [1.0.1] - 2026-04-07
 
 - Closed `#59` by defining the packaging and distribution strategy explicitly in the repository docs: the current supported consumer paths remain direct source inclusion and vendored `add_subdirectory(nxpp)` usage, the next first-class packaging target is proper CMake install/export/package-config support, Conan comes after the CMake package story is stable, vcpkg is a later ecosystem follow-up, and Debian / Ubuntu packaging is now documented as a later optional target rather than the default first distribution path.
+- Closed `#60` by adding proper CMake install/export/package-config support: the repo now installs headers plus an exported `nxpp::nxpp` target, generates `nxppConfig.cmake` / `nxppConfigVersion.cmake`, and supports external `find_package(nxpp CONFIG REQUIRED)` consumption once installed into a CMake prefix.
 
 ## [1.0.0] - 2026-04-07
 

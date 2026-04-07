@@ -1,17 +1,63 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(nxpp LANGUAGES CXX)
+project(nxpp VERSION 1.0.1 LANGUAGES CXX)
+
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 find_package(Boost REQUIRED)
 
 add_library(nxpp INTERFACE)
+add_library(nxpp::nxpp ALIAS nxpp)
 
 target_compile_features(nxpp INTERFACE cxx_std_20)
+
+if(TARGET Boost::headers)
+    set(NXPP_BOOST_TARGET Boost::headers)
+elseif(TARGET Boost::boost)
+    set(NXPP_BOOST_TARGET Boost::boost)
+else()
+    message(FATAL_ERROR "nxpp requires FindBoost to provide Boost::headers or Boost::boost.")
+endif()
 
 target_include_directories(nxpp
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_link_libraries(nxpp INTERFACE ${NXPP_BOOST_TARGET})
+
+install(TARGETS nxpp
+    EXPORT nxppTargets
+)
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(EXPORT nxppTargets
+    FILE nxppTargets.cmake
+    NAMESPACE nxpp::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nxpp
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nxppConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/nxppConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nxpp
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/nxppConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/nxppConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/nxppConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nxpp
 )
 
 option(NXPP_BUILD_TESTS "Build nxpp formal tests" OFF)

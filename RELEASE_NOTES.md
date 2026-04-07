@@ -17,12 +17,16 @@ version entries in `CHANGELOG.md`.
   3. vcpkg evaluation and support
   4. Debian / Ubuntu packaging only as a later optional target if the maintenance tradeoff still makes sense
 - This also makes one important boundary explicit: `nxpp` is not yet documented as a `find_package(nxpp CONFIG REQUIRED)` package today, and that workflow remains a follow-up target rather than an implied public promise.
+- Closed `#60` by implementing that next packaging step for real:
+  - the root CMake project now installs headers and exports an `nxpp::nxpp` target
+  - the build generates and installs `nxppConfig.cmake` and `nxppConfigVersion.cmake`
+  - external consumers can now use `find_package(nxpp CONFIG REQUIRED)` once the package is installed into a visible prefix
+  - the external-usage docs now distinguish vendored `add_subdirectory(...)` consumption from installed-package consumption explicitly
 
 ### Notes
 
-- This is a strategy / project-shape issue, not the implementation of install rules or package-manager metadata yet.
+- This release candidate now covers both the strategy decision and the first concrete packaging implementation step.
 - The follow-up implementation path is now clearer:
-  - `#60` CMake install/export/package-config support
   - `#62` Conan
   - `#63` vcpkg
   - `#64` Debian / Ubuntu packaging evaluation
