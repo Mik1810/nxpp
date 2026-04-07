@@ -1590,6 +1590,8 @@ public:
     auto degree_centrality() const;
     /// Returns PageRank scores for each node as an indexed wrapper keyed by node ID.
     auto pagerank() const;
+    /// Returns normalized betweenness centrality for each node.
+    auto betweenness_centrality() const;
 };
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

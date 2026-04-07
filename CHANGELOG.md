@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.12] - 2026-04-07
+
+- Closed `#33` by adding `betweenness_centrality()` as a graph method in `include/nxpp/centrality.hpp`, returning `indexed_lookup_map<NodeID, double>` with normalization matching NetworkX `betweenness_centrality(G, normalized=True)` semantics; the implementation uses the Brandes BFS algorithm directly over the wrapper's internal BGL graph and vertex-index layer without requiring BGL property-map setup; a deprecated free-function alias is included for consistency with the rest of the centrality API migration; the formal test suite, `docs/API_REFERENCE.md`, and `docs/COMPLEXITY.md` are updated accordingly.
+
 ## [0.8.11] - 2026-04-07
 
 - Closed `#34` by adding a first `pagerank()` wrapper on `Graph`, returning `indexed_lookup_map<NodeID, double>` plus a deprecated free-function alias for consistency with the rest of the graph-local API migration; `degree_centrality()` and `pagerank()` now also live under a dedicated `include/nxpp/centrality.hpp` semantic header instead of keeping their definitions inside `graph.hpp`.

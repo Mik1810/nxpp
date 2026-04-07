@@ -307,6 +307,7 @@ These wrappers exist because they make the result shape more usable from C++:
 | `indexed_lookup_map<Key, Value>` | Keeps linear materialization and ordered key lookup for public results without baking hash-table assumptions into the API |
 | `degree_centrality()` | Exposes a normalized C++-friendly wrapper result rather than raw lower-level bookkeeping |
 | `pagerank()` | Exposes a ready-to-consume PageRank wrapper result keyed by `NodeID` instead of forcing callers to manage property maps and iteration state directly |
+| `betweenness_centrality()` | Exposes normalized betweenness scores keyed by `NodeID` using a self-contained Brandes BFS implementation without requiring callers to configure BGL property maps |
 | `two_sat_satisfiable(...)` | Exposes a direct utility surface built on top of the SCC machinery instead of requiring users to assemble the implication-graph workflow themselves |
 
 The intended project shape is:
@@ -505,5 +506,6 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `num_vertices` | `()` | `int` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
 | `degree_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns degree centrality with NetworkX-like normalization by `n - 1`, using linear materialization plus `O(log n)` key lookup. | `auto c = G.degree_centrality();` |
 | `pagerank` | `()` | `indexed_lookup_map<NodeID, double>` | Returns PageRank scores keyed by `NodeID`, using a small fixed-iteration wrapper result instead of raw property-map plumbing. | `auto rank = G.pagerank();` |
+| `betweenness_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns normalized betweenness centrality for each node, matching NetworkX `betweenness_centrality(G, normalized=True)` semantics. Implemented via Brandes BFS without BGL property-map setup. | `auto bc = G.betweenness_centrality();` |
 | `to_2sat_vertex_id` | `(literal)` | `int` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
 | `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |

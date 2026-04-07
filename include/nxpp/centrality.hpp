@@ -94,4 +94,94 @@ auto degree_centrality(const GraphWrapper& G) {
     return G.degree_centrality();
 }
 
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::betweenness_centrality() const {
+    const auto node_count = boost::num_vertices(g);
+    if (node_count == 0) {
+        return indexed_lookup_map<NodeID, double>{};
+    }
+
+    const std::size_t n = static_cast<std::size_t>(node_count);
+    std::vector<double> bc(n, 0.0);
+
+    // Brandes algorithm: for each source, run BFS to count shortest paths,
+    // then back-propagate dependency scores to accumulate betweenness.
+    for (auto [s_it, s_end] = boost::vertices(g); s_it != s_end; ++s_it) {
+        const VertexDesc s = *s_it;
+        const std::size_t s_idx = get_vertex_index(s);
+
+        // Vertices in order of non-increasing distance from s (for back-propagation).
+        std::vector<std::size_t> stack;
+        stack.reserve(n);
+
+        // Predecessors on shortest paths from s, indexed by vertex index.
+        std::vector<std::vector<std::size_t>> pred(n);
+
+        // Number of shortest paths from s to each vertex.
+        std::vector<double> sigma(n, 0.0);
+        sigma[s_idx] = 1.0;
+
+        // BFS distance from s (-1 means unvisited).
+        std::vector<int> dist(n, -1);
+        dist[s_idx] = 0;
+
+        std::queue<VertexDesc> bfs_queue;
+        bfs_queue.push(s);
+
+        while (!bfs_queue.empty()) {
+            const VertexDesc v = bfs_queue.front();
+            bfs_queue.pop();
+            const std::size_t v_idx = get_vertex_index(v);
+            stack.push_back(v_idx);
+
+            for (auto [w_it, w_end] = boost::adjacent_vertices(v, g); w_it != w_end; ++w_it) {
+                const std::size_t w_idx = get_vertex_index(*w_it);
+
+                if (dist[w_idx] < 0) {
+                    bfs_queue.push(*w_it);
+                    dist[w_idx] = dist[v_idx] + 1;
+                }
+                if (dist[w_idx] == dist[v_idx] + 1) {
+                    sigma[w_idx] += sigma[v_idx];
+                    pred[w_idx].push_back(v_idx);
+                }
+            }
+        }
+
+        // Back-propagate dependency in reverse BFS order.
+        std::vector<double> delta(n, 0.0);
+        while (!stack.empty()) {
+            const std::size_t w_idx = stack.back();
+            stack.pop_back();
+            for (const std::size_t v_idx : pred[w_idx]) {
+                if (sigma[w_idx] > 0.0) {
+                    delta[v_idx] += (sigma[v_idx] / sigma[w_idx]) * (1.0 + delta[w_idx]);
+                }
+            }
+            if (w_idx != s_idx) {
+                bc[w_idx] += delta[w_idx];
+            }
+        }
+    }
+
+    // Normalize by the number of ordered (directed) or unordered (undirected) pairs,
+    // matching NetworkX betweenness_centrality(G, normalized=True) semantics.
+    if (node_count > 2) {
+        const double denom = static_cast<double>(node_count - 1) * static_cast<double>(node_count - 2);
+        const double scale = Directed ? 1.0 / denom : 2.0 / denom;
+        for (double& v : bc) v *= scale;
+    }
+
+    return build_node_indexed_result<double>([&](VertexDesc v) {
+        return bc[get_vertex_index(v)];
+    });
+}
+
+template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for betweenness_centrality().
+[[deprecated("Use G.betweenness_centrality() instead.")]]
+auto betweenness_centrality(const GraphWrapper& G) {
+    return G.betweenness_centrality();
+}
+
 } // namespace nxpp

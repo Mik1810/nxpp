@@ -231,6 +231,45 @@ void test_integer_generators_still_work() {
     expect(er.num_vertices() <= 6, "erdos_renyi_graph should stay within the requested integer ID range");
 }
 
+void test_betweenness_centrality_basic() {
+    // Linear chain: A-B-C-D. B and C lie on all shortest paths between the endpoints,
+    // so they should have strictly higher betweenness than the leaf nodes A and D.
+    nxpp::Graph<> graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 1.0);
+    graph.add_edge("C", "D", 1.0);
+
+    const auto bc = graph.betweenness_centrality();
+
+    expect(bc.contains("A"), "betweenness_centrality should include node A");
+    expect(bc.contains("B"), "betweenness_centrality should include node B");
+    expect(bc.contains("C"), "betweenness_centrality should include node C");
+    expect(bc.contains("D"), "betweenness_centrality should include node D");
+
+    expect(std::abs(bc.at("A")) < 1e-9,
+           "leaf node A should have betweenness 0");
+    expect(std::abs(bc.at("D")) < 1e-9,
+           "leaf node D should have betweenness 0");
+    expect(bc.at("B") > 0.0,
+           "interior node B should have positive betweenness");
+    expect(bc.at("C") > 0.0,
+           "interior node C should have positive betweenness");
+
+    // Empty graph: result should be empty.
+    nxpp::Graph<> empty;
+    const auto bc_empty = empty.betweenness_centrality();
+    expect(bc_empty.begin() == bc_empty.end(),
+           "empty graph should return empty betweenness map");
+
+    // Single node: betweenness is 0.
+    nxpp::Graph<> singleton;
+    singleton.add_node("X");
+    const auto bc_single = singleton.betweenness_centrality();
+    expect(bc_single.contains("X"), "singleton result should contain the node");
+    expect(std::abs(bc_single.at("X")) < 1e-9,
+           "singleton node should have betweenness 0");
+}
+
 void test_pagerank_returns_normalized_ranking() {
     nxpp::DiGraph graph;
     graph.add_edge("A", "B", 1.0);
@@ -268,7 +307,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 8;
+    constexpr int total = 9;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -278,6 +317,7 @@ int main() {
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
     passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
+    passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

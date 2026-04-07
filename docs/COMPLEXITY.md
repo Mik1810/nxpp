@@ -245,6 +245,8 @@ The final column classifies the comparison like this:
 | `strongly_connected_component_groups()` | `boost::strong_components` | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` groups SCCs into vectors after the Boost run without changing the dominant term. |
 | `strong_components()` | `boost::strong_components` | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` builds an indexed `NodeID -> SCC root` result without adding `n log n`. |
 | `degree_centrality()` | degree accumulation through BGL adjacency iteration | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` materializes a normalized indexed result while keeping construction linear. |
+| `pagerank()` | fixed-iteration power method over BGL adjacency | `O(k(n + m))` for k iterations | `O(k(n + m))` | `yes` | `nxpp` runs 20 iterations and materializes an indexed result; dangling-node handling adds one linear pass per iteration. |
+| `betweenness_centrality()` | Brandes algorithm over BGL adjacency | `O(nm)` unweighted | `O(nm + n log n)` | `yes` | `nxpp` applies Brandes BFS for each source and materializes a normalized indexed result; result construction adds `O(n log n)` for ordered key insertion. |
 
 ### Spanning trees
 

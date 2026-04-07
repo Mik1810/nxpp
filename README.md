@@ -351,7 +351,7 @@ The most important implemented functionality currently includes:
 - `topological_sort`, `kruskal_minimum_spanning_tree`, `prim_minimum_spanning_tree`
 - `maximum_flow`, `minimum_cut`, `max_flow_min_cost`, `cycle_canceling`
 - `complete_graph`, `path_graph`, `erdos_renyi_graph`
-- `degree_centrality`, `pagerank`, `two_sat_satisfiable`
+- `degree_centrality`, `pagerank`, `betweenness_centrality`, `two_sat_satisfiable`
 
 The canonical umbrella header is `include/nxpp.hpp`.
 
@@ -386,8 +386,8 @@ That split is now real for the main public surface:
   deprecated wrappers, and the matching `Graph` method definitions
 - `nxpp/flow.hpp` owns flow/cut/min-cost helpers, deprecated wrappers,
   supporting result types, and the matching `Graph` method definitions
-- `nxpp/centrality.hpp` owns centrality helpers such as `degree_centrality()`
-  and `pagerank()`, plus the matching graph method definitions
+- `nxpp/centrality.hpp` owns centrality helpers such as `degree_centrality()`,
+  `pagerank()`, and `betweenness_centrality()`, plus the matching graph method definitions
 - `nxpp/generators.hpp` owns `complete_graph`, `path_graph`, and
   `erdos_renyi_graph`
 - `nxpp/sat.hpp` owns the 2-SAT helpers

@@ -3,6 +3,21 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.12]
+
+### Highlights
+
+- Closed `#33` by adding `betweenness_centrality()` as a first-class graph method.
+- The new surface:
+  - returns `indexed_lookup_map<NodeID, double>` keyed by public node IDs
+  - normalizes results matching NetworkX `betweenness_centrality(G, normalized=True)` semantics
+  - includes a deprecated free-function alias for consistency with the rest of the centrality API migration
+- Implementation approach:
+  - Brandes BFS algorithm implemented directly over the wrapper's internal BGL graph and vertex-index layer
+  - no BGL property-map setup required from the caller
+  - handles directed and undirected normalization transparently via the `Directed` template parameter
+- The test suite covers the linear-chain case (interior nodes get non-zero betweenness, leaf nodes stay at zero), empty graphs, and singleton graphs.
+
 ## [0.8.11]
 
 ### Highlights
