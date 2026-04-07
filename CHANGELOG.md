@@ -4,6 +4,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [0.8.9] - 2026-04-07
 
+- Clarified the documentation source-of-truth split: the generated Doxygen site is now documented as the declaration-driven API reference, `README.md` as the overview/navigation layer, and the markdown files under `docs/` as companion guides and policy documents rather than a second full declaration dump.
 - Refined the generated Doxygen site into a cleaner API reference surface: the docs input now focuses on the public headers plus the curated guide pages instead of exposing changelog/session/todo material as first-class reference content, the landing page was rewritten into a more editorial homepage with working generated-page links, and the custom stylesheet now overrides the stock Doxygen chrome more decisively for a calmer, more formal presentation.
 - Updated `.github/workflows/docs-pages.yml` so style-only changes under `assets/doxygen/` also trigger a Pages rebuild, preventing the published site from drifting behind the checked-in theme assets.
 

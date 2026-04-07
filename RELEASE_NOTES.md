@@ -7,6 +7,11 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Clarified the source-of-truth split between:
+  - the generated Doxygen site for declaration-level API facts
+  - `README.md` for overview and navigation
+  - the markdown files under `docs/` for policy, rationale, and curated guides
+- Repositioned `docs/API_REFERENCE.md` as a curated companion guide instead of a second full declaration dump.
 - Refined the generated Doxygen site into a cleaner public reference instead of a mostly stock Doxygen dump.
 - Narrowed the generated input surface so the published site now focuses on:
   - the public semantic headers

@@ -1,12 +1,33 @@
 # docs/
 
-This directory is for longer-form and eventually generated documentation.
+This directory is for longer-form documentation and the source markdown that
+feeds the generated reference site.
 
-Today, the main user-facing source of truth is still the root [`README.md`](../README.md).
+The repository now has three distinct documentation roles:
+
+- the root [`README.md`](../README.md) is the overview and navigation entry point
+- the generated Doxygen site is the declaration-driven API reference
+- the markdown files in `docs/` are companion guides, policies, and deeper notes
+
+Source-of-truth rule:
+
+- use the generated Doxygen reference for function signatures, member lists,
+  result-wrapper fields, and declaration-local API behavior
+- use the markdown guides in `docs/` for design rules, complexity policy,
+  testing/process guidance, and curated usage notes
+- use the root [`README.md`](../README.md) for the current user-facing project
+  story, caveats, and where to go next
+
+When these layers disagree, prefer:
+
+1. generated Doxygen for declaration-level API facts
+2. `README.md` for the current public overview and navigation story
+3. the companion markdown guides for rationale, policy, and longer explanations
 
 What currently lives here:
 
-- [`API_REFERENCE.md`](API_REFERENCE.md): detailed public API tables, alias reference, proxy syntax, and algorithm/helper reference
+- [`API_REFERENCE.md`](API_REFERENCE.md): curated API companion guide for aliases,
+  result-wrapper shapes, proxy syntax, and high-value reference tables
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
@@ -40,11 +61,6 @@ by recursively expanding local `nxpp` headers while leaving external includes
 alone. The generated file is a distribution artifact rather than another source
 of truth in the repository.
 
-What should eventually live here:
-
-- longer guides that would make the root README too heavy
-- docs-generation instructions once the tooling is committed
-
 Generated API reference:
 
 - a minimal [`Doxyfile`](../Doxyfile) now exists at the repo root
@@ -52,13 +68,16 @@ Generated API reference:
   - `doxygen Doxyfile`
 - HTML output path:
   - `build/docs/doxygen/html/`
+- published site:
+  - `https://mik1810.github.io/nxpp/`
 - optional GitHub Pages publication:
   - set the repository Pages source to `GitHub Actions`
   - let [docs-pages.yml](../.github/workflows/docs-pages.yml) publish the generated HTML
 
-This is intentionally a first scaffold rather than a polished published site.
-The goal is to give `nxpp` a real header-driven reference path that can later
-grow toward a more Javadoc-/Boost-style navigable documentation site.
+This is now a real generated reference path, even if it is still stylistically
+lighter than a fully custom docs site. The goal is to keep `nxpp` on a
+header-driven reference model that can continue growing toward a more
+Javadoc-/Boost-style navigable documentation site.
 
 Notes for custom domains:
 
@@ -69,7 +88,8 @@ Notes for custom domains:
 
 Current status:
 
-- there is not yet a full generated docs site
-- this directory should not pretend otherwise
-- the root README is now intentionally smaller and should act as the overview / navigation entry point
-- when root docs and `docs/` disagree, the root README describes the current user-facing reality while the files under `docs/` hold the deeper technical detail
+- the generated Doxygen site is now the primary API reference path
+- this directory should not try to duplicate every declaration-level detail from the headers
+- the root README is intentionally the overview / navigation entry point
+- the files under `docs/` should stay focused on policy, rationale, examples,
+  and curated technical guidance rather than becoming a second full API dump

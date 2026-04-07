@@ -1,6 +1,6 @@
 # API Reference
 
-This document holds the detailed public API reference that was previously embedded in the root `README.md`.
+This document is the curated markdown companion to the generated API reference.
 
 Use the repository `README.md` for:
 
@@ -9,17 +9,27 @@ Use the repository `README.md` for:
 - high-level caveats
 - repository navigation
 
+Use the generated Doxygen site for:
+
+- declaration-driven API reference
+- full member lists and signatures
+- declaration-local comments taken directly from the public headers
+
 Use this file for:
 
 - graph template / alias details
-- API tables
+- selected API tables that are useful to scan in markdown form
 - proxy syntax details
 - result-wrapper reference
-- traversal / shortest-path / flow / utility reference
+- return-shape and behavior notes that are easier to summarize at guide level
 
 For complexity guarantees and the side-by-side `Boost` vs `nxpp` discussion, use
 [`COMPLEXITY.md`](COMPLEXITY.md). This file intentionally focuses on API shape,
 return types, and behavioral notes.
+
+It should not try to become a second full copy of the generated declaration
+reference. When this file and the generated docs overlap, the generated docs
+win on declaration-level detail.
 
 ## Public graph template and aliases
 

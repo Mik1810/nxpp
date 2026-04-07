@@ -58,7 +58,14 @@ The most important open issue groups right now are:
 - documentation-source-of-truth cleanup: `#29`
 - packaging / CI follow-up: none immediately blocking
 
-Detailed API tables now live in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
+The generated API reference now lives in the Doxygen site published from the
+public headers:
+
+- `https://mik1810.github.io/nxpp/`
+
+[`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) remains as a curated markdown
+companion for alias tables, proxy syntax, result shapes, and selected API
+notes rather than a second full declaration dump.
 Runtime validation errors now use a more consistent `X failed: ...` wording
 across the public surface.
 The repo now also has a minimal Doxygen scaffold for generated API reference
@@ -157,8 +164,9 @@ These repository files should have clearly separated roles:
 - [`TODO.md`](TODO.md): compact local priority index; GitHub Issues are the full backlog source of truth
 - [`CHANGELOG.md`](CHANGELOG.md): dated change history
 - [`SESSION.md`](SESSION.md): historical development log
-- [`docs/README.md`](docs/README.md): index for longer-form and future generated documentation
-- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md): detailed public API tables and technical reference
+- Doxygen site / [`Doxyfile`](Doxyfile): declaration-driven API reference generated from the public headers
+- [`docs/README.md`](docs/README.md): index for longer-form and generated documentation
+- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md): curated markdown companion for aliases, proxies, result shapes, and selected API notes
 - [`docs/API_ARCHITECTURE.md`](docs/API_ARCHITECTURE.md): public API placement policy for graph methods and namespace-scope helpers
 - [`docs/GRAPH_CONFIGURATION.md`](docs/GRAPH_CONFIGURATION.md): supported BGL configurability surface and advanced-knob policy
 - [`docs/COMPLEXITY.md`](docs/COMPLEXITY.md): complexity policy and Boost-vs-`nxpp` cost model
@@ -170,7 +178,11 @@ The external-consumption story now also includes a minimal root
 in addition to the plain compiler examples documented in
 [`docs/EXTERNAL_USAGE.md`](docs/EXTERNAL_USAGE.md).
 
-If these files disagree, `README.md` should describe the **current user-facing reality**, while `TODO.md` should describe what is still open.
+If these files disagree:
+
+- the generated Doxygen site wins on declaration-level API facts
+- `README.md` describes the current user-facing reality and document navigation
+- `TODO.md` describes what is still open
 
 ---
 
