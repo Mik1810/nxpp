@@ -1,30 +1,39 @@
 # nxpp API Reference
 
-This generated reference complements the hand-written markdown guides in
-[`docs/README.md`](README.md).
+A navigable reference for the public `nxpp` surface, focused on signatures,
+result shapes, and header-level behavior notes.
 
-Use the generated pages for:
+## Use this site for
 
 - public class and function signatures
 - inline API documentation taken directly from the headers
+- concrete return types and result wrappers
 - namespace, type, and member navigation
 
-Use the markdown guides for:
+## Companion guides
 
-- overview material
-- design notes
-- complexity policy
-- testing and release process details
+- [`API Reference`](md_docs_2API__REFERENCE.html): public API tables and syntax notes
+- [`API Architecture`](md_docs_2API__ARCHITECTURE.html): placement policy for methods and helpers
+- [`Complexity Guide`](md_docs_2COMPLEXITY.html): complexity policy and wrapper cost model
+- [`External Usage`](md_docs_2EXTERNAL__USAGE.html): integration paths and compile guidance
+- [`Testing Guide`](md_docs_2TEST.html): verification layers and local test commands
 
-The main public entry points are:
+## Main entry points
 
-- [`include/nxpp.hpp`](../include/nxpp.hpp): umbrella include for the whole library
-- [`include/nxpp/graph.hpp`](../include/nxpp/graph.hpp): core graph type and aliases
-- [`include/nxpp/traversal.hpp`](../include/nxpp/traversal.hpp): traversal helpers
-- [`include/nxpp/shortest_paths.hpp`](../include/nxpp/shortest_paths.hpp): shortest-path helpers and result types
-- [`include/nxpp/flow.hpp`](../include/nxpp/flow.hpp): flow, cut, and min-cost helpers
-- [`include/nxpp/generators.hpp`](../include/nxpp/generators.hpp): graph generators
+- [`include/nxpp.hpp`](nxpp_8hpp_source.html): umbrella include for the whole library
+- [`include/nxpp/graph.hpp`](graph_8hpp_source.html): core graph type, aliases, and wrapper surface
+- [`include/nxpp/traversal.hpp`](traversal_8hpp_source.html): BFS / DFS helpers and visitor APIs
+- [`include/nxpp/shortest_paths.hpp`](shortest__paths_8hpp_source.html): shortest-path wrappers and result types
+- [`include/nxpp/flow.hpp`](flow_8hpp_source.html): flow, cut, and min-cost helpers
+- [`include/nxpp/generators.hpp`](generators_8hpp_source.html): graph generators
 
-The generated site is intentionally minimal for now. The first goal is to make
-the public headers readable in IDE hovers and to provide a navigable local
-reference that can later grow into a richer hosted docs site.
+## Quick navigation
+
+- [`nxpp::Graph`](classnxpp_1_1Graph.html): main wrapper type
+- [`SingleSourceShortestPathResult`](structnxpp_1_1SingleSourceShortestPathResult.html): shortest-path result wrapper
+- [`MaximumFlowResult`](structnxpp_1_1MaximumFlowResult.html): flow result wrapper
+- [`Classes`](annotated.html): class and struct index
+- [`Files`](files.html): header-oriented navigation
+
+This generated site is intentionally focused on the public reference surface. It
+is meant to complement the longer markdown guides, not replace them.

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.9] - 2026-04-07
+
+- Refined the generated Doxygen site into a cleaner API reference surface: the docs input now focuses on the public headers plus the curated guide pages instead of exposing changelog/session/todo material as first-class reference content, the landing page was rewritten into a more editorial homepage with working generated-page links, and the custom stylesheet now overrides the stock Doxygen chrome more decisively for a calmer, more formal presentation.
+- Updated `.github/workflows/docs-pages.yml` so style-only changes under `assets/doxygen/` also trigger a Pages rebuild, preventing the published site from drifting behind the checked-in theme assets.
+
 ## [0.8.8] - 2026-04-05
 
 - Closed `#28` by turning the generated-docs idea into a real documentation path: the semantic public headers now carry Doxygen-style inline API comments across the core graph wrapper, traversal helpers, shortest-path and flow result types, generators, topological sort / spanning-tree / component wrappers, 2-SAT helpers, and the deprecated free-function aliases, while the repository also gains a root `Doxyfile` plus `docs/DOXYGEN_MAINPAGE.md` as the generated-reference scaffold.

@@ -105,7 +105,7 @@ That means:
 - aliases should be documented explicitly when they are thin synonyms
 - new additions should not be accepted only because NetworkX has them
 
-## Rule 5: `nxpp::` free functions are now narrow in scope
+## Rule 5: nxpp namespace free functions are now narrow in scope
 
 The `nxpp::` namespace should now keep only functions that do not belong to the context of one existing graph object.
 

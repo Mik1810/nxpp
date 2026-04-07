@@ -3,7 +3,7 @@
 This document explains the verification layers used in `nxpp`, how to run them,
 and what each one is meant to prove.
 
-Use the root [`README.md`](../README.md) for the project overview and quick
+Use the repository `README.md` for the project overview and quick
 navigation.
 Use this file when you want the repository's testing story in one place.
 

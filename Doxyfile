@@ -1,17 +1,17 @@
 PROJECT_NAME           = "nxpp"
-PROJECT_BRIEF          = "Header-only graph wrapper around Boost Graph Library"
+PROJECT_BRIEF          = "Header-only graph utilities on top of Boost Graph Library"
 OUTPUT_DIRECTORY       = build/docs/doxygen
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
 
-INPUT                  = README.md TODO.md CHANGELOG.md RELEASE_NOTES.md SESSION.md LICENSE include/nxpp.hpp include/nxpp docs
+INPUT                  = include/nxpp.hpp include/nxpp docs/DOXYGEN_MAINPAGE.md docs/API_ARCHITECTURE.md docs/API_REFERENCE.md docs/COMPLEXITY.md docs/EXTERNAL_USAGE.md docs/GRAPH_CONFIGURATION.md docs/TEST.md
 FILE_PATTERNS          = *.hpp *.md
 RECURSIVE              = YES
 USE_MDFILE_AS_MAINPAGE = docs/DOXYGEN_MAINPAGE.md
 
 GENERATE_HTML          = YES
 HTML_OUTPUT            = html
-GENERATE_TREEVIEW      = YES
+GENERATE_TREEVIEW      = NO
 HTML_DYNAMIC_MENUS     = YES
 HTML_EXTRA_STYLESHEET  = assets/doxygen/custom.css
 GENERATE_LATEX         = NO
@@ -32,11 +32,11 @@ MARKDOWN_SUPPORT       = YES
 AUTOLINK_SUPPORT       = YES
 BUILTIN_STL_SUPPORT    = YES
 
-SOURCE_BROWSER         = YES
+SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES
-FULL_SIDEBAR           = YES
+FULL_SIDEBAR           = NO
 
 QUIET                  = YES
 WARN_IF_UNDOCUMENTED   = NO

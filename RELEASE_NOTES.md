@@ -3,6 +3,31 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.9]
+
+### Highlights
+
+- Refined the generated Doxygen site into a cleaner public reference instead of a mostly stock Doxygen dump.
+- Narrowed the generated input surface so the published site now focuses on:
+  - the public semantic headers
+  - the generated landing page
+  - the curated API / complexity / testing / external-usage guides
+- Removed the noisier release-log style pages from the reference navigation, so the site no longer treats `CHANGELOG.md`, `RELEASE_NOTES.md`, `SESSION.md`, or `TODO.md` as part of the main API docs surface.
+- Rebuilt the landing page into a more editorial entry point with working links to generated class, file, and guide pages instead of the earlier raw repository-relative file links.
+- Reworked the custom stylesheet so the site now overrides the stock Doxygen chrome more decisively, with a calmer neutral palette, a cleaner top navigation, better spacing, and more deliberate treatment of cards, member sections, and code blocks.
+- Updated `.github/workflows/docs-pages.yml` so changes under `assets/doxygen/` also trigger a Pages rebuild, which keeps the published theme in sync with the checked-in CSS.
+
+### Verification
+
+- `timeout 30s rm -rf build/docs/doxygen && mkdir -p build/docs/doxygen && doxygen Doxyfile`
+- `timeout 30s rg -n "custom.css|md_docs_2API__REFERENCE|classnxpp_1_1Graph|graph_8hpp_source" build/docs/doxygen/html/index.html`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version CHANGELOG.md`
+- `timeout 30s python3 scripts/extract_release_notes.py --latest-version RELEASE_NOTES.md`
+
+### Assets
+
+- This change does not add a new binary release asset, but it substantially improves the presentation and focus of the hosted generated API reference site.
+
 ## [0.8.8]
 
 ### Highlights

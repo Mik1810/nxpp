@@ -85,7 +85,7 @@ sudo apt-get install libboost-graph-dev
 The header also performs a compile-time include check and fails early if the
 required BGL headers are missing.
 
-## Repo-local `dist/nxpp.hpp` vs release asset
+## Repo-local dist/nxpp.hpp vs release asset
 
 Inside the repository:
 

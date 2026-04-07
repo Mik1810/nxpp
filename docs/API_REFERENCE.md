@@ -2,7 +2,7 @@
 
 This document holds the detailed public API reference that was previously embedded in the root `README.md`.
 
-Use the root [`README.md`](../README.md) for:
+Use the repository `README.md` for:
 
 - project overview
 - quick start

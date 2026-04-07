@@ -87,7 +87,7 @@ The following BGL-level choices are currently out of scope for direct public cus
 
 This keeps the wrapper behavior predictable and avoids exposing unstable low-level choices before invariants are documented and tested.
 
-## Why this now works beyond `vecS`
+## Why this now works beyond vecS
 
 The wrapper no longer relies on "descriptor == index" assumptions.
 

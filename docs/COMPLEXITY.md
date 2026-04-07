@@ -9,7 +9,7 @@ The key distinction is:
 - **`nxpp` public-call complexity**: the cost of calling the `nxpp` API,
   including wrapper-side translation, bookkeeping, and result materialization
 
-Use the root [`README.md`](../README.md) for the short user-facing explanation.
+Use the repository `README.md` for the short user-facing explanation.
 Use [`API_REFERENCE.md`](API_REFERENCE.md) for per-function tables.
 Use this file for the policy that connects those two views.
 
@@ -174,7 +174,7 @@ So these two statements are different:
 - `nxpp` wrapper work: convert matrix output into nested maps
 - practical reading: matrix complexity plus map-building overhead
 
-### Example: `remove_node()`
+### Example: remove_node()
 
 - Boost core: vertex removal
 - `nxpp` wrapper work: clear mehotadata, rebuild id/descriptor maps, rebuild
