@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [0.8.13] - 2026-04-07
+
+- Closed `#5` by formalizing the implicit-node-and-edge-creation policy: the docs now carry a dedicated "Implicit node and edge creation" section in `docs/API_REFERENCE.md` with explicit write-creates / read-does-not-create tables; `NodeAttrProxy::operator=`, `EdgeAttrProxy::operator=`, and `EdgeProxy::operator=` in `graph.hpp` now carry docstrings documenting that they create the target node or edge if absent; a new formal test `test_implicit_creation_policy` in `test_edge_cases.cpp` verifies each creation case and confirms that read-only accessors (`has_node`, `has_edge`, `neighbors`) do not create on access.
+
 ## [0.8.12] - 2026-04-07
 
 - Closed `#33` by adding `betweenness_centrality()` as a graph method in `include/nxpp/centrality.hpp`, returning `indexed_lookup_map<NodeID, double>` with normalization matching NetworkX `betweenness_centrality(G, normalized=True)` semantics; the implementation uses the Brandes BFS algorithm directly over the wrapper's internal BGL graph and vertex-index layer without requiring BGL property-map setup; a deprecated free-function alias is included for consistency with the rest of the centrality API migration; the formal test suite, `docs/API_REFERENCE.md`, and `docs/COMPLEXITY.md` are updated accordingly.

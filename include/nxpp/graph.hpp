@@ -951,6 +951,7 @@ public:
         NodeID u, v;
         std::string key;
 
+        /// Sets attribute @p key on edge (u,v), creating the edge if it does not exist.
         template <typename T>
         EdgeAttrProxy& operator=(const T& val) {
             if (!graph->has_edge(u, v)) {
@@ -974,6 +975,7 @@ public:
     public:
         EdgeProxy(Graph* g, NodeID u, NodeID v) : graph(g), u(u), v(v) {}
         
+        /// Assigns edge weight, creating the edge (u,v) if it does not exist.
         template <bool W = Weighted>
         requires(W)
         EdgeProxy& operator=(EdgeWeight w) {
@@ -1001,6 +1003,7 @@ public:
         NodeID u;
         std::string key;
 
+        /// Sets attribute @p key on node @p u, creating the node if it does not exist.
         template <typename T>
         NodeAttrProxy& operator=(const T& val) {
             if (!graph->has_node(u)) graph->add_node(u);

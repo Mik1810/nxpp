@@ -136,6 +136,36 @@ requirement:
 That extra generator constraint is not a global `Graph` requirement; it only
 applies to helpers that synthesize node IDs `0..n-1` themselves.
 
+## Implicit node and edge creation
+
+nxpp follows a consistent write-creates / read-does-not-create policy across the public API.
+
+**Write-style accessors create missing nodes or edges:**
+
+| Call | What gets created |
+|---|---|
+| `G.add_node(u)` | node `u` |
+| `G.add_edge(u, v, ...)` | both endpoints if absent |
+| `G.node(u)[key] = val` | node `u` (via `NodeAttrProxy::operator=`) |
+| `G[u][v] = weight` | edge (u,v) and both endpoints (via `EdgeProxy::operator=`) |
+| `G[u][v][key] = val` | edge (u,v) if absent (via `EdgeAttrProxy::operator=`) |
+
+**Read-style accessors never create:**
+
+| Call | Behavior when absent |
+|---|---|
+| `G.has_node(u)` | returns `false` |
+| `G.has_edge(u, v)` | returns `false` |
+| `G.get_node_attr<T>(u, key)` | throws `std::runtime_error` |
+| `G.try_get_node_attr<T>(u, key)` | returns `std::nullopt` |
+| `G.get_edge_attr<T>(u, v, key)` | throws `std::runtime_error` |
+| `G.try_get_edge_attr<T>(u, v, key)` | returns `std::nullopt` |
+| `G.neighbors(u)` | throws `std::runtime_error` |
+| `G.bfs_edges(u)` / `G.dfs_edges(u)` | throws `std::runtime_error` |
+| `G.shortest_path(u, v)` | throws `std::runtime_error` |
+
+This matches the NetworkX convention: indexing and assignment create implicitly, while pure-read calls assume the element already exists.
+
 ## Core graph API reference
 
 ### Construction, mutation, inspection

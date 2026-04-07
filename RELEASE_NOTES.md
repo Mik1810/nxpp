@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [0.8.13]
+
+### Highlights
+
+- Closed `#5` by formalizing the implicit node and edge creation policy across the public API.
+- A new "Implicit node and edge creation" section in `docs/API_REFERENCE.md` documents the write-creates / read-does-not-create rule with explicit tables for both sides.
+- `NodeAttrProxy::operator=`, `EdgeAttrProxy::operator=`, and `EdgeProxy::operator=` in `graph.hpp` now carry docstrings confirming that they create the target node or edge when absent — matching the NetworkX convention of implicit creation on write-style access.
+- A new formal test `test_implicit_creation_policy` verifies each proxy creation case and confirms that `has_node`, `has_edge`, and `neighbors` never create on read.
+
 ## [0.8.12]
 
 ### Highlights

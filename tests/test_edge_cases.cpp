@@ -270,6 +270,33 @@ void test_betweenness_centrality_basic() {
            "singleton node should have betweenness 0");
 }
 
+void test_implicit_creation_policy() {
+    // NodeAttrProxy::operator= creates the node if absent.
+    nxpp::Graph<> g1;
+    g1.node("X")["k"] = 1;
+    expect(g1.has_node("X"), "NodeAttrProxy assignment should create the node if absent");
+
+    // EdgeProxy::operator= creates the edge (and endpoints) if absent.
+    nxpp::WeightedGraphStr g2;
+    g2["A"]["B"] = 5.0;
+    expect(g2.has_edge("A", "B"), "EdgeProxy assignment should create the edge if absent");
+
+    // EdgeAttrProxy::operator= creates the edge if absent.
+    nxpp::Graph<> g3;
+    g3["P"]["Q"]["label"] = 1;
+    expect(g3.has_edge("P", "Q"), "EdgeAttrProxy assignment should create the edge if absent");
+
+    // Read-only accessors never create nodes.
+    nxpp::Graph<> g4;
+    expect(!g4.has_node("Z"), "has_node on absent node should return false without creating it");
+    expect(!g4.has_edge("Z", "W"), "has_edge on absent edge should return false without creating it");
+    expect(!g4.has_node("Z"), "has_node should still return false after has_edge check");
+
+    // neighbors() on a missing node throws, not creates.
+    expect_throws([&] { (void)g4.neighbors("Z"); },
+                  "neighbors() on absent node should throw, not create the node");
+}
+
 void test_pagerank_returns_normalized_ranking() {
     nxpp::DiGraph graph;
     graph.add_edge("A", "B", 1.0);
@@ -307,7 +334,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 9;
+    constexpr int total = 10;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -316,6 +343,7 @@ int main() {
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
+    passed += run_test("implicit creation policy", test_implicit_creation_policy) ? 1 : 0;
     passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
     passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;
 
