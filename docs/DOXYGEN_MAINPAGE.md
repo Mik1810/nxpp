@@ -28,6 +28,20 @@ result shapes, and header-level behavior notes.
 - [`include/nxpp/centrality.hpp`](centrality_8hpp_source.html): centrality helpers such as `degree_centrality()` and `pagerank()`
 - [`include/nxpp/generators.hpp`](generators_8hpp_source.html): graph generators
 
+## Library modules
+
+- [`Graph Core`](group__nxpp__graph__core.html): main graph type, aliases, and proxy surface
+- [`Attributes`](group__nxpp__attributes.html): attribute-oriented helpers and wrapper methods
+- [`Multigraph`](group__nxpp__multigraph.html): precise `edge_id`-based multigraph helpers
+- [`Traversal`](group__nxpp__traversal.html): BFS / DFS helpers and visitors
+- [`Shortest Paths`](group__nxpp__shortest__paths.html): shortest-path wrappers and result types
+- [`Components`](group__nxpp__components.html): connected-component and SCC helpers
+- [`Spanning and Ordering`](group__nxpp__spanning.html): MST and topological-sort helpers
+- [`Flow and Cut`](group__nxpp__flow.html): flow, cut, and min-cost-flow helpers
+- [`Centrality`](group__nxpp__centrality.html): degree, PageRank, and betweenness centrality
+- [`Generators`](group__nxpp__generators.html): graph-construction helpers
+- [`2-SAT`](group__nxpp__sat.html): 2-SAT utilities
+
 ## Quick navigation
 
 - [`nxpp::Graph`](classnxpp_1_1Graph.html): main wrapper type

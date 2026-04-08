@@ -3,6 +3,9 @@
 /**
  * @file attributes.hpp
  * @brief Attribute-bearing edge insertion helpers and attribute-oriented graph method definitions.
+ *
+ * @defgroup nxpp_attributes Attributes
+ * @brief Attribute-oriented helpers and wrappers on top of the core graph type.
  */
 
 #include "graph.hpp"

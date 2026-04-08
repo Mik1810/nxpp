@@ -3,6 +3,9 @@
 /**
  * @file spanning_tree.hpp
  * @brief Minimum-spanning-tree helpers, topological sort, and related aliases.
+ *
+ * @defgroup nxpp_spanning Spanning and Ordering
+ * @brief Minimum-spanning-tree and ordering helpers.
  */
 
 #include <boost/graph/kruskal_min_spanning_tree.hpp>

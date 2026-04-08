@@ -3,6 +3,9 @@
 /**
  * @file sat.hpp
  * @brief 2-SAT helper utilities built on top of the graph wrapper.
+ *
+ * @defgroup nxpp_sat 2-SAT
+ * @brief Small 2-SAT helpers built on top of the graph wrapper.
  */
 
 #include <boost/graph/adjacency_list.hpp>

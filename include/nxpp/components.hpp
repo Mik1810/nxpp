@@ -3,6 +3,9 @@
 /**
  * @file components.hpp
  * @brief Connected-component and strong-component helpers plus compatibility aliases.
+ *
+ * @defgroup nxpp_components Components
+ * @brief Connected-component and strong-component wrappers and aliases.
  */
 
 #include <boost/graph/connected_components.hpp>

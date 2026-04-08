@@ -216,6 +216,10 @@ Deprecated aliases and thin namespace-scope wrappers now also carry more
 complete Doxygen text, so the generated reference is less likely to show bare
 one-line stubs without migration or return-shape context.
 
+The generated reference is now also organized around real library modules such
+as graph core, traversal, shortest paths, flow, centrality, and generators,
+instead of relying only on flat file/class navigation.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

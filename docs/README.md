@@ -98,6 +98,8 @@ Current status:
 - the current Doxygen coverage audit now also includes explicit file-level
   briefs across the semantic headers and clearer generated-reference coverage
   for the public graph alias/type surface
+- the generated reference is now also grouped around the real semantic modules
+  of the library instead of relying only on file and symbol indexes
 
 Packaging / distribution strategy:
 

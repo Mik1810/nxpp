@@ -3,6 +3,9 @@
 /**
  * @file shortest_paths.hpp
  * @brief Shortest-path result types, wrappers, and deprecated compatibility aliases.
+ *
+ * @defgroup nxpp_shortest_paths Shortest Paths
+ * @brief Single-source, single-pair, and all-pairs shortest-path helpers.
  */
 
 #include <boost/graph/dijkstra_shortest_paths.hpp>
@@ -19,6 +22,8 @@ namespace nxpp {
  *
  * Distances and predecessors are materialized eagerly, while concrete
  * source-to-target paths are reconstructed on demand through path_to().
+ *
+ * @ingroup nxpp_shortest_paths
  */
 template <typename NodeID, typename Distance = double>
 struct SingleSourceShortestPathResult {

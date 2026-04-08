@@ -3,6 +3,9 @@
 /**
  * @file centrality.hpp
  * @brief Centrality algorithms and compatibility aliases for the graph wrapper.
+ *
+ * @defgroup nxpp_centrality Centrality
+ * @brief Degree, PageRank, and betweenness-centrality helpers.
  */
 
 #include "graph.hpp"

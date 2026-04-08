@@ -3,6 +3,9 @@
 /**
  * @file multigraph.hpp
  * @brief Precise `edge_id`-based multigraph operations and edge-aware attribute access.
+ *
+ * @defgroup nxpp_multigraph Multigraph
+ * @brief Precise `edge_id`-based multigraph operations and helpers.
  */
 
 #include "attributes.hpp"

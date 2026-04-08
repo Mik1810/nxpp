@@ -3,6 +3,9 @@
 /**
  * @file generators.hpp
  * @brief Graph-construction helpers such as complete, path, and Erdos-Renyi graphs.
+ *
+ * @defgroup nxpp_generators Generators
+ * @brief Graph-construction helpers and random graph generators.
  */
 
 #include "graph.hpp"

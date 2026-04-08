@@ -3,6 +3,9 @@
 /**
  * @file flow.hpp
  * @brief Flow, cut, and min-cost-flow result types, wrappers, and aliases.
+ *
+ * @defgroup nxpp_flow Flow and Cut
+ * @brief Maximum-flow, minimum-cut, and min-cost-flow helpers and result types.
  */
 
 #include <boost/graph/edmonds_karp_max_flow.hpp>
@@ -25,6 +28,8 @@ namespace nxpp {
  * endpoint-keyed convenience view, while `edge_flows_by_id` keeps the precise
  * flow assignment for each wrapper-tracked edge ID. In multigraphs, use
  * `edge_flows_by_id` when one concrete parallel edge matters.
+ *
+ * @ingroup nxpp_flow
  */
 template <typename NodeID>
 struct MaximumFlowResult {
@@ -40,6 +45,8 @@ struct MaximumFlowResult {
  * endpoint-keyed convenience view and a precise edge-ID keyed flow view.
  * In multigraphs, prefer `edge_flows_by_id` whenever one concrete parallel
  * edge matters.
+ *
+ * @ingroup nxpp_flow
  */
 template <typename NodeID>
 struct MinCostMaxFlowResult {
@@ -160,6 +167,8 @@ struct detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, 
  * after the max-flow phase. The `cut_edges` field is the endpoint-keyed
  * convenience view, while `cut_edge_ids` exposes the precise wrapper-tracked
  * edge IDs that cross the cut.
+ *
+ * @ingroup nxpp_flow
  */
 template <typename NodeID>
 struct MinimumCutResult {

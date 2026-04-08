@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.9] - 2026-04-08
+
+- Closed `#54` by organizing the generated docs around the real library modules: the semantic headers now define lightweight Doxygen groups for graph core, attributes, multigraph helpers, traversal, shortest paths, components, spanning/order helpers, flow, centrality, generators, and 2-SAT, and the generated main page now links directly to those module groups instead of relying only on flat file/class navigation.
+
 ## [1.0.8] - 2026-04-08
 
 - Closed `#53` by filling Doxygen gaps for deprecated aliases and thin wrappers: the namespace-scope compatibility aliases across traversal, shortest paths, components, spanning-tree helpers, topological sort, and flow now carry real `@param` / `@return` coverage instead of only skeletal one-line deprecation stubs, so the generated reference is more useful when these entries appear in search or symbol navigation.

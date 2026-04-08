@@ -3,6 +3,9 @@
 /**
  * @file graph.hpp
  * @brief Core graph wrapper, proxy surface, and public alias presets.
+ *
+ * @defgroup nxpp_graph_core Graph Core
+ * @brief Core graph type, aliases, and proxy-based wrapper surface.
  */
 
 #if !__has_include(<boost/graph/adjacency_list.hpp>)
@@ -248,6 +251,8 @@ template <
  * The template parameters control directedness, multigraph support, built-in
  * edge weights, and the underlying Boost selectors. Public methods operate on
  * stable wrapper-side node IDs instead of raw Boost descriptors.
+ *
+ * @ingroup nxpp_graph_core
  */
 class Graph {
 public:

@@ -3,6 +3,25 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.9]
+
+### Highlights
+
+- Closed `#54` by organizing the generated docs around the real semantic modules of the library.
+- The semantic headers now define lightweight Doxygen groups for:
+  - graph core
+  - attributes
+  - multigraph helpers
+  - traversal
+  - shortest paths
+  - components
+  - spanning/order helpers
+  - flow
+  - centrality
+  - generators
+  - 2-SAT
+- The generated main page now links directly to those module groups, so the site no longer depends only on flat file/class navigation for orientation.
+
 ## [1.0.8]
 
 ### Highlights

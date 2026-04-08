@@ -3,6 +3,8 @@
 /**
  * @file topological_sort.hpp
  * @brief Thin topological-sort compatibility aliases for the graph wrapper.
+ *
+ * @ingroup nxpp_spanning
  */
 
 #include <boost/graph/topological_sort.hpp>

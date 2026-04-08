@@ -3,6 +3,9 @@
 /**
  * @file traversal.hpp
  * @brief Breadth-first and depth-first traversal helpers, visitors, and aliases.
+ *
+ * @defgroup nxpp_traversal Traversal
+ * @brief BFS, DFS, visitor, and callback-based traversal helpers.
  */
 
 #include <boost/graph/breadth_first_search.hpp>
@@ -17,6 +20,8 @@ namespace nxpp {
  *
  * Override the hooks you care about and pass the visitor to
  * breadth_first_search() or depth_first_search().
+ *
+ * @ingroup nxpp_traversal
  */
 class visitor {
 public:
