@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.11]
+
+### Highlights
+
+- Closed `#57` by tightening the navigation between the narrative docs and the generated API reference.
+- The README and companion guides now point more directly at the published Doxygen entry pages and semantic module pages for the same subject area.
+- The docs index now makes the cross-navigation rule explicit:
+  - narrative guides should point toward the most relevant generated pages
+  - the generated landing page should point readers back toward the longer guides when policy or curated explanation matters more than raw declaration detail
+- This makes the docs stack feel less like separate islands and more like one connected documentation system.
+
 ## [1.0.10]
 
 ### Highlights

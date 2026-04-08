@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.11] - 2026-04-08
+
+- Closed `#57` by connecting the narrative docs and generated API docs more cleanly: the README and companion guides now point readers toward the most relevant published Doxygen entry pages and module pages, the docs index now states the cross-navigation rule explicitly, and the Doxygen landing page now tells GitHub Pages readers when to jump back into the longer narrative guides instead of descending only through symbol indexes.
+
 ## [1.0.10] - 2026-04-08
 
 - Closed `#55` by turning the Doxygen main page into a stronger GitHub Pages landing page: `docs/DOXYGEN_MAINPAGE.md` now provides start-here guidance, common entry paths, result-wrapper links, practical module/file/class navigation cues, and clearer links back to the companion markdown guides instead of behaving like a thin reference placeholder.

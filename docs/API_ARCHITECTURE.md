@@ -7,6 +7,15 @@ It exists to answer two recurring questions:
 1. when functionality should live as methods on `nxpp::Graph`
 2. when functionality should live as free functions under `nxpp::`
 
+Generated-reference companions:
+
+- main graph type:
+  https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html
+- graph core module:
+  https://mik1810.github.io/nxpp/group__nxpp__graph__core.html
+- generators module:
+  https://mik1810.github.io/nxpp/group__nxpp__generators.html
+
 ## Core Position
 
 `nxpp` is a BGL-backed graph wrapper with a NetworkX-inspired surface.

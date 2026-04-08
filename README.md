@@ -208,6 +208,14 @@ g.set_edge_attr(e2, "label", "second");
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
 
+Useful generated-reference entry points:
+
+- Main wrapper type: https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html
+- Module index: https://mik1810.github.io/nxpp/group__nxpp__graph__core.html
+- Flow and cut module: https://mik1810.github.io/nxpp/group__nxpp__flow.html
+- Shortest-path module: https://mik1810.github.io/nxpp/group__nxpp__shortest__paths.html
+- Centrality module: https://mik1810.github.io/nxpp/group__nxpp__centrality.html
+
 The generated Doxygen reference now has explicit file-level coverage across the
 semantic headers under `include/nxpp/`, plus clearer alias/type coverage for
 the public graph presets.
@@ -224,6 +232,11 @@ The generated Doxygen landing page is also now stronger as an entry point for
 GitHub Pages: it points readers toward the main wrapper type, the most common
 result wrappers, the semantic module groups, and the companion markdown guides
 instead of behaving like a thin placeholder page.
+
+The companion markdown guides and the generated site are now linked more
+directly in both directions: use the markdown docs for policy and curated
+explanation, then jump into the generated pages for the exact declaration-level
+surface behind the same area.
 
 ## License
 

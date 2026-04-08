@@ -55,6 +55,10 @@ If you are new to the generated reference, the fastest path is usually:
 - [`External Usage`](md_docs_2EXTERNAL__USAGE.html): integration paths and compile guidance
 - [`Testing Guide`](md_docs_2TEST.html): verification layers and local test commands
 
+If you arrive here from GitHub Pages and need more explanation than raw
+declaration comments usually provide, the usual next hop is one of those
+companion guides rather than a deeper symbol index page.
+
 ## Main entry points
 
 - [`include/nxpp.hpp`](nxpp_8hpp_source.html): umbrella include for the whole library

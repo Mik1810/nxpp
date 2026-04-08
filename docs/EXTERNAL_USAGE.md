@@ -12,6 +12,15 @@ That means:
 - you can consume `nxpp` from the modular `include/` tree, from the installed
   CMake package, or from the tested single-header release asset
 
+Generated-reference companions:
+
+- umbrella header page:
+  https://mik1810.github.io/nxpp/nxpp_8hpp_source.html
+- graph core module:
+  https://mik1810.github.io/nxpp/group__nxpp__graph__core.html
+- landing page:
+  https://mik1810.github.io/nxpp/
+
 ## Option 1: modular headers from the repo or a vendored checkout
 
 If you vendor the repository or otherwise copy the `include/` tree into your

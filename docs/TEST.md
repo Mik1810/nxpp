@@ -7,6 +7,14 @@ Use the repository `README.md` for the project overview and quick
 navigation.
 Use this file when you want the repository's testing story in one place.
 
+Generated-reference companion:
+
+- landing page:
+  https://mik1810.github.io/nxpp/
+
+Use the generated reference for declaration-level API lookup. Use this guide
+for the verification-layer story, commands, and scope of each test path.
+
 ## Testing layers
 
 The repository intentionally uses several different verification paths instead

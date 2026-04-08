@@ -27,6 +27,21 @@ For complexity guarantees and the side-by-side `Boost` vs `nxpp` discussion, use
 [`COMPLEXITY.md`](COMPLEXITY.md). This file intentionally focuses on API shape,
 return types, and behavioral notes.
 
+Useful generated-reference cross-links:
+
+- main graph type:
+  https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html
+- graph core module:
+  https://mik1810.github.io/nxpp/group__nxpp__graph__core.html
+- multigraph module:
+  https://mik1810.github.io/nxpp/group__nxpp__multigraph.html
+- flow module:
+  https://mik1810.github.io/nxpp/group__nxpp__flow.html
+- shortest-path module:
+  https://mik1810.github.io/nxpp/group__nxpp__shortest__paths.html
+- centrality module:
+  https://mik1810.github.io/nxpp/group__nxpp__centrality.html
+
 It should not try to become a second full copy of the generated declaration
 reference. When this file and the generated docs overlap, the generated docs
 win on declaration-level detail.
@@ -215,6 +230,13 @@ read-only internal state. The mutable wrapper-owned attribute stores are no
 longer part of the public surface.
 
 ## Multigraph policy
+
+For the generated declaration pages behind this policy, see:
+
+- multigraph module:
+  https://mik1810.github.io/nxpp/group__nxpp__multigraph.html
+- main graph type:
+  https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html
 
 In multigraph mode, `nxpp` distinguishes between two public API categories:
 

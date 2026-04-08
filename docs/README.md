@@ -24,6 +24,16 @@ When these layers disagree, prefer:
 2. `README.md` for the current public overview and navigation story
 3. the companion markdown guides for rationale, policy, and longer explanations
 
+Cross-navigation rule:
+
+- each narrative guide should point readers toward the most relevant generated
+  API/module pages where practical
+- the Doxygen landing page should point readers back toward the companion
+  guides when policy, rationale, or curated usage notes matter more than raw
+  declaration detail
+- prefer stable published-reference URLs in the markdown guides when that keeps
+  the same link useful both on GitHub and in the published docs
+
 What currently lives here:
 
 - [`API_REFERENCE.md`](API_REFERENCE.md): curated API companion guide for aliases,
@@ -104,6 +114,9 @@ Current status:
   for GitHub Pages readers, with start-here guidance, result-wrapper links,
   module navigation, and stronger connections back to the companion markdown
   guides
+- the narrative guides and the generated reference now also cross-link more
+  directly, so readers can move more easily between policy/guide material and
+  the exact declaration pages for the same module area
 
 Packaging / distribution strategy:
 
