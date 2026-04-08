@@ -238,6 +238,10 @@ directly in both directions: use the markdown docs for policy and curated
 explanation, then jump into the generated pages for the exact declaration-level
 surface behind the same area.
 
+The richer generated result-wrapper pages now also carry short embedded usage
+examples for the main shortest-path and flow result types, so the published
+reference is more useful even when readers land directly on those struct pages.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

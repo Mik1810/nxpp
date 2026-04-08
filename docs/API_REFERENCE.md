@@ -461,6 +461,10 @@ Use this wrapper when you want:
 - ordered distance / predecessor lookup by `NodeID`
 - on-demand path reconstruction without storing every path eagerly
 
+Generated-reference example page:
+
+- https://mik1810.github.io/nxpp/structnxpp_1_1SingleSourceShortestPathResult.html
+
 #### `MaximumFlowResult` and `MinimumCutResult`
 
 ```cpp
@@ -485,6 +489,11 @@ In multigraphs:
 - `flow` and `cut_edges` are endpoint-keyed convenience views
 - `edge_flows_by_id` and `cut_edge_ids` are the precise parallel-edge-safe view
 
+Generated-reference example pages:
+
+- https://mik1810.github.io/nxpp/structnxpp_1_1MaximumFlowResult.html
+- https://mik1810.github.io/nxpp/structnxpp_1_1MinimumCutResult.html
+
 #### `MinCostMaxFlowResult`
 
 ```cpp
@@ -502,6 +511,10 @@ In multigraphs:
 
 - `edge_flows` is the endpoint-keyed aggregate convenience view
 - `edge_flows_by_id` is the precise parallel-edge-safe view
+
+Generated-reference example page:
+
+- https://mik1810.github.io/nxpp/structnxpp_1_1MinCostMaxFlowResult.html
 
 #### `indexed_lookup_map`
 
@@ -522,6 +535,10 @@ Use this wrapper when you want:
 - a materialized result that still iterates like a small container
 - `NodeID`-keyed lookup without the public API depending on hash-table assumptions
 - a result shape that stays easy to inspect in docs, tests, and examples
+
+Generated-reference page:
+
+- https://mik1810.github.io/nxpp/classnxpp_1_1indexed__lookup__map.html
 
 ## Traversal API reference
 

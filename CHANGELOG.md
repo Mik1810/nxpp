@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.12] - 2026-04-08
+
+- Closed `#58` by adding generated-doc-friendly examples for the richer public result wrappers: the declaration pages for `SingleSourceShortestPathResult`, `MaximumFlowResult`, `MinCostMaxFlowResult`, and `MinimumCutResult` now carry short embedded examples, the curated API guide now points readers directly at those generated struct pages, and the landing/overview docs now note that those result-wrapper pages are now useful example entry points as well as shape references.
+
 ## [1.0.11] - 2026-04-08
 
 - Closed `#57` by connecting the narrative docs and generated API docs more cleanly: the README and companion guides now point readers toward the most relevant published Doxygen entry pages and module pages, the docs index now states the cross-navigation rule explicitly, and the Doxygen landing page now tells GitHub Pages readers when to jump back into the longer narrative guides instead of descending only through symbol indexes.

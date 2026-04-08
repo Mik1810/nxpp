@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.12]
+
+### Highlights
+
+- Closed `#58` by adding short generated-doc examples for the richer result wrappers.
+- The declaration pages for:
+  - `SingleSourceShortestPathResult`
+  - `MaximumFlowResult`
+  - `MinCostMaxFlowResult`
+  - `MinimumCutResult`
+  now include short embedded usage examples rather than only field descriptions.
+- The companion API guide now points readers directly at those generated struct pages, so the richer wrapper types are easier to discover from both the narrative docs and the generated site.
+
 ## [1.0.11]
 
 ### Highlights

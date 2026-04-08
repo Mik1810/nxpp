@@ -146,6 +146,16 @@ public:
     using iterator = typename storage_type::iterator;
     using const_iterator = typename storage_type::const_iterator;
 
+    /**
+     * @brief Default-constructs an empty ordered lookup map.
+     *
+     * Example:
+     * @code
+     * nxpp::indexed_lookup_map<std::string, int> result;
+     * @endcode
+     */
+    indexed_lookup_map() = default;
+
     void reserve(std::size_t count) {
         data.reserve(count);
     }

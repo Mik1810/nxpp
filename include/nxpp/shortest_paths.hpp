@@ -23,6 +23,17 @@ namespace nxpp {
  * Distances and predecessors are materialized eagerly, while concrete
  * source-to-target paths are reconstructed on demand through path_to().
  *
+ * Example:
+ * @code
+ * nxpp::DiGraph g;
+ * g.add_edge("A", "B", 1.0);
+ * g.add_edge("B", "C", 2.0);
+ *
+ * auto result = g.dijkstra_shortest_paths("A");
+ * auto distance = result.distance.at("C");
+ * auto path = result.path_to("C");
+ * @endcode
+ *
  * @ingroup nxpp_shortest_paths
  */
 template <typename NodeID, typename Distance = double>

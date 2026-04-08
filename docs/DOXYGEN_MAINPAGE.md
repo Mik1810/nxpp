@@ -80,6 +80,10 @@ companion guides rather than a deeper symbol index page.
 - [`MinimumCutResult`](structnxpp_1_1MinimumCutResult.html):
   cut value, partition, endpoint cut view, and precise cut-edge IDs
 
+The declaration pages for those wrappers now also include short embedded usage
+examples, so they can serve as both shape reference and small result-oriented
+example pages inside the generated site.
+
 ## Library modules
 
 - [`Graph Core`](group__nxpp__graph__core.html): main graph type, aliases, and proxy surface

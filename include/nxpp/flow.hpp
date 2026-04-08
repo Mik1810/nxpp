@@ -29,6 +29,17 @@ namespace nxpp {
  * flow assignment for each wrapper-tracked edge ID. In multigraphs, use
  * `edge_flows_by_id` when one concrete parallel edge matters.
  *
+ * Example:
+ * @code
+ * nxpp::DiGraph g;
+ * g.add_edge("s", "a", 1.0, {{"capacity", 3L}});
+ * g.add_edge("a", "t", 1.0, {{"capacity", 3L}});
+ *
+ * auto result = g.maximum_flow("s", "t");
+ * auto total = result.value;
+ * auto endpoint_flow = result.flow.at({"s", "a"});
+ * @endcode
+ *
  * @ingroup nxpp_flow
  */
 template <typename NodeID>
@@ -45,6 +56,17 @@ struct MaximumFlowResult {
  * endpoint-keyed convenience view and a precise edge-ID keyed flow view.
  * In multigraphs, prefer `edge_flows_by_id` whenever one concrete parallel
  * edge matters.
+ *
+ * Example:
+ * @code
+ * nxpp::DiGraph g;
+ * g.add_edge("s", "a", 2.0, {{"capacity", 3L}});
+ * g.add_edge("a", "t", 1.0, {{"capacity", 3L}});
+ *
+ * auto result = g.max_flow_min_cost("s", "t");
+ * auto total_flow = result.flow;
+ * auto total_cost = result.cost;
+ * @endcode
  *
  * @ingroup nxpp_flow
  */
@@ -167,6 +189,17 @@ struct detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, 
  * after the max-flow phase. The `cut_edges` field is the endpoint-keyed
  * convenience view, while `cut_edge_ids` exposes the precise wrapper-tracked
  * edge IDs that cross the cut.
+ *
+ * Example:
+ * @code
+ * nxpp::DiGraph g;
+ * g.add_edge("s", "a", 1.0, {{"capacity", 3L}});
+ * g.add_edge("a", "t", 1.0, {{"capacity", 3L}});
+ *
+ * auto cut = g.minimum_cut("s", "t");
+ * auto cut_value = cut.value;
+ * auto left_side = cut.reachable;
+ * @endcode
  *
  * @ingroup nxpp_flow
  */
