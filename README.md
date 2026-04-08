@@ -120,6 +120,13 @@ registry submission was also attempted in `microsoft/vcpkg`, but it was closed
 under their current project-maturity policy, so the supported vcpkg path today
 remains the repository-hosted overlay port.
 
+Debian / Ubuntu packaging has also been evaluated as a later distribution
+option. The current conclusion is to defer that path for now: a Debian source
+package, PPA flow, or broader apt-facing maintenance story would add more
+ongoing packaging overhead than the project currently needs, while the existing
+source, installed-CMake, Conan, and vcpkg overlay paths already cover the main
+consumer scenarios.
+
 ## Features
 
 - **Header-only** C++20 API over **Boost Graph Library**

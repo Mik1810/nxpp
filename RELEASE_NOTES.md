@@ -46,6 +46,15 @@ version entries in `CHANGELOG.md`.
   - a small external CMake consumer using the vcpkg toolchain and `find_package(nxpp CONFIG REQUIRED)` was also validated locally
   - a curated-registry submission was opened upstream and then closed under vcpkg's current minimum project-maturity policy
 - The practical outcome is that `nxpp` now supports a real tested vcpkg overlay path in-repo, while curated-registry publication remains a future follow-up once the project is considered mature enough.
+- Closed `#64` by evaluating Debian / Ubuntu packaging and choosing to defer it for now.
+- The Debian / Ubuntu evaluation concluded that:
+  - a Debian source package or Ubuntu PPA path would add a noticeably heavier maintenance burden than the project currently needs
+  - the already-supported consumption paths remain sufficient for now:
+    - direct source inclusion
+    - installed-package CMake usage
+    - Conan
+    - the repository-hosted vcpkg overlay port
+  - Debian / Ubuntu packaging should therefore remain a later optional revisit, not an immediate distribution target
 
 ### Notes
 

@@ -145,6 +145,12 @@ It does not yet assume:
 
 - a system package manager integration such as Debian / Ubuntu packaging
 
+Debian / Ubuntu packaging was evaluated as a possible next distribution step,
+but is intentionally deferred for now. A Debian source package or Ubuntu PPA
+story would add meaningful maintenance overhead beyond the current project
+needs, while the existing source, installed-package, Conan, and vcpkg overlay
+paths already cover the main external-consumption scenarios.
+
 Conan support now exists as a local recipe in the repository:
 
 - `conanfile.py` models `nxpp` as a header-only package

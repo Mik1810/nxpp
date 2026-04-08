@@ -108,6 +108,9 @@ Packaging / distribution strategy:
   `packaging/vcpkg/ports/nxpp`, which is now the supported vcpkg path in the
   repository while curated-registry publication remains deferred by project
   maturity
+- Debian / Ubuntu packaging has now been evaluated and explicitly deferred for
+  now because the extra packaging/distribution maintenance cost would be higher
+  than the current project needs
 - the next packaging step is not Debian packaging and not package-manager fan-out
 - the preferred order is:
   1. keep the CMake install / export / package-config path as the foundation
