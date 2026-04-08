@@ -17,6 +17,13 @@ version entries in `CHANGELOG.md`.
   - tables
   - code fragments
   - declaration pages
+- A follow-up polish pass also cleaned up several remaining rough edges on class
+  and group pages:
+  - light-themed member tables now stay visually consistent
+  - long signatures wrap more safely inside their boxes
+  - `Parameters` and `Returns` blocks have cleaner padding and left alignment
+  - repeated internal `requires` lines are still present when Doxygen emits
+    them, but they are now visually toned down instead of dominating the page
 - This pass stayed presentation-focused: it improves how the generated docs are
   read and navigated, not the underlying API content model.
 

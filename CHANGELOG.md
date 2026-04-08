@@ -5,6 +5,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 ## [1.0.13] - 2026-04-08
 
 - Closed `#56` by refining the Doxygen / GitHub Pages presentation layer: the generated site now uses the tree/sidebar navigation again, the local theme styles tables, code blocks, wrapper pages, and the landing page more deliberately, and the Doxygen main page now gives clearer reader-path guidance for module browsing, wrapper lookup, and guide-first navigation.
+- Followed up on the `#56` presentation pass by tightening the remaining class/group-page rough edges: member tables now use the light theme consistently, long signatures wrap more safely inside the declaration box, `Parameters` / `Template Parameters` / `Returns` blocks have more padding and cleaner left alignment, and the duplicated `requires` lines are visually de-emphasized rather than dominating the method header.
 
 ## [1.0.12] - 2026-04-08
 
