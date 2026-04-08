@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file traversal.hpp
+ * @brief Breadth-first and depth-first traversal helpers, visitors, and aliases.
+ */
+
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/depth_first_search.hpp>
 

@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file components.hpp
+ * @brief Connected-component and strong-component helpers plus compatibility aliases.
+ */
+
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/strong_components.hpp>
 

@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.7]
+
+### Highlights
+
+- Closed `#52` by auditing the generated-doc coverage across the full modular public API surface.
+- The semantic headers under `include/nxpp/` now carry explicit Doxygen `@file` briefs, so the generated site has a clearer module/file story instead of a set of mostly anonymous header pages.
+- The public alias/type surface in `graph.hpp` now has clearer alias-level comments, which makes the weighted, compatibility, and unweighted graph presets easier to navigate from the generated reference.
+- The docs index now also records that this file-level/header-level Doxygen coverage pass has been completed.
+
 ## [1.0.6]
 
 ### Highlights

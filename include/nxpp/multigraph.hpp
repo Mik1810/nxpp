@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file multigraph.hpp
+ * @brief Precise `edge_id`-based multigraph operations and edge-aware attribute access.
+ */
+
 #include "attributes.hpp"
 
 namespace nxpp {

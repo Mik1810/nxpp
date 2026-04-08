@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.7] - 2026-04-08
+
+- Closed `#52` by auditing and tightening Doxygen coverage across the full modular public-header surface: the semantic headers under `include/nxpp/` now carry explicit `@file` briefs for generated-reference navigation, the public graph alias/type presets at the end of `graph.hpp` now have clearer alias-level comments in the generated docs, and the docs index now records that this file-level/header-level coverage audit has been completed.
+
 ## [1.0.6] - 2026-04-08
 
 - Closed `#45` by hardening the staged min-cost-flow path against hidden stale-state reuse: the internal residual-network cache is now invalidated on graph mutations such as node/edge insertion, edge removal, node removal, `clear()`, `set_edge_weight(...)`, and `set_edge_attr(...)`, `cycle_canceling()` now throws a specific error if the graph changed after `push_relabel_maximum_flow(...)`, and the formal flow tests now cover that invalidation path explicitly.

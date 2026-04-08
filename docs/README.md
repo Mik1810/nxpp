@@ -95,6 +95,9 @@ Current status:
 - the root README is intentionally the overview / navigation entry point
 - the files under `docs/` should stay focused on policy, rationale, examples,
   and curated technical guidance rather than becoming a second full API dump
+- the current Doxygen coverage audit now also includes explicit file-level
+  briefs across the semantic headers and clearer generated-reference coverage
+  for the public graph alias/type surface
 
 Packaging / distribution strategy:
 

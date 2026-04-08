@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file centrality.hpp
+ * @brief Centrality algorithms and compatibility aliases for the graph wrapper.
+ */
+
 #include "graph.hpp"
 
 namespace nxpp {

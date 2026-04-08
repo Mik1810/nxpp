@@ -208,6 +208,10 @@ g.set_edge_attr(e2, "label", "second");
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
 
+The generated Doxygen reference now has explicit file-level coverage across the
+semantic headers under `include/nxpp/`, plus clearer alias/type coverage for
+the public graph presets.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

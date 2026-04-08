@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file generators.hpp
+ * @brief Graph-construction helpers such as complete, path, and Erdos-Renyi graphs.
+ */
+
 #include "graph.hpp"
 
 namespace nxpp {
@@ -8,7 +13,7 @@ namespace nxpp {
 
 template <typename GraphType = Graph<int>>
 /**
- * @brief Builds the complete graph on node IDs `0 .. n-1`.
+ * @brief Builds the complete graph on node IDs 0 through n - 1.
  *
  * @param n Number of nodes to generate.
  * @return A graph where every distinct node pair is connected.
@@ -32,10 +37,10 @@ GraphType complete_graph(size_t n) {
 
 template <typename GraphType = Graph<int>>
 /**
- * @brief Builds a simple path on node IDs `0 .. n-1`.
+ * @brief Builds a simple path on node IDs 0 through n - 1.
  *
  * @param n Number of nodes to generate.
- * @return A graph containing the path `0-1-...-(n-1)`.
+ * @return A graph containing the path 0-1-...-(n-1).
  */
 GraphType path_graph(size_t n) {
     GraphType G;
@@ -52,7 +57,7 @@ GraphType path_graph(size_t n) {
 
 template <typename GraphType = Graph<int>>
 /**
- * @brief Builds an Erdos-Renyi random graph on node IDs `0 .. n-1`.
+ * @brief Builds an Erdos-Renyi random graph on node IDs 0 through n - 1.
  *
  * @param n Number of nodes to generate.
  * @param p Probability of adding each candidate edge.

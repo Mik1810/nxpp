@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file shortest_paths.hpp
+ * @brief Shortest-path result types, wrappers, and deprecated compatibility aliases.
+ */
+
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/bellman_ford_shortest_paths.hpp>
 #include <boost/graph/dag_shortest_paths.hpp>

@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file sat.hpp
+ * @brief 2-SAT helper utilities built on top of the graph wrapper.
+ */
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/strong_components.hpp>
 #include <utility>

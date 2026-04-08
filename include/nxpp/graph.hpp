@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file graph.hpp
+ * @brief Core graph wrapper, proxy surface, and public alias presets.
+ */
+
 #if !__has_include(<boost/graph/adjacency_list.hpp>)
 #error "FATAL: nxpp requires the Boost Graph Library (BGL)."
 #endif
@@ -1710,15 +1715,15 @@ auto num_vertices(const GraphWrapper& G) {
  * These aliases are the clearest names when a caller wants weightedness,
  * directedness, and multigraph support to be visible directly in the type.
  */
-using WeightedGraphInt = Graph<int, int>;
-using WeightedDiGraphInt = Graph<int, int, true>;
-using WeightedGraphStr = Graph<std::string>;
-using WeightedMultiGraphInt = Graph<int, int, false, true>;
-using WeightedMultiDiGraphInt = Graph<int, int, true, true>;
+using WeightedGraphInt = Graph<int, int>;                     ///< Weighted undirected graph with `int` node IDs and `int` weights.
+using WeightedDiGraphInt = Graph<int, int, true>;              ///< Weighted directed graph with `int` node IDs and `int` weights.
+using WeightedGraphStr = Graph<std::string>;                   ///< Weighted undirected graph with `std::string` node IDs and `double` weights.
+using WeightedMultiGraphInt = Graph<int, int, false, true>;   ///< Weighted undirected multigraph with `int` node IDs and `int` weights.
+using WeightedMultiDiGraphInt = Graph<int, int, true, true>;  ///< Weighted directed multigraph with `int` node IDs and `int` weights.
 
-using WeightedDiGraph = Graph<std::string, double, true>;
-using WeightedMultiGraph = Graph<std::string, double, false, true>;
-using WeightedMultiDiGraph = Graph<std::string, double, true, true>;
+using WeightedDiGraph = Graph<std::string, double, true>;              ///< Weighted directed graph with `std::string` node IDs and `double` weights.
+using WeightedMultiGraph = Graph<std::string, double, false, true>;    ///< Weighted undirected multigraph with `std::string` node IDs and `double` weights.
+using WeightedMultiDiGraph = Graph<std::string, double, true, true>;   ///< Weighted directed multigraph with `std::string` node IDs and `double` weights.
 
 /**
  * @brief Compatibility-friendly short aliases for the common weighted presets.
@@ -1727,15 +1732,15 @@ using WeightedMultiDiGraph = Graph<std::string, double, true, true>;
  * in the public API for ergonomic parity, but the `Weighted*` forms are the
  * more explicit names in the current docs.
  */
-using GraphInt = Graph<int, int>;
-using DiGraphInt = Graph<int, int, true>;
-using GraphStr = Graph<std::string>;
-using MultiGraphInt = Graph<int, int, false, true>;
-using MultiDiGraphInt = Graph<int, int, true, true>;
+using GraphInt = Graph<int, int>;                            ///< Compatibility alias for `WeightedGraphInt`.
+using DiGraphInt = Graph<int, int, true>;              ///< Compatibility alias for `WeightedDiGraphInt`.
+using GraphStr = Graph<std::string>;                   ///< Compatibility alias for `WeightedGraphStr`.
+using MultiGraphInt = Graph<int, int, false, true>;   ///< Compatibility alias for `WeightedMultiGraphInt`.
+using MultiDiGraphInt = Graph<int, int, true, true>;  ///< Compatibility alias for `WeightedMultiDiGraphInt`.
 
-using DiGraph = Graph<std::string, double, true>;
-using MultiGraph = Graph<std::string, double, false, true>;
-using MultiDiGraph = Graph<std::string, double, true, true>;
+using DiGraph = Graph<std::string, double, true>;            ///< Compatibility alias for `WeightedDiGraph`.
+using MultiGraph = Graph<std::string, double, false, true>;  ///< Compatibility alias for `WeightedMultiGraph`.
+using MultiDiGraph = Graph<std::string, double, true, true>; ///< Compatibility alias for `WeightedMultiDiGraph`.
 
 /**
  * @brief Explicit unweighted alias presets for the primary @ref Graph template.
@@ -1743,13 +1748,13 @@ using MultiDiGraph = Graph<std::string, double, true, true>;
  * These aliases keep the default selectors but disable the built-in edge-weight
  * property, making the unweighted choice visible at the type level.
  */
-using UnweightedGraphInt = Graph<int, double, false, false, false>;
-using UnweightedDiGraphInt = Graph<int, double, true, false, false>;
-using UnweightedGraphStr = Graph<std::string, double, false, false, false>;
-using UnweightedDiGraph = Graph<std::string, double, true, false, false>;
-using UnweightedMultiGraphInt = Graph<int, double, false, true, false>;
-using UnweightedMultiDiGraphInt = Graph<int, double, true, true, false>;
-using UnweightedMultiGraph = Graph<std::string, double, false, true, false>;
-using UnweightedMultiDiGraph = Graph<std::string, double, true, true, false>;
+using UnweightedGraphInt = Graph<int, double, false, false, false>;            ///< Unweighted undirected graph with `int` node IDs.
+using UnweightedDiGraphInt = Graph<int, double, true, false, false>;           ///< Unweighted directed graph with `int` node IDs.
+using UnweightedGraphStr = Graph<std::string, double, false, false, false>;    ///< Unweighted undirected graph with `std::string` node IDs.
+using UnweightedDiGraph = Graph<std::string, double, true, false, false>;      ///< Unweighted directed graph with `std::string` node IDs.
+using UnweightedMultiGraphInt = Graph<int, double, false, true, false>;        ///< Unweighted undirected multigraph with `int` node IDs.
+using UnweightedMultiDiGraphInt = Graph<int, double, true, true, false>;       ///< Unweighted directed multigraph with `int` node IDs.
+using UnweightedMultiGraph = Graph<std::string, double, false, true, false>;   ///< Unweighted undirected multigraph with `std::string` node IDs.
+using UnweightedMultiDiGraph = Graph<std::string, double, true, true, false>;  ///< Unweighted directed multigraph with `std::string` node IDs.
 
 } // namespace nxpp

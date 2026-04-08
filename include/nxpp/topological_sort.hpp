@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file topological_sort.hpp
+ * @brief Thin topological-sort compatibility aliases for the graph wrapper.
+ */
+
 #include <boost/graph/topological_sort.hpp>
 
 #include "graph.hpp"

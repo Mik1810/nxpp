@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file spanning_tree.hpp
+ * @brief Minimum-spanning-tree helpers, topological sort, and related aliases.
+ */
+
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
 

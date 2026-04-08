@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file attributes.hpp
+ * @brief Attribute-bearing edge insertion helpers and attribute-oriented graph method definitions.
+ */
+
 #include "graph.hpp"
 
 namespace nxpp {
