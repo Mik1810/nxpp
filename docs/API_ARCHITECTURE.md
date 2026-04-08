@@ -135,6 +135,44 @@ Before adding a new public API surface, ask:
 
 If the answer is unclear, prefer the narrower surface.
 
+## Rule 7: In multigraph mode, distinguish precise APIs from convenience APIs
+
+When the graph can contain parallel edges, the public API should be explicit
+about whether an operation is:
+
+- **precise**, meaning it identifies one concrete edge instance
+- **convenience-oriented**, meaning it keeps endpoint-based `(u, v)` ergonomics
+  without promising stable selection of one particular parallel edge
+
+The default precise path is the wrapper-managed `edge_id` surface.
+
+That means:
+
+- APIs that need to identify one specific edge instance should expose or prefer
+  `edge_id`
+- endpoint-based `(u, v)` forms may remain in the API for parity and ergonomics
+  but should be documented as convenience-oriented in multigraphs unless they
+  explicitly guarantee stronger behavior
+- docs and naming should avoid implying that endpoint-based proxy or attribute
+  access is automatically precise in the presence of parallel edges
+
+Examples:
+
+- precise:
+  - `add_edge_with_id(...)`
+  - `edge_ids(...)`
+  - `remove_edge(edge_id)`
+  - `get_edge_attr(edge_id, ...)`
+  - `set_edge_attr(edge_id, ...)`
+  - `get_edge_weight(edge_id)`
+- convenience-oriented in multigraphs:
+  - `has_edge(u, v)`
+  - `get_edge_weight(u, v)`
+  - `get_edge_attr(u, v, ...)`
+  - `try_get_edge_attr(u, v, ...)`
+  - `G[u][v]`
+  - `G[u][v]["key"]`
+
 ## Practical consequence for the current codebase
 
 The current codebase is already broadly aligned with this policy:
@@ -143,6 +181,8 @@ The current codebase is already broadly aligned with this policy:
 - generators already fit naturally as free functions
 - existing-graph algorithms now have method-based primary entry points
 - remaining namespace-level API should stay focused on non-graph-context functions
+- multigraph edge APIs should keep making the precise-vs-convenience split more
+  explicit instead of leaving it implicit in scattered caveat notes
 
 So the immediate goal is:
 

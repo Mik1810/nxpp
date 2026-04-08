@@ -214,6 +214,37 @@ hatches for integrations and wrapper-level utilities. They intentionally expose
 read-only internal state. The mutable wrapper-owned attribute stores are no
 longer part of the public surface.
 
+## Multigraph policy
+
+In multigraph mode, `nxpp` distinguishes between two public API categories:
+
+- **precise APIs** identify one concrete edge instance
+- **convenience APIs** keep endpoint-based `(u, v)` ergonomics but do not
+  promise stable selection of one particular parallel edge unless a function
+  explicitly documents a stronger guarantee
+
+Practical rule:
+
+- prefer `edge_id` when one edge instance matters
+- treat endpoint-based `(u, v)` forms as existence / convenience / parity
+  helpers in multigraphs
+- do not treat `G[u][v]`, `get_edge_weight(u, v)`, or endpoint-based
+  edge-attribute lookups as precise single-parallel-edge handles
+
+Examples of the precise path:
+
+- `add_edge_with_id(...)`
+- `has_edge_id(...)`
+- `edge_ids(...)`
+- `get_edge_endpoints(edge_id)`
+- `remove_edge(edge_id)`
+- `get_edge_attr(edge_id, ...)`
+- `try_get_edge_attr(edge_id, ...)`
+- `get_edge_numeric_attr(edge_id, ...)`
+- `get_edge_weight(edge_id)`
+- `set_edge_attr(edge_id, ...)`
+- `set_edge_weight(edge_id, ...)`
+
 ## Attribute API reference
 
 Node and edge attributes are stored outside the BGL graph using `std::any` in
@@ -306,6 +337,19 @@ Weight-name note:
 - in shortest-path APIs, `"weight"` refers to the built-in edge-weight property
 - this is a compatibility-shaped name, not a promise that arbitrary attribute
   names can replace the built-in weight property in every weighted overload
+
+For multigraphs, prefer the precise `edge_id` path whenever:
+
+- you need one stable edge instance
+- you are reading or mutating edge attributes
+- you are reading or mutating built-in edge weights
+- you are removing one edge rather than "all edges between these endpoints"
+
+Keep endpoint-based `(u, v)` forms for:
+
+- existence checks
+- compact examples
+- parity-friendly code where ambiguity across parallel edges is acceptable
 
 ## Result-wrapper and helper types
 

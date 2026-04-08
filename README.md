@@ -158,6 +158,12 @@ Distributed-package versioning follows the repository release version directly:
 - Graph generators: complete graph, path graph, Erdos-Renyi graph
 - Precise multigraph edge handling through `edge_id` APIs
 
+For multigraphs, the public rule is:
+
+- use `edge_id` APIs when one specific parallel edge matters
+- treat endpoint-based `(u, v)` APIs as convenience-oriented unless a function
+  explicitly documents a stronger guarantee
+
 ## More Examples
 
 ### Attributes with safe reads

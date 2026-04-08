@@ -3,7 +3,7 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [1.0.1]
+## [1.0.2]
 
 ### Highlights
 
@@ -61,6 +61,11 @@ version entries in `CHANGELOG.md`.
   - `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` should track the same `X.Y.Z` release version
   - repository-hosted package paths are expected to move with the tagged release
   - third-party or policy-gated channels may lag behind, but that lag must be documented explicitly instead of being hidden behind ambiguous release language
+- Closed `#43` by defining the public multigraph policy for precise APIs vs convenience APIs.
+- The multigraph policy now states explicitly that:
+  - `edge_id` is the precise path when one concrete parallel edge matters
+  - endpoint-based `(u, v)` edge APIs remain convenience-oriented in multigraph mode unless a function documents a stronger guarantee
+  - proxy access such as `G[u][v]` and endpoint-based edge-attribute reads should not be treated as precise single-parallel-edge handles
 
 ### Notes
 

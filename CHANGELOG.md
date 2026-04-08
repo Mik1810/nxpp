@@ -2,7 +2,7 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
-## [1.0.1] - 2026-04-07
+## [1.0.2] - 2026-04-08
 
 - Closed `#59` by defining the packaging and distribution strategy explicitly in the repository docs: the current supported consumer paths remain direct source inclusion and vendored `add_subdirectory(nxpp)` usage, the next first-class packaging target is proper CMake install/export/package-config support, Conan comes after the CMake package story is stable, vcpkg is a later ecosystem follow-up, and Debian / Ubuntu packaging is now documented as a later optional target rather than the default first distribution path.
 - Closed `#60` by adding proper CMake install/export/package-config support: the repo now installs headers plus an exported `nxpp::nxpp` target, generates `nxppConfig.cmake` / `nxppConfigVersion.cmake`, and supports external `find_package(nxpp CONFIG REQUIRED)` consumption once installed into a CMake prefix.
@@ -11,6 +11,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 - Closed `#63` by delivering a real supported vcpkg path through the repository-hosted overlay port under `packaging/vcpkg/ports/nxpp`: the repository now includes `portfile.cmake` and `vcpkg.json` for overlay-port consumption on top of the installed CMake package path, the port removes the empty `lib/` / `debug/` directories that vcpkg flags in post-build validation, both `vcpkg install nxpp --overlay-ports=...` and a small `find_package(nxpp CONFIG REQUIRED)` consumer path were validated locally, and a curated-registry submission was attempted upstream but deferred under vcpkg's current project-maturity policy.
 - Closed `#64` by evaluating Debian / Ubuntu packaging and deferring it for now: the repository docs now state explicitly that a Debian source package / PPA / apt-facing maintenance story would add more ongoing packaging overhead than the project currently needs, while the supported consumption paths remain direct source usage, installed-package CMake, Conan, and the repository-hosted vcpkg overlay port.
 - Closed `#65` by defining versioning and release expectations for distributed packages: the docs now state explicitly that tagged repository releases are the source of truth for repository-hosted package metadata, and that `CMakeLists.txt`, `conanfile.py`, and the repository-hosted vcpkg overlay port should track the same `X.Y.Z` release version even when third-party or policy-gated channels lag behind.
+- Closed `#43` at the policy/documentation level by defining the public multigraph split between precise APIs and convenience APIs: the docs now state explicitly that `edge_id` is the precise path for one concrete edge instance, while endpoint-based `(u, v)` forms remain convenience-oriented in multigraph mode unless a function documents a stronger guarantee.
 
 ## [1.0.0] - 2026-04-07
 

@@ -592,7 +592,8 @@ public:
      *
      * The built-in weight is stored in the graph edge property, while the
      * supplied attributes are copied into the wrapper-managed edge attribute
-     * storage.
+     * storage. In multigraphs this remains an endpoint-based convenience form,
+     * not a precise single-parallel-edge insertion/update API.
      */
     template <bool W = Weighted>
     requires(W)
@@ -602,7 +603,8 @@ public:
      * @brief Adds an unweighted edge and attaches an attribute map.
      *
      * This overload is the attribute-bearing counterpart of the plain
-     * unweighted add_edge(u, v) form.
+     * unweighted add_edge(u, v) form. In multigraphs it remains endpoint-based
+     * convenience API rather than a precise single-edge handle.
      */
     void add_edge(const NodeID& u, const NodeID& v, const EdgeAttrMap& attrs);
 
@@ -612,7 +614,9 @@ public:
      * @brief Adds or updates a weighted edge and attaches one attribute.
      *
      * This is a compact convenience overload when a full attribute map would
-     * be unnecessarily verbose.
+     * be unnecessarily verbose. In multigraphs it should still be treated as
+     * an endpoint-based convenience form rather than a precise edge-instance
+     * API.
      */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, const std::pair<std::string, std::any>& attr);
 
@@ -625,7 +629,9 @@ public:
      * @brief Adds or updates a weighted edge and attaches an initializer-list of attributes.
      *
      * This overload is convenient for literal-style calls such as
-     * `add_edge(u, v, w, {{"capacity", 3}, {"label", "fast"}})`.
+     * `add_edge(u, v, w, {{"capacity", 3}, {"label", "fast"}})`. In
+     * multigraphs it remains an endpoint-based convenience form rather than a
+     * precise edge-instance API.
      */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w, std::initializer_list<std::pair<std::string, std::any>> attrs);
 
