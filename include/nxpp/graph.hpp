@@ -1507,7 +1507,8 @@ public:
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @return A @ref MaximumFlowResult containing the total flow value and the
-     * per-edge flow assignment keyed by `(u, v)`.
+     * endpoint-keyed convenience flow view plus the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto edmonds_karp_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
     /**
@@ -1517,7 +1518,8 @@ public:
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @return A @ref MaximumFlowResult containing the total flow value and the
-     * per-edge flow assignment keyed by `(u, v)`.
+     * endpoint-keyed convenience flow view plus the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto push_relabel_maximum_flow_result(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
     /**
@@ -1527,7 +1529,8 @@ public:
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @return A @ref MaximumFlowResult containing the total flow value and the
-     * per-edge flow assignment keyed by `(u, v)`.
+     * endpoint-keyed convenience flow view plus the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
     /**
@@ -1537,7 +1540,8 @@ public:
      * @param target_id Sink node ID.
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @return A @ref MinimumCutResult containing the cut value, the two partitions,
-     * and the cut edges crossing from reachable to non-reachable nodes.
+     * the endpoint-keyed convenience cut-edge view, and the precise cut-edge
+     * IDs crossing from reachable to non-reachable nodes.
      */
     auto minimum_cut(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity") const;
     /**
@@ -1548,7 +1552,8 @@ public:
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
-     * and the per-edge flow assignment keyed by `(u, v)`.
+     * the endpoint-keyed convenience flow view, and the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /// Runs push-relabel and caches the residual state for follow-up min-cost routines. The default `"weight"` still refers to the built-in edge-weight property.
@@ -1557,8 +1562,7 @@ public:
      * @brief Runs cycle canceling on the previously cached residual network.
      *
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
-     * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
-     * and the per-edge flow assignment keyed by `(u, v)`.
+     * @return The total min-cost value after cycle canceling as `long`.
      */
     auto cycle_canceling(const std::string& weight_attr = "weight") const;
     /**
@@ -1569,7 +1573,8 @@ public:
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
-     * and the per-edge flow assignment keyed by `(u, v)`.
+     * the endpoint-keyed convenience flow view, and the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto successive_shortest_path_nonnegative_weights(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /**
@@ -1580,7 +1585,8 @@ public:
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
-     * and the per-edge flow assignment keyed by `(u, v)`.
+     * the endpoint-keyed convenience flow view, and the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto max_flow_min_cost_successive_shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /**
@@ -1591,7 +1597,8 @@ public:
      * @param capacity_attr Name of the numeric edge attribute used as capacity.
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return A @ref MinCostMaxFlowResult containing total flow, total cost,
-     * and the per-edge flow assignment keyed by `(u, v)`.
+     * the endpoint-keyed convenience flow view, and the precise `edge_id`-keyed
+     * flow assignment.
      */
     auto max_flow_min_cost(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
 

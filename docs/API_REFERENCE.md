@@ -381,9 +381,9 @@ These types are part of the public API and are worth knowing because they make s
 
 | Type | Main fields / behavior | What it is for |
 |---|---|---|
-| `MaximumFlowResult<NodeID>` | `value`, `flow` | max-flow total plus per-edge flow map |
-| `MinCostMaxFlowResult<NodeID>` | `flow`, `cost`, `edge_flows` | min-cost max-flow total flow, cost, and per-edge flows |
-| `MinimumCutResult<NodeID>` | `value`, `reachable`, `non_reachable`, `cut_edges` | cut value and partition information |
+| `MaximumFlowResult<NodeID>` | `value`, `flow`, `edge_flows_by_id` | max-flow total plus aggregate endpoint view and precise per-edge-ID flow map |
+| `MinCostMaxFlowResult<NodeID>` | `flow`, `cost`, `edge_flows`, `edge_flows_by_id` | min-cost max-flow total flow, cost, aggregate endpoint view, and precise per-edge-ID flows |
+| `MinimumCutResult<NodeID>` | `value`, `reachable`, `non_reachable`, `cut_edges`, `cut_edge_ids` | cut value, partition information, aggregate endpoint cut view, and precise cut-edge IDs |
 | `SingleSourceShortestPathResult<NodeID, Distance>` | ordered `distance`, `predecessor`, plus `has_path_to(target)` / `path_to(target)` | single-source shortest-path results in a C++-friendly shape with tree-based map bounds and on-demand path reconstruction |
 | `lookup_map<Key, Value>` | `operator[]`, `at`, iterators over ordered storage | const-friendly ordered lookup wrapper returned by some component helpers |
 | `indexed_lookup_map<Key, Value>` | `at`, `operator[]`, `contains`, iterators over key-sorted storage | const-friendly indexed result wrapper that preserves linear materialization while keeping `O(log n)` key lookup |
@@ -403,9 +403,9 @@ These wrappers exist because they make the result shape more usable from C++:
 | Wrapper / helper | Why it exists |
 |---|---|
 | `SingleSourceShortestPathResult<NodeID, Distance>` | Returns ordered `distance` / `predecessor` data plus on-demand `path_to(...)`, instead of forcing eager all-path materialization or lower-level reconstruction code into the caller |
-| `MaximumFlowResult<NodeID>` | Bundles the total flow value with the per-edge flow assignment a caller usually wants to inspect next |
-| `MinimumCutResult<NodeID>` | Bundles cut value, partitions, and cut-edge list into one directly usable return object |
-| `MinCostMaxFlowResult<NodeID>` | Bundles total flow, total cost, and per-edge flows into one C++-friendly return type |
+| `MaximumFlowResult<NodeID>` | Bundles the total flow value with both an endpoint-keyed convenience view and a precise `edge_id`-keyed flow view |
+| `MinimumCutResult<NodeID>` | Bundles cut value, partitions, endpoint cut edges, and precise cut-edge IDs into one directly usable return object |
+| `MinCostMaxFlowResult<NodeID>` | Bundles total flow, total cost, an endpoint-keyed convenience view, and a precise `edge_id`-keyed flow view into one C++-friendly return type |
 | `indexed_lookup_map<Key, Value>` | Keeps linear materialization and ordered key lookup for public results without baking hash-table assumptions into the API |
 | `degree_centrality()` | Exposes a normalized C++-friendly wrapper result rather than raw lower-level bookkeeping |
 | `pagerank()` | Exposes a ready-to-consume PageRank wrapper result keyed by `NodeID` instead of forcing callers to manage property maps and iteration state directly |
@@ -444,16 +444,24 @@ Use this wrapper when you want:
 ```cpp
 auto flow = G.maximum_flow("s", "t");
 auto cut = G.minimum_cut("s", "t");
+auto edge_id = G.edge_ids("s", "a").front();
 
 auto total_flow = flow.value;
 auto flow_on_edge = flow.flow.at({"s", "a"});
+auto precise_flow_on_edge = flow.edge_flows_by_id.at(edge_id);
 auto reachable = cut.reachable;
 auto cut_edges = cut.cut_edges;
+auto precise_cut_edges = cut.cut_edge_ids;
 ```
 
 Use these wrappers when you want the aggregate answer plus the structured side
 information in one return object, instead of re-deriving it from lower-level
 algorithm output.
+
+In multigraphs:
+
+- `flow` and `cut_edges` are endpoint-keyed convenience views
+- `edge_flows_by_id` and `cut_edge_ids` are the precise parallel-edge-safe view
 
 #### `MinCostMaxFlowResult`
 
@@ -463,9 +471,15 @@ auto result = G.max_flow_min_cost("s", "t");
 auto total_flow = result.flow;
 auto total_cost = result.cost;
 auto per_edge = result.edge_flows;
+auto precise_per_edge = result.edge_flows_by_id;
 ```
 
 This wrapper is the one-shot return shape for the min-cost flow helpers.
+
+In multigraphs:
+
+- `edge_flows` is the endpoint-keyed aggregate convenience view
+- `edge_flows_by_id` is the precise parallel-edge-safe view
 
 #### `indexed_lookup_map`
 
@@ -575,10 +589,10 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `edmonds_karp_maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Max-flow wrapper returning value and per-edge flow map. | `auto f = G.edmonds_karp_maximum_flow(0, 5);` |
-| `maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Backward-compatible default max-flow wrapper. | `auto f = G.maximum_flow(0, 5);` |
-| `push_relabel_maximum_flow_result` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Push-Relabel wrapper returning value and per-edge flow map. | `auto f = G.push_relabel_maximum_flow_result(0, 5);` |
-| `minimum_cut` | `(source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | Returns cut value, partition, and cut edges. | `auto c = G.minimum_cut(0, 5);` |
+| `edmonds_karp_maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Max-flow wrapper returning total flow plus both an endpoint-keyed convenience view and a precise `edge_id`-keyed flow view. | `auto f = G.edmonds_karp_maximum_flow(0, 5);` |
+| `maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Backward-compatible default max-flow wrapper returning both aggregate endpoint and precise `edge_id` views. | `auto f = G.maximum_flow(0, 5);` |
+| `push_relabel_maximum_flow_result` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Push-Relabel wrapper returning both aggregate endpoint and precise `edge_id` views. | `auto f = G.push_relabel_maximum_flow_result(0, 5);` |
+| `minimum_cut` | `(source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | Returns cut value, partition, endpoint cut-edge view, and precise cut-edge IDs. | `auto c = G.minimum_cut(0, 5);` |
 
 ### Staged min-cost-flow path
 
@@ -591,10 +605,10 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `max_flow_min_cost_cycle_canceling` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using cycle canceling. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_cycle_canceling(0, 5);` |
-| `successive_shortest_path_nonnegative_weights` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using SSP. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.successive_shortest_path_nonnegative_weights(0, 5);` |
-| `max_flow_min_cost_successive_shortest_path` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Thin alias to the SSP wrapper. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_successive_shortest_path(0, 5);` |
-| `max_flow_min_cost` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Default min-cost max-flow wrapper; currently delegates to cycle canceling. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost(0, 5);` |
+| `max_flow_min_cost_cycle_canceling` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using cycle canceling. Returns both an endpoint-keyed aggregate view and a precise `edge_id`-keyed flow view. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_cycle_canceling(0, 5);` |
+| `successive_shortest_path_nonnegative_weights` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | One-shot min-cost max-flow wrapper using SSP. Returns both an endpoint-keyed aggregate view and a precise `edge_id`-keyed flow view. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.successive_shortest_path_nonnegative_weights(0, 5);` |
+| `max_flow_min_cost_successive_shortest_path` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Thin alias to the SSP wrapper. Returns both an endpoint-keyed aggregate view and a precise `edge_id`-keyed flow view. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost_successive_shortest_path(0, 5);` |
+| `max_flow_min_cost` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `MinCostMaxFlowResult<NodeID>` | Default min-cost max-flow wrapper; currently delegates to cycle canceling. Returns both an endpoint-keyed aggregate view and a precise `edge_id`-keyed flow view. The default `"weight"` still refers to the built-in edge-weight property. | `auto r = G.max_flow_min_cost(0, 5);` |
 
 ## Generators and extra utilities
 

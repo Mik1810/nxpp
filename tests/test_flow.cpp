@@ -76,6 +76,38 @@ nxpp::WeightedDiGraphInt make_min_cost_flow_graph() {
     return graph;
 }
 
+nxpp::UnweightedMultiDiGraphInt make_multigraph_flow_graph() {
+    nxpp::UnweightedMultiDiGraphInt graph;
+
+    const auto e01a = graph.add_edge_with_id(0, 1);
+    const auto e01b = graph.add_edge_with_id(0, 1);
+    const auto e12a = graph.add_edge_with_id(1, 2);
+    const auto e12b = graph.add_edge_with_id(1, 2);
+
+    graph.set_edge_attr(e01a, "capacity", 1L);
+    graph.set_edge_attr(e01b, "capacity", 2L);
+    graph.set_edge_attr(e12a, "capacity", 1L);
+    graph.set_edge_attr(e12b, "capacity", 2L);
+
+    return graph;
+}
+
+nxpp::WeightedMultiDiGraphInt make_multigraph_min_cost_flow_graph() {
+    nxpp::WeightedMultiDiGraphInt graph;
+
+    const auto e01a = graph.add_edge_with_id(0, 1, 1);
+    const auto e01b = graph.add_edge_with_id(0, 1, 5);
+    const auto e12a = graph.add_edge_with_id(1, 2, 1);
+    const auto e12b = graph.add_edge_with_id(1, 2, 5);
+
+    graph.set_edge_attr(e01a, "capacity", 1L);
+    graph.set_edge_attr(e01b, "capacity", 1L);
+    graph.set_edge_attr(e12a, "capacity", 1L);
+    graph.set_edge_attr(e12b, "capacity", 1L);
+
+    return graph;
+}
+
 void test_maximum_flow_matches_snippet_case() {
     auto graph = make_max_flow_graph();
 
@@ -139,6 +171,56 @@ void test_min_cost_aliases_match_specialized_wrappers() {
            "max_flow_min_cost_successive_shortest_path should match the SSP wrapper");
 }
 
+void test_multigraph_flow_results_keep_precise_edge_ids() {
+    auto graph = make_multigraph_flow_graph();
+
+    const auto source_edges = graph.edge_ids(0, 1);
+    const auto sink_edges = graph.edge_ids(1, 2);
+    const auto flow = graph.maximum_flow(0, 2);
+    const auto cut = graph.minimum_cut(0, 2);
+
+    expect(source_edges.size() == 2 && sink_edges.size() == 2,
+           "test graph should expose two parallel edges per stage");
+    expect(flow.value == 3, "multigraph maximum_flow should still find the full aggregate flow");
+    expect(flow.flow.at({0, 1}) == 3, "endpoint view should aggregate parallel source-edge flow");
+    expect(flow.flow.at({1, 2}) == 3, "endpoint view should aggregate parallel sink-edge flow");
+    expect(flow.edge_flows_by_id.at(source_edges[0]) == 1, "first source edge should keep its own precise flow");
+    expect(flow.edge_flows_by_id.at(source_edges[1]) == 2, "second source edge should keep its own precise flow");
+    expect(flow.edge_flows_by_id.at(sink_edges[0]) == 1, "first sink edge should keep its own precise flow");
+    expect(flow.edge_flows_by_id.at(sink_edges[1]) == 2, "second sink edge should keep its own precise flow");
+    expect(cut.cut_edges.size() == 2, "cut should still expose both parallel cut edges");
+    expect(cut.cut_edge_ids.size() == 2, "cut should expose precise edge IDs for both parallel cut edges");
+    expect(cut.cut_edges[0] == std::pair<int, int>{0, 1} && cut.cut_edges[1] == std::pair<int, int>{0, 1},
+           "endpoint cut view should show duplicate endpoint pairs when parallel cut edges exist");
+}
+
+void test_multigraph_min_cost_flow_results_keep_precise_edge_ids() {
+    auto cycle_graph = make_multigraph_min_cost_flow_graph();
+    auto ssp_graph = make_multigraph_min_cost_flow_graph();
+
+    const auto cycle_source_edges = cycle_graph.edge_ids(0, 1);
+    const auto cycle_sink_edges = cycle_graph.edge_ids(1, 2);
+    const auto cycle_result = cycle_graph.max_flow_min_cost(0, 2);
+    const auto ssp_result = ssp_graph.max_flow_min_cost_successive_shortest_path(0, 2);
+
+    expect(cycle_result.flow == 2 && cycle_result.cost == 12,
+           "cycle-canceling wrapper should preserve aggregate min-cost multigraph results");
+    expect(ssp_result.flow == 2 && ssp_result.cost == 12,
+           "SSP wrapper should preserve aggregate min-cost multigraph results");
+    expect(cycle_result.edge_flows.at({0, 1}) == 2 && cycle_result.edge_flows.at({1, 2}) == 2,
+           "endpoint min-cost view should aggregate parallel edges");
+    expect(cycle_result.edge_flows_by_id.at(cycle_source_edges[0]) == 1,
+           "cycle-canceling result should preserve the first source edge separately");
+    expect(cycle_result.edge_flows_by_id.at(cycle_source_edges[1]) == 1,
+           "cycle-canceling result should preserve the second source edge separately");
+    expect(cycle_result.edge_flows_by_id.at(cycle_sink_edges[0]) == 1,
+           "cycle-canceling result should preserve the first sink edge separately");
+    expect(cycle_result.edge_flows_by_id.at(cycle_sink_edges[1]) == 1,
+           "cycle-canceling result should preserve the second sink edge separately");
+    expect(ssp_result.edge_flows_by_id.size() == 4,
+           "SSP result should also expose a precise edge-id keyed flow view");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -153,7 +235,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 6;
+    constexpr int total = 8;
 
     passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
     passed += run_test("maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case) ? 1 : 0;
@@ -161,6 +243,8 @@ int main() {
     passed += run_test("push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost) ? 1 : 0;
     passed += run_test("successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost) ? 1 : 0;
     passed += run_test("min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers) ? 1 : 0;
+    passed += run_test("multigraph flow results keep precise edge ids", test_multigraph_flow_results_keep_precise_edge_ids) ? 1 : 0;
+    passed += run_test("multigraph min-cost flow results keep precise edge ids", test_multigraph_min_cost_flow_results_keep_precise_edge_ids) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

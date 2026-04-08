@@ -168,6 +168,9 @@ For multigraphs, the public rule is:
 - attr-bearing endpoint `add_edge(..., attrs)` forms are now rejected in
   multigraphs; use `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)`
   because `(u, v)` is not enough to identify one concrete parallel edge
+- flow wrappers now follow the same rule: endpoint-keyed flow or cut-edge
+  views are aggregate convenience views in multigraphs, while the new
+  `edge_id`-keyed result fields are the precise path
 
 ## More Examples
 

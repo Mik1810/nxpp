@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.5] - 2026-04-08
+
+- Closed `#44` by making the flow-wrapper result types edge-aware in multigraph cases: `MaximumFlowResult` and `MinCostMaxFlowResult` now expose both endpoint-keyed aggregate views and precise `edge_id`-keyed flow maps, `MinimumCutResult` now exposes precise `cut_edge_ids`, the flow builders now preserve every original edge instance instead of collapsing parallel edges by `(u, v)`, direct `flow.hpp` inclusion now pulls in the multigraph layer so the edge-ID helpers remain link-complete, and the formal flow tests now cover multigraph max-flow, minimum-cut, and min-cost result precision explicitly.
+
 ## [1.0.4] - 2026-04-08
 
 - Closed `#42` by explicitly restricting ambiguous multigraph insertion forms: endpoint-based `add_edge(..., attrs)` overloads now throw in multigraph mode instead of pretending to target one precise parallel edge, tests now cover the new failure mode, and the docs point users to `add_edge_with_id(...)` plus `set_edge_attr(edge_id, ...)` as the precise alternative.

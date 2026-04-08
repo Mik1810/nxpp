@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.5]
+
+### Highlights
+
+- Closed `#44` by making the flow-result wrappers precise again in multigraph cases.
+- `MaximumFlowResult` and `MinCostMaxFlowResult` now expose both:
+  - endpoint-keyed aggregate convenience views
+  - precise `edge_id`-keyed flow views
+- `MinimumCutResult` now exposes both:
+  - endpoint-keyed `cut_edges`
+  - precise `cut_edge_ids`
+- Internally, the flow builders no longer collapse parallel edges into one `(u, v)` slot before materializing result wrappers, so multigraph callers can now inspect each original edge instance separately.
+- The direct `flow.hpp` include path is now self-contained for these edge-aware flow helpers because it also pulls in the multigraph layer it now depends on.
+
 ## [1.0.4]
 
 ### Highlights
