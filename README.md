@@ -165,6 +165,9 @@ For multigraphs, the public rule is:
   explicitly documents a stronger guarantee
 - note one especially important case: `remove_edge(u, v)` removes all parallel
   edges between those endpoints; use `remove_edge(edge_id)` for one edge
+- attr-bearing endpoint `add_edge(..., attrs)` forms are now rejected in
+  multigraphs; use `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)`
+  because `(u, v)` is not enough to identify one concrete parallel edge
 
 ## More Examples
 

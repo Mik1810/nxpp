@@ -3,7 +3,42 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.4]
+
+### Highlights
+
+- Closed `#42` by turning one especially risky multigraph ambiguity into an explicit restriction.
+- Endpoint-based attr-bearing `add_edge(..., attrs)` overloads now throw in multigraph mode instead of pretending to identify one concrete parallel edge.
+- The precise supported alternative is now documented as:
+  - `add_edge_with_id(...)`
+  - followed by `set_edge_attr(edge_id, ...)`
+- The reason for the restriction is now also documented explicitly:
+  - `(u, v)` is not enough to identify one concrete parallel edge
+  - silently choosing one endpoint-resolved edge would be misleading and unstable
+
 ## [1.0.3]
+
+### Highlights
+
+- Closed `#41` by making the endpoint-based multigraph semantics explicit API by API.
+- The docs now include a strict table that maps each ambiguous endpoint-based multigraph API to:
+  - its actual meaning in multigraph mode
+  - the precise `edge_id`-based alternative to prefer when one concrete parallel edge matters
+- This also makes one especially easy-to-misread rule more visible:
+  - `remove_edge(u, v)` removes all parallel edges between those endpoints
+  - `remove_edge(edge_id)` is the precise single-edge removal path
+
+## [1.0.2]
+
+### Highlights
+
+- Closed `#43` by defining the public multigraph policy for precise APIs vs convenience APIs.
+- The multigraph policy now states explicitly that:
+  - `edge_id` is the precise path when one concrete parallel edge matters
+  - endpoint-based `(u, v)` edge APIs remain convenience-oriented in multigraph mode unless a function documents a stronger guarantee
+  - proxy access such as `G[u][v]` and endpoint-based edge-attribute reads should not be treated as precise single-parallel-edge handles
+
+## [1.0.1]
 
 ### Highlights
 
@@ -61,18 +96,6 @@ version entries in `CHANGELOG.md`.
   - `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` should track the same `X.Y.Z` release version
   - repository-hosted package paths are expected to move with the tagged release
   - third-party or policy-gated channels may lag behind, but that lag must be documented explicitly instead of being hidden behind ambiguous release language
-- Closed `#43` by defining the public multigraph policy for precise APIs vs convenience APIs.
-- The multigraph policy now states explicitly that:
-  - `edge_id` is the precise path when one concrete parallel edge matters
-  - endpoint-based `(u, v)` edge APIs remain convenience-oriented in multigraph mode unless a function documents a stronger guarantee
-  - proxy access such as `G[u][v]` and endpoint-based edge-attribute reads should not be treated as precise single-parallel-edge handles
-- Closed `#41` by making the endpoint-based multigraph semantics explicit API by API.
-- The docs now include a strict table that maps each ambiguous endpoint-based multigraph API to:
-  - its actual meaning in multigraph mode
-  - the precise `edge_id`-based alternative to prefer when one concrete parallel edge matters
-- This also makes one especially easy-to-misread rule more visible:
-  - `remove_edge(u, v)` removes all parallel edges between those endpoints
-  - `remove_edge(edge_id)` is the precise single-edge removal path
 
 ### Notes
 

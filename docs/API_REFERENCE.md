@@ -178,10 +178,10 @@ This matches the NetworkX convention: indexing and assignment create implicitly,
 | `has_node` | `(const NodeID& u)` | `bool` | Checks whether a node exists. | `G.has_node(1)` |
 | `add_edge` | `(u, v, w = 1.0)` | `void` | Creates missing endpoints automatically. In simple graphs, a repeated `(u, v)` overwrites weight. | `G.add_edge(1, 2, 3.5);` |
 | `add_edge` | `(u, v)` on unweighted graphs | `void` | Inserts an unweighted edge. | `UG.add_edge(1, 2);` |
-| `add_edge` | `(u, v, {"key", value})` | `void` | Adds one edge attribute with default built-in weight where applicable. Here `A` is the attribute count stored on the resolved edge. | `G.add_edge(0, 1, {"capacity", 5L});` |
-| `add_edge` | `(u, v, {{"key", value}, ...})` | `void` | Adds multiple edge attributes with default built-in weight where applicable. | `G.add_edge(0, 1, {{"capacity", 5L}});` |
-| `add_edge` | `(u, v, w, {"key", value})` | `void` | Adds / updates weight and one edge attribute. | `G.add_edge(0, 1, 3.5, {"capacity", 5L});` |
-| `add_edge` | `(u, v, w, {{"key", value}, ...})` | `void` | Adds / updates weight and multiple edge attributes. | `G.add_edge(0, 1, 3.5, {{"capacity", 5L}});` |
+| `add_edge` | `(u, v, {"key", value})` | `void` | Adds one edge attribute with default built-in weight where applicable. In multigraphs this endpoint-based attr-bearing form is now rejected as ambiguous; use `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)`. | `G.add_edge(0, 1, {"capacity", 5L});` |
+| `add_edge` | `(u, v, {{"key", value}, ...})` | `void` | Adds multiple edge attributes with default built-in weight where applicable. In multigraphs this endpoint-based attr-bearing form is now rejected as ambiguous. | `G.add_edge(0, 1, {{"capacity", 5L}});` |
+| `add_edge` | `(u, v, w, {"key", value})` | `void` | Adds / updates weight and one edge attribute. In multigraphs this endpoint-based attr-bearing form is now rejected as ambiguous. | `G.add_edge(0, 1, 3.5, {"capacity", 5L});` |
+| `add_edge` | `(u, v, w, {{"key", value}, ...})` | `void` | Adds / updates weight and multiple edge attributes. In multigraphs this endpoint-based attr-bearing form is now rejected as ambiguous. | `G.add_edge(0, 1, 3.5, {{"capacity", 5L}});` |
 | `add_edges_from` | `vector<tuple<u,v,w>>` | `void` | Bulk weighted insertion. | `G.add_edges_from({{1,2,2},{2,3,4}});` |
 | `add_edges_from` | `vector<pair<u,v>>` | `void` | Bulk insertion with default weight or unweighted insertion depending on graph type. | `G.add_edges_from({{1,2},{2,3}});` |
 | `has_edge` | `(u, v)` | `bool` | Checks whether an edge exists. In multigraphs, this means "at least one edge exists". | `G.has_edge("A","B")` |
@@ -253,7 +253,7 @@ The table below makes the endpoint-based multigraph behavior explicit.
 |---|---|---|
 | `has_edge(u, v)` | Answers only whether at least one parallel edge exists between `u` and `v`. | `edge_ids(u, v)` / `has_edge_id(edge_id)` |
 | `add_edge(u, v, ...)` | Endpoint-based insertion/update convenience form. Not a stable handle to one later edge instance. | `add_edge_with_id(...)` |
-| `add_edge(u, v, attrs...)` | Endpoint-based convenience form. Do not treat as precise single-parallel-edge attribute targeting. | `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)` |
+| `add_edge(u, v, attrs...)` | Endpoint-based attr-bearing form. In multigraphs this is now rejected as ambiguous. | `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)` |
 | `remove_edge(u, v)` | Removes all parallel edges between `u` and `v`. | `remove_edge(edge_id)` |
 | `get_edge_weight(u, v)` | Reads one edge selected through endpoint-based resolution. Not a stable single-edge lookup. | `get_edge_weight(edge_id)` |
 | `get_edge_attr<T>(u, v, key)` | Reads one endpoint-resolved edge attribute. Not a stable single-edge lookup. | `get_edge_attr<T>(edge_id, key)` |
@@ -361,6 +361,13 @@ For multigraphs, prefer the precise `edge_id` path whenever:
 - you are reading or mutating edge attributes
 - you are reading or mutating built-in edge weights
 - you are removing one edge rather than "all edges between these endpoints"
+
+Why the attr-bearing endpoint forms now throw in multigraphs:
+
+- `(u, v)` is not enough to identify one concrete parallel edge
+- an attr-bearing call looks like it is targeting one edge instance
+- silently picking one endpoint-resolved edge would be unstable and misleading
+- throwing early is safer than pretending the API is precise when it is not
 
 Keep endpoint-based `(u, v)` forms for:
 

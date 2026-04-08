@@ -5,6 +5,16 @@
 namespace nxpp {
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+static void throw_if_multigraph_attr_add_is_ambiguous() {
+    if constexpr (Multi) {
+        throw std::runtime_error(
+            "Multigraph endpoint-based add_edge(..., attrs) is ambiguous. "
+            "Use add_edge_with_id(...) and then set_edge_attr(edge_id, ...)."
+        );
+    }
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 template <bool W>
 requires(W)
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::add_edge(
@@ -13,6 +23,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     EdgeWeight w,
     const EdgeAttrMap& attrs
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attrs(get_edge_desc(u, v), attrs);
 }
@@ -23,6 +34,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const NodeID& v,
     const EdgeAttrMap& attrs
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     if constexpr (Weighted) {
         add_edge(u, v, static_cast<EdgeWeight>(1.0), attrs);
     } else {
@@ -40,6 +52,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     EdgeWeight w,
     const std::pair<std::string, std::any>& attr
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attr(get_edge_desc(u, v), attr);
 }
@@ -50,6 +63,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const NodeID& v,
     const std::pair<std::string, std::any>& attr
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     if constexpr (Weighted) {
         add_edge(u, v, static_cast<EdgeWeight>(1.0), attr);
     } else {
@@ -67,6 +81,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     EdgeWeight w,
     std::initializer_list<std::pair<std::string, std::any>> attrs
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attrs(get_edge_desc(u, v), attrs);
 }
@@ -77,6 +92,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const NodeID& v,
     std::initializer_list<std::pair<std::string, std::any>> attrs
 ) {
+    throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     if constexpr (Weighted) {
         add_edge(u, v, static_cast<EdgeWeight>(1.0), attrs);
     } else {

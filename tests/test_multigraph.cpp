@@ -108,6 +108,36 @@ void test_edge_endpoints_stay_correct_after_partial_removal() {
            "remaining parallel edge should still report the correct endpoints");
 }
 
+void test_multigraph_attr_bearing_endpoint_adds_throw() {
+    nxpp::MultiDiGraph weighted_graph;
+
+    bool threw = false;
+    try {
+        weighted_graph.add_edge("A", "B", 3.0, {{"capacity", 5L}});
+    } catch (const std::runtime_error& ex) {
+        threw = std::string(ex.what()).find("add_edge_with_id") != std::string::npos;
+    }
+    expect(threw, "weighted multigraph add_edge(u, v, w, attrs) should throw and suggest edge_id path");
+
+    threw = false;
+    try {
+        weighted_graph.add_edge("A", "B", {"label", std::string("fast")});
+    } catch (const std::runtime_error& ex) {
+        threw = std::string(ex.what()).find("add_edge_with_id") != std::string::npos;
+    }
+    expect(threw, "weighted multigraph add_edge(u, v, attr) should throw and suggest edge_id path");
+
+    nxpp::MultiGraph unweighted_graph;
+
+    threw = false;
+    try {
+        unweighted_graph.add_edge("X", "Y", {{"capacity", 7L}});
+    } catch (const std::runtime_error& ex) {
+        threw = std::string(ex.what()).find("add_edge_with_id") != std::string::npos;
+    }
+    expect(threw, "unweighted multigraph add_edge(u, v, attrs) should throw and suggest edge_id path");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -122,13 +152,14 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 5;
+    constexpr int total = 6;
 
     passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
     passed += run_test("parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes) ? 1 : 0;
     passed += run_test("remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise) ? 1 : 0;
     passed += run_test("remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges) ? 1 : 0;
     passed += run_test("edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal) ? 1 : 0;
+    passed += run_test("multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }
