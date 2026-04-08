@@ -194,6 +194,22 @@ This assumes:
 - the overlay port points at a local checkout of this repository
 - Boost Graph is available through the vcpkg dependency graph for the selected triplet
 
+## Versioning expectations for package consumers
+
+The repository version remains the source of truth for all distributed package
+paths maintained inside this repo.
+
+That means a published release tag `vX.Y.Z` is expected to line up with:
+
+- `project(nxpp VERSION X.Y.Z)` in `CMakeLists.txt`
+- `version = "X.Y.Z"` in `conanfile.py`
+- `"version-string": "X.Y.Z"` in `packaging/vcpkg/ports/nxpp/vcpkg.json`
+
+This does not imply that every external channel is published at exactly the
+same moment. It does mean that the repository-hosted package definitions should
+track the tagged release directly, and that any lagging or policy-gated channel
+should be called out explicitly in the docs.
+
 ## Minimal vendored CMake consumption
 
 If you vendor the repository, you can also consume it through CMake:

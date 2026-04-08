@@ -119,6 +119,13 @@ Packaging / distribution strategy:
   4. only later, if still worth the maintenance cost, Debian / Ubuntu packaging
 - package-manager distribution should follow the installed CMake package story,
   not bypass it
+- repository-hosted package definitions are expected to track the same release
+  version as the tagged repository release:
+  - `CMakeLists.txt`
+  - `conanfile.py`
+  - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+- if an external channel lags behind or is blocked by third-party policy, the
+  docs should say that explicitly instead of implying simultaneous publication
 
 Versioning / release policy:
 

@@ -127,6 +127,21 @@ ongoing packaging overhead than the project currently needs, while the existing
 source, installed-CMake, Conan, and vcpkg overlay paths already cover the main
 consumer scenarios.
 
+Distributed-package versioning follows the repository release version directly:
+
+- the top version in `CHANGELOG.md` and `RELEASE_NOTES.md` is the concrete next
+  release candidate
+- when a release tag `vX.Y.Z` is published, the repository should keep the
+  shipped package metadata aligned to that same `X.Y.Z`
+- in practice that means keeping the release version coherent across:
+  - `CMakeLists.txt`
+  - `conanfile.py`
+  - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+- repository-hosted package paths such as the Conan recipe and the vcpkg
+  overlay port are expected to track the published repository release directly
+- third-party or policy-gated channels can lag behind, but the docs should say
+  so explicitly rather than implying simultaneous publication everywhere
+
 ## Features
 
 - **Header-only** C++20 API over **Boost Graph Library**

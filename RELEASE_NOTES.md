@@ -55,10 +55,16 @@ version entries in `CHANGELOG.md`.
     - Conan
     - the repository-hosted vcpkg overlay port
   - Debian / Ubuntu packaging should therefore remain a later optional revisit, not an immediate distribution target
+- Closed `#65` by defining versioning and release expectations for distributed packages.
+- The package-versioning policy now states explicitly that:
+  - the tagged repository release is the source of truth for repository-hosted package metadata
+  - `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` should track the same `X.Y.Z` release version
+  - repository-hosted package paths are expected to move with the tagged release
+  - third-party or policy-gated channels may lag behind, but that lag must be documented explicitly instead of being hidden behind ambiguous release language
 
 ### Notes
 
-- This release candidate now covers both the strategy decision and the first concrete packaging implementation step.
+- This release candidate now covers the packaging strategy, the first concrete packaging implementation steps, and the release/versioning expectations for the repository-hosted package paths.
 - The follow-up implementation path is now clearer:
   - `#62` Conan
   - `#63` vcpkg

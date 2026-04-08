@@ -296,8 +296,8 @@ This is the intended long-term direction for the current attribute system too:
 - treat the checked accessors as the normal robust read path
 
 For a pragmatic comparison of the current model against future alternatives
-(`std::variant`, typed schema) and a conservative migration path, see
-[`ATTRIBUTE_DESIGN.md`](ATTRIBUTE_DESIGN.md).
+(`std::variant`, typed schema) and a conservative migration path, see the
+[Attribute System Design Evaluation](https://github.com/Mik1810/nxpp/blob/main/docs/ATTRIBUTE_DESIGN.md).
 - treat edge-id overloads as the main precision path for multigraph attributes
 
 Weight-name note:
