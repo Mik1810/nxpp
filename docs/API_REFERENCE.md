@@ -598,8 +598,8 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | Computes max flow and caches staged state for a later `cycle_canceling()`. The default `"weight"` still refers to the built-in edge-weight property. | `long f = G.push_relabel_maximum_flow(0, 5);` |
-| `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. The default `"weight"` still refers to the built-in edge-weight property. | `long c = G.cycle_canceling();` |
+| `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | Computes max flow and stages residual state for a later `cycle_canceling()`. Any later graph mutation invalidates that staged state. The default `"weight"` still refers to the built-in edge-weight property. | `long f = G.push_relabel_maximum_flow(0, 5);` |
+| `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. If the graph changed in the meantime, this now throws and asks the caller to rerun the push-relabel stage first. The default `"weight"` still refers to the built-in edge-weight property. | `long c = G.cycle_canceling();` |
 
 ### One-shot min-cost max-flow wrappers
 

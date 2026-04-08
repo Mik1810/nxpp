@@ -148,6 +148,19 @@ void test_cycle_canceling_requires_cached_flow_state() {
         "cycle_canceling should require a prior push_relabel_maximum_flow call");
 }
 
+void test_cycle_canceling_invalidated_by_graph_mutation() {
+    auto graph = make_min_cost_flow_graph();
+
+    (void)graph.push_relabel_maximum_flow(0, 5);
+    const auto edge_id = graph.edge_ids(0, 1).front();
+    graph.set_edge_attr(edge_id, "capacity", 2L);
+
+    expect_runtime_error_message(
+        [&] { (void)graph.cycle_canceling(); },
+        "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
+        "cycle_canceling should reject stale staged state after graph mutation");
+}
+
 void test_successive_shortest_path_matches_reference_flow_and_cost() {
     auto graph = make_min_cost_flow_graph();
 
@@ -235,9 +248,10 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 8;
+    constexpr int total = 9;
 
     passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
+    passed += run_test("cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation) ? 1 : 0;
     passed += run_test("maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case) ? 1 : 0;
     passed += run_test("minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition) ? 1 : 0;
     passed += run_test("push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost) ? 1 : 0;

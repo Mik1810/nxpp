@@ -3,6 +3,21 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.6]
+
+### Highlights
+
+- Closed `#45` by making the staged min-cost-flow path safer without changing its public shape.
+- `push_relabel_maximum_flow(...)` still prepares the staged residual state for `cycle_canceling()`, but that staged state is no longer silently reusable after the graph changes.
+- Graph mutations such as:
+  - adding or removing nodes or edges
+  - clearing the graph
+  - changing built-in edge weights
+  - changing edge attributes
+  now invalidate the staged min-cost-flow state explicitly.
+- `cycle_canceling()` now throws a clear error if callers try to reuse stale staged state after a graph mutation, instead of continuing with a hidden residual network that no longer matches the graph.
+- The formal flow tests now cover that invalidation path directly.
+
 ## [1.0.5]
 
 ### Highlights

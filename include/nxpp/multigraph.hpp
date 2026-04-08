@@ -41,6 +41,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::add_edge_with_id(const NodeID& u, const NodeID& v, EdgeWeight w) {
+    invalidate_min_cost_flow_state();
     VertexDesc bu = get_or_create_vertex(u);
     VertexDesc bv = get_or_create_vertex(v);
 
@@ -63,6 +64,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(!W)
 std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::add_edge_with_id(const NodeID& u, const NodeID& v) {
+    invalidate_min_cost_flow_state();
     VertexDesc bu = get_or_create_vertex(u);
     VertexDesc bv = get_or_create_vertex(v);
 
@@ -81,6 +83,7 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::remove_edge(std::size_t edge_id) {
+    invalidate_min_cost_flow_state();
     auto edge_desc = try_find_edge_desc_by_id(edge_id);
     if (!edge_desc.has_value()) {
         throw std::runtime_error("Edge lookup failed: edge not found.");
@@ -165,6 +168,7 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::set_edge_weight(std::size_t edge_id, EdgeWeight w) {
+    invalidate_min_cost_flow_state();
     auto e = get_edge_desc_by_id(edge_id);
     weight_map[e] = w;
 }
@@ -172,6 +176,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 template <typename T>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::set_edge_attr(std::size_t edge_id, const std::string& key, const T& value) {
+    invalidate_min_cost_flow_state();
     (void)get_edge_desc_by_id(edge_id);
     edge_properties[edge_id][key] = make_attr_any(value);
 }

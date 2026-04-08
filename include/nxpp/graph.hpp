@@ -34,6 +34,27 @@
 
 namespace nxpp {
 
+template <
+    typename NodeID,
+    typename EdgeWeight,
+    bool Directed,
+    bool Multi,
+    bool Weighted,
+    typename OutEdgeSelector,
+    typename VertexSelector
+>
+class Graph;
+
+namespace detail {
+
+template <typename GraphWrapper>
+struct MinCostFlowCacheHooks {
+    static void invalidate(const void*) {}
+    static void clear(const void*) {}
+};
+
+} // namespace detail
+
 } // namespace nxpp
 
 namespace boost {
@@ -447,6 +468,10 @@ public:
           edge_id_map(boost::get(boost::edge_index, g)),
           id_to_bgl() {}
 
+    ~Graph() {
+        clear_min_cost_flow_state();
+    }
+
     /**
      * @brief Ensures that a node with the given ID exists in the graph.
      *
@@ -455,6 +480,7 @@ public:
      * explicitly instead of relying on edge insertion to create them.
      */
     void add_node(const NodeID& id) {
+        invalidate_min_cost_flow_state();
         get_or_create_vertex(id);
     }
 
@@ -523,6 +549,7 @@ public:
      * @param w Edge weight to store.
      */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
+        invalidate_min_cost_flow_state();
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
         
@@ -561,6 +588,7 @@ public:
      * @param v Target node ID.
      */
     void add_edge(const NodeID& u, const NodeID& v) {
+        invalidate_min_cost_flow_state();
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
 
@@ -661,6 +689,7 @@ public:
      * default-constructed graph.
      */
     void clear() {
+        invalidate_min_cost_flow_state();
         g = GraphType();
         id_to_bgl.clear();
         bgl_to_id.clear();
@@ -683,6 +712,7 @@ public:
      * @throws std::runtime_error If either node is missing or no such edge exists.
      */
     void remove_edge(const NodeID& u, const NodeID& v) {
+        invalidate_min_cost_flow_state();
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
         if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
@@ -715,6 +745,7 @@ public:
      * @throws std::runtime_error If the node is not present.
      */
     void remove_node(const NodeID& u) {
+        invalidate_min_cost_flow_state();
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
             throw std::runtime_error("Node lookup failed: node not found.");
@@ -1556,10 +1587,14 @@ public:
      * flow assignment.
      */
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Runs push-relabel and caches the residual state for follow-up min-cost routines. The default `"weight"` still refers to the built-in edge-weight property.
+    /// Runs push-relabel and stages residual state for a later `cycle_canceling()` call. Any later graph mutation invalidates that staged state. The default `"weight"` still refers to the built-in edge-weight property.
     long push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /**
      * @brief Runs cycle canceling on the previously cached residual network.
+     *
+     * Any graph mutation after `push_relabel_maximum_flow(...)` invalidates the
+     * staged residual state, so callers must rerun the push-relabel stage
+     * before calling this function again.
      *
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return The total min-cost value after cycle canceling as `long`.
@@ -1640,6 +1675,19 @@ public:
      * containing one normalized betweenness-centrality score per node.
      */
     auto betweenness_centrality() const;
+
+private:
+    void invalidate_min_cost_flow_state() const {
+        detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>::invalidate(
+            static_cast<const void*>(this)
+        );
+    }
+
+    void clear_min_cost_flow_state() const {
+        detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>::clear(
+            static_cast<const void*>(this)
+        );
+    }
 };
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

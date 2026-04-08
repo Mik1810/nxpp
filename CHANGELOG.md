@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.6] - 2026-04-08
+
+- Closed `#45` by hardening the staged min-cost-flow path against hidden stale-state reuse: the internal residual-network cache is now invalidated on graph mutations such as node/edge insertion, edge removal, node removal, `clear()`, `set_edge_weight(...)`, and `set_edge_attr(...)`, `cycle_canceling()` now throws a specific error if the graph changed after `push_relabel_maximum_flow(...)`, and the formal flow tests now cover that invalidation path explicitly.
+
 ## [1.0.5] - 2026-04-08
 
 - Closed `#44` by making the flow-wrapper result types edge-aware in multigraph cases: `MaximumFlowResult` and `MinCostMaxFlowResult` now expose both endpoint-keyed aggregate views and precise `edge_id`-keyed flow maps, `MinimumCutResult` now exposes precise `cut_edge_ids`, the flow builders now preserve every original edge instance instead of collapsing parallel edges by `(u, v)`, direct `flow.hpp` inclusion now pulls in the multigraph layer so the edge-ID helpers remain link-complete, and the formal flow tests now cover multigraph max-flow, minimum-cut, and min-cost result precision explicitly.
