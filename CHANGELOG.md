@@ -5,6 +5,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 ## [1.0.5] - 2026-04-08
 
 - Closed `#44` by making the flow-wrapper result types edge-aware in multigraph cases: `MaximumFlowResult` and `MinCostMaxFlowResult` now expose both endpoint-keyed aggregate views and precise `edge_id`-keyed flow maps, `MinimumCutResult` now exposes precise `cut_edge_ids`, the flow builders now preserve every original edge instance instead of collapsing parallel edges by `(u, v)`, direct `flow.hpp` inclusion now pulls in the multigraph layer so the edge-ID helpers remain link-complete, and the formal flow tests now cover multigraph max-flow, minimum-cut, and min-cost result precision explicitly.
+- Added a new `snippet/centrality/` parity folder with `nxpp`, Boost, and NetworkX implementations that print degree centrality, PageRank, and betweenness centrality on the same small directed graph; the snippet-review workflow summary now names the new case explicitly, and the printed precision was aligned so `bash scripts/unix/test_single_snippet.sh centrality` passes under the current exact-output harness.
 
 ## [1.0.4] - 2026-04-08
 

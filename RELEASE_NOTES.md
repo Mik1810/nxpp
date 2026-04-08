@@ -16,6 +16,11 @@ version entries in `CHANGELOG.md`.
   - precise `cut_edge_ids`
 - Internally, the flow builders no longer collapse parallel edges into one `(u, v)` slot before materializing result wrappers, so multigraph callers can now inspect each original edge instance separately.
 - The direct `flow.hpp` include path is now self-contained for these edge-aware flow helpers because it also pulls in the multigraph layer it now depends on.
+- Added a new `centrality` snippet triplet under `snippet/`:
+  - `centrality_nxpp.cpp`
+  - `centrality.cpp`
+  - `centrality.py`
+- The snippet-review summary now describes that new case explicitly, and the snippet outputs were aligned to the current exact-match harness by printing to two decimal places.
 
 ## [1.0.4]
 
