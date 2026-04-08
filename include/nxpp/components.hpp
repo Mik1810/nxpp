@@ -15,63 +15,115 @@ namespace nxpp {
 // Algorithms: Components
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for connected_component_groups().
+/**
+ * @brief Deprecated free-function alias for `G.connected_component_groups()`.
+ *
+ * @param G Graph wrapper on which to compute connected-component groups.
+ * @return The same grouped connected-component result returned by
+ * `G.connected_component_groups()`.
+ */
 [[deprecated("Use G.connected_component_groups() instead.")]]
 auto connected_component_groups(const GraphWrapper& G) {
     return G.connected_component_groups();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for connected_components().
+/**
+ * @brief Deprecated free-function alias for `G.connected_components()`.
+ *
+ * @param G Graph wrapper on which to compute the component map.
+ * @return The same node-to-component map returned by `G.connected_components()`.
+ */
 [[deprecated("Use G.connected_components() instead.")]]
 auto connected_components(const GraphWrapper& G) {
     return G.connected_components();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strongly_connected_component_groups().
+/**
+ * @brief Deprecated free-function alias for `G.strongly_connected_component_groups()`.
+ *
+ * @param G Graph wrapper on which to compute grouped SCC output.
+ * @return The same grouped SCC result returned by
+ * `G.strongly_connected_component_groups()`.
+ */
 [[deprecated("Use G.strongly_connected_component_groups() instead.")]]
 auto strongly_connected_component_groups(const GraphWrapper& G) {
     return G.strongly_connected_component_groups();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strong_component_map().
+/**
+ * @brief Deprecated free-function alias for `G.strong_component_map()`.
+ *
+ * @param G Graph wrapper on which to compute the SCC index map.
+ * @return The same node-to-strong-component map returned by
+ * `G.strong_component_map()`.
+ */
 [[deprecated("Use G.strong_component_map() instead.")]]
 auto strong_component_map(const GraphWrapper& G) {
     return G.strong_component_map();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strong_components().
+/**
+ * @brief Deprecated free-function alias for `G.strong_components()`.
+ *
+ * @param G Graph wrapper on which to compute strong-component roots.
+ * @return The same node-to-root mapping returned by `G.strong_components()`.
+ */
 [[deprecated("Use G.strong_components() instead.")]]
 auto strong_components(const GraphWrapper& G) {
     return G.strong_components();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for connected_component_map().
+/**
+ * @brief Deprecated free-function alias for `G.connected_component_map()`.
+ *
+ * @param G Graph wrapper on which to compute the connected-component map.
+ * @return The same node-to-component map returned by
+ * `G.connected_component_map()`.
+ */
 [[deprecated("Use G.connected_component_map() instead.")]]
 auto connected_component_map(const GraphWrapper& G) {
     return G.connected_component_map();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strongly_connected_components().
+/**
+ * @brief Deprecated free-function alias for `G.strongly_connected_components()`.
+ *
+ * @param G Graph wrapper on which to compute grouped SCC output.
+ * @return The same grouped SCC result returned by
+ * `G.strongly_connected_components()`.
+ */
 [[deprecated("Use G.strongly_connected_components() instead.")]]
 auto strongly_connected_components(const GraphWrapper& G) {
     return G.strongly_connected_components();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strongly_connected_component_map().
+/**
+ * @brief Deprecated free-function alias for `G.strongly_connected_component_map()`.
+ *
+ * @param G Graph wrapper on which to compute the SCC index map.
+ * @return The same node-to-component map returned by
+ * `G.strongly_connected_component_map()`.
+ */
 [[deprecated("Use G.strongly_connected_component_map() instead.")]]
 auto strongly_connected_component_map(const GraphWrapper& G) {
     return G.strongly_connected_component_map();
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for strongly_connected_component_roots().
+/**
+ * @brief Deprecated free-function alias for `G.strongly_connected_component_roots()`.
+ *
+ * @param G Graph wrapper on which to compute SCC representative roots.
+ * @return The same node-to-root mapping returned by
+ * `G.strongly_connected_component_roots()`.
+ */
 [[deprecated("Use G.strongly_connected_component_roots() instead.")]]
 auto strongly_connected_component_roots(const GraphWrapper& G) {
     return G.strongly_connected_component_roots();

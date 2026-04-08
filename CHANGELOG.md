@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.8] - 2026-04-08
+
+- Closed `#53` by filling Doxygen gaps for deprecated aliases and thin wrappers: the namespace-scope compatibility aliases across traversal, shortest paths, components, spanning-tree helpers, topological sort, and flow now carry real `@param` / `@return` coverage instead of only skeletal one-line deprecation stubs, so the generated reference is more useful when these entries appear in search or symbol navigation.
+
 ## [1.0.7] - 2026-04-08
 
 - Closed `#52` by auditing and tightening Doxygen coverage across the full modular public-header surface: the semantic headers under `include/nxpp/` now carry explicit `@file` briefs for generated-reference navigation, the public graph alias/type presets at the end of `graph.hpp` now have clearer alias-level comments in the generated docs, and the docs index now records that this file-level/header-level coverage audit has been completed.

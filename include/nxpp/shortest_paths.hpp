@@ -114,7 +114,14 @@ Distance convert_shortest_path_distance(CalcDistance value) {
 // Algorithms: Shortest Paths
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for shortest_path(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.shortest_path(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute the unweighted shortest path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same node-path vector returned by `G.shortest_path(...)`.
+ */
 [[deprecated("Use G.shortest_path(source, target) instead.")]]
 auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.shortest_path(source_id, target_id);
@@ -122,7 +129,14 @@ auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_path(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_path(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute the Dijkstra path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same node-path vector returned by `G.dijkstra_path(...)`.
+ */
 [[deprecated("Use G.dijkstra_path(source, target) instead.")]]
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.dijkstra_path(source_id, target_id);
@@ -130,7 +144,14 @@ auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_shortest_paths(source).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_shortest_paths(source)`.
+ *
+ * @param G Graph wrapper on which to compute single-source Dijkstra results.
+ * @param source_id Source node ID.
+ * @return The same @ref SingleSourceShortestPathResult returned by
+ * `G.dijkstra_shortest_paths(source_id)`.
+ */
 [[deprecated("Use G.dijkstra_shortest_paths(source) instead.")]]
 auto dijkstra_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.dijkstra_shortest_paths(source_id);
@@ -138,14 +159,29 @@ auto dijkstra_shortest_paths(const GraphWrapper& G, const typename GraphWrapper:
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_shortest_paths(source).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_shortest_paths(source)`.
+ *
+ * @param G Graph wrapper on which to compute single-source Dijkstra results.
+ * @param source_id Source node ID.
+ * @return The same @ref SingleSourceShortestPathResult returned by
+ * `G.dijkstra_shortest_paths(source_id)`.
+ */
 [[deprecated("Use G.dijkstra_shortest_paths(source) instead.")]]
 auto single_source_dijkstra(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.dijkstra_shortest_paths(source_id);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for shortest_path(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.shortest_path(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute the weighted shortest path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same node-path vector returned by `G.shortest_path(...)`.
+ */
 [[deprecated("Use G.shortest_path(source, target, weight) instead.")]]
 auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.shortest_path(source_id, target_id, weight);
@@ -153,21 +189,44 @@ auto shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType&
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_path(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_path(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute the weighted Dijkstra path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same node-path vector returned by `G.dijkstra_path(...)`.
+ */
 [[deprecated("Use G.dijkstra_path(source, target, weight) instead.")]]
 auto dijkstra_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.dijkstra_path(source_id, target_id, weight);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for shortest_path_length(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.shortest_path_length(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute the unweighted path length.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same path length returned by `G.shortest_path_length(...)`.
+ */
 [[deprecated("Use G.shortest_path_length(source, target) instead.")]]
 double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.shortest_path_length(source_id, target_id);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for shortest_path_length(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.shortest_path_length(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute the weighted path length.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same path length returned by `G.shortest_path_length(...)`.
+ */
 [[deprecated("Use G.shortest_path_length(source, target, weight) instead.")]]
 double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.shortest_path_length(source_id, target_id, weight);
@@ -175,7 +234,13 @@ double shortest_path_length(const GraphWrapper& G, const typename GraphWrapper::
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_path_length(source).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_path_length(source)`.
+ *
+ * @param G Graph wrapper on which to compute the single-source distance map.
+ * @param source_id Source node ID.
+ * @return The same distance map returned by `G.dijkstra_path_length(source_id)`.
+ */
 [[deprecated("Use G.dijkstra_path_length(source) instead.")]]
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.dijkstra_path_length(source_id);
@@ -183,7 +248,15 @@ auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::No
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_path_length(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_path_length(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute one Dijkstra distance lookup.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same scalar distance returned by
+ * `G.dijkstra_path_length(source_id, target_id)`.
+ */
 [[deprecated("Use G.dijkstra_path_length(source, target) instead.")]]
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.dijkstra_path_length(source_id, target_id);
@@ -191,7 +264,16 @@ auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::No
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dijkstra_path_length(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.dijkstra_path_length(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute one weighted Dijkstra distance lookup.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same scalar distance returned by
+ * `G.dijkstra_path_length(source_id, target_id, weight)`.
+ */
 [[deprecated("Use G.dijkstra_path_length(source, target, weight) instead.")]]
 auto dijkstra_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.dijkstra_path_length(source_id, target_id, weight);
@@ -407,7 +489,14 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_path(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_path(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute the Bellman-Ford path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same node-path vector returned by `G.bellman_ford_path(...)`.
+ */
 [[deprecated("Use G.bellman_ford_path(source, target) instead.")]]
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.bellman_ford_path(source_id, target_id);
@@ -415,7 +504,14 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_shortest_paths(source).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_shortest_paths(source)`.
+ *
+ * @param G Graph wrapper on which to compute single-source Bellman-Ford results.
+ * @param source_id Source node ID.
+ * @return The same @ref SingleSourceShortestPathResult returned by
+ * `G.bellman_ford_shortest_paths(source_id)`.
+ */
 [[deprecated("Use G.bellman_ford_shortest_paths(source) instead.")]]
 auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.bellman_ford_shortest_paths(source_id);
@@ -423,7 +519,14 @@ auto bellman_ford_shortest_paths(const GraphWrapper& G, const typename GraphWrap
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_shortest_paths(source).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_shortest_paths(source)`.
+ *
+ * @param G Graph wrapper on which to compute single-source Bellman-Ford results.
+ * @param source_id Source node ID.
+ * @return The same @ref SingleSourceShortestPathResult returned by
+ * `G.bellman_ford_shortest_paths(source_id)`.
+ */
 [[deprecated("Use G.bellman_ford_shortest_paths(source) instead.")]]
 auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.bellman_ford_shortest_paths(source_id);
@@ -431,7 +534,15 @@ auto single_source_bellman_ford(const GraphWrapper& G, const typename GraphWrapp
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_path(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_path(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute the weighted Bellman-Ford path.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same node-path vector returned by `G.bellman_ford_path(...)`.
+ */
 [[deprecated("Use G.bellman_ford_path(source, target, weight) instead.")]]
 auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.bellman_ford_path(source_id, target_id, weight);
@@ -439,7 +550,15 @@ auto bellman_ford_path(const GraphWrapper& G, const typename GraphWrapper::NodeT
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_path_length(source, target).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_path_length(source, target)`.
+ *
+ * @param G Graph wrapper on which to compute a Bellman-Ford distance lookup.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @return The same scalar distance returned by
+ * `G.bellman_ford_path_length(source_id, target_id)`.
+ */
 [[deprecated("Use G.bellman_ford_path_length(source, target) instead.")]]
 auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id) {
     return G.bellman_ford_path_length(source_id, target_id);
@@ -447,7 +566,16 @@ auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for bellman_ford_path_length(source, target, weight).
+/**
+ * @brief Deprecated free-function alias for `G.bellman_ford_path_length(source, target, weight)`.
+ *
+ * @param G Graph wrapper on which to compute a weighted Bellman-Ford distance lookup.
+ * @param source_id Source node ID.
+ * @param target_id Target node ID.
+ * @param weight Weight selector string forwarded to the graph method.
+ * @return The same scalar distance returned by
+ * `G.bellman_ford_path_length(source_id, target_id, weight)`.
+ */
 [[deprecated("Use G.bellman_ford_path_length(source, target, weight) instead.")]]
 auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& weight) {
     return G.bellman_ford_path_length(source_id, target_id, weight);
@@ -455,7 +583,14 @@ auto bellman_ford_path_length(const GraphWrapper& G, const typename GraphWrapper
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for dag_shortest_paths(source).
+/**
+ * @brief Deprecated free-function alias for `G.dag_shortest_paths(source)`.
+ *
+ * @param G Graph wrapper on which to compute single-source DAG shortest paths.
+ * @param source_id Source node ID.
+ * @return The same @ref SingleSourceShortestPathResult returned by
+ * `G.dag_shortest_paths(source_id)`.
+ */
 [[deprecated("Use G.dag_shortest_paths(source) instead.")]]
 auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id) {
     return G.dag_shortest_paths(source_id);
@@ -463,7 +598,13 @@ auto dag_shortest_paths(const GraphWrapper& G, const typename GraphWrapper::Node
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for floyd_warshall_all_pairs_shortest_paths().
+/**
+ * @brief Deprecated free-function alias for `G.floyd_warshall_all_pairs_shortest_paths()`.
+ *
+ * @param G Graph wrapper on which to compute all-pairs shortest paths.
+ * @return The same nested all-pairs shortest-path map returned by
+ * `G.floyd_warshall_all_pairs_shortest_paths()`.
+ */
 [[deprecated("Use G.floyd_warshall_all_pairs_shortest_paths() instead.")]]
 auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
     return G.floyd_warshall_all_pairs_shortest_paths();
@@ -471,7 +612,13 @@ auto floyd_warshall_all_pairs_shortest_paths(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for floyd_warshall_all_pairs_shortest_paths_map().
+/**
+ * @brief Deprecated free-function alias for `G.floyd_warshall_all_pairs_shortest_paths_map()`.
+ *
+ * @param G Graph wrapper on which to compute the compact all-pairs map.
+ * @return The same indexed lookup-map result returned by
+ * `G.floyd_warshall_all_pairs_shortest_paths_map()`.
+ */
 [[deprecated("Use G.floyd_warshall_all_pairs_shortest_paths_map() instead.")]]
 auto floyd_warshall_all_pairs_shortest_paths_map(const GraphWrapper& G) {
     return G.floyd_warshall_all_pairs_shortest_paths_map();

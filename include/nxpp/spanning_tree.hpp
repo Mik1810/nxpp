@@ -14,7 +14,13 @@ namespace nxpp {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for kruskal_minimum_spanning_tree().
+/**
+ * @brief Deprecated free-function alias for `G.kruskal_minimum_spanning_tree()`.
+ *
+ * @param G Graph wrapper on which to compute the Kruskal MST edge list.
+ * @return The same MST edge list returned by
+ * `G.kruskal_minimum_spanning_tree()`.
+ */
 [[deprecated("Use G.kruskal_minimum_spanning_tree() instead.")]]
 auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
     return G.kruskal_minimum_spanning_tree();
@@ -22,7 +28,14 @@ auto kruskal_minimum_spanning_tree(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for prim_minimum_spanning_tree(root).
+/**
+ * @brief Deprecated free-function alias for `G.prim_minimum_spanning_tree(root)`.
+ *
+ * @param G Graph wrapper on which to compute the rooted Prim MST.
+ * @param root_id Root node ID used for the Prim traversal.
+ * @return The same node-to-parent MST map returned by
+ * `G.prim_minimum_spanning_tree(root_id)`.
+ */
 [[deprecated("Use G.prim_minimum_spanning_tree(root) instead.")]]
 auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     return G.prim_minimum_spanning_tree(root_id);
@@ -30,7 +43,12 @@ auto prim_minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapp
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for minimum_spanning_tree().
+/**
+ * @brief Deprecated free-function alias for `G.minimum_spanning_tree()`.
+ *
+ * @param G Graph wrapper on which to compute the default MST result.
+ * @return The same default MST result returned by `G.minimum_spanning_tree()`.
+ */
 [[deprecated("Use G.minimum_spanning_tree() instead.")]]
 auto minimum_spanning_tree(const GraphWrapper& G) {
     return G.minimum_spanning_tree();
@@ -38,7 +56,14 @@ auto minimum_spanning_tree(const GraphWrapper& G) {
 
 template <typename GraphWrapper>
 requires(GraphWrapper::has_builtin_edge_weight)
-/// @brief Deprecated free-function alias for minimum_spanning_tree(root).
+/**
+ * @brief Deprecated free-function alias for `G.minimum_spanning_tree(root)`.
+ *
+ * @param G Graph wrapper on which to compute the rooted MST result.
+ * @param root_id Root node ID used by the rooted MST wrapper.
+ * @return The same rooted MST result returned by
+ * `G.minimum_spanning_tree(root_id)`.
+ */
 [[deprecated("Use G.minimum_spanning_tree(root) instead.")]]
 auto minimum_spanning_tree(const GraphWrapper& G, const typename GraphWrapper::NodeType& root_id) {
     return G.minimum_spanning_tree(root_id);

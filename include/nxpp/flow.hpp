@@ -171,69 +171,161 @@ struct MinimumCutResult {
 };
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for edmonds_karp_maximum_flow(...).
+/**
+ * @brief Deprecated free-function alias for `G.edmonds_karp_maximum_flow(...)`.
+ *
+ * @param G Graph wrapper on which to compute the max-flow result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @return The same `MaximumFlowResult<NodeID>`-style result returned by
+ * `G.edmonds_karp_maximum_flow(...)`.
+ */
 [[deprecated("Use G.edmonds_karp_maximum_flow(source, target, capacity_attr) instead.")]]
 auto edmonds_karp_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.edmonds_karp_maximum_flow(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for push_relabel_maximum_flow_result(...).
+/**
+ * @brief Deprecated free-function alias for `G.push_relabel_maximum_flow_result(...)`.
+ *
+ * @param G Graph wrapper on which to compute the push-relabel flow result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @return The same `MaximumFlowResult<NodeID>`-style result returned by
+ * `G.push_relabel_maximum_flow_result(...)`.
+ */
 [[deprecated("Use G.push_relabel_maximum_flow_result(source, target, capacity_attr) instead.")]]
 auto push_relabel_maximum_flow_result(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.push_relabel_maximum_flow_result(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for maximum_flow(...).
+/**
+ * @brief Deprecated free-function alias for `G.maximum_flow(...)`.
+ *
+ * @param G Graph wrapper on which to compute the default max-flow result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @return The same `MaximumFlowResult<NodeID>`-style result returned by
+ * `G.maximum_flow(...)`.
+ */
 [[deprecated("Use G.maximum_flow(source, target, capacity_attr) instead.")]]
 auto maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.maximum_flow(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for minimum_cut(...).
+/**
+ * @brief Deprecated free-function alias for `G.minimum_cut(...)`.
+ *
+ * @param G Graph wrapper on which to compute the minimum cut.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @return The same `MinimumCutResult<NodeID>`-style result returned by
+ * `G.minimum_cut(...)`.
+ */
 [[deprecated("Use G.minimum_cut(source, target, capacity_attr) instead.")]]
 auto minimum_cut(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity") {
     return G.minimum_cut(source_id, target_id, capacity_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for max_flow_min_cost_cycle_canceling(...).
+/**
+ * @brief Deprecated free-function alias for `G.max_flow_min_cost_cycle_canceling(...)`.
+ *
+ * @param G Graph wrapper on which to compute min-cost max-flow.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same `MinCostMaxFlowResult<NodeID>`-style result returned by
+ * `G.max_flow_min_cost_cycle_canceling(...)`.
+ */
 [[deprecated("Use G.max_flow_min_cost_cycle_canceling(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost_cycle_canceling(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost_cycle_canceling(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for push_relabel_maximum_flow(...).
+/**
+ * @brief Deprecated free-function alias for `G.push_relabel_maximum_flow(...)`.
+ *
+ * @param G Graph wrapper on which to stage the push-relabel residual state.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same staged max-flow value returned by
+ * `G.push_relabel_maximum_flow(...)`.
+ */
 [[deprecated("Use G.push_relabel_maximum_flow(source, target, capacity_attr, weight_attr) instead.")]]
 long push_relabel_maximum_flow(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.push_relabel_maximum_flow(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for cycle_canceling(weight_attr).
+/**
+ * @brief Deprecated free-function alias for `G.cycle_canceling(weight_attr)`.
+ *
+ * @param G Graph wrapper whose staged min-cost-flow state should be finalized.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same min-cost value returned by `G.cycle_canceling(weight_attr)`.
+ */
 [[deprecated("Use G.cycle_canceling(weight_attr) instead.")]]
 auto cycle_canceling(const GraphWrapper& G, const std::string& weight_attr = "weight") {
     return G.cycle_canceling(weight_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for successive_shortest_path_nonnegative_weights(...).
+/**
+ * @brief Deprecated free-function alias for `G.successive_shortest_path_nonnegative_weights(...)`.
+ *
+ * @param G Graph wrapper on which to compute the SSP min-cost max-flow result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same `MinCostMaxFlowResult<NodeID>`-style result returned by
+ * `G.successive_shortest_path_nonnegative_weights(...)`.
+ */
 [[deprecated("Use G.successive_shortest_path_nonnegative_weights(source, target, capacity_attr, weight_attr) instead.")]]
 auto successive_shortest_path_nonnegative_weights(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.successive_shortest_path_nonnegative_weights(source_id, target_id, capacity_attr, weight_attr);
 }
 
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for max_flow_min_cost_successive_shortest_path(...).
+/**
+ * @brief Deprecated free-function alias for `G.max_flow_min_cost_successive_shortest_path(...)`.
+ *
+ * @param G Graph wrapper on which to compute the SSP alias result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same `MinCostMaxFlowResult<NodeID>`-style result returned by
+ * `G.max_flow_min_cost_successive_shortest_path(...)`.
+ */
 [[deprecated("Use G.max_flow_min_cost_successive_shortest_path(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost_successive_shortest_path(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost_successive_shortest_path(source_id, target_id, capacity_attr, weight_attr);
 }
 template <typename GraphWrapper>
-/// @brief Deprecated free-function alias for max_flow_min_cost(...).
+/**
+ * @brief Deprecated free-function alias for `G.max_flow_min_cost(...)`.
+ *
+ * @param G Graph wrapper on which to compute the default min-cost max-flow result.
+ * @param source_id Source node ID.
+ * @param target_id Sink node ID.
+ * @param capacity_attr Name of the numeric edge attribute used as capacity.
+ * @param weight_attr Name of the numeric edge attribute used as cost.
+ * @return The same `MinCostMaxFlowResult<NodeID>`-style result returned by
+ * `G.max_flow_min_cost(...)`.
+ */
 [[deprecated("Use G.max_flow_min_cost(source, target, capacity_attr, weight_attr) instead.")]]
 auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeType& source_id, const typename GraphWrapper::NodeType& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") {
     return G.max_flow_min_cost(source_id, target_id, capacity_attr, weight_attr);

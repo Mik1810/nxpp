@@ -3,6 +3,14 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.8]
+
+### Highlights
+
+- Closed `#53` by improving the generated-documentation coverage for deprecated aliases and thin namespace-scope wrappers.
+- The compatibility aliases across traversal, shortest paths, components, spanning-tree helpers, topological sort, and flow now carry short but real parameter/return documentation instead of appearing as mostly skeletal deprecation stubs in the generated site.
+- This keeps the migration surface easier to read in Doxygen search and symbol navigation without changing runtime behavior.
+
 ## [1.0.7]
 
 ### Highlights

@@ -212,6 +212,10 @@ The generated Doxygen reference now has explicit file-level coverage across the
 semantic headers under `include/nxpp/`, plus clearer alias/type coverage for
 the public graph presets.
 
+Deprecated aliases and thin namespace-scope wrappers now also carry more
+complete Doxygen text, so the generated reference is less likely to show bare
+one-line stubs without migration or return-shape context.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).
