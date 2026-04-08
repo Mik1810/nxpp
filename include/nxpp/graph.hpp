@@ -841,7 +841,8 @@ public:
      * @brief Attempts to read a typed edge attribute selected by endpoints.
      *
      * Returns `std::nullopt` instead of throwing when the edge, key, or type
-     * does not match.
+     * does not match. In multigraphs this remains an endpoint-based
+     * convenience lookup rather than a precise single-edge read path.
      */
     std::optional<T> try_get_edge_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
 
@@ -853,7 +854,8 @@ public:
      * @brief Reads an endpoint-selected edge attribute as a numeric value.
      *
      * The special key `"weight"` resolves to the built-in edge-weight property
-     * when the graph is weighted.
+     * when the graph is weighted. In multigraphs this remains an endpoint-based
+     * convenience lookup rather than a precise single-edge read path.
      */
     double get_edge_numeric_attr(const NodeID& u, const NodeID& v, const std::string& key) const;
     /// Reads an edge attribute as a numeric value selected by edge ID.

@@ -163,6 +163,8 @@ For multigraphs, the public rule is:
 - use `edge_id` APIs when one specific parallel edge matters
 - treat endpoint-based `(u, v)` APIs as convenience-oriented unless a function
   explicitly documents a stronger guarantee
+- note one especially important case: `remove_edge(u, v)` removes all parallel
+  edges between those endpoints; use `remove_edge(edge_id)` for one edge
 
 ## More Examples
 

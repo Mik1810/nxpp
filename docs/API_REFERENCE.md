@@ -245,6 +245,23 @@ Examples of the precise path:
 - `set_edge_attr(edge_id, ...)`
 - `set_edge_weight(edge_id, ...)`
 
+### Endpoint-based multigraph semantics
+
+The table below makes the endpoint-based multigraph behavior explicit.
+
+| API | Multigraph meaning | Precise alternative |
+|---|---|---|
+| `has_edge(u, v)` | Answers only whether at least one parallel edge exists between `u` and `v`. | `edge_ids(u, v)` / `has_edge_id(edge_id)` |
+| `add_edge(u, v, ...)` | Endpoint-based insertion/update convenience form. Not a stable handle to one later edge instance. | `add_edge_with_id(...)` |
+| `add_edge(u, v, attrs...)` | Endpoint-based convenience form. Do not treat as precise single-parallel-edge attribute targeting. | `add_edge_with_id(...)` then `set_edge_attr(edge_id, ...)` |
+| `remove_edge(u, v)` | Removes all parallel edges between `u` and `v`. | `remove_edge(edge_id)` |
+| `get_edge_weight(u, v)` | Reads one edge selected through endpoint-based resolution. Not a stable single-edge lookup. | `get_edge_weight(edge_id)` |
+| `get_edge_attr<T>(u, v, key)` | Reads one endpoint-resolved edge attribute. Not a stable single-edge lookup. | `get_edge_attr<T>(edge_id, key)` |
+| `try_get_edge_attr<T>(u, v, key)` | Same endpoint-based ambiguity as `get_edge_attr<T>(u, v, key)`, but with optional-return behavior. | `try_get_edge_attr<T>(edge_id, key)` |
+| `get_edge_numeric_attr(u, v, key)` | Same endpoint-based ambiguity as the other edge lookup helpers. | `get_edge_numeric_attr(edge_id, key)` |
+| `G[u][v]` | Proxy convenience form only. Do not treat as a stable handle to one parallel edge. | `edge_ids(u, v)` then `edge_id` APIs |
+| `G[u][v]["key"]` | Proxy convenience form only. Not precise per-parallel-edge targeting. | `set_edge_attr(edge_id, key, value)` / `get_edge_attr<T>(edge_id, key)` |
+
 ## Attribute API reference
 
 Node and edge attributes are stored outside the BGL graph using `std::any` in

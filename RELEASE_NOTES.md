@@ -3,7 +3,7 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [1.0.2]
+## [1.0.3]
 
 ### Highlights
 
@@ -66,6 +66,13 @@ version entries in `CHANGELOG.md`.
   - `edge_id` is the precise path when one concrete parallel edge matters
   - endpoint-based `(u, v)` edge APIs remain convenience-oriented in multigraph mode unless a function documents a stronger guarantee
   - proxy access such as `G[u][v]` and endpoint-based edge-attribute reads should not be treated as precise single-parallel-edge handles
+- Closed `#41` by making the endpoint-based multigraph semantics explicit API by API.
+- The docs now include a strict table that maps each ambiguous endpoint-based multigraph API to:
+  - its actual meaning in multigraph mode
+  - the precise `edge_id`-based alternative to prefer when one concrete parallel edge matters
+- This also makes one especially easy-to-misread rule more visible:
+  - `remove_edge(u, v)` removes all parallel edges between those endpoints
+  - `remove_edge(edge_id)` is the precise single-edge removal path
 
 ### Notes
 
