@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.13] - 2026-04-08
+
+- Closed `#56` by refining the Doxygen / GitHub Pages presentation layer: the generated site now uses the tree/sidebar navigation again, the local theme styles tables, code blocks, wrapper pages, and the landing page more deliberately, and the Doxygen main page now gives clearer reader-path guidance for module browsing, wrapper lookup, and guide-first navigation.
+
 ## [1.0.12] - 2026-04-08
 
 - Closed `#58` by adding generated-doc-friendly examples for the richer public result wrappers: the declaration pages for `SingleSourceShortestPathResult`, `MaximumFlowResult`, `MinCostMaxFlowResult`, and `MinimumCutResult` now carry short embedded examples, the curated API guide now points readers directly at those generated struct pages, and the landing/overview docs now note that those result-wrapper pages are now useful example entry points as well as shape references.

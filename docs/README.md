@@ -117,6 +117,10 @@ Current status:
 - the narrative guides and the generated reference now also cross-link more
   directly, so readers can move more easily between policy/guide material and
   the exact declaration pages for the same module area
+- the Doxygen / GitHub Pages presentation is now also more deliberate: the
+  published site enables the tree/sidebar navigation again and uses the local
+  theme more assertively for tables, code blocks, wrapper pages, and the main
+  landing page
 
 Packaging / distribution strategy:
 

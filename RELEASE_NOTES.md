@@ -3,6 +3,23 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.13]
+
+### Highlights
+
+- Closed `#56` by refining the Doxygen / GitHub Pages presentation layer.
+- The published site now restores the tree/sidebar navigation, which makes the
+  semantic module structure easier to browse without relying only on flat page
+  links.
+- The local theme now leans more deliberately into a formal reference look for:
+  - landing-page navigation blocks
+  - module/result-wrapper discovery
+  - tables
+  - code fragments
+  - declaration pages
+- This pass stayed presentation-focused: it improves how the generated docs are
+  read and navigated, not the underlying API content model.
+
 ## [1.0.12]
 
 ### Highlights

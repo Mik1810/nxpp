@@ -27,6 +27,21 @@ If you are new to the generated reference, the fastest path is usually:
 3. open the matching companion guide if you need curated tables or policy notes
 4. return to the declaration pages for exact signatures and result shapes
 
+## Reader paths
+
+- learning the library for the first time:
+  start with [`nxpp::Graph`](classnxpp_1_1Graph.html), then the
+  [`Graph Core`](group__nxpp__graph__core.html) module
+- looking up one algorithm family:
+  jump straight to a semantic module such as
+  [`Shortest Paths`](group__nxpp__shortest__paths.html),
+  [`Flow and Cut`](group__nxpp__flow.html), or
+  [`Centrality`](group__nxpp__centrality.html)
+- looking up one result wrapper:
+  use the wrapper links below, which now include short embedded usage examples
+- looking for policy or rationale:
+  leave the generated pages and open the companion markdown guides
+
 ## Use this site for
 
 - public class and function signatures
@@ -105,6 +120,13 @@ example pages inside the generated site.
 - use the class/struct pages when you want the exact shape of a result wrapper
 - use the companion markdown guides when you need policy, caveats, or curated
   examples that would be too long for declaration comments
+
+## Published-site note
+
+The GitHub Pages version of this site is meant to feel like a small formal
+reference portal, not only a raw symbol dump. The theme and layout now put more
+weight on module navigation, wrapper discovery, and readable declaration pages
+while still keeping the public headers as the source of truth.
 
 ## Generated-reference scope
 

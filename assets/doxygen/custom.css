@@ -77,6 +77,15 @@ body {
   font-family: "Georgia", "Times New Roman", serif;
 }
 
+body,
+table,
+div,
+p,
+li {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 a,
 a.el,
 a.qindex,
@@ -168,6 +177,14 @@ a.qindexHL:hover {
   background: #f8f3ea;
 }
 
+#side-nav {
+  border-right: 1px solid #e4ddd0;
+}
+
+#nav-tree {
+  font-size: 0.95rem;
+}
+
 #nav-tree .selected,
 #nav-tree .selected a {
   background: #dbe5e8;
@@ -180,6 +197,14 @@ a.qindexHL:hover {
 
 #nav-tree .label a:hover {
   color: #0b5c78;
+}
+
+#nav-tree .children_ul {
+  margin-left: 0.25rem;
+}
+
+#nav-tree .item {
+  margin: 0.05rem 0;
 }
 
 #splitbar {
@@ -207,6 +232,14 @@ div.contents {
   color: #22313a;
   line-height: 1.65;
   padding-bottom: 2.5rem;
+}
+
+.contents a {
+  text-underline-offset: 0.14em;
+}
+
+.contents a:hover {
+  text-decoration-thickness: 2px;
 }
 
 div.headertitle {
@@ -260,6 +293,19 @@ div.title {
   max-width: 48rem;
 }
 
+.contents .textblock > ul,
+.contents .textblock > ol {
+  background: #fcfaf5;
+  border: 1px solid #e5ddd0;
+  border-radius: 12px;
+  padding: 1rem 1.2rem 1rem 2.1rem;
+}
+
+.contents .textblock > ul > li:last-child,
+.contents .textblock > ol > li:last-child {
+  margin-bottom: 0;
+}
+
 .contents .textblock ul {
   margin-bottom: 1.25rem;
   padding-left: 1.4rem;
@@ -278,6 +324,11 @@ table.memberdecls,
   border-spacing: 0;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(20, 28, 36, 0.04);
+}
+
+.doxtable {
+  margin-top: 1rem;
+  margin-bottom: 1.4rem;
 }
 
 table.memberdecls td,
@@ -351,6 +402,10 @@ dl.section dt {
 .memdoc,
 dl.section dd {
   background: #fffdf8;
+}
+
+.memdoc {
+  line-height: 1.7;
 }
 
 .memtitle {
@@ -508,12 +563,54 @@ pre.fragment {
   border: 1px solid #2a3d48;
   border-radius: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  margin: 1rem 0 1.3rem;
+  padding: 0.35rem 0;
 }
 
 div.fragment,
 pre.fragment,
 div.line {
   color: #eef3f5;
+}
+
+pre.fragment {
+  overflow-x: auto;
+}
+
+.fragment .line {
+  line-height: 1.5;
+}
+
+code,
+tt {
+  background: #f3eee4;
+  border: 1px solid #e2d8c8;
+  border-radius: 6px;
+  color: #22313a;
+  padding: 0.08rem 0.32rem;
+}
+
+dl.section.note,
+dl.section.warning,
+dl.section.see,
+dl.section.return {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+dl.section.note dt,
+dl.section.warning dt,
+dl.section.see dt,
+dl.section.return dt {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.contents .textblock blockquote {
+  border-left: 4px solid #b8c9cf;
+  border-radius: 0 10px 10px 0;
+  margin: 1rem 0 1.2rem;
+  padding: 0.75rem 1rem;
 }
 
 .paramname,

@@ -242,6 +242,11 @@ The richer generated result-wrapper pages now also carry short embedded usage
 examples for the main shortest-path and flow result types, so the published
 reference is more useful even when readers land directly on those struct pages.
 
+The GitHub Pages presentation has now also been refined a bit further on the
+Doxygen side: the published site uses a stronger navigation-oriented layout and
+slightly more deliberate styling so the module groups, wrapper pages, tables,
+and code examples read more like a small reference portal than a stock dump.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).
