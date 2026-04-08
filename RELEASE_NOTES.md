@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.10]
+
+### Highlights
+
+- Closed `#55` by making the Doxygen main page a more useful landing page for GitHub Pages readers.
+- The generated landing page now gives a clearer start-here flow:
+  - begin with `nxpp::Graph`
+  - jump into a semantic module such as shortest paths or flow
+  - use the companion guides when policy or curated explanation matters
+- It now also highlights the most common result wrappers directly, so readers can discover `SingleSourceShortestPathResult`, `MaximumFlowResult`, `MinCostMaxFlowResult`, and `MinimumCutResult` from the landing page instead of only through search or symbol indexes.
+- The goal of this pass was not visual restyling; it was to make the generated site feel like a real API front door rather than a thin index page.
+
 ## [1.0.9]
 
 ### Highlights

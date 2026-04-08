@@ -220,6 +220,11 @@ The generated reference is now also organized around real library modules such
 as graph core, traversal, shortest paths, flow, centrality, and generators,
 instead of relying only on flat file/class navigation.
 
+The generated Doxygen landing page is also now stronger as an entry point for
+GitHub Pages: it points readers toward the main wrapper type, the most common
+result wrappers, the semantic module groups, and the companion markdown guides
+instead of behaving like a thin placeholder page.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

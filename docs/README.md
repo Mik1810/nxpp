@@ -100,6 +100,10 @@ Current status:
   for the public graph alias/type surface
 - the generated reference is now also grouped around the real semantic modules
   of the library instead of relying only on file and symbol indexes
+- the generated landing page now also works more clearly as a real entry point
+  for GitHub Pages readers, with start-here guidance, result-wrapper links,
+  module navigation, and stronger connections back to the companion markdown
+  guides
 
 Packaging / distribution strategy:
 

@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.10] - 2026-04-08
+
+- Closed `#55` by turning the Doxygen main page into a stronger GitHub Pages landing page: `docs/DOXYGEN_MAINPAGE.md` now provides start-here guidance, common entry paths, result-wrapper links, practical module/file/class navigation cues, and clearer links back to the companion markdown guides instead of behaving like a thin reference placeholder.
+
 ## [1.0.9] - 2026-04-08
 
 - Closed `#54` by organizing the generated docs around the real library modules: the semantic headers now define lightweight Doxygen groups for graph core, attributes, multigraph helpers, traversal, shortest paths, components, spanning/order helpers, flow, centrality, generators, and 2-SAT, and the generated main page now links directly to those module groups instead of relying only on flat file/class navigation.
