@@ -163,12 +163,18 @@ This assumes:
 - you have a usable default Conan profile
 - Boost can be resolved by Conan in the configured remotes/profile setup
 
-vcpkg support now exists as a local overlay-port path in the repository:
+vcpkg support now exists as a repository-hosted overlay-port path in the
+repository:
 
 - `packaging/vcpkg/ports/nxpp/portfile.cmake`
 - `packaging/vcpkg/ports/nxpp/vcpkg.json`
-- the current intent is local overlay-port validation first, not immediate public-registry publication
+- the supported path today is this repository-hosted overlay port
 - the overlay install path has been validated locally with the command below
+- a small external CMake consumer using the vcpkg toolchain and
+  `find_package(nxpp CONFIG REQUIRED)` has also been validated locally
+- a curated-registry submission was attempted and closed under vcpkg's current
+  project-maturity policy, so public curated-registry publication is deferred
+  for now
 
 Typical local overlay-port install shape:
 

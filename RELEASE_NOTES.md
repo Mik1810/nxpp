@@ -34,17 +34,18 @@ version entries in `CHANGELOG.md`.
   - declares Boost as a Conan dependency in header-only mode
   - is intended first for local validation with `conan create .` or an explicit C++20 host-profile override
   - does not yet introduce CI publication or remote package-upload workflow
-- Closed `#63` by adding a first local vcpkg overlay-port path.
-- The new local vcpkg preparation includes:
+- Closed `#63` by delivering a supported repository-hosted vcpkg overlay-port path.
+- The vcpkg work now includes:
   - `packaging/vcpkg/ports/nxpp/portfile.cmake`
   - `packaging/vcpkg/ports/nxpp/vcpkg.json`
   - docs for the intended local validation command shape:
     - `vcpkg install nxpp --overlay-ports=/path/to/nxpp/packaging/vcpkg/ports`
-- This is intentionally framed as a local/overlay preparation step first, not yet as a public curated-registry submission.
-- Follow-up validation tightened that local port further:
+- Follow-up validation and submission work then tightened that port further:
   - the port now removes the empty `lib/` and `debug/` directories that vcpkg warns about in post-build checks
   - the overlay install path was validated locally
   - a small external CMake consumer using the vcpkg toolchain and `find_package(nxpp CONFIG REQUIRED)` was also validated locally
+  - a curated-registry submission was opened upstream and then closed under vcpkg's current minimum project-maturity policy
+- The practical outcome is that `nxpp` now supports a real tested vcpkg overlay path in-repo, while curated-registry publication remains a future follow-up once the project is considered mature enough.
 
 ### Notes
 

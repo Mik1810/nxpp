@@ -112,11 +112,13 @@ The repository now also includes a first local Conan recipe in
 [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md) for the current scope and how
 to test it locally in an environment where Conan is installed.
 
-The repository now also includes a first local vcpkg overlay port under
-[packaging/vcpkg/](packaging/vcpkg). It is intended as a local/overlay
-integration path first, before any public-registry submission story. The
-overlay port has now also been validated locally with `vcpkg install nxpp
---overlay-ports=...`.
+The repository now also includes a supported repository-hosted vcpkg overlay
+port under [packaging/vcpkg/](packaging/vcpkg). That overlay path has been
+validated locally with `vcpkg install nxpp --overlay-ports=...` plus a small
+external CMake consumer using `find_package(nxpp CONFIG REQUIRED)`. A curated
+registry submission was also attempted in `microsoft/vcpkg`, but it was closed
+under their current project-maturity policy, so the supported vcpkg path today
+remains the repository-hosted overlay port.
 
 ## Features
 
