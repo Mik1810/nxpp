@@ -1,4 +1,5 @@
 .vscode/
+.claude/
 .tmp/
 main
 ./main

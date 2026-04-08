@@ -56,6 +56,7 @@ jobs:
               bellman_ford) echo "Single-source shortest paths with Bellman-Ford" ;;
               bfs) echo "Breadth-first search traversal events" ;;
               cc) echo "Connected components in an undirected graph" ;;
+              centrality) echo "Degree, PageRank, and betweenness centrality on one graph" ;;
               dag_sp) echo "Single-source shortest paths in a DAG" ;;
               dfs) echo "Depth-first search traversal events" ;;
               dijkstra) echo "Single-source shortest paths with Dijkstra" ;;
