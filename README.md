@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.0`
+Current release: `v1.0.19`
 
 nxpp is a modern C++20 graph library that gives you a NetworkX-inspired API on top of Boost Graph Library.
 It helps you write graph code faster with less BGL boilerplate while keeping Boost performance and compatibility.
@@ -128,14 +128,18 @@ The packaging and distribution strategy is now explicit:
 
 1. keep the current direct-source and vendored-CMake paths working well
 2. treat the installable/exported CMake package as the main distribution foundation
-3. add Conan support after the CMake package story is stable
-4. evaluate vcpkg after that
+3. keep Conan support active (local recipe and ConanCenter submission track)
+4. keep the repository-hosted vcpkg overlay path active
 5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
 
 The repository now also includes a first local Conan recipe in
 [conanfile.py](conanfile.py) for header-only packaging work. See
 [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md) for the current scope and how
 to test it locally in an environment where Conan is installed.
+
+The repository also carries a ConanCenter-style submission recipe under
+[packaging/conan-center-index/](packaging/conan-center-index), currently used
+for the upstream ConanCenter submission flow.
 
 The repository now also includes a supported repository-hosted vcpkg overlay
 port under [packaging/vcpkg/](packaging/vcpkg). That overlay path has been

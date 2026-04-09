@@ -162,8 +162,8 @@ Packaging / distribution strategy:
 - the next packaging step is not Debian packaging and not package-manager fan-out
 - the preferred order is:
   1. keep the CMake install / export / package-config path as the foundation
-  2. Conan support
-  3. vcpkg evaluation and support
+  2. keep Conan support active (including the ConanCenter submission track)
+  3. keep the repository-hosted vcpkg overlay support path active
   4. only later, if still worth the maintenance cost, Debian / Ubuntu packaging
 - package-manager distribution should follow the installed CMake package story,
   not bypass it
