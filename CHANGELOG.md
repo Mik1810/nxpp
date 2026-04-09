@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.19] - 2026-04-09
+
+- Closed `#51` by strengthening the dedicated single-header CI: `single-header.yml` now runs the real standalone-header test suite after rebuilding `dist/nxpp.hpp`, instead of stopping at a smoke check, while still keeping the smoke program and artifact upload path.
+
 ## [1.0.18] - 2026-04-09
 
 - Closed `#50` by aligning the documented single-header testing story with the CI that actually exists: the testing guide now distinguishes clearly between the dedicated `single-header.yml` smoke-check workflow, the deeper local `run_single_header_tests.sh` path, and the release workflow that rebuilds and runs the standalone-header suite before publishing the release asset.

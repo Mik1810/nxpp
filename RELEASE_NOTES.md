@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.19]
+
+### Highlights
+
+- Closed `#51` by strengthening the dedicated single-header CI itself.
+- `single-header.yml` now:
+  - rebuilds `dist/nxpp.hpp`
+  - runs `bash scripts/unix/run_single_header_tests.sh`
+  - still runs the small smoke program
+  - still uploads the generated standalone header artifact
+- This means the dedicated single-header workflow no longer stops at a smoke check; it now runs the real standalone-header suite as well.
+
 ## [1.0.18]
 
 ### Highlights

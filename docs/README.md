@@ -136,6 +136,9 @@ Current status:
   single-header smoke-check workflow, the deeper local standalone-header suite,
   and the release workflow path that validates the release asset before
   publication
+- the dedicated single-header workflow now also runs the standalone-header
+  suite instead of stopping at a smoke test, so the public testing story and
+  the dedicated CI path are now aligned
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

@@ -140,18 +140,13 @@ Purpose:
 - validate the actual release artifact more deeply than a smoke check when you
   intentionally run the standalone-header suite
 
-What the dedicated CI workflow currently does:
+What the dedicated CI workflow now does:
 
 - [`single-header.yml`](../.github/workflows/single-header.yml) rebuilds
   `dist/nxpp.hpp`
+- runs `bash scripts/unix/run_single_header_tests.sh`
 - compiles and runs a small smoke program against that generated header
 - uploads the generated header artifact
-
-What it does **not** currently do:
-
-- it does not run `bash scripts/unix/run_single_header_tests.sh`
-- it does not currently recompile the full assertion-based suite in that
-  dedicated workflow
 
 Where the deeper standalone-header suite does run:
 
@@ -219,7 +214,7 @@ What it is not:
 | Situation | Command | Why use it |
 |---|---|---|
 | Normal development change | `bash scripts/unix/run_tests.sh` | Fast default regression path for day-to-day work |
-| Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Runs the deeper local standalone-header suite, beyond the smoke check in `single-header.yml` |
+| Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Matches the deeper standalone-header suite now also used by `single-header.yml` and `release.yml` |
 | Extra confidence against raw Boost on larger graphs | `bash scripts/unix/run_large_graph_compare.sh` | Runs the opt-in large deterministic wrapper-vs-Boost comparison path |
 | Snippet/example parity check | `bash scripts/unix/test_single_snippet.sh snippet/bfs` | Checks one curated snippet folder against its companion references |
 
@@ -253,7 +248,7 @@ bash scripts/unix/test_single_snippet.sh snippet/bfs
 The safest way to read the testing story is:
 
 - `scripts/unix/run_tests.sh` is the default fast regression path
-- `single-header.yml` currently provides the dedicated smoke-check CI for the generated standalone header
+- `single-header.yml` now provides a dedicated standalone-header workflow that runs both the standalone-header suite and a smoke test
 - `scripts/unix/run_single_header_tests.sh` is the deeper local standalone-header verification path
 - `release.yml` is the path that currently rebuilds the standalone header and runs the standalone-header suite before publishing the release asset
 - `scripts/unix/run_large_graph_compare.sh` adds scale-oriented cross-checks against raw Boost
