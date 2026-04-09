@@ -2,6 +2,15 @@
 
 Generated: `2026-03-30 00:08:59 UTC`
 
+## Harness Status (Issue #35)
+
+- Scope is defined and focused on snippet compile-time overhead tracking.
+- In-repo benchmark runner exists: `scripts/run_benchmark_report.py`.
+- Output structure exists and is stable: serial CSV, parallel CSV, markdown report, and SVG plots under `benchmark/imgs/`.
+- Benchmark runs remain explicitly user-driven and do not outrank correctness, tests, and API/documentation work.
+- Suggested invocation shape:
+	- `python3 scripts/run_benchmark_report.py --all --iterations 3 --opt-level O3 --jobs 4`
+
 ## Run Configuration
 
 - target: `all`
