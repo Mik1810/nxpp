@@ -12,6 +12,15 @@ That means:
 - you can consume `nxpp` from the modular `include/` tree, from the installed
   CMake package, or from the tested single-header release asset
 
+Before choosing an include form, distinguish these cases clearly:
+
+- **repository-local example inside a clone of `nxpp`**:
+  `#include "include/nxpp.hpp"`
+- **external consumer pointed at the modular include tree**:
+  `#include <nxpp.hpp>` or `#include <nxpp/...>`
+- **external single-header consumer using a release asset**:
+  `#include <nxpp.hpp>`
+
 Generated-reference companions:
 
 - umbrella header page:
@@ -20,6 +29,23 @@ Generated-reference companions:
   https://mik1810.github.io/nxpp/group__nxpp__graph__core.html
 - landing page:
   https://mik1810.github.io/nxpp/
+
+## Option 0: repository-local examples inside a clone
+
+Some README examples are intentionally written for the repository root and use:
+
+```cpp
+#include "include/nxpp.hpp"
+```
+
+That form is appropriate when:
+
+- you are compiling directly inside a local clone of this repository
+- you are using `-I.` from the repository root
+
+It is **not** the normal external-consumer include form.
+
+For external consumption, prefer the options below.
 
 ## Option 1: modular headers from the repo or a vendored checkout
 
@@ -59,6 +85,8 @@ g++ -std=c++20 -I/path/to/nxpp/include app.cpp -o app
 
 If Boost is not installed in a standard compiler search path, add the
 appropriate include directory for your Boost installation too.
+
+This is the normal external modular-header path.
 
 ## Option 2: installed CMake package
 
@@ -134,10 +162,14 @@ For external users:
 
 - prefer the tested `nxpp.hpp` asset attached to a GitHub release
 - do not treat a locally edited `dist/nxpp.hpp` as the source of truth
+- do not confuse repo-local `#include "include/nxpp.hpp"` examples with the
+  normal external single-header path; external consumers should include the
+  shipped file as `<nxpp.hpp>`
 
 ## Which option to choose
 
-- use repository-local headers when you are compiling directly inside a clone of the repo
+- use repository-local `#include "include/nxpp.hpp"` only when you are compiling directly inside a clone of the repo
+- use modular external includes such as `#include <nxpp.hpp>` when your project points at the `include/` tree
 - use vendored `add_subdirectory(...)` when `nxpp` is checked into your source tree as a dependency
 - use the installed package when you want a normal `find_package(nxpp CONFIG REQUIRED)` workflow
 - use the release single-header asset when you want the narrowest possible single-file integration path

@@ -124,6 +124,10 @@ Current status:
   they are no longer confined to low-level configuration notes, and the docs
   now state more clearly that ordered IDs are required while hash support is
   not a core wrapper requirement
+- `docs/EXTERNAL_USAGE.md` is now the main source of truth for include-path and
+  consumption-mode guidance, including the distinction between repository-local
+  examples, external modular-header usage, installed-package usage, and the
+  single-header release asset
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

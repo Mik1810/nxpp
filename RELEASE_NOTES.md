@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.16]
+
+### Highlights
+
+- Closed `#48` by tightening the include-path story and the external-consumption guidance.
+- The docs now distinguish more clearly between:
+  - repository-local examples run from a clone of `nxpp`
+  - modular external consumption with `#include <nxpp.hpp>`
+  - vendored CMake usage
+  - installed-package CMake usage
+  - the tested single-header release asset
+- This removes the old mixed signal where a repo-local include form such as `#include "include/nxpp.hpp"` could look like the normal external-consumer path even though it is only appropriate inside a local clone or repository-root example.
+
 ## [1.0.15]
 
 ### Highlights

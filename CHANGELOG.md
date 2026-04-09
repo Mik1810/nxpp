@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.16] - 2026-04-09
+
+- Closed `#48` by making the include-path and external-consumption story more explicit: the README now separates repository-local examples from normal external includes, the external-usage guide now distinguishes more clearly between clone-local, vendored, installed-package, and single-header paths, and the docs index now points to `docs/EXTERNAL_USAGE.md` as the source of truth for include-path / consumption-mode guidance.
+
 ## [1.0.15] - 2026-04-09
 
 - Closed `#47` by making the `NodeID` requirements much more visible in the public docs: the README now explains the practical constraints up front, the API companion guide now states explicitly that hash support is not a core requirement, the numeric-generator-only `std::size_t` construction rule is separated more clearly from the general `Graph` rule, and the main `Graph` declaration docs now call out the same assumptions directly.

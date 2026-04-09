@@ -51,7 +51,7 @@ Distance A -> C: 3.0
 Path A -> C: A B C
 ```
 
-## Installation
+## Installation / Consumption Modes
 
 nxpp is header-only.
 
@@ -61,15 +61,31 @@ Requirements:
 
 Use nxpp in one of these ways:
 
-1. Repository-local headers
+1. Repository-local examples inside a clone of `nxpp`
 
 ```cpp
 #include "include/nxpp.hpp"
 ```
 
-Use this when you are compiling directly inside a clone of the repository.
+Use this only when you are compiling directly inside a clone of the repository,
+for example from the repository root with `-I.` as in the quick-start example.
 
-2. Vendored CMake subdirectory
+2. External modular-header consumption
+
+```cpp
+#include <nxpp.hpp>
+```
+
+or narrower semantic headers such as:
+
+```cpp
+#include <nxpp/graph.hpp>
+#include <nxpp/shortest_paths.hpp>
+```
+
+Use this when your project points its include path at `nxpp/include`.
+
+3. Vendored CMake subdirectory
 
 ```cmake
 add_subdirectory(nxpp)
@@ -78,7 +94,7 @@ target_link_libraries(your_target PRIVATE nxpp::nxpp)
 
 Use this when `nxpp` lives inside your source tree as a vendored dependency.
 
-3. Installed CMake package
+4. Installed CMake package
 
 ```cmake
 find_package(nxpp CONFIG REQUIRED)
@@ -88,8 +104,17 @@ target_link_libraries(your_target PRIVATE nxpp::nxpp)
 Use this when `nxpp` has been installed into a prefix and you want a normal
 `find_package(...)` workflow.
 
-For a fuller external-consumer guide, including Boost expectations and a
-minimal installed-package example, see [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
+5. Tested single-header release asset
+
+```cpp
+#include <nxpp.hpp>
+```
+
+Use this when you want the narrowest single-file integration path from a
+GitHub release asset rather than the modular `include/` tree.
+
+For the full source of truth on include paths, header forms, and external
+consumption modes, see [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 
 ## Packaging Status
 
