@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.15]
+
+### Highlights
+
+- Closed `#47` by making the `NodeID` requirements much easier to discover from the normal public documentation path.
+- The docs now state the practical rule more directly:
+  - `NodeID` must be copyable
+  - `NodeID` must support equality comparison
+  - `NodeID` must be orderable through `std::less`
+- The docs now also state more clearly what is *not* required for the core graph wrapper:
+  - no public hash-table requirement
+  - no global `NodeID(std::size_t)` requirement unless the user is calling the numeric generators that synthesize IDs `0..n-1`
+- This stayed documentation-only; the compile-time constraints were already present in the implementation.
+
 ## [1.0.14]
 
 ### Highlights

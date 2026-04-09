@@ -120,6 +120,10 @@ Current status:
   the exact declaration pages for the same module area
 - the implicit-creation rule is now treated as one of the high-value public
   policy topics rather than a buried proxy/accessor detail
+- the `NodeID` requirements are now also treated as a high-value public topic:
+  they are no longer confined to low-level configuration notes, and the docs
+  now state more clearly that ordered IDs are required while hash support is
+  not a core wrapper requirement
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

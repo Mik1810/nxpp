@@ -158,6 +158,32 @@ Distributed-package versioning follows the repository release version directly:
 - Graph generators: complete graph, path graph, Erdos-Renyi graph
 - Precise multigraph edge handling through `edge_id` APIs
 
+## `NodeID` Requirements
+
+For the main `nxpp::Graph<NodeID, ...>` template, `NodeID` currently needs to be:
+
+- copy-constructible
+- equality comparable
+- orderable through `std::less`
+
+That means common types such as `std::string`, `int`, and many ordered custom
+types work naturally.
+
+Important clarifications:
+
+- the core wrapper does **not** require a public hash-table interface
+- the core wrapper does **not** require `NodeID` to be constructible from
+  `std::size_t`
+
+That extra `std::size_t` rule applies only to the numeric graph generators in
+[`nxpp/generators.hpp`](include/nxpp/generators.hpp), because those helpers
+synthesize IDs `0..n-1` themselves.
+
+For the fuller policy wording, see:
+
+- [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+- [docs/GRAPH_CONFIGURATION.md](docs/GRAPH_CONFIGURATION.md)
+
 ## Implicit Creation Policy
 
 `nxpp` follows a simple public rule:

@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.15] - 2026-04-09
+
+- Closed `#47` by making the `NodeID` requirements much more visible in the public docs: the README now explains the practical constraints up front, the API companion guide now states explicitly that hash support is not a core requirement, the numeric-generator-only `std::size_t` construction rule is separated more clearly from the general `Graph` rule, and the main `Graph` declaration docs now call out the same assumptions directly.
+
 ## [1.0.14] - 2026-04-09
 
 - Closed `#46` by clarifying the public policy for implicit node creation: the README, docs index, API architecture guide, and core proxy comments now state much more directly that write-style graph access may create missing nodes or edges, while read-style accessors and algorithmic reads do not create implicitly.

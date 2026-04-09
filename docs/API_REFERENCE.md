@@ -143,6 +143,21 @@ For existing-graph operations, the canonical public form remains `G.foo(...)`.
 Those requirements come from the wrapper's ordered translation maps, ordered
 result wrappers, and shortest-path predecessor/path reconstruction helpers.
 
+Practical clarifications:
+
+- the core wrapper does **not** require `NodeID` to be hashable
+- the core wrapper does **not** require `NodeID` to provide a public
+  `std::hash<NodeID>` specialization
+- ordered-only node types are intentionally supported as long as they satisfy
+  the rules above
+
+Examples that fit the current public contract include:
+
+- `std::string`
+- `int`
+- enums with the normal comparison operators
+- custom types that implement equality plus `std::less`-compatible ordering
+
 The free numeric graph generators in `nxpp/generators.hpp` have one additional
 requirement:
 

@@ -262,6 +262,11 @@ template <
  * edge weights, and the underlying Boost selectors. Public methods operate on
  * stable wrapper-side node IDs instead of raw Boost descriptors.
  *
+ * `NodeID` is expected to be copy-constructible, equality comparable, and
+ * orderable through `std::less`. The core wrapper intentionally relies on
+ * ordered translation maps and ordered result containers rather than exposing a
+ * public hash-table requirement.
+ *
  * @ingroup nxpp_graph_core
  */
 class Graph {
