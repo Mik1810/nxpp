@@ -183,6 +183,25 @@ Distributed-package versioning follows the repository release version directly:
 - Graph generators: complete graph, path graph, Erdos-Renyi graph
 - Precise multigraph edge handling through `edge_id` APIs
 
+## `"weight"` Semantics
+
+In the current public API, the string `"weight"` has a **narrow** meaning:
+
+- it refers to the built-in edge-weight property
+- it does **not** mean “use any arbitrary custom edge attribute as the weight”
+
+This matters in weighted shortest-path and min-cost-flow calls such as:
+
+- `shortest_path(..., "weight")`
+- `dijkstra_path(..., "weight")`
+- `bellman_ford_path(..., "weight")`
+- `max_flow_min_cost(..., capacity_attr, "weight")`
+
+If you are reading or mutating arbitrary custom edge attributes, use the
+attribute APIs directly. If you are asking the weighted algorithm layer for
+cost/weight semantics, `"weight"` still means the wrapper's built-in edge
+weight channel.
+
 ## `NodeID` Requirements
 
 For the main `nxpp::Graph<NodeID, ...>` template, `NodeID` currently needs to be:

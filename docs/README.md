@@ -124,6 +124,10 @@ Current status:
   they are no longer confined to low-level configuration notes, and the docs
   now state more clearly that ordered IDs are required while hash support is
   not a core wrapper requirement
+- the narrow built-in `"weight"` semantics are now also treated as a high-value
+  public topic: the docs now state more prominently that `"weight"` refers to
+  the built-in edge-weight property rather than a generic custom attribute-key
+  selection mechanism
 - `docs/EXTERNAL_USAGE.md` is now the main source of truth for include-path and
   consumption-mode guidance, including the distinction between repository-local
   examples, external modular-header usage, installed-package usage, and the

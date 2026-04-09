@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.17]
+
+### Highlights
+
+- Closed `#49` by moving the narrow `"weight"` semantics higher in the public documentation.
+- The docs now state much more clearly, earlier in the reading path, that `"weight"` in the weighted shortest-path and min-cost-flow APIs refers to the built-in edge-weight property.
+- The docs also now say more explicitly what `"weight"` does **not** mean in the current API:
+  - it is not a generic user-defined edge-attribute key selector
+  - it is not a promise that arbitrary custom numeric edge attributes can replace the built-in weighted path/cost channel
+- This stayed documentation-only; the runtime behavior was already narrow and already enforced.
+
 ## [1.0.16]
 
 ### Highlights

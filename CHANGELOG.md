@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.17] - 2026-04-09
+
+- Closed `#49` by moving the narrow `"weight"` semantics higher in the public docs: the README now explains earlier that `"weight"` refers to the built-in edge-weight property rather than an arbitrary edge-attribute key, and the API guide now repeats that rule prominently ahead of the shortest-path and min-cost-flow tables instead of leaving it buried only in per-row notes and lower-level declaration comments.
+
 ## [1.0.16] - 2026-04-09
 
 - Closed `#48` by making the include-path and external-consumption story more explicit: the README now separates repository-local examples from normal external includes, the external-usage guide now distinguishes more clearly between clone-local, vendored, installed-package, and single-header paths, and the docs index now points to `docs/EXTERNAL_USAGE.md` as the source of truth for include-path / consumption-mode guidance.

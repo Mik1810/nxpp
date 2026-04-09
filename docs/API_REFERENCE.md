@@ -582,6 +582,22 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 ## Shortest-path API reference
 
+### Built-in `"weight"` semantics
+
+In the current API, the string `"weight"` has a narrow compatibility meaning:
+
+- it refers to the built-in edge-weight property
+- it is **not** a general custom edge-attribute key selector
+
+That means calls such as:
+
+- `shortest_path(..., "weight")`
+- `dijkstra_path(..., "weight")`
+- `bellman_ford_path(..., "weight")`
+
+still route through the built-in weighted edge channel rather than an
+arbitrary user-defined numeric edge attribute.
+
 ### Source-target helpers
 
 | Function | Parameters | Returns | Description | Example |
@@ -638,6 +654,16 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 | `minimum_spanning_tree` | `(root)` | `std::map<NodeID, NodeID>` | Thin rooted wrapper delegating to Prim. | `auto p = G.minimum_spanning_tree(0);` |
 
 ## Flow and cut API reference
+
+### Built-in `"weight"` semantics in min-cost flow
+
+The flow/cost wrappers follow the same rule:
+
+- default `weight_attr = "weight"` refers to the built-in edge-weight property
+- this is not a generic custom cost-key abstraction in the current API
+
+So the `"weight"` default in min-cost-flow helpers should be read as a narrow
+built-in cost channel, not as an open-ended attribute-name policy.
 
 ### Maximum flow / minimum cut
 
