@@ -34,7 +34,7 @@ The clearest mental model is:
 | Showcase programs | `main_boost.cpp`, `main_nxpp.cpp`, `main.py` | Demonstrate usage and the wrapper-vs-reference story | Not the formal suite |
 | Snippet parity / regression | `snippet/`, `scripts/unix/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
 | Formal assertion-based tests | `tests/test_*.cpp`, `scripts/unix/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
-| Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml` | Validate the generated release artifact | Not a replacement for the modular formal suite |
+| Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml`, `release.yml` | Validate the generated standalone header through a mix of smoke checks and deeper standalone-header suite runs | Not a replacement for the modular formal suite |
 | Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
 
 ### 1. Showcase programs
@@ -135,8 +135,29 @@ Relevant files:
 Purpose:
 
 - rebuild `dist/nxpp.hpp` from the modular public headers
-- recompile the formal suite against the generated standalone header
-- validate the actual release artifact instead of trusting the modular build
+- provide the deeper local verification path for recompiling the assertion-based
+  suite against the generated standalone header
+- validate the actual release artifact more deeply than a smoke check when you
+  intentionally run the standalone-header suite
+
+What the dedicated CI workflow currently does:
+
+- [`single-header.yml`](../.github/workflows/single-header.yml) rebuilds
+  `dist/nxpp.hpp`
+- compiles and runs a small smoke program against that generated header
+- uploads the generated header artifact
+
+What it does **not** currently do:
+
+- it does not run `bash scripts/unix/run_single_header_tests.sh`
+- it does not currently recompile the full assertion-based suite in that
+  dedicated workflow
+
+Where the deeper standalone-header suite does run:
+
+- locally when you run `bash scripts/unix/run_single_header_tests.sh`
+- in [`release.yml`](../.github/workflows/release.yml) before the release asset
+  is published
 
 What it is not:
 
@@ -198,7 +219,7 @@ What it is not:
 | Situation | Command | Why use it |
 |---|---|---|
 | Normal development change | `bash scripts/unix/run_tests.sh` | Fast default regression path for day-to-day work |
-| Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Verifies the generated `dist/nxpp.hpp` artifact, not just the modular headers |
+| Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Runs the deeper local standalone-header suite, beyond the smoke check in `single-header.yml` |
 | Extra confidence against raw Boost on larger graphs | `bash scripts/unix/run_large_graph_compare.sh` | Runs the opt-in large deterministic wrapper-vs-Boost comparison path |
 | Snippet/example parity check | `bash scripts/unix/test_single_snippet.sh snippet/bfs` | Checks one curated snippet folder against its companion references |
 
@@ -232,7 +253,9 @@ bash scripts/unix/test_single_snippet.sh snippet/bfs
 The safest way to read the testing story is:
 
 - `scripts/unix/run_tests.sh` is the default fast regression path
-- `scripts/unix/run_single_header_tests.sh` validates the generated release artifact
+- `single-header.yml` currently provides the dedicated smoke-check CI for the generated standalone header
+- `scripts/unix/run_single_header_tests.sh` is the deeper local standalone-header verification path
+- `release.yml` is the path that currently rebuilds the standalone header and runs the standalone-header suite before publishing the release asset
 - `scripts/unix/run_large_graph_compare.sh` adds scale-oriented cross-checks against raw Boost
 - snippet tooling protects the curated example/parity layer
 - showcase programs stay demos and should not be treated as proof on their own

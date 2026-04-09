@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.18] - 2026-04-09
+
+- Closed `#50` by aligning the documented single-header testing story with the CI that actually exists: the testing guide now distinguishes clearly between the dedicated `single-header.yml` smoke-check workflow, the deeper local `run_single_header_tests.sh` path, and the release workflow that rebuilds and runs the standalone-header suite before publishing the release asset.
+
 ## [1.0.17] - 2026-04-09
 
 - Closed `#49` by moving the narrow `"weight"` semantics higher in the public docs: the README now explains earlier that `"weight"` refers to the built-in edge-weight property rather than an arbitrary edge-attribute key, and the API guide now repeats that rule prominently ahead of the shortest-path and min-cost-flow tables instead of leaving it buried only in per-row notes and lower-level declaration comments.

@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.18]
+
+### Highlights
+
+- Closed `#50` by correcting the public single-header testing story so it matches the CI and scripts that actually exist.
+- The docs now distinguish clearly between:
+  - the dedicated `single-header.yml` workflow, which builds `dist/nxpp.hpp`, smoke-tests it, and uploads the artifact
+  - the deeper local `bash scripts/unix/run_single_header_tests.sh` path, which recompiles the assertion-based suite against `dist/nxpp.hpp`
+  - the release workflow, which rebuilds the standalone header and runs the standalone-header suite before publishing the tested release asset
+- This was a docs/process correction, not a CI behavior change.
+
 ## [1.0.17]
 
 ### Highlights
