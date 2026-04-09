@@ -37,7 +37,8 @@ Cross-navigation rule:
 What currently lives here:
 
 - [`API_REFERENCE.md`](API_REFERENCE.md): curated API companion guide for aliases,
-  result-wrapper shapes, proxy syntax, and high-value reference tables
+  result-wrapper shapes, proxy syntax, high-value reference tables, and the
+  write-creates / read-does-not-create implicit-creation policy
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
@@ -117,6 +118,8 @@ Current status:
 - the narrative guides and the generated reference now also cross-link more
   directly, so readers can move more easily between policy/guide material and
   the exact declaration pages for the same module area
+- the implicit-creation rule is now treated as one of the high-value public
+  policy topics rather than a buried proxy/accessor detail
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

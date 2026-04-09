@@ -158,6 +158,31 @@ Distributed-package versioning follows the repository release version directly:
 - Graph generators: complete graph, path graph, Erdos-Renyi graph
 - Precise multigraph edge handling through `edge_id` APIs
 
+## Implicit Creation Policy
+
+`nxpp` follows a simple public rule:
+
+- write-style graph access may create missing nodes or edges
+- read-style accessors and algorithmic reads do not create implicitly
+
+In practice that means:
+
+- `add_node(u)` creates `u`
+- `add_edge(u, v, ...)` creates missing endpoints
+- `G.node(u)[key] = value` creates `u` if absent
+- `G[u][v] = weight` creates `(u, v)` and any missing endpoints
+- `G[u][v][key] = value` creates `(u, v)` if absent
+
+But pure reads do not create:
+
+- `has_node(...)`
+- `has_edge(...)`
+- checked `get_*` / `try_get_*` accessors
+- traversal reads such as BFS/DFS entry points
+- shortest-path and other algorithmic reads
+
+The fuller policy table lives in [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
+
 For multigraphs, the public rule is:
 
 - use `edge_id` APIs when one specific parallel edge matters

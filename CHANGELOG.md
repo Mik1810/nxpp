@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.14] - 2026-04-09
+
+- Closed `#46` by clarifying the public policy for implicit node creation: the README, docs index, API architecture guide, and core proxy comments now state much more directly that write-style graph access may create missing nodes or edges, while read-style accessors and algorithmic reads do not create implicitly.
+
 ## [1.0.13] - 2026-04-08
 
 - Closed `#56` by refining the Doxygen / GitHub Pages presentation layer: the generated site now uses the tree/sidebar navigation again, the local theme styles tables, code blocks, wrapper pages, and the landing page more deliberately, and the Doxygen main page now gives clearer reader-path guidance for module browsing, wrapper lookup, and guide-first navigation.

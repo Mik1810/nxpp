@@ -58,8 +58,12 @@ Attribute-specific note:
 
 - proxy syntax such as `G[u][v]["key"]` and `G.node(u)["key"]` is acceptable
   as part of the graph-local ergonomic surface
+- these write-oriented proxy/indexing forms may create the referenced node or
+  edge implicitly
 - checked accessors such as `get_*_attr<T>` and `try_get_*_attr<T>` should still
   be treated as the primary read-oriented API for robust user code
+- read-oriented accessors and algorithmic reads should not create graph
+  structure as a side effect
 
 ## Rule 2: Prefer graph methods for algorithms on an existing graph
 

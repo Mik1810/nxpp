@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.14]
+
+### Highlights
+
+- Closed `#46` by making the implicit-creation policy much more visible in the public docs.
+- The docs now state the rule more directly:
+  - write-style graph access may create missing nodes or edges
+  - read-style accessors and algorithmic reads do not create implicitly
+- The policy is no longer buried only in the API companion guide; it is now reflected in the README, the docs index, the API architecture guide, and the core proxy comments that back `G.node(u)[key]`, `G[u][v]`, and `G[u][v][key]`.
+
 ## [1.0.13]
 
 ### Highlights

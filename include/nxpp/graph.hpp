@@ -1011,6 +1011,10 @@ public:
         std::string key;
 
         /// Sets attribute @p key on edge (u,v), creating the edge if it does not exist.
+        ///
+        /// This is intentionally part of the write-oriented proxy surface.
+        /// Pure-read helpers such as `has_edge(...)`, `get_edge_attr(...)`, and
+        /// `try_get_edge_attr(...)` do not create implicitly.
         template <typename T>
         EdgeAttrProxy& operator=(const T& val) {
             if (!graph->has_edge(u, v)) {
@@ -1063,6 +1067,9 @@ public:
         std::string key;
 
         /// Sets attribute @p key on node @p u, creating the node if it does not exist.
+        ///
+        /// This matches the wrapper's write-creates policy for proxy-based
+        /// assignment. Read-oriented accessors do not create implicitly.
         template <typename T>
         NodeAttrProxy& operator=(const T& val) {
             if (!graph->has_node(u)) graph->add_node(u);
@@ -1105,8 +1112,15 @@ public:
     /**
      * @brief Returns the proxy used for `G[u][v]` edge-access syntax.
      *
-     * This keeps the NetworkX-inspired indexing style available for reads and
-     * writes on existing-graph operations.
+     * This keeps the NetworkX-inspired indexing style available for writes and
+     * convenience reads on existing-graph operations.
+     *
+     * As part of the wrapper's write-creates policy, missing node `u` is
+     * created before the proxy is returned. Chained write forms such as
+     * `G[u][v] = ...` and `G[u][v][key] = ...` may then create the edge as
+     * well. Pure-read helpers such as `has_node(...)`, `has_edge(...)`,
+     * checked `get_*` / `try_get_*` accessors, traversal reads, and shortest-
+     * path reads do not create implicitly.
      */
     NodeProxy operator[](const NodeID& u) {
         if (!has_node(u)) {
