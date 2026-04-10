@@ -207,6 +207,26 @@ void test_multigraph_flow_results_keep_precise_edge_ids() {
            "endpoint cut view should show duplicate endpoint pairs when parallel cut edges exist");
 }
 
+void test_minimum_cut_multigraph_uses_precise_parallel_capacities() {
+    nxpp::UnweightedMultiDiGraphInt graph;
+
+    const auto e01a = graph.add_edge_with_id(0, 1);
+    const auto e01b = graph.add_edge_with_id(0, 1);
+    const auto e12 = graph.add_edge_with_id(1, 2);
+
+    graph.set_edge_attr(e01a, "capacity", 1L);
+    graph.set_edge_attr(e01b, "capacity", 10L);
+    graph.set_edge_attr(e12, "capacity", 11L);
+
+    const auto cut = graph.minimum_cut(0, 2);
+
+    expect(cut.value == 11, "minimum_cut should aggregate the heterogeneous parallel capacities precisely");
+    expect(cut.cut_edges.size() == 2, "minimum_cut should expose both parallel cut edges in the endpoint view");
+    expect(cut.cut_edge_ids.size() == 2, "minimum_cut should expose both parallel cut edge IDs");
+    expect(cut.cut_edge_ids[0] == e01a && cut.cut_edge_ids[1] == e01b,
+           "minimum_cut should preserve the precise edge IDs for heterogeneous parallel cut edges");
+}
+
 void test_multigraph_min_cost_flow_results_keep_precise_edge_ids() {
     auto cycle_graph = make_multigraph_min_cost_flow_graph();
     auto ssp_graph = make_multigraph_min_cost_flow_graph();
@@ -248,7 +268,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 9;
+    constexpr int total = 10;
 
     passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
     passed += run_test("cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation) ? 1 : 0;
@@ -258,6 +278,7 @@ int main() {
     passed += run_test("successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost) ? 1 : 0;
     passed += run_test("min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers) ? 1 : 0;
     passed += run_test("multigraph flow results keep precise edge ids", test_multigraph_flow_results_keep_precise_edge_ids) ? 1 : 0;
+    passed += run_test("minimum_cut multigraph uses precise parallel capacities", test_minimum_cut_multigraph_uses_precise_parallel_capacities) ? 1 : 0;
     passed += run_test("multigraph min-cost flow results keep precise edge ids", test_multigraph_min_cost_flow_results_keep_precise_edge_ids) ? 1 : 0;
 
     return passed == total ? 0 : 1;

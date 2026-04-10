@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.23] - 2026-04-10
+
+- Closed `#69` by adding a dedicated `minimum_cut()` multigraph regression test with heterogeneous parallel capacities: `tests/test_flow.cpp` now includes a small deterministic case that verifies both the aggregate cut value and the precise `cut_edge_ids` view when two parallel edges between the same endpoints carry different capacities.
+
 ## [1.0.22] - 2026-04-10
 
 - Closed `#68` by fixing the multigraph capacity path inside `minimum_cut()`: the flow-graph builder now reads capacities through precise `edge_id` lookup instead of the ambiguous endpoint-based `(u, v)` lookup, so heterogeneous parallel capacities are modeled per concrete edge instance in multigraph mode.

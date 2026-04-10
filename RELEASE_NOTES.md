@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.23]
+
+### Highlights
+
+- Closed `#69` by adding a focused multigraph `minimum_cut()` regression test.
+- `tests/test_flow.cpp` now includes a small deterministic case with
+  heterogeneous parallel capacities and checks both:
+  - the aggregate cut value
+  - the precise `cut_edge_ids` view
+- This locks in the `#68` fix so future endpoint-based regressions are much
+  easier to catch.
+
 ## [1.0.22]
 
 ### Highlights
