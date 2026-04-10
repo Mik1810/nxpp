@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.27]
+
+### Highlights
+
+- Closed `#72` by expanding non-default selector coverage in the heavy
+  large-graph raw-Boost comparison suite.
+- `tests/test_large_graph_compare.cpp` now includes a second selector-focused
+  regression based on `boost::listS` / `boost::vecS`, in addition to the
+  existing `boost::listS` / `boost::listS` case.
+- The new regression cross-checks node/edge state after `remove_node()`,
+  Dijkstra shortest-path distances, and attribute cleanup/preservation behavior
+  against the raw Boost baseline on deterministic large inputs.
+
 ## [1.0.26]
 
 ### Highlights

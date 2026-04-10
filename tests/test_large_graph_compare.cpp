@@ -100,6 +100,8 @@ using RawCostFlowGraph = boost::adjacency_list<
 
 using NxppWeightedDiGraphIntListSelectors =
     nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS>;
+using NxppWeightedDiGraphIntListOutVecVertexSelectors =
+    nxpp::Graph<int, int, true, false, true, boost::listS, boost::vecS>;
 
 struct LargeUndirectedGraphInput {
     int num_nodes;
@@ -1448,6 +1450,43 @@ void test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost() {
            "custom-selector remove_node should preserve non-incident edge attributes");
 }
 
+void test_large_custom_outedge_selector_dijkstra_and_remove_node_match_raw_boost() {
+    const auto input = generate_component_weighted_digraph(
+        {1300, 280, 1},
+        {5200, 780, 0},
+        9090u,
+        1,
+        20,
+        false
+    );
+
+    auto nxpp_graph =
+        build_nxpp_directed_weighted_graph_typed<NxppWeightedDiGraphIntListOutVecVertexSelectors>(input);
+    auto raw_graph = build_raw_named_directed_weighted_graph(input);
+
+    nxpp_graph.node(260)["role"] = "remove-me";
+    nxpp_graph[259][260]["kind"] = "incident";
+    nxpp_graph[900][901]["kind"] = "survivor";
+
+    for (const int node_id : {260, 1579, 1580}) {
+        nxpp_graph.remove_node(node_id);
+        raw_remove_node_named(raw_graph, node_id);
+    }
+
+    expect(nxpp_nodes_sorted(nxpp_graph) == raw_named_nodes_sorted(raw_graph),
+           "custom outedge-selector graph nodes should stay aligned with raw Boost after remove_node");
+    expect(nxpp_weighted_edges_sorted(nxpp_graph) == raw_named_weighted_edges_sorted(raw_graph),
+           "custom outedge-selector graph edges should stay aligned with raw Boost after remove_node");
+    expect(nxpp_graph.dijkstra_shortest_paths(0).distance == raw_named_dijkstra_distances(raw_graph, 0),
+           "custom outedge-selector graph Dijkstra distances should match raw Boost after remove_node");
+    expect(!nxpp_graph.has_node_attr(260, "role"),
+           "custom outedge-selector remove_node should clear removed node attributes");
+    expect(!nxpp_graph.has_edge_attr(259, 260, "kind"),
+           "custom outedge-selector remove_node should clear incident edge attributes");
+    expect(nxpp_graph.has_edge_attr(900, 901, "kind"),
+           "custom outedge-selector remove_node should preserve non-incident edge attributes");
+}
+
 void test_large_multigraph_mutations_stay_aligned_with_raw_boost() {
     using NxMultiDiGraphInt = nxpp::Graph<int, int, true, true, true>;
 
@@ -1734,7 +1773,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 16;
+    constexpr int total = 17;
 
     passed += run_test("large BFS matches raw Boost", test_large_bfs_matches_raw_boost) ? 1 : 0;
     passed += run_test("large DFS tree matches raw Boost", test_large_dfs_tree_matches_raw_boost) ? 1 : 0;
@@ -1746,6 +1785,7 @@ int main() {
     passed += run_test("negative cycle detection matches raw Boost", test_negative_cycle_detection_matches_raw_boost) ? 1 : 0;
     passed += run_test("large remove_node state stays aligned with raw Boost", test_large_remove_node_state_stays_aligned_with_raw_boost) ? 1 : 0;
     passed += run_test("large custom-selector Dijkstra and remove_node match raw Boost", test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost) ? 1 : 0;
+    passed += run_test("large custom outedge-selector Dijkstra and remove_node match raw Boost", test_large_custom_outedge_selector_dijkstra_and_remove_node_match_raw_boost) ? 1 : 0;
     passed += run_test("large multigraph mutations stay aligned with raw Boost", test_large_multigraph_mutations_stay_aligned_with_raw_boost) ? 1 : 0;
     passed += run_test("large attribute state survives repeated mutations", test_large_attribute_state_survives_repeated_mutations) ? 1 : 0;
     passed += run_test("large combined weighted mutation sequence matches raw Boost", test_large_combined_weighted_mutation_sequence_matches_raw_boost) ? 1 : 0;

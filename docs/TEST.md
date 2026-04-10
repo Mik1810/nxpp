@@ -240,7 +240,7 @@ Current coverage includes:
 - maximum-flow / minimum-cut agreement
 - successive-shortest-path min-cost-flow agreement
 - representative multi-seed rechecks for several graph families
-- one regression with non-default `boost::listS` / `boost::listS` selectors
+- two regressions with non-default selectors: `boost::listS` / `boost::listS` and `boost::listS` / `boost::vecS`
 
 What it is not:
 

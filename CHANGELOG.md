@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.27] - 2026-04-10
+
+- Closed `#72` by expanding non-default selector coverage in the large-graph raw-Boost comparison path: `tests/test_large_graph_compare.cpp` now adds a second selector-focused regression using `boost::listS` / `boost::vecS` (alongside the existing `boost::listS` / `boost::listS` case) and validates `remove_node()` alignment, weighted edge-state alignment, shortest-path agreement, and attribute cleanup/preservation behavior against the raw Boost baseline.
+
 ## [1.0.26] - 2026-04-10
 
 - Closed `#70` by adding end-to-end external-consumer integration tests for the main supported consumption modes: new fixture projects under `tests/external_consumers/` now validate vendored CMake (`add_subdirectory(nxpp)`), installed-package CMake (`find_package(nxpp CONFIG REQUIRED)`), and standalone single-header consumption; `scripts/unix/run_external_consumer_tests.sh` now runs those modes with mode-level failure visibility; and `.github/workflows/external-consumers.yml` runs that external-consumer path automatically in CI with a dedicated summary.
