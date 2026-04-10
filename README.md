@@ -315,6 +315,9 @@ g.set_edge_attr(e2, "label", "second");
   centrality, PageRank, and betweenness centrality
 - CI now keeps the large-graph raw-Boost comparison as a dedicated heavy job
   inside the main compatibility workflow instead of a separate orphan workflow
+- The large-graph comparison lane now includes two non-default selector
+  regressions (`boost::listS` / `boost::listS` and `boost::listS` /
+  `boost::vecS`) in addition to default-selector coverage
 
 Useful generated-reference entry points:
 
