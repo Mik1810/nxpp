@@ -272,6 +272,9 @@ For multigraphs, the public rule is:
 - flow wrappers now follow the same rule: endpoint-keyed flow or cut-edge
   views are aggregate convenience views in multigraphs, while the new
   `edge_id`-keyed result fields are the precise path
+- `minimum_cut()` now also follows the precise multigraph rule internally:
+  heterogeneous parallel capacities are modeled per concrete `edge_id`, not
+  through an endpoint-based convenience lookup
 - the staged `push_relabel_maximum_flow(...)` then `cycle_canceling()` path
   now invalidates itself on any later graph mutation; rerun the push-relabel
   stage after mutations, or prefer the one-shot min-cost wrappers
