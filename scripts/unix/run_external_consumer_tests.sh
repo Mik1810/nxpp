@@ -22,7 +22,7 @@ run_vendored_cmake_mode() {
     local out_file="$mode_dir/output.txt"
 
     echo
-    echo "=== Mode: vendored-cmake-add_subdirectory ==="
+    echo "Mode: vendored-cmake-add_subdirectory"
     cmake -S "$ROOT_DIR/tests/external_consumers/vendored_cmake" \
           -B "$mode_dir" \
           -G "$GENERATOR" \
@@ -39,7 +39,7 @@ run_installed_package_mode() {
     local out_file="$consumer_build_dir/output.txt"
 
     echo
-    echo "=== Mode: installed-cmake-find_package ==="
+    echo "Mode: installed-cmake-find_package"
     cmake -S "$ROOT_DIR" \
           -B "$install_build_dir" \
           -G "$GENERATOR" \
@@ -63,7 +63,7 @@ run_single_header_mode() {
     local cxx="${CXX:-g++}"
 
     echo
-    echo "=== Mode: standalone-single-header-consumer ==="
+    echo "Mode: standalone-single-header-consumer"
     bash "$ROOT_DIR/scripts/unix/build_single_header.sh"
     "$cxx" -std=c++20 -Wall -Wextra -pedantic -O0 \
         "$ROOT_DIR/tests/external_consumers/single_header/main.cpp" \
@@ -79,7 +79,7 @@ run_optional_conan_mode() {
     fi
 
     echo
-    echo "=== Mode: optional-local-conan-consumer ==="
+    echo "Mode: optional-local-conan-consumer"
     if ! command -v conan >/dev/null 2>&1; then
         echo "[external-consumers] conan not found, skipping optional Conan mode"
         return 0
