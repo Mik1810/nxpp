@@ -1,0 +1,65 @@
+name: External Consumers
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  external-consumers:
+    name: external-consumers (ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev ninja-build
+
+      - name: Run external-consumer integration modes
+        id: external
+        shell: bash
+        run: |
+          set +e
+          bash scripts/unix/run_external_consumer_tests.sh | tee external-consumers-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Publish external-consumer summary
+        if: always()
+        env:
+          EXTERNAL_EXIT_CODE: ${{ steps.external.outputs.exit_code }}
+        shell: bash
+        run: |
+          if [ "${EXTERNAL_EXIT_CODE:-1}" = "0" ]; then
+            status_word="SUCCESS"
+          else
+            status_word="FAILURE"
+          fi
+
+          if [ -f external-consumers-output.txt ]; then
+            perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' external-consumers-output.txt > external-consumers-output-clean.txt
+          fi
+
+          {
+            echo "## External Consumer Integration Modes"
+            echo
+            echo "- Status: ${status_word}"
+            echo "- Command: \`bash scripts/unix/run_external_consumer_tests.sh\`"
+            echo "- Covered required modes:"
+            echo "  - vendored CMake with add_subdirectory(nxpp)"
+            echo "  - installed-package CMake with find_package(nxpp CONFIG REQUIRED)"
+            echo "  - standalone single-header consumer"
+            echo
+            if [ -f external-consumers-output-clean.txt ]; then
+              echo "### Output"
+              echo
+              echo '```text'
+              cat external-consumers-output-clean.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

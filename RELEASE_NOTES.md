@@ -3,6 +3,23 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.26]
+
+### Highlights
+
+- Closed `#70` by adding an end-to-end external-consumer integration lane.
+- The repository now includes dedicated fixture consumers under
+  `tests/external_consumers/` for:
+  - vendored CMake (`add_subdirectory(nxpp)`)
+  - installed-package CMake (`find_package(nxpp CONFIG REQUIRED)`)
+  - standalone single-header consumption
+- A new Unix runner script, `scripts/unix/run_external_consumer_tests.sh`, now
+  executes those integration modes as real consumers and reports failures by
+  mode.
+- A new CI workflow, `.github/workflows/external-consumers.yml`, runs that lane
+  automatically and publishes a dedicated summary so consumer-path breakages are
+  easier to diagnose quickly.
+
 ## [1.0.25]
 
 ### Highlights

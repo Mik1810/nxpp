@@ -25,6 +25,7 @@ The clearest mental model is:
 - showcase programs are demos
 - `snippet/` is the curated example-plus-parity layer
 - `tests/` is the formal assertion-based regression suite
+- `scripts/unix/run_external_consumer_tests.sh` is the end-to-end external-consumer integration layer
 - `test_large_graph_compare.cpp` is the separate scale-oriented raw-Boost comparison path
 
 ## Quick map
@@ -34,6 +35,7 @@ The clearest mental model is:
 | Showcase programs | `main_boost.cpp`, `main_nxpp.cpp`, `main.py` | Demonstrate usage and the wrapper-vs-reference story | Not the formal suite |
 | Snippet parity / regression | `snippet/`, `scripts/unix/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
 | Formal assertion-based tests | `tests/test_*.cpp`, `scripts/unix/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
+| External-consumer integration tests | `tests/external_consumers/`, `scripts/unix/run_external_consumer_tests.sh`, `external-consumers.yml` | Validate real external-consumer integration modes end-to-end | Not a replacement for formal assertion tests |
 | Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml`, `release.yml` | Validate the generated standalone header through a mix of smoke checks and deeper standalone-header suite runs | Not a replacement for the modular formal suite |
 | Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `compatibility.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs in a dedicated heavy CI lane | Not a benchmark or a proof of full equivalence |
 
@@ -162,7 +164,42 @@ What it is not:
 - not a benchmark
 - not a replacement for the modular formal suite
 
-### 5. Large-graph comparison path
+### 5. External-consumer integration path
+
+Command:
+
+```bash
+bash scripts/unix/run_external_consumer_tests.sh
+```
+
+Relevant files:
+
+- [`scripts/unix/run_external_consumer_tests.sh`](../scripts/unix/run_external_consumer_tests.sh)
+- [`tests/external_consumers/`](../tests/external_consumers)
+- [`.github/workflows/external-consumers.yml`](../.github/workflows/external-consumers.yml)
+
+Purpose:
+
+- exercise supported integration modes as real external consumers
+- fail per integration mode so breakages are easier to localize
+- keep documented consumption modes trustworthy by testing them directly
+
+Current required coverage:
+
+- vendored CMake consumer with `add_subdirectory(nxpp)`
+- installed-package CMake consumer with `find_package(nxpp CONFIG REQUIRED)`
+- standalone single-header consumer
+
+Optional local coverage:
+
+- a local Conan consumer mode exists in the runner behind `NXPP_EXTERNAL_CONAN=1`
+
+What it is not:
+
+- not a benchmark
+- not a replacement for the modular formal suite
+
+### 6. Large-graph comparison path
 
 Command:
 
@@ -219,6 +256,7 @@ What it is not:
 | Situation | Command | Why use it |
 |---|---|---|
 | Normal development change | `bash scripts/unix/run_tests.sh` | Fast default regression path for day-to-day work |
+| Verify documented external integration modes | `bash scripts/unix/run_external_consumer_tests.sh` | Confirms real external-consumer workflows still work |
 | Single-header or release-path change | `bash scripts/unix/build_single_header.sh` then `bash scripts/unix/run_single_header_tests.sh` | Matches the deeper standalone-header suite now also used by `single-header.yml` and `release.yml` |
 | Extra confidence against raw Boost on larger graphs | `bash scripts/unix/run_large_graph_compare.sh` | Runs the opt-in large deterministic wrapper-vs-Boost comparison path |
 | Snippet/example parity check | `bash scripts/unix/test_single_snippet.sh snippet/bfs` | Checks one curated snippet folder against its companion references |
@@ -227,6 +265,12 @@ For normal development:
 
 ```bash
 bash scripts/unix/run_tests.sh
+```
+
+When you changed packaging or consumer-facing integration paths:
+
+```bash
+bash scripts/unix/run_external_consumer_tests.sh
 ```
 
 When you changed the single-header build or release path:
@@ -253,6 +297,7 @@ bash scripts/unix/test_single_snippet.sh snippet/bfs
 The safest way to read the testing story is:
 
 - `scripts/unix/run_tests.sh` is the default fast regression path
+- `scripts/unix/run_external_consumer_tests.sh` is the dedicated end-to-end integration path for documented external consumer modes
 - `single-header.yml` now provides a dedicated standalone-header workflow that runs both the standalone-header suite and a smoke test
 - `scripts/unix/run_single_header_tests.sh` is the deeper local standalone-header verification path
 - `release.yml` is the path that currently rebuilds the standalone header and runs the standalone-header suite before publishing the release asset
