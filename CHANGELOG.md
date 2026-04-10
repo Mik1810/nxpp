@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.20] - 2026-04-10
+
+- Closed `#66` by realigning the repository-hosted package metadata to the documented release version: `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` now all track `1.0.19` instead of the stale `1.0.1` line, and the README now states explicitly that the repository-hosted package metadata is aligned to the latest documented release line.
+
 ## [1.0.19] - 2026-04-09
 
 - Closed `#51` by strengthening the dedicated single-header CI: `single-header.yml` now runs the real standalone-header test suite after rebuilding `dist/nxpp.hpp`, instead of stopping at a smoke check, while still keeping the smoke program and artifact upload path.

@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.20]
+
+### Highlights
+
+- Closed `#66` by aligning the repository-hosted package metadata with the documented release version.
+- The shipped version metadata in:
+  - `CMakeLists.txt`
+  - `conanfile.py`
+  - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+  now consistently tracks `1.0.19` instead of the stale `1.0.1` line.
+- This removes one of the clearest remaining sources of packaging drift between the release-facing docs and the package-manager entry points that live inside the repository.
+
 ## [1.0.19]
 
 ### Highlights

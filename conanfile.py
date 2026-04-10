@@ -4,7 +4,7 @@ from conan.tools.files import copy
 
 class NxppConan(ConanFile):
     name = "nxpp"
-    version = "1.0.1"
+    version = "1.0.19"
     package_type = "header-library"
     default_options = {"boost/*:header_only": True}
 

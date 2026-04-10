@@ -166,6 +166,8 @@ Distributed-package versioning follows the repository release version directly:
   - `CMakeLists.txt`
   - `conanfile.py`
   - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+- the repository-hosted package metadata is currently aligned to the latest
+  documented release line
 - repository-hosted package paths such as the Conan recipe and the vcpkg
   overlay port are expected to track the published repository release directly
 - third-party or policy-gated channels can lag behind, but the docs should say
