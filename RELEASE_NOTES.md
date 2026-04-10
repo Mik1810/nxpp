@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.22]
+
+### Highlights
+
+- Closed `#68` by correcting `minimum_cut()` in multigraph mode.
+- The internal flow-graph builder now reads capacities through precise
+  `edge_id` lookup instead of the old endpoint-based `(u, v)` convenience path.
+- This means heterogeneous parallel capacities are now modeled per concrete
+  edge instance instead of being flattened through the ambiguous endpoint view.
+
 ## [1.0.21]
 
 ### Highlights

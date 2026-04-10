@@ -501,12 +501,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         const auto target = boost::target(*eit, g);
         const auto source_index = get_vertex_index(source);
         const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
+        const auto edge_id = get_edge_id(*eit);
         auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
         auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(u, v, capacity_attr));
+        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;

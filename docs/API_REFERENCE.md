@@ -672,7 +672,7 @@ built-in cost channel, not as an open-ended attribute-name policy.
 | `edmonds_karp_maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Max-flow wrapper returning total flow plus both an endpoint-keyed convenience view and a precise `edge_id`-keyed flow view. | `auto f = G.edmonds_karp_maximum_flow(0, 5);` |
 | `maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Backward-compatible default max-flow wrapper returning both aggregate endpoint and precise `edge_id` views. | `auto f = G.maximum_flow(0, 5);` |
 | `push_relabel_maximum_flow_result` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Push-Relabel wrapper returning both aggregate endpoint and precise `edge_id` views. | `auto f = G.push_relabel_maximum_flow_result(0, 5);` |
-| `minimum_cut` | `(source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | Returns cut value, partition, endpoint cut-edge view, and precise cut-edge IDs. | `auto c = G.minimum_cut(0, 5);` |
+| `minimum_cut` | `(source, sink, capacity_attr = "capacity")` | `MinimumCutResult<NodeID>` | Returns cut value, partition, endpoint cut-edge view, and precise cut-edge IDs. In multigraph mode the internal capacity builder now uses precise `edge_id` lookup per concrete edge instance. | `auto c = G.minimum_cut(0, 5);` |
 
 ### Staged min-cost-flow path
 

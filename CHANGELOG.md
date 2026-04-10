@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.22] - 2026-04-10
+
+- Closed `#68` by fixing the multigraph capacity path inside `minimum_cut()`: the flow-graph builder now reads capacities through precise `edge_id` lookup instead of the ambiguous endpoint-based `(u, v)` lookup, so heterogeneous parallel capacities are modeled per concrete edge instance in multigraph mode.
+
 ## [1.0.21] - 2026-04-10
 
 - Closed `#67` by adding an automated release-metadata drift guard: the new `scripts/check_release_metadata_versions.py` script now verifies that the top documented release version matches the repository-hosted package metadata in `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json`, `release.yml` now runs that check before release extraction and publication, and the repository-hosted package metadata now tracks `1.0.21` so the guard passes against the current release candidate.
