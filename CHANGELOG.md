@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.25] - 2026-04-10
+
+- Folded the large-graph raw-Boost comparison lane into `compatibility.yml` as a dedicated `large-graph-compare` job, preserving the heavy-vs-fast split while removing the separate standalone workflow; the testing docs and README now describe the large-graph path as part of the main compatibility workflow family instead of as an orphan CI workflow.
+
 ## [1.0.24] - 2026-04-10
 
 - Closed `#71` by adding dedicated formal assertion-based centrality tests: the repository now includes `tests/test_centrality.cpp` with direct deterministic checks for `degree_centrality()`, `pagerank()`, and `betweenness_centrality()`, and the Unix runner, Windows runner, and CMake formal-test list now all execute that new file.

@@ -141,6 +141,9 @@ Current status:
   the dedicated CI path are now aligned
 - the release workflow now also checks repository-hosted package metadata for
   version drift before it extracts notes or publishes a release
+- the compatibility workflow now owns both the normal formal suite and the
+  dedicated large-graph comparison lane, keeping them in one CI family while
+  still separating the heavier large-graph job from the day-to-day fast suite
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

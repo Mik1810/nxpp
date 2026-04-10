@@ -313,6 +313,8 @@ g.set_edge_attr(e2, "label", "second");
 - Testing guide: [docs/TEST.md](docs/TEST.md)
 - Formal test suite now includes dedicated centrality assertions for degree
   centrality, PageRank, and betweenness centrality
+- CI now keeps the large-graph raw-Boost comparison as a dedicated heavy job
+  inside the main compatibility workflow instead of a separate orphan workflow
 
 Useful generated-reference entry points:
 

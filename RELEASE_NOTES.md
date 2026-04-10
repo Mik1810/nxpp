@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.25]
+
+### Highlights
+
+- Folded the large-graph raw-Boost comparison lane into the main
+  `compatibility.yml` workflow.
+- The heavy large-graph path still runs as a separate dedicated job, so it does
+  not get mixed into the normal fast test job logs or mental model.
+- The old standalone `large-graph-compare.yml` workflow was removed, and the
+  docs now describe the large-graph path as part of the main compatibility
+  workflow family.
+
 ## [1.0.24]
 
 ### Highlights

@@ -35,7 +35,7 @@ The clearest mental model is:
 | Snippet parity / regression | `snippet/`, `scripts/unix/test_single_snippet.sh`, `snippet-review.yml` | Keep curated examples aligned across implementations | Not exhaustive assertion-based testing |
 | Formal assertion-based tests | `tests/test_*.cpp`, `scripts/unix/run_tests.sh`, `compatibility.yml` | Catch regressions and enforce behavior | Not the single-header or large-graph path |
 | Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml`, `release.yml` | Validate the generated standalone header through a mix of smoke checks and deeper standalone-header suite runs | Not a replacement for the modular formal suite |
-| Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `large-graph-compare.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs | Not a benchmark or a proof of full equivalence |
+| Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `compatibility.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs in a dedicated heavy CI lane | Not a benchmark or a proof of full equivalence |
 
 ### 1. Showcase programs
 
@@ -174,7 +174,7 @@ Relevant files:
 
 - [`tests/test_large_graph_compare.cpp`](../tests/test_large_graph_compare.cpp)
 - [`scripts/unix/run_large_graph_compare.sh`](../scripts/unix/run_large_graph_compare.sh)
-- [`.github/workflows/large-graph-compare.yml`](../.github/workflows/large-graph-compare.yml)
+- [`.github/workflows/compatibility.yml`](../.github/workflows/compatibility.yml)
 
 Purpose:
 
@@ -182,6 +182,8 @@ Purpose:
 - compare `nxpp` results directly against raw Boost on the same graphs
 - increase confidence that wrapper bookkeeping still stays aligned at larger
   scales than the normal suite usually exercises
+- keep this heavier path in a dedicated CI lane without mixing its logs into
+  the normal fast compatibility test job
 
 Current coverage includes:
 
