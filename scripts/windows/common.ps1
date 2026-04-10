@@ -449,6 +449,7 @@ function Get-NxppTestSources {
     return @(
         (Join-Path $root "tests/test_core.cpp"),
         (Join-Path $root "tests/test_attributes.cpp"),
+        (Join-Path $root "tests/test_centrality.cpp"),
         (Join-Path $root "tests/test_edge_cases.cpp"),
         (Join-Path $root "tests/test_flow.cpp"),
         (Join-Path $root "tests/test_remove_node.cpp"),

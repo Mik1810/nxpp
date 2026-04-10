@@ -311,6 +311,8 @@ g.set_edge_attr(e2, "label", "second");
 - Practical API guide: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
+- Formal test suite now includes dedicated centrality assertions for degree
+  centrality, PageRank, and betweenness centrality
 
 Useful generated-reference entry points:
 

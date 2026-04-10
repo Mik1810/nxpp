@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.24] - 2026-04-10
+
+- Closed `#71` by adding dedicated formal assertion-based centrality tests: the repository now includes `tests/test_centrality.cpp` with direct deterministic checks for `degree_centrality()`, `pagerank()`, and `betweenness_centrality()`, and the Unix runner, Windows runner, and CMake formal-test list now all execute that new file.
+
 ## [1.0.23] - 2026-04-10
 
 - Closed `#69` by adding a dedicated `minimum_cut()` multigraph regression test with heterogeneous parallel capacities: `tests/test_flow.cpp` now includes a small deterministic case that verifies both the aggregate cut value and the precise `cut_edge_ids` view when two parallel edges between the same endpoints carry different capacities.

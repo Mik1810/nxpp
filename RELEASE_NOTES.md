@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.24]
+
+### Highlights
+
+- Closed `#71` by adding a dedicated formal centrality test file.
+- `tests/test_centrality.cpp` now provides direct deterministic checks for:
+  - `degree_centrality()`
+  - `pagerank()`
+  - `betweenness_centrality()`
+- the Unix runner, Windows runner, and CMake formal-test source list now all
+  include this new focused centrality test path.
+
 ## [1.0.23]
 
 ### Highlights
