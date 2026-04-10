@@ -2,9 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.21] - 2026-04-10
+
+- Closed `#67` by adding an automated release-metadata drift guard: the new `scripts/check_release_metadata_versions.py` script now verifies that the top documented release version matches the repository-hosted package metadata in `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json`, `release.yml` now runs that check before release extraction and publication, and the repository-hosted package metadata now tracks `1.0.21` so the guard passes against the current release candidate.
+
 ## [1.0.20] - 2026-04-10
 
-- Closed `#66` by realigning the repository-hosted package metadata to the documented release version: `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` now all track `1.0.19` instead of the stale `1.0.1` line, and the README now states explicitly that the repository-hosted package metadata is aligned to the latest documented release line.
+- Closed `#66` by realigning the repository-hosted package metadata to the documented release version: `CMakeLists.txt`, `conanfile.py`, and `packaging/vcpkg/ports/nxpp/vcpkg.json` were brought back into sync with the active documented release line instead of the stale `1.0.1` version, and the README now states explicitly that the repository-hosted package metadata is aligned to the latest documented release line.
 
 ## [1.0.19] - 2026-04-09
 

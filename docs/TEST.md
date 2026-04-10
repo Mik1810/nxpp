@@ -153,6 +153,9 @@ Where the deeper standalone-header suite does run:
 - locally when you run `bash scripts/unix/run_single_header_tests.sh`
 - in [`release.yml`](../.github/workflows/release.yml) before the release asset
   is published
+- in [`release.yml`](../.github/workflows/release.yml) the release path now
+  also checks repository-hosted package metadata for version drift through
+  `python3 scripts/check_release_metadata_versions.py`
 
 What it is not:
 

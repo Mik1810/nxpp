@@ -57,6 +57,10 @@ jobs:
           echo "version=$notes_version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag_name" >> "$GITHUB_OUTPUT"
 
+      - name: Check release metadata versions
+        run: |
+          python3 scripts/check_release_metadata_versions.py
+
       - name: Extract release notes
         run: |
           python3 scripts/extract_release_notes.py "${{ steps.version.outputs.tag }}" > /tmp/nxpp_release_notes.md
@@ -126,6 +130,7 @@ jobs:
               echo "- Release publication: skipped because the GitHub release already exists"
             fi
             echo "- Release notes source: \`RELEASE_NOTES.md\`"
+            echo "- Release metadata guard: \`python3 scripts/check_release_metadata_versions.py\`"
             echo "- Header build: \`bash scripts/unix/build_single_header.sh\`"
             echo "- Modular tests: \`bash scripts/unix/run_tests.sh\`"
             echo "- Header test suite: \`bash scripts/unix/run_single_header_tests.sh\`"

@@ -3,6 +3,23 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.21]
+
+### Highlights
+
+- Closed `#67` by adding an explicit CI guard for release-facing version drift.
+- The new `scripts/check_release_metadata_versions.py` script checks that the
+  documented release version matches the repository-hosted package metadata in:
+  - `CMakeLists.txt`
+  - `conanfile.py`
+  - `packaging/vcpkg/ports/nxpp/vcpkg.json`
+- `release.yml` now runs that guard before extracting notes and publishing a
+  release, so future version drift fails fast with a file-by-file mismatch
+  message.
+- The repository-hosted package metadata now also tracks `1.0.21`, so the new
+  guard passes against the current release candidate instead of failing
+  immediately on already-known drift.
+
 ## [1.0.20]
 
 ### Highlights
@@ -12,7 +29,8 @@ version entries in `CHANGELOG.md`.
   - `CMakeLists.txt`
   - `conanfile.py`
   - `packaging/vcpkg/ports/nxpp/vcpkg.json`
-  now consistently tracks `1.0.19` instead of the stale `1.0.1` line.
+  was brought back into sync with the documented release line instead of the
+  stale `1.0.1` version.
 - This removes one of the clearest remaining sources of packaging drift between the release-facing docs and the package-manager entry points that live inside the repository.
 
 ## [1.0.19]

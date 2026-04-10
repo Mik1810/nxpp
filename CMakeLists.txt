@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(nxpp VERSION 1.0.19 LANGUAGES CXX)
+project(nxpp VERSION 1.0.21 LANGUAGES CXX)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
