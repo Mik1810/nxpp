@@ -335,6 +335,7 @@ g.set_edge_attr(e2, "label", "second");
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
 - Experimental wasm + Node plan/guide: [wasm/WASM.md](wasm/WASM.md)
+- Experimental wasm npm package guide: [wasm/README.md](wasm/README.md)
 
 Current experimental wasm layout:
 

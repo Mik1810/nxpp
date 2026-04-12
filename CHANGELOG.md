@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.30] - 2026-04-12
+
+- Added a first npm-publish scaffold for the experimental wasm lane under `wasm/`: introduced/standardized `wasm/package.json`, `wasm/nxpp.mjs`, and `wasm/README.md` with a package-facing loader shape (`default`, `createNxpp`, and `nxpp` alias) over the generated Emscripten module.
+- Added a minimal local usage example in `wasm/nxpp_example.js` that loads the package wrapper and runs a shortest-path call.
+- Updated `.gitignore` so `wasm/build/nxpp_node.mjs` and `wasm/build/nxpp_node.wasm` are no longer ignored, enabling explicit npm package assembly from tracked artifacts, and finalized package metadata for the published experimental npm scope `@mik1810/nxpp-wasm`.
+
 ## [1.0.29] - 2026-04-12
 
 - Realigned the experimental wasm lane after the folder refactor: Node bindings now live in `wasm/node/nxpp_bindings.cpp`, the Node API contract test now lives in `wasm/test/node_api_contract_test.mjs`, wasm Node artifacts now emit into `wasm/build/`, and the wasm Node build/contract scripts plus testing docs were updated to match the new layout.

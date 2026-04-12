@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.30]
+
+### Highlights
+
+- Opened the first npm-facing experimental wasm package lane under `wasm/` with
+  package metadata, a package entry wrapper, and a minimal example script.
+- The package-facing wrapper now lives at `wasm/nxpp.mjs` and exposes both
+  default and named entry points over the Emscripten-generated module.
+- The generated wasm artifacts (`wasm/build/nxpp_node.mjs` and
+  `wasm/build/nxpp_node.wasm`) are now tracked to support direct npm package
+  assembly.
+- The experimental npm package metadata is now aligned to the published scoped
+  name `@mik1810/nxpp-wasm`.
+
 ## [1.0.29]
 
 ### Highlights

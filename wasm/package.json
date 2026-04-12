@@ -1,0 +1,32 @@
+{
+  "name": "@mik1810/nxpp-wasm",
+  "version": "0.1.1",
+  "description": "Experimental Node.js WASM bindings for nxpp",
+  "type": "module",
+  "main": "./nxpp.mjs",
+  "exports": "./nxpp.mjs",
+  "files": [
+    "nxpp.mjs",
+    "build/nxpp_node.mjs",
+    "build/nxpp_node.wasm",
+    "README.md"
+  ],
+  "keywords": [
+    "graph",
+    "wasm",
+    "emscripten",
+    "nxpp"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mik1810/nxpp.git"
+  },
+  "homepage": "https://github.com/Mik1810/nxpp",
+  "bugs": {
+    "url": "https://github.com/Mik1810/nxpp/issues"
+  }
+}

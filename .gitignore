@@ -6,6 +6,7 @@ main
 *.exe
 *.out
 *.app
+*.tgz
 .vscode
 old/
 *.txt
@@ -20,3 +21,9 @@ backups/
 dist/
 build/
 CLAUDE.md
+
+# Track npm publish artifacts for wasm package
+!wasm/build/
+wasm/build/*
+!wasm/build/nxpp_node.mjs
+!wasm/build/nxpp_node.wasm
