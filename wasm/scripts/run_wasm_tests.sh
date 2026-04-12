@@ -10,6 +10,8 @@ NODE_BIN=${NODE_BIN:-node}
 EMXXFLAGS=${EMXXFLAGS:-"-std=c++20 -Wall -Wextra -pedantic -O1 -fexceptions -sDISABLE_EXCEPTION_CATCHING=0 -sENVIRONMENT=node -sEXIT_RUNTIME=1 -sALLOW_MEMORY_GROWTH=1"}
 BOOST_INCLUDE=${BOOST_INCLUDE:-/usr/include}
 NXPP_WASM_INCLUDE_LARGE=${NXPP_WASM_INCLUDE_LARGE:-0}
+NXPP_WASM_INCLUDE_NODE_CONTRACT=${NXPP_WASM_INCLUDE_NODE_CONTRACT:-1}
+NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=${NXPP_WASM_NODE_CONTRACT_SKIP_BUILD:-0}
 
 GREEN=$'\033[32m'
 RED=$'\033[31m'
@@ -59,6 +61,11 @@ run_test_js() {
 
     echo
 }
+
+if [ "$NXPP_WASM_INCLUDE_NODE_CONTRACT" = "1" ]; then
+    NXPP_WASM_NODE_CONTRACT_SKIP_BUILD="$NXPP_WASM_NODE_CONTRACT_SKIP_BUILD" \
+        bash "$ROOT_DIR/wasm/scripts/run_wasm_node_contract_tests.sh"
+fi
 
 run_test_js "tests/test_core.cpp"
 run_test_js "tests/test_attributes.cpp"

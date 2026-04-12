@@ -257,6 +257,7 @@ Commands:
 
 ```bash
 bash wasm/scripts/build_wasm_node_module.sh
+bash wasm/scripts/run_wasm_node_contract_tests.sh
 bash wasm/scripts/run_wasm_tests.sh
 ```
 
@@ -270,7 +271,9 @@ Relevant files:
 
 - [`wasm/WASM.md`](../wasm/WASM.md)
 - [`wasm/node/nxpp_node_bindings.cpp`](../wasm/node/nxpp_node_bindings.cpp)
+- [`wasm/node/node_api_contract_test.mjs`](../wasm/node/node_api_contract_test.mjs)
 - [`wasm/scripts/build_wasm_node_module.sh`](../wasm/scripts/build_wasm_node_module.sh)
+- [`wasm/scripts/run_wasm_node_contract_tests.sh`](../wasm/scripts/run_wasm_node_contract_tests.sh)
 - [`wasm/scripts/run_wasm_tests.sh`](../wasm/scripts/run_wasm_tests.sh)
 - [`.github/workflows/wasm-experimental.yml`](../.github/workflows/wasm-experimental.yml)
 
@@ -278,6 +281,7 @@ Purpose:
 
 - verify that the C++ core builds and runs under Emscripten
 - verify a first Node-compatible JS-facing API subset via Embind
+- verify API-contract stability for the exported Node surface
 - keep a portability-oriented wasm node-build+suite lane available in CI
 - exercise exception-based behavior under wasm with explicit exception flags
 

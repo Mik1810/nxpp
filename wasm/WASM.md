@@ -35,6 +35,8 @@ Current wasm lane includes:
 
 - Node-compatible bindings in `wasm/node/nxpp_node_bindings.cpp`
 - Node-oriented wasm module build script in `wasm/scripts/build_wasm_node_module.sh`
+- Node API contract tests in `wasm/node/node_api_contract_test.mjs`
+- Node contract runner in `wasm/scripts/run_wasm_node_contract_tests.sh`
 - wasm formal assertion suite execution in `wasm/scripts/run_wasm_tests.sh`
 - optional large-graph wasm execution via `NXPP_WASM_INCLUDE_LARGE=1`
 - dedicated CI lane in `.github/workflows/wasm-experimental.yml`
@@ -71,16 +73,24 @@ Include large-graph comparison path:
 NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh
 ```
 
+Run Node API contract tests:
+
+```bash
+bash wasm/scripts/run_wasm_node_contract_tests.sh
+```
+
 ## CI behavior
 
 The experimental wasm workflow runs:
 
 - `bash wasm/scripts/build_wasm_node_module.sh`
-- `NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh`
+- `NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh`
+- `NXPP_WASM_INCLUDE_NODE_CONTRACT=0 NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh`
 
 The workflow publishes a summary with:
 
 - module-build exit code
+- node-contract exit code
 - suite exit code
 - cleaned command outputs
 
@@ -131,6 +141,53 @@ Current methods:
 - `clear()`
 
 This is intentionally a narrow first slice.
+
+## API contract v0 (Node)
+
+The following contract is the current stability baseline for the exported
+`DiGraph` surface.
+
+### Method signatures
+
+- `addNode(id: number): void`
+- `addEdge(source: number, target: number, weight: number): void`
+- `hasNode(id: number): boolean`
+- `hasEdge(source: number, target: number): boolean`
+- `nodes(): number[]`
+- `dijkstraDistance(source: number, target: number): number`
+- `dijkstraPath(source: number, target: number): number[]`
+- `clear(): void`
+
+### Return-shape guarantees (v0)
+
+- `nodes()` returns an array-like list of numeric node IDs
+- `dijkstraDistance()` returns a numeric scalar distance
+- `dijkstraPath()` returns an array-like ordered list of node IDs
+- mutation methods return no value
+
+### Error contract (v0)
+
+- methods throw JS exceptions when the wrapped C++ operation fails
+- at minimum, invalid shortest-path queries on missing/unreachable targets must
+  throw
+- exact message text is not yet guaranteed in v0; exception presence is
+  guaranteed by contract tests
+
+### Compatibility rules (v0)
+
+The following are breaking changes and require versioned migration notes:
+
+- method rename/removal
+- parameter list or parameter-type changes
+- return-type/shape changes
+- removing currently-thrown failure behavior for invalid path queries
+
+The following are non-breaking for v0:
+
+- adding new methods
+- adding stricter validation that still throws on invalid input without
+  changing existing method signatures
+- improving exception message text without removing exception behavior
 
 ## Feature matrix (tracking)
 
