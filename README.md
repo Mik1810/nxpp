@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.19`
+Current release: `v1.0.21`
 
 nxpp is a modern C++20 graph library that gives you a NetworkX-inspired API on top of Boost Graph Library.
 It helps you write graph code faster with less BGL boilerplate while keeping Boost performance and compatibility.
@@ -128,18 +128,26 @@ The packaging and distribution strategy is now explicit:
 
 1. keep the current direct-source and vendored-CMake paths working well
 2. treat the installable/exported CMake package as the main distribution foundation
-3. keep Conan support active (local recipe and ConanCenter submission track)
+3. keep Conan support active while the ConanCenter submission track is still in progress
 4. keep the repository-hosted vcpkg overlay path active
 5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
 
-The repository now also includes a first local Conan recipe in
-[conanfile.py](conanfile.py) for header-only packaging work. See
+The repository now also includes a local Conan recipe in
+[conanfile.py](conanfile.py) for header-only packaging work. Today this is the
+actively supported Conan path inside the repository. See
 [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md) for the current scope and how
 to test it locally in an environment where Conan is installed.
 
 The repository also carries a ConanCenter-style submission recipe under
-[packaging/conan-center-index/](packaging/conan-center-index), currently used
-for the upstream ConanCenter submission flow.
+[packaging/conan-center-index/](packaging/conan-center-index).
+
+Important status clarification:
+
+- `nxpp` is not yet published on ConanCenter
+- the repository currently supports the local Conan recipe directly
+- the ConanCenter path is being pursued through an upstream
+  `conan-center-index` pull request, but it should still be treated as
+  in-progress until that submission is accepted and published
 
 The repository now also includes a supported repository-hosted vcpkg overlay
 port under [packaging/vcpkg/](packaging/vcpkg). That overlay path has been
@@ -148,6 +156,11 @@ external CMake consumer using `find_package(nxpp CONFIG REQUIRED)`. A curated
 registry submission was also attempted in `microsoft/vcpkg`, but it was closed
 under their current project-maturity policy, so the supported vcpkg path today
 remains the repository-hosted overlay port.
+
+The repository now also carries an initial AUR packaging skeleton under
+[packaging/aur/](packaging/aur). That path is currently a repository-hosted
+evaluation skeleton for the release-based `nxpp` package shape, not yet a
+published AUR package.
 
 Debian / Ubuntu packaging has also been evaluated as a later distribution
 option. The current conclusion is to defer that path for now: a Debian source

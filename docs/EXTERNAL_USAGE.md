@@ -235,6 +235,15 @@ This assumes:
 - the overlay port points at a local checkout of this repository
 - Boost Graph is available through the vcpkg dependency graph for the selected triplet
 
+An initial AUR packaging skeleton also now exists in the repository under
+`packaging/aur/`.
+
+- it currently models the release-based `nxpp` package shape
+- it is a repository-hosted evaluation skeleton, not yet a published AUR
+  package
+- real `makepkg` / `namcap` validation still needs to happen in an Arch Linux
+  environment before that channel can be treated as active
+
 ## Versioning expectations for package consumers
 
 The repository version remains the source of truth for all distributed package
