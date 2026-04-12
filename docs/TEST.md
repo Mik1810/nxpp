@@ -27,6 +27,7 @@ The clearest mental model is:
 - `tests/` is the formal assertion-based regression suite
 - `scripts/unix/run_external_consumer_tests.sh` is the end-to-end external-consumer integration layer
 - `test_large_graph_compare.cpp` is the separate scale-oriented raw-Boost comparison path
+- `wasm/` is the experimental Emscripten portability layer
 
 ## Quick map
 
@@ -38,6 +39,7 @@ The clearest mental model is:
 | External-consumer integration tests | `tests/external_consumers/`, `scripts/unix/run_external_consumer_tests.sh`, `external-consumers.yml` | Validate real external-consumer integration modes end-to-end | Not a replacement for formal assertion tests |
 | Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml`, `release.yml` | Validate the generated standalone header through a mix of smoke checks and deeper standalone-header suite runs | Not a replacement for the modular formal suite |
 | Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `compatibility.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs in a dedicated heavy CI lane | Not a benchmark or a proof of full equivalence |
+| Experimental wasm path | `wasm/`, `wasm/scripts/build_wasm_node_module.sh`, `wasm/scripts/run_wasm_tests.sh`, `wasm-experimental.yml` | Verify Emscripten + Node.js portability for Node-facing API compilation and formal assertions | Not full JS bindings or official full-support guarantee |
 
 ### 1. Showcase programs
 
@@ -248,6 +250,42 @@ What it is not:
 - not exhaustive over every supported API or graph configuration
 - not meant to replace the fast suite in [`scripts/unix/run_tests.sh`](../scripts/unix/run_tests.sh)
 - not a performance benchmark
+
+### 7. Experimental wasm and Node path
+
+Commands:
+
+```bash
+bash wasm/scripts/build_wasm_node_module.sh
+bash wasm/scripts/run_wasm_tests.sh
+```
+
+Include large-graph comparison coverage too:
+
+```bash
+NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh
+```
+
+Relevant files:
+
+- [`wasm/WASM.md`](../wasm/WASM.md)
+- [`wasm/node/nxpp_node_bindings.cpp`](../wasm/node/nxpp_node_bindings.cpp)
+- [`wasm/scripts/build_wasm_node_module.sh`](../wasm/scripts/build_wasm_node_module.sh)
+- [`wasm/scripts/run_wasm_tests.sh`](../wasm/scripts/run_wasm_tests.sh)
+- [`.github/workflows/wasm-experimental.yml`](../.github/workflows/wasm-experimental.yml)
+
+Purpose:
+
+- verify that the C++ core builds and runs under Emscripten
+- verify a first Node-compatible JS-facing API subset via Embind
+- keep a portability-oriented wasm node-build+suite lane available in CI
+- exercise exception-based behavior under wasm with explicit exception flags
+
+What it is not:
+
+- not a package distribution path
+- not a replacement for native compatibility and formal CI lanes
+- not full JavaScript/TypeScript binding coverage
 
 ## Which command to run
 

@@ -45,6 +45,7 @@ What currently lives here:
 - [`EXTERNAL_USAGE.md`](EXTERNAL_USAGE.md): current external-consumption story for modular headers and the release single-header asset
 - [`TEST.md`](TEST.md): distinction between showcase programs, snippet parity, formal tests, single-header validation, and the large-graph comparison path
 - [`DOXYGEN_MAINPAGE.md`](DOXYGEN_MAINPAGE.md): landing page for the generated Doxygen reference scaffold
+- [`../wasm/WASM.md`](../wasm/WASM.md): consolidated experimental wasm + Node guide and development plan
 
 The repo now has a real semantic-header split under `include/nxpp/`:
 
@@ -144,6 +145,9 @@ Current status:
 - the compatibility workflow now owns both the normal formal suite and the
   dedicated large-graph comparison lane, keeping them in one CI family while
   still separating the heavier large-graph job from the day-to-day fast suite
+- an experimental wasm lane now exists with wasm-specific assets centralized
+  under `wasm/`, while `.github/workflows/wasm-experimental.yml` remains the
+  CI entrypoint required by GitHub Actions
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

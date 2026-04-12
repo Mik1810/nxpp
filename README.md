@@ -334,6 +334,7 @@ g.set_edge_attr(e2, "label", "second");
 - Practical API guide: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
+- Experimental wasm + Node plan/guide: [wasm/WASM.md](wasm/WASM.md)
 
 Useful generated-reference entry points:
 
