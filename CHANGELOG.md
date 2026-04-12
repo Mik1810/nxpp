@@ -5,6 +5,7 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 ## [1.0.27] - 2026-04-10
 
 - Closed `#72` by expanding non-default selector coverage in the large-graph raw-Boost comparison path: `tests/test_large_graph_compare.cpp` now adds a second selector-focused regression using `boost::listS` / `boost::vecS` (alongside the existing `boost::listS` / `boost::listS` case) and validates `remove_node()` alignment, weighted edge-state alignment, shortest-path agreement, and attribute cleanup/preservation behavior against the raw Boost baseline.
+- Continued `#73` with a concrete AUR implementation step instead of a pure roadmap note: the repository now carries `packaging/aur/` with a release-based `PKGBUILD`, `.SRCINFO`, and an Arch-oriented Docker smoke fixture, the README/external-usage docs now state more precisely that ConanCenter is still in progress while AUR has become a real repository-hosted distribution path, and the first `nxpp` package was pushed live to AUR as `1.0.21-1`.
 
 ## [1.0.26] - 2026-04-10
 

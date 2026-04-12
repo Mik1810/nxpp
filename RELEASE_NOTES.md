@@ -15,6 +15,18 @@ version entries in `CHANGELOG.md`.
 - The new regression cross-checks node/edge state after `remove_node()`,
   Dijkstra shortest-path distances, and attribute cleanup/preservation behavior
   against the raw Boost baseline on deterministic large inputs.
+- Continued `#73` with a real AUR distribution step.
+- The repository now includes `packaging/aur/` with:
+  - a release-based `PKGBUILD`
+  - matching `.SRCINFO`
+  - an Arch-oriented Docker smoke fixture for local validation
+- The Conan wording in the public docs is now more explicit too:
+  - local Conan recipe support is active today
+  - ConanCenter publication is still in progress through the upstream
+    submission path
+- The first real `nxpp` AUR package was also published as `1.0.21-1`, so AUR
+  is now an active secondary distribution channel rather than only a future
+  candidate.
 
 ## [1.0.26]
 
