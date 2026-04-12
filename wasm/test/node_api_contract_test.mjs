@@ -8,12 +8,13 @@ const rootDir = path.resolve(__dirname, "..", "..");
 
 const modulePath =
     process.env.NXPP_WASM_NODE_MODULE ??
-    path.join(rootDir, ".tmp", "wasm-node", "nxpp_node.mjs");
+    path.join(rootDir, "wasm", "build", "nxpp_node.mjs");
 
 const { default: createNxppModule } = await import(pathToFileURL(modulePath).href);
 const nxppModule = await createNxppModule();
 
 assert.equal(typeof nxppModule.DiGraph, "function", "DiGraph export is missing");
+assert.equal(typeof nxppModule.DijkstraResult, "function", "DijkstraResult export is missing");
 
 const graph = new nxppModule.DiGraph();
 
@@ -23,8 +24,7 @@ const expectedMethods = [
     "hasNode",
     "hasEdge",
     "nodes",
-    "dijkstraDistance",
-    "dijkstraPath",
+    "dijkstraShortestPaths",
     "clear",
 ];
 
@@ -50,12 +50,21 @@ assert.equal(graph.hasEdge(1, 3), false, "hasEdge must return false for missing 
 const nodes = Array.from(graph.nodes()).sort((a, b) => a - b);
 assert.deepEqual(nodes, [1, 2, 3], "nodes() must return numeric node IDs");
 
-const distance = graph.dijkstraDistance(1, 3);
-assert.equal(typeof distance, "number", "dijkstraDistance() must return a number");
-assert.equal(distance, 3, "dijkstraDistance() produced unexpected value");
+assert.equal(typeof graph.dijkstraDistance, "undefined", "dijkstraDistance alias must not be exposed");
+assert.equal(typeof graph.dijkstraPath, "undefined", "dijkstraPath alias must not be exposed");
 
-const pathResult = Array.from(graph.dijkstraPath(1, 3));
-assert.deepEqual(pathResult, [1, 2, 3], "dijkstraPath() produced unexpected path");
+const shortestPaths = graph.dijkstraShortestPaths(1);
+assert.equal(typeof shortestPaths.hasPathTo, "function", "hasPathTo() must exist on DijkstraResult");
+assert.equal(typeof shortestPaths.distanceTo, "function", "distanceTo() must exist on DijkstraResult");
+assert.equal(typeof shortestPaths.pathTo, "function", "pathTo() must exist on DijkstraResult");
+assert.equal(typeof shortestPaths.reachableNodes, "function", "reachableNodes() must exist on DijkstraResult");
+
+assert.equal(shortestPaths.hasPathTo(3), true, "hasPathTo() must return true for reachable target");
+assert.equal(shortestPaths.distanceTo(3), 3, "distanceTo() produced unexpected value");
+assert.deepEqual(Array.from(shortestPaths.pathTo(3)), [1, 2, 3], "pathTo() produced unexpected path");
+
+const reachable = Array.from(shortestPaths.reachableNodes()).sort((a, b) => a - b);
+assert.deepEqual(reachable, [1, 2, 3], "reachableNodes() must list known nodes");
 
 graph.clear();
 assert.deepEqual(Array.from(graph.nodes()), [], "clear() must remove all nodes");
@@ -63,13 +72,13 @@ assert.deepEqual(Array.from(graph.nodes()), [], "clear() must remove all nodes")
 let threw = false;
 let thrownValue;
 try {
-    graph.dijkstraDistance(1, 3);
+    graph.dijkstraShortestPaths(1);
 } catch (error) {
     threw = true;
     thrownValue = error;
 }
 
-assert.equal(threw, true, "Invalid dijkstraDistance() query must throw");
+assert.equal(threw, true, "Invalid dijkstraShortestPaths() query must throw");
 assert.notEqual(thrownValue, undefined, "Invalid shortest path query must throw a value");
 
 console.log("[WASM-NODE] contract-tests-ok");

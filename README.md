@@ -336,6 +336,12 @@ g.set_edge_attr(e2, "label", "second");
 - Testing guide: [docs/TEST.md](docs/TEST.md)
 - Experimental wasm + Node plan/guide: [wasm/WASM.md](wasm/WASM.md)
 
+Current experimental wasm layout:
+
+- Node bindings: [wasm/node/nxpp_bindings.cpp](wasm/node/nxpp_bindings.cpp)
+- Node contract test: [wasm/test/node_api_contract_test.mjs](wasm/test/node_api_contract_test.mjs)
+- Node build artifacts: [wasm/build/](wasm/build/)
+
 Useful generated-reference entry points:
 
 - Main wrapper type: https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html

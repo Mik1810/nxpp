@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.29]
+
+### Highlights
+
+- Realigned the experimental wasm folder layout to make roles clearer:
+  - Node bindings now live in `wasm/node/nxpp_bindings.cpp`
+  - Node contract tests now live in `wasm/test/node_api_contract_test.mjs`
+  - Node wasm build artifacts now emit into `wasm/build/`
+- Updated wasm Node build/test scripts so the refactored paths are used
+  consistently in local runs and CI orchestration.
+- Updated wasm-related testing/docs references so consumers and contributors see
+  the new layout as the source of truth.
+
 ## [1.0.28]
 
 ### Highlights

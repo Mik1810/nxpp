@@ -33,9 +33,9 @@ Longer-term objective:
 
 Current wasm lane includes:
 
-- Node-compatible bindings in `wasm/node/nxpp_node_bindings.cpp`
+- Node-compatible bindings in `wasm/node/nxpp_bindings.cpp`
 - Node-oriented wasm module build script in `wasm/scripts/build_wasm_node_module.sh`
-- Node API contract tests in `wasm/node/node_api_contract_test.mjs`
+- Node API contract tests in `wasm/test/node_api_contract_test.mjs`
 - Node contract runner in `wasm/scripts/run_wasm_node_contract_tests.sh`
 - wasm formal assertion suite execution in `wasm/scripts/run_wasm_tests.sh`
 - optional large-graph wasm execution via `NXPP_WASM_INCLUDE_LARGE=1`
@@ -136,9 +136,15 @@ Current methods:
 - `hasNode(id)`
 - `hasEdge(source, target)`
 - `nodes()`
-- `dijkstraDistance(source, target)`
-- `dijkstraPath(source, target)`
+- `dijkstraShortestPaths(source)`
 - `clear()`
+
+Current shortest-path result object: `DijkstraResult`
+
+- `hasPathTo(target)`
+- `distanceTo(target)`
+- `pathTo(target)`
+- `reachableNodes()`
 
 This is intentionally a narrow first slice.
 
@@ -154,22 +160,31 @@ The following contract is the current stability baseline for the exported
 - `hasNode(id: number): boolean`
 - `hasEdge(source: number, target: number): boolean`
 - `nodes(): number[]`
-- `dijkstraDistance(source: number, target: number): number`
-- `dijkstraPath(source: number, target: number): number[]`
+- `dijkstraShortestPaths(source: number): DijkstraResult`
 - `clear(): void`
+
+`DijkstraResult` contract:
+
+- `hasPathTo(target: number): boolean`
+- `distanceTo(target: number): number`
+- `pathTo(target: number): number[]`
+- `reachableNodes(): number[]`
 
 ### Return-shape guarantees (v0)
 
 - `nodes()` returns an array-like list of numeric node IDs
-- `dijkstraDistance()` returns a numeric scalar distance
-- `dijkstraPath()` returns an array-like ordered list of node IDs
+- `dijkstraShortestPaths()` returns a `DijkstraResult` object
+- `distanceTo()` returns a numeric scalar distance
+- `pathTo()` returns an array-like ordered list of node IDs
+- `reachableNodes()` returns an array-like list of node IDs present in the
+  result
 - mutation methods return no value
 
 ### Error contract (v0)
 
 - methods throw JS exceptions when the wrapped C++ operation fails
-- at minimum, invalid shortest-path queries on missing/unreachable targets must
-  throw
+- at minimum, invalid shortest-path source queries and invalid
+  `DijkstraResult` target queries must throw
 - exact message text is not yet guaranteed in v0; exception presence is
   guaranteed by contract tests
 
@@ -180,7 +195,7 @@ The following are breaking changes and require versioned migration notes:
 - method rename/removal
 - parameter list or parameter-type changes
 - return-type/shape changes
-- removing currently-thrown failure behavior for invalid path queries
+- removing currently-thrown failure behavior for invalid shortest-path queries
 
 The following are non-breaking for v0:
 
@@ -197,7 +212,7 @@ The following are non-breaking for v0:
 | Core graph lifecycle | Partial | `DiGraph` creation and `clear()` | Add explicit lifecycle/error contract tests |
 | Graph mutation APIs | Partial | `addNode`, `addEdge` | Add remove/update operations with deterministic semantics |
 | Query APIs | Partial | `hasNode`, `hasEdge`, `nodes` | Add shape guarantees and edge-case validation |
-| Shortest paths | Partial | `dijkstraDistance`, `dijkstraPath` | Expand to additional shortest-path helpers |
+| Shortest paths | Partial | `dijkstraShortestPaths` + `DijkstraResult` (`distanceTo`, `pathTo`) | Expand to additional shortest-path helpers |
 | Components/topology | Not started | none | Add first exported component/topology slice |
 | Spanning/centrality | Not started | none | Add centrality subset after topology |
 | Flow/multigraph precision | Not started | none | Add edge-id-safe flow/multigraph exports |

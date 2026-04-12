@@ -2,14 +2,14 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-BUILD_DIR="$ROOT_DIR/.tmp/wasm-node"
+BUILD_DIR="$ROOT_DIR/wasm/build"
 mkdir -p "$BUILD_DIR"
 
 EMXX=${EMXX:-em++}
 EMXXFLAGS=${EMXXFLAGS:-"-std=c++20 -Wall -Wextra -pedantic -O1 -fexceptions -sDISABLE_EXCEPTION_CATCHING=0 -sENVIRONMENT=node -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXIT_RUNTIME=1"}
 BOOST_INCLUDE=${BOOST_INCLUDE:-/usr/include}
 
-SOURCE_FILE="$ROOT_DIR/wasm/node/nxpp_node_bindings.cpp"
+SOURCE_FILE="$ROOT_DIR/wasm/node/nxpp_bindings.cpp"
 OUTPUT_MODULE="$BUILD_DIR/nxpp_node.mjs"
 
 if ! command -v "$EMXX" >/dev/null 2>&1; then

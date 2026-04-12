@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.29] - 2026-04-12
+
+- Realigned the experimental wasm lane after the folder refactor: Node bindings now live in `wasm/node/nxpp_bindings.cpp`, the Node API contract test now lives in `wasm/test/node_api_contract_test.mjs`, wasm Node artifacts now emit into `wasm/build/`, and the wasm Node build/contract scripts plus testing docs were updated to match the new layout.
+
 ## [1.0.28] - 2026-04-12
 
 - Closed `#73` by converting the remaining distribution-channel discussion into explicit repository policy: AUR is now documented as an active secondary release-based channel, FetchContent / CPM.cmake guidance is now adopted as a near-term CMake-consumer path, Homebrew tap and Spack are documented as later-stage candidates, and Meson WrapDB plus Debian / Ubuntu packaging are documented as deferred for now; related strategy/status text is now aligned across `README.md`, `docs/README.md`, `docs/EXTERNAL_USAGE.md`, and `packaging/aur/README.md`.

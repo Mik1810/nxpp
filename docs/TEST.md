@@ -270,8 +270,8 @@ NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh
 Relevant files:
 
 - [`wasm/WASM.md`](../wasm/WASM.md)
-- [`wasm/node/nxpp_node_bindings.cpp`](../wasm/node/nxpp_node_bindings.cpp)
-- [`wasm/node/node_api_contract_test.mjs`](../wasm/node/node_api_contract_test.mjs)
+- [`wasm/node/nxpp_bindings.cpp`](../wasm/node/nxpp_bindings.cpp)
+- [`wasm/test/node_api_contract_test.mjs`](../wasm/test/node_api_contract_test.mjs)
 - [`wasm/scripts/build_wasm_node_module.sh`](../wasm/scripts/build_wasm_node_module.sh)
 - [`wasm/scripts/run_wasm_node_contract_tests.sh`](../wasm/scripts/run_wasm_node_contract_tests.sh)
 - [`wasm/scripts/run_wasm_tests.sh`](../wasm/scripts/run_wasm_tests.sh)
