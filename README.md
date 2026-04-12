@@ -130,7 +130,10 @@ The packaging and distribution strategy is now explicit:
 2. treat the installable/exported CMake package as the main distribution foundation
 3. keep Conan support active while the ConanCenter submission track is still in progress
 4. keep the repository-hosted vcpkg overlay path active
-5. treat Debian / Ubuntu packaging as a later optional target rather than the first distribution priority
+5. keep AUR as an active secondary release-based distribution channel
+6. adopt FetchContent / CPM.cmake guidance as a near-term CMake convenience path
+7. treat Homebrew tap and Spack as later-stage candidates
+8. treat Meson WrapDB and Debian / Ubuntu packaging as deferred for now
 
 The repository now also includes a local Conan recipe in
 [conanfile.py](conanfile.py) for header-only packaging work. Today this is the
@@ -157,10 +160,17 @@ registry submission was also attempted in `microsoft/vcpkg`, but it was closed
 under their current project-maturity policy, so the supported vcpkg path today
 remains the repository-hosted overlay port.
 
-The repository now also carries an initial AUR packaging skeleton under
-[packaging/aur/](packaging/aur). That path is currently a repository-hosted
-evaluation skeleton for the release-based `nxpp` package shape, not yet a
-published AUR package.
+The repository now also carries a repository-hosted AUR packaging path under
+[packaging/aur/](packaging/aur). This tracks the release-based `nxpp` package
+shape and is already a real active secondary channel.
+
+Additional channel decisions from the ongoing distribution evaluation are now
+explicit too:
+
+- near-term: FetchContent / CPM.cmake documentation guidance for pinned-tag
+  CMake consumption
+- later-stage candidates: Homebrew tap, Spack
+- deferred for now: Meson WrapDB, Debian / Ubuntu packaging
 
 Debian / Ubuntu packaging has also been evaluated as a later distribution
 option. The current conclusion is to defer that path for now: a Debian source

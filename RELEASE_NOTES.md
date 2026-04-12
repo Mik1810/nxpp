@@ -3,6 +3,22 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.28]
+
+### Highlights
+
+- Closed `#73` by turning distribution-channel evaluation into explicit policy.
+- AUR is now documented as an active secondary release-based channel instead
+  of only an evaluation placeholder.
+- FetchContent / CPM.cmake guidance is now documented as the near-term
+  CMake-centric adoption path for pinned-tag Git consumption.
+- Homebrew tap and Spack are now documented as later-stage candidates rather
+  than immediate work.
+- Meson WrapDB and Debian / Ubuntu packaging are now documented as deferred for
+  now to avoid overextending packaging maintenance.
+- Distribution-strategy wording is now aligned across the root README, docs
+  index, external-usage guide, and AUR packaging notes.
+
 ## [1.0.27]
 
 ### Highlights

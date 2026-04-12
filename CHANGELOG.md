@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.28] - 2026-04-12
+
+- Closed `#73` by converting the remaining distribution-channel discussion into explicit repository policy: AUR is now documented as an active secondary release-based channel, FetchContent / CPM.cmake guidance is now adopted as a near-term CMake-consumer path, Homebrew tap and Spack are documented as later-stage candidates, and Meson WrapDB plus Debian / Ubuntu packaging are documented as deferred for now; related strategy/status text is now aligned across `README.md`, `docs/README.md`, `docs/EXTERNAL_USAGE.md`, and `packaging/aur/README.md`.
+
 ## [1.0.27] - 2026-04-10
 
 - Closed `#72` by expanding non-default selector coverage in the large-graph raw-Boost comparison path: `tests/test_large_graph_compare.cpp` now adds a second selector-focused regression using `boost::listS` / `boost::vecS` (alongside the existing `boost::listS` / `boost::listS` case) and validates `remove_node()` alignment, weighted edge-state alignment, shortest-path agreement, and attribute cleanup/preservation behavior against the raw Boost baseline.

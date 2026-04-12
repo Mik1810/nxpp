@@ -235,14 +235,54 @@ This assumes:
 - the overlay port points at a local checkout of this repository
 - Boost Graph is available through the vcpkg dependency graph for the selected triplet
 
-An initial AUR packaging skeleton also now exists in the repository under
+A release-based AUR packaging path also now exists in the repository under
 `packaging/aur/`.
 
-- it currently models the release-based `nxpp` package shape
-- it is a repository-hosted evaluation skeleton, not yet a published AUR
-  package
-- real `makepkg` / `namcap` validation still needs to happen in an Arch Linux
-  environment before that channel can be treated as active
+- it models the release-based `nxpp` package shape (not `nxpp-git`)
+- it is now treated as an active secondary distribution channel
+- maintenance still depends on Arch-side hygiene (`makepkg`, `namcap`, and
+  regenerated `.SRCINFO` from `PKGBUILD`)
+
+## FetchContent / CPM.cmake guidance (near-term CMake path)
+
+For CMake consumers that prefer pinned-tag Git consumption over system package
+managers, the near-term recommended path is documented FetchContent /
+CPM.cmake usage.
+
+Minimal FetchContent shape:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  nxpp
+  GIT_REPOSITORY https://github.com/Mik1810/nxpp.git
+  GIT_TAG vX.Y.Z
+)
+
+FetchContent_MakeAvailable(nxpp)
+target_link_libraries(my_app PRIVATE nxpp::nxpp)
+```
+
+Minimal CPM.cmake shape:
+
+```cmake
+CPMAddPackage(
+  NAME nxpp
+  GITHUB_REPOSITORY Mik1810/nxpp
+  VERSION X.Y.Z
+)
+
+target_link_libraries(my_app PRIVATE nxpp::nxpp)
+```
+
+Guidance notes:
+
+- prefer pinned release tags (`vX.Y.Z`) rather than branch heads
+- keep installed-package usage (`find_package(nxpp CONFIG REQUIRED)`) as the
+  primary long-lived path when you control the environment
+- use FetchContent / CPM.cmake as lightweight CMake adoption paths, not as a
+  replacement for all package-manager publication channels
 
 ## Versioning expectations for package consumers
 

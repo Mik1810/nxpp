@@ -1,6 +1,6 @@
 # AUR Packaging
 
-This directory contains an AUR-oriented packaging skeleton for `nxpp`.
+This directory contains the repository-hosted AUR packaging path for `nxpp`.
 
 Current scope:
 
@@ -13,11 +13,11 @@ Current scope:
 
 Notes:
 
-- this is a repository-hosted packaging skeleton, not an automatically
-  published AUR package
+- this is an active secondary distribution channel based on the release
+  package shape (`nxpp`)
 - `makepkg` / `namcap` validation should be run from an Arch Linux environment
-- if this channel is adopted for real, `.SRCINFO` should be regenerated from
-  `PKGBUILD` in the Arch environment before publication
+- `.SRCINFO` should be regenerated from `PKGBUILD` in the Arch environment
+  whenever package metadata changes
 
 Local Docker smoke path:
 

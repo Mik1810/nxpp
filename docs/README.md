@@ -161,15 +161,21 @@ Packaging / distribution strategy:
   `packaging/vcpkg/ports/nxpp`, which is now the supported vcpkg path in the
   repository while curated-registry publication remains deferred by project
   maturity
-- Debian / Ubuntu packaging has now been evaluated and explicitly deferred for
-  now because the extra packaging/distribution maintenance cost would be higher
-  than the current project needs
-- the next packaging step is not Debian packaging and not package-manager fan-out
+- AUR is now treated as an active secondary release-based distribution channel
+- near-term channel work includes CMake-centric FetchContent / CPM.cmake
+  guidance rather than a new package-manager publication lane
+- Homebrew tap and Spack are kept as later-stage candidates
+- Meson WrapDB and Debian / Ubuntu packaging remain deferred for now because
+  the extra packaging/distribution maintenance cost would be higher than the
+  current project needs
 - the preferred order is:
   1. keep the CMake install / export / package-config path as the foundation
   2. keep Conan support active (including the ConanCenter submission track)
   3. keep the repository-hosted vcpkg overlay support path active
-  4. only later, if still worth the maintenance cost, Debian / Ubuntu packaging
+  4. keep AUR active as a secondary release-based channel
+  5. add and maintain FetchContent / CPM.cmake guidance for CMake consumers
+  6. only later, if still worth the maintenance cost, Homebrew tap or Spack
+  7. keep Meson WrapDB and Debian / Ubuntu packaging deferred for now
 - package-manager distribution should follow the installed CMake package story,
   not bypass it
 - repository-hosted package definitions are expected to track the same release
