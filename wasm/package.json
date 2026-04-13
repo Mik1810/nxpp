@@ -21,6 +21,15 @@
   "engines": {
     "node": ">=20"
   },
+  "scripts": {
+    "publish:npm": "npm publish --registry=https://registry.npmjs.org",
+    "publish:github": "npm publish --ignore-scripts --registry=https://npm.pkg.github.com",
+    "publish:all": "npm run publish:npm",
+    "postpublish": "npm run publish:github"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mik1810/nxpp.git"

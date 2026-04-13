@@ -74,6 +74,13 @@ When completing a task:
 - The workflow must skip publication when the matching GitHub release already exists.
 - Before a release is created, the workflow must verify that the top version in `CHANGELOG.md` matches the top version in `RELEASE_NOTES.md`.
 
+## WASM Package Publish
+- The experimental wasm npm package is published from `wasm/`.
+- Standard publish flow is `npm run publish:all` from `wasm/`.
+- `publish:all` first publishes to npmjs (`publish:npm`), then `postpublish` publishes to GitHub Packages (`publish:github`).
+- Keep npm and GitHub registry credentials in user-level `~/.npmrc` only; never commit tokens or repository-local auth files.
+- Recommended version bump before publish: `npm version patch --no-git-tag-version` in `wasm/`.
+
 ## Single Header
 - `include/nxpp.hpp` is the canonical umbrella include in the repository.
 - `dist/nxpp.hpp` is a generated artifact and must not be versioned in git.
