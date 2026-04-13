@@ -168,25 +168,31 @@ Why this direction:
 
 Current exported class: `DiGraph`
 
-Current methods:
+Current methods are grouped as follows.
+
+Core endpoint-oriented methods:
 
 - `addNode(id)`
 - `addEdge(source, target, weight)`
 - `hasNode(id)`
 - `hasEdge(source, target)`
-- `hasEdgeId(edgeId)`
 - `nodes()`
-- `edgeIds()`
-- `edgeIdsBetween(source, target)`
 - `neighbors(id)`
 - `removeNode(id)`
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
+- `dijkstraShortestPaths(source)`
+- `clear()`
+
+Advanced edge-id methods (not deprecated in v0; kept for precise edge-instance
+operations and forward compatibility with the planned multigraph family):
+
+- `hasEdgeId(edgeId)`
+- `edgeIds()`
+- `edgeIdsBetween(source, target)`
 - `getEdgeEndpoints(edgeId)`
 - `getEdgeWeightById(edgeId)`
 - `setEdgeWeightById(edgeId, weight)`
-- `dijkstraShortestPaths(source)`
-- `clear()`
 
 Current shortest-path result object: `DijkstraResult`
 
