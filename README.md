@@ -343,6 +343,20 @@ Current experimental wasm layout:
 - Node contract test: [wasm/test/node_api_contract_test.mjs](wasm/test/node_api_contract_test.mjs)
 - Node build artifacts: [wasm/build/](wasm/build/)
 
+Current wasm architecture direction:
+
+- finish `graph.hpp` coverage before moving to later semantic headers
+- move the public JS API toward a smaller NetworkX-like family:
+  - `Graph`
+  - `DiGraph`
+  - `MultiGraph`
+  - `MultiDiGraph`
+- keep concrete C++ graph aliases as internal wasm binding details
+- support both numeric and string node IDs without collapsing them into a
+  single normalized representation internally
+- choose the internal node-ID backend lazily from first use and reject mixed
+  numeric/string IDs inside the same graph
+
 Useful generated-reference entry points:
 
 - Main wrapper type: https://mik1810.github.io/nxpp/classnxpp_1_1Graph.html

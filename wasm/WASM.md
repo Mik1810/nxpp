@@ -17,6 +17,10 @@ It combines:
 - not yet a full JavaScript/TypeScript API parity layer
 - not yet a standalone package-distribution channel
 
+The current binding still exposes only a narrow experimental `DiGraph`-first
+slice. That should be read as an implementation stepping stone, not as the
+final public JavaScript API shape.
+
 ## Objectives
 
 Primary objectives:
@@ -120,10 +124,45 @@ Runtime dependencies (consumer side target model):
 3. Node SDK wrapper
 - JS/TS wrapper should expose idiomatic APIs and consistent errors.
 - Wrapper should hide wasm memory and low-level bridge details.
+- Wrapper layer should present a smaller NetworkX-like public type family
+  instead of exposing the full C++ alias matrix directly.
+- Behavioral parity matters more than literal C++ syntax replication.
 
 4. Packaging
 - Publish prebuilt runtime artifacts.
 - Avoid install-time compilation for users.
+
+## Current implementation direction
+
+Near-term implementation order is now explicit:
+
+1. finish `graph.hpp` coverage first
+2. reshape the public graph API toward:
+   - `Graph`
+   - `DiGraph`
+   - `MultiGraph`
+   - `MultiDiGraph`
+3. keep internal numeric and string graph backends distinct instead of
+   normalizing all node IDs to one representation
+4. only after that move to later semantic headers such as:
+   - `attributes.hpp`
+   - broader `shortest_paths.hpp`
+   - `components.hpp`
+   - `flow.hpp`
+5. treat any later JS convenience layer as behavior-focused and explicit,
+   rather than trying to reproduce every native `operator[]` form literally
+
+Why this direction:
+
+- `graph.hpp` is the core public surface that the other semantic headers build
+  on top of
+- the C++ alias list is too detailed and partly redundant for a good JS API
+- JavaScript users benefit more from a small graph-type family, similar to the
+  NetworkX model
+- supporting both numeric and string node IDs should not force the project to
+  give up the faster integer-backed algorithms internally
+- so the wasm plan should not jump to later headers before the graph core and
+  the public graph-type model are nailed down
 
 ## Node-compatible API surface (experimental)
 
@@ -135,7 +174,17 @@ Current methods:
 - `addEdge(source, target, weight)`
 - `hasNode(id)`
 - `hasEdge(source, target)`
+- `hasEdgeId(edgeId)`
 - `nodes()`
+- `edgeIds()`
+- `edgeIdsBetween(source, target)`
+- `neighbors(id)`
+- `removeNode(id)`
+- `removeEdge(source, target)`
+- `getEdgeWeight(source, target)`
+- `getEdgeEndpoints(edgeId)`
+- `getEdgeWeightById(edgeId)`
+- `setEdgeWeightById(edgeId, weight)`
 - `dijkstraShortestPaths(source)`
 - `clear()`
 
@@ -146,45 +195,111 @@ Current shortest-path result object: `DijkstraResult`
 - `pathTo(target)`
 - `reachableNodes()`
 
-This is intentionally a narrow first slice.
+This is intentionally a narrow first slice and should not be treated as the
+final taxonomy of wasm graph types.
+
+Current `DiGraph` runtime behavior:
+
+- accepts integer-valued JS numbers or strings as node IDs
+- chooses its internal backend lazily from the first observed node ID
+- rejects mixed numeric/string node IDs after that first choice
+- preserves the chosen node-ID shape in arrays, result objects, and endpoint
+  wrappers returned to JavaScript
+
+## Planned public graph taxonomy
+
+The intended public JavaScript graph family is now:
+
+- `Graph`
+- `DiGraph`
+- `MultiGraph`
+- `MultiDiGraph`
+
+Design rules for that family:
+
+- public JS graph names should be simple and NetworkX-like
+- weighted behavior remains available, but not encoded into the public type
+  names
+- the full C++ alias list from `graph.hpp` remains an internal binding concern
+- node IDs should support both `number` and `string`
+- backend selection should happen lazily from the first observed node ID type
+- once selected, a graph should reject mixed numeric/string node IDs
+
+This means the current experimental `DiGraph` export is a staging shape, not
+the final public type story.
 
 ## API contract v0 (Node)
 
 The following contract is the current stability baseline for the exported
-`DiGraph` surface.
+experimental `DiGraph` surface only.
 
 ### Method signatures
 
-- `addNode(id: number): void`
-- `addEdge(source: number, target: number, weight: number): void`
-- `hasNode(id: number): boolean`
-- `hasEdge(source: number, target: number): boolean`
-- `nodes(): number[]`
-- `dijkstraShortestPaths(source: number): DijkstraResult`
+- `addNode(id: number | string): void`
+- `addEdge(source: number | string, target: number | string, weight: number): void`
+- `hasNode(id: number | string): boolean`
+- `hasEdge(source: number | string, target: number | string): boolean`
+- `hasEdgeId(edgeId: number): boolean`
+- `nodes(): Array<number | string>`
+- `edgeIds(): number[]`
+- `edgeIdsBetween(source: number | string, target: number | string): number[]`
+- `neighbors(id: number | string): Array<number | string>`
+- `removeNode(id: number | string): void`
+- `removeEdge(source: number | string, target: number | string): void`
+- `getEdgeWeight(source: number | string, target: number | string): number`
+- `getEdgeEndpoints(edgeId: number): EdgeEndpoints`
+- `getEdgeWeightById(edgeId: number): number`
+- `setEdgeWeightById(edgeId: number, weight: number): void`
+- `dijkstraShortestPaths(source: number | string): DijkstraResult`
 - `clear(): void`
 
 `DijkstraResult` contract:
 
-- `hasPathTo(target: number): boolean`
-- `distanceTo(target: number): number`
-- `pathTo(target: number): number[]`
-- `reachableNodes(): number[]`
+- `hasPathTo(target: number | string): boolean`
+- `distanceTo(target: number | string): number`
+- `pathTo(target: number | string): Array<number | string>`
+- `reachableNodes(): Array<number | string>`
+
+`EdgeEndpoints` contract:
+
+- `source(): number | string`
+- `target(): number | string`
 
 ### Return-shape guarantees (v0)
 
-- `nodes()` returns an array-like list of numeric node IDs
+- `nodes()` returns an array-like list of node IDs using the graph's chosen
+  runtime node-ID kind
+- `edgeIds()` returns an array-like list of numeric wrapper-managed edge IDs
+- `edgeIdsBetween()` returns an array-like list of numeric edge IDs matching
+  the endpoint pair
+- `neighbors()` returns an array-like list of node IDs using the graph's chosen
+  runtime node-ID kind
 - `dijkstraShortestPaths()` returns a `DijkstraResult` object
+- `getEdgeWeight()` returns a numeric scalar weight
+- `getEdgeEndpoints()` returns an `EdgeEndpoints` object
+- `getEdgeWeightById()` returns a numeric scalar weight
 - `distanceTo()` returns a numeric scalar distance
-- `pathTo()` returns an array-like ordered list of node IDs
+- `pathTo()` returns an array-like ordered list of node IDs using the graph's
+  chosen runtime node-ID kind
 - `reachableNodes()` returns an array-like list of node IDs present in the
-  result
+  result using the graph's chosen runtime node-ID kind
 - mutation methods return no value
 
 ### Error contract (v0)
 
 - methods throw JS exceptions when the wrapped C++ operation fails
-- at minimum, invalid shortest-path source queries and invalid
-  `DijkstraResult` target queries must throw
+- at minimum, the following invalid operations must throw:
+  - adding or querying with unsupported node ID shapes
+  - mixing numeric and string node IDs inside the same graph
+  - invalid shortest-path source queries
+  - invalid `DijkstraResult` target queries
+  - `neighbors()` on a missing node
+  - `removeNode()` on a missing node
+  - `removeEdge()` on a missing edge or missing endpoint
+  - `getEdgeWeight()` on a missing edge
+  - `getEdgeWeightById()` on a missing edge ID
+  - `setEdgeWeightById()` on a missing edge ID
+  - `getEdgeEndpoints()` on a missing edge ID
 - exact message text is not yet guaranteed in v0; exception presence is
   guaranteed by contract tests
 
@@ -209,10 +324,11 @@ The following are non-breaking for v0:
 | Area | Status | Current coverage | Next step |
 |---|---|---|---|
 | Toolchain and build | Active | Emscripten + Node module build script | Keep CI stable on Node LTS matrix |
-| Core graph lifecycle | Partial | `DiGraph` creation and `clear()` | Add explicit lifecycle/error contract tests |
-| Graph mutation APIs | Partial | `addNode`, `addEdge` | Add remove/update operations with deterministic semantics |
-| Query APIs | Partial | `hasNode`, `hasEdge`, `nodes` | Add shape guarantees and edge-case validation |
-| Shortest paths | Partial | `dijkstraShortestPaths` + `DijkstraResult` (`distanceTo`, `pathTo`) | Expand to additional shortest-path helpers |
+| Core graph lifecycle | Partial | experimental `DiGraph` creation, `clear()`, and lazy numeric/string backend selection | Introduce the broader `Graph` / `DiGraph` / `MultiGraph` / `MultiDiGraph` family on top of the current core slice |
+| Graph mutation APIs | Partial | `addNode`, `addEdge`, `removeNode`, `removeEdge`, `setEdgeWeightById` | Add remaining `graph.hpp` mutation surface and then generalize it across the planned public graph family |
+| Query APIs | Partial | `hasNode`, `hasEdge`, `hasEdgeId`, `nodes`, `edgeIds`, `edgeIdsBetween`, `neighbors`, `getEdgeWeight`, `getEdgeWeightById`, `getEdgeEndpoints` with numeric/string runtime preservation | Add remaining `graph.hpp` query surface and extend the same node-type-aware model to the rest of the public graph family |
+| Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
+| Shortest paths | Partial | `dijkstraShortestPaths` + `DijkstraResult` (`distanceTo`, `pathTo`) | Expand to additional shortest-path helpers after `graph.hpp` coverage is stronger |
 | Components/topology | Not started | none | Add first exported component/topology slice |
 | Spanning/centrality | Not started | none | Add centrality subset after topology |
 | Flow/multigraph precision | Not started | none | Add edge-id-safe flow/multigraph exports |

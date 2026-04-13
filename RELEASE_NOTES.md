@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.31]
+
+### Highlights
+
+- Closed the current `#74` wasm-node stabilization slice by fixing embind-side
+  portability diagnostics in `wasm/node/nxpp_bindings.cpp`:
+  - switched finite numeric checks to `::isfinite(...)`
+  - made the affected `std::variant` wrappers construct explicit alternatives
+    via `std::in_place_type<...>`
+- Revalidated the experimental Node wasm lane in the Emscripten environment:
+  - `bash wasm/scripts/build_wasm_node_module.sh` passes
+  - `bash wasm/scripts/run_wasm_node_contract_tests.sh` passes
+    (`contract-tests-ok`)
+  - `node wasm/nxpp_example.js` still returns the expected shortest-path smoke
+    output
+- Advanced the experimental npm package metadata for
+  `@mik1810/nxpp-wasm` from `0.1.1` to `0.1.2` in preparation for publish.
+
 ## [1.0.30]
 
 ### Highlights

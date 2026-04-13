@@ -2,6 +2,12 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.31] - 2026-04-13
+
+- Closed `#74` incremental wasm-node stabilization by fixing embind portability/build diagnostics in `wasm/node/nxpp_bindings.cpp`: finite checks now use `::isfinite(...)` and the affected `std::variant` wrappers now construct explicit alternatives through `std::in_place_type<...>`.
+- Revalidated the experimental Node wasm lane end-to-end with emsdk active: `wasm/scripts/build_wasm_node_module.sh` passes, `wasm/scripts/run_wasm_node_contract_tests.sh` passes (`contract-tests-ok`), and `node wasm/nxpp_example.js` still returns the expected shortest-path smoke output.
+- Advanced the experimental npm wasm package metadata by one patch step from `0.1.1` to `0.1.2` in `wasm/package.json` for the next publish.
+
 ## [1.0.30] - 2026-04-12
 
 - Added a first npm-publish scaffold for the experimental wasm lane under `wasm/`: introduced/standardized `wasm/package.json`, `wasm/nxpp.mjs`, and `wasm/README.md` with a package-facing loader shape (`default`, `createNxpp`, and `nxpp` alias) over the generated Emscripten module.
