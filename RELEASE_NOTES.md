@@ -3,6 +3,75 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.36]
+
+### Highlights
+
+- Published `@mik1810/nxpp-wasm@0.2.0` on both package channels:
+  - npmjs
+  - GitHub Packages
+- Confirmed the new version is visible on both registries after publication.
+- Added a root continuation plan file, `TODO.md`, to guide the next wasm/ts
+  implementation cycle.
+- The active near-term plan now explicitly excludes:
+  - 6) `topological_sort`
+  - 11) `generators`
+  - 12) `sat`
+
+## [1.0.35]
+
+### Highlights
+
+- Advanced the experimental npm package lane for `@mik1810/nxpp-wasm` from
+  `0.1.3` to `0.2.0` in `wasm/package.json` and synchronized
+  `wasm/package-lock.json` accordingly.
+- Finalized deterministic two-step publish routing for the wasm package:
+  - publish to npmjs first
+  - then publish to GitHub Packages
+- The publish routing is now driven by token-free repository configs:
+  - `wasm/.npmrc.publish-npm`
+  - `wasm/.npmrc.publish-github`
+- This avoids host-level scope-registry overrides accidentally redirecting the
+  first publish away from npmjs.
+
+## [1.0.34]
+
+### Highlights
+
+- Hardened the wasm publish flow by removing lifecycle chaining through
+  `postpublish` and switching to explicit sequential publish steps.
+- `wasm/package.json` now uses a deterministic `publish:all` flow that runs
+  npmjs publish first and GitHub Packages publish second.
+- Updated wasm package docs with explicit publish order and command guidance.
+
+## [1.0.33]
+
+### Highlights
+
+- Introduced a TypeScript-facing facade layer for the experimental wasm npm
+  package under `wasm/ts/` and `wasm/dist/`.
+- Aligned the package entrypoints to the facade artifacts:
+  - `dist/index.js`
+  - `dist/index.d.ts`
+- Kept `wasm/nxpp.mjs` as a compatibility shim over the new facade entrypoint.
+- Updated docs to describe the two-layer wasm runtime + TypeScript facade
+  architecture and started tracking `wasm/dist/` in git.
+
+## [1.0.32]
+
+### Highlights
+
+- Refactored the wasm Node bindings from the old monolithic file into a
+  module-aligned layout under `wasm/include/nxpp_wasm/` and `wasm/src/`.
+- Added a central registration architecture (`register_*_bindings()` and
+  `register_all_bindings()`) with a single final `EMSCRIPTEN_BINDINGS(...)`
+  entrypoint in `wasm/src/nxpp_wasm.cpp`.
+- Reworked graph-core wasm exports around explicit typed runtime classes
+  (`GraphInt`/`GraphStr`, `DiGraphInt`/`DiGraphStr`, `MultiGraphInt`/
+  `MultiGraphStr`, `MultiDiGraphInt`/`MultiDiGraphStr`) with no runtime
+  backend switching.
+- Updated wasm build/test wiring and revalidated the modularized layout.
+
 ## [1.0.31]
 
 ### Highlights

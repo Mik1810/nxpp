@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.36] - 2026-04-17
+
+- Published `@mik1810/nxpp-wasm@0.2.0` to both npmjs and GitHub Packages after the deterministic publish-flow hardening, and verified registry visibility on both channels.
+- Added a repository continuation plan in `TODO.md` for the next wasm/ts development slices, explicitly excluding items 6 (`topological_sort`), 11 (`generators`), and 12 (`sat`) from the active near-term scope.
+
 ## [1.0.35] - 2026-04-17
 
 - Advanced the experimental wasm npm package metadata from `0.1.3` to `0.2.0` in `wasm/package.json` (and synced `wasm/package-lock.json`) to mark the new typed-runtime-plus-TypeScript-facade lane as the next publish candidate.
