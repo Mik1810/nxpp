@@ -2,6 +2,32 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.35] - 2026-04-17
+
+- Advanced the experimental wasm npm package metadata from `0.1.3` to `0.2.0` in `wasm/package.json` (and synced `wasm/package-lock.json`) to mark the new typed-runtime-plus-TypeScript-facade lane as the next publish candidate.
+- Finalized deterministic publish routing for the wasm package: npmjs publish runs first, GitHub Packages publish runs second, and both targets are now driven by token-free repository config files (`wasm/.npmrc.publish-npm`, `wasm/.npmrc.publish-github`) to avoid host-level scope registry overrides.
+
+## [1.0.34] - 2026-04-17
+
+- Hardened the experimental wasm publish flow so npmjs is always published first: `wasm/package.json` no longer uses `postpublish`, `publish:all` now runs explicit sequential steps (`publish:npm && publish:github`), and each step now uses dedicated user config files to avoid scope-registry bleed-through from host npm configuration.
+- Added `wasm/.npmrc.publish-npm` and `wasm/.npmrc.publish-github` as token-free publish-routing configs, and updated `wasm/README.md` with the deterministic publish command/order.
+
+## [1.0.33] - 2026-04-17
+
+- Added a TypeScript-facing facade layer for the experimental wasm package under `wasm/dist/` and `wasm/ts/`, with generic public interfaces (`Graph<T>`, `DiGraph<T>`, `MultiGraph<T>`, `MultiDiGraph<T>`) mapped to explicit runtime classes (`GraphInt`/`GraphStr`, `DiGraphInt`/`DiGraphStr`, `MultiGraphInt`/`MultiGraphStr`, `MultiDiGraphInt`/`MultiDiGraphStr`).
+- Switched `wasm/package.json` public entrypoints to the facade artifacts (`dist/index.js` + `dist/index.d.ts`), added TS metadata/build wiring (`types`, `tsconfig.json`, `build:types`, and TypeScript dev dependency), and bumped wasm package version from `0.1.2` to `0.1.3`.
+- Kept `wasm/nxpp.mjs` as a compatibility shim that re-exports the new facade entrypoint.
+- Updated wasm and root docs to reflect the two-layer runtime/facade architecture and the new TypeScript layout.
+- Updated `.gitignore` to keep `wasm/dist/` versioned so the facade publish artifacts are tracked in the repository.
+
+## [1.0.32] - 2026-04-17
+
+- Refactored the wasm Node binding layer from the old monolithic `wasm/node/nxpp_bindings.cpp` layout to a modular structure under `wasm/include/nxpp_wasm/` and `wasm/src/`, with a single final `EMSCRIPTEN_BINDINGS(...)` entrypoint in `wasm/src/nxpp_wasm.cpp`.
+- Introduced a module-aligned registration architecture (`register_*_bindings()` + `register_all_bindings()`), plus shared common utilities in `wasm/include/nxpp_wasm/common/` and `wasm/src/common/`.
+- Reworked graph-core exports around explicit typed classes (`GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`, `MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, `MultiDiGraphStr`) with no runtime int/string backend switching.
+- Updated wasm build wiring so `wasm/scripts/build_wasm_node_module.sh` compiles all `wasm/src/**/*.cpp` sources and includes `wasm/include/`.
+- Updated the Node contract surface/tests and wasm example to the new graph-core API, and revalidated build + contract tests on the modular layout.
+
 ## [1.0.31] - 2026-04-13
 
 - Closed `#74` incremental wasm-node stabilization by fixing embind portability/build diagnostics in `wasm/node/nxpp_bindings.cpp`: finite checks now use `::isfinite(...)` and the affected `std::variant` wrappers now construct explicit alternatives through `std::in_place_type<...>`.

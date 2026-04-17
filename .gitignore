@@ -20,9 +20,11 @@ create_github_issues.py
 backups/
 dist/
 build/
-CLAUDE.md
+node_modules/
 
 # Track npm publish artifacts for wasm package
+!wasm/dist/
+!wasm/dist/**
 !wasm/build/
 wasm/build/*
 !wasm/build/nxpp_node.mjs

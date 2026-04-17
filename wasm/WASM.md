@@ -17,9 +17,10 @@ It combines:
 - not yet a full JavaScript/TypeScript API parity layer
 - not yet a standalone package-distribution channel
 
-The current binding still exposes only a narrow experimental `DiGraph`-first
-slice. That should be read as an implementation stepping stone, not as the
-final public JavaScript API shape.
+The current binding exposes a narrow experimental graph-core slice centered on
+`Graph`, `DiGraph`, and the first multigraph export `MultiDiGraph`. That
+should be read as an implementation stepping stone, not as the final public
+JavaScript API shape.
 
 ## Objectives
 
@@ -37,7 +38,7 @@ Longer-term objective:
 
 Current wasm lane includes:
 
-- Node-compatible bindings in `wasm/node/nxpp_bindings.cpp`
+- Node-compatible modular bindings in `wasm/include/nxpp_wasm/` and `wasm/src/`
 - Node-oriented wasm module build script in `wasm/scripts/build_wasm_node_module.sh`
 - Node API contract tests in `wasm/test/node_api_contract_test.mjs`
 - Node contract runner in `wasm/scripts/run_wasm_node_contract_tests.sh`
@@ -166,11 +167,20 @@ Why this direction:
 
 ## Node-compatible API surface (experimental)
 
-Current exported class: `DiGraph`
+Current exported classes:
+
+- `GraphInt`
+- `GraphStr`
+- `DiGraphInt`
+- `DiGraphStr`
+- `MultiGraphInt`
+- `MultiGraphStr`
+- `MultiDiGraphInt`
+- `MultiDiGraphStr`
 
 Current methods are grouped as follows.
 
-Core endpoint-oriented methods:
+Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
 
 - `addNode(id)`
 - `addEdge(source, target, weight)`
@@ -181,90 +191,87 @@ Core endpoint-oriented methods:
 - `removeNode(id)`
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
-- `dijkstraShortestPaths(source)`
+- `setEdgeWeight(source, target, weight)`
 - `clear()`
 
-Advanced edge-id methods (not deprecated in v0; kept for precise edge-instance
-operations and forward compatibility with the planned multigraph family):
+Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
+and additionally expose edge-ID-specific APIs:
 
 - `hasEdgeId(edgeId)`
 - `edgeIds()`
 - `edgeIdsBetween(source, target)`
-- `getEdgeEndpoints(edgeId)`
+- `getEdgeEndpoints(edgeId)` returning `EdgeEndpointsInt` or `EdgeEndpointsStr`
 - `getEdgeWeightById(edgeId)`
 - `setEdgeWeightById(edgeId, weight)`
+- `removeEdgeById(edgeId)`
 
-Current shortest-path result object: `DijkstraResult`
-
-- `hasPathTo(target)`
-- `distanceTo(target)`
-- `pathTo(target)`
-- `reachableNodes()`
+The graph-core layer intentionally does not expose algorithm-specific wrappers
+as part of the core class contract.
 
 This is intentionally a narrow first slice and should not be treated as the
 final taxonomy of wasm graph types.
 
-Current `DiGraph` runtime behavior:
+Current runtime behavior:
 
-- accepts integer-valued JS numbers or strings as node IDs
-- chooses its internal backend lazily from the first observed node ID
-- rejects mixed numeric/string node IDs after that first choice
-- preserves the chosen node-ID shape in arrays, result objects, and endpoint
-  wrappers returned to JavaScript
+- each exported class owns one concrete backend (no runtime backend switching)
+- `*Int` bindings accept only integer-valued JS numbers as node IDs
+- `*Str` bindings accept only JS strings as node IDs
+- wrong node-ID types throw `std::runtime_error` with explicit messages
 
 ## Planned public graph taxonomy
 
-The intended public JavaScript graph family is now:
+The intended public API uses a split model:
 
-- `Graph`
-- `DiGraph`
-- `MultiGraph`
-- `MultiDiGraph`
+- explicit runtime classes:
+  - `GraphInt` / `GraphStr`
+  - `DiGraphInt` / `DiGraphStr`
+  - `MultiGraphInt` / `MultiGraphStr`
+  - `MultiDiGraphInt` / `MultiDiGraphStr`
+- generic TypeScript interfaces:
+  - `Graph<T>`
+  - `DiGraph<T>`
+  - `MultiGraph<T>`
+  - `MultiDiGraph<T>`
 
 Design rules for that family:
 
-- public JS graph names should be simple and NetworkX-like
-- weighted behavior remains available, but not encoded into the public type
-  names
+- runtime class names stay explicit and honest about node-ID kind
+- TypeScript generics remain static typing only (no runtime generic dispatch)
+- weighted behavior remains available, but not encoded into type names
 - the full C++ alias list from `graph.hpp` remains an internal binding concern
-- node IDs should support both `number` and `string`
-- backend selection should happen lazily from the first observed node ID type
-- once selected, a graph should reject mixed numeric/string node IDs
+- node IDs support both `number` and `string` through explicit class choice
 
-This means the current experimental `DiGraph` export is a staging shape, not
-the final public type story.
+This means the current experimental typed graph family is already aligned with
+the `graph.hpp` node-type and multigraph distinctions.
 
 ## API contract v0 (Node)
 
 The following contract is the current stability baseline for the exported
-experimental `DiGraph` surface only.
+experimental `Graph`, `DiGraph`, `MultiGraph`, and `MultiDiGraph` surface.
 
 ### Method signatures
 
-- `addNode(id: number | string): void`
-- `addEdge(source: number | string, target: number | string, weight: number): void`
-- `hasNode(id: number | string): boolean`
-- `hasEdge(source: number | string, target: number | string): boolean`
-- `hasEdgeId(edgeId: number): boolean`
-- `nodes(): Array<number | string>`
-- `edgeIds(): number[]`
-- `edgeIdsBetween(source: number | string, target: number | string): number[]`
-- `neighbors(id: number | string): Array<number | string>`
-- `removeNode(id: number | string): void`
-- `removeEdge(source: number | string, target: number | string): void`
-- `getEdgeWeight(source: number | string, target: number | string): number`
-- `getEdgeEndpoints(edgeId: number): EdgeEndpoints`
-- `getEdgeWeightById(edgeId: number): number`
-- `setEdgeWeightById(edgeId: number, weight: number): void`
-- `dijkstraShortestPaths(source: number | string): DijkstraResult`
-- `clear(): void`
+- Simple graph methods (`Graph*`, `DiGraph*`):
+  - `addNode(id)`
+  - `addEdge(source, target, weight)`
+  - `hasNode(id)`
+  - `hasEdge(source, target)`
+  - `nodes()`
+  - `neighbors(id)`
+  - `removeNode(id)`
+  - `removeEdge(source, target)`
+  - `getEdgeWeight(source, target)`
+  - `setEdgeWeight(source, target, weight)`
+  - `clear()`
 
-`DijkstraResult` contract:
-
-- `hasPathTo(target: number | string): boolean`
-- `distanceTo(target: number | string): number`
-- `pathTo(target: number | string): Array<number | string>`
-- `reachableNodes(): Array<number | string>`
+- Multigraph-only additions (`MultiGraph*`, `MultiDiGraph*`):
+  - `hasEdgeId(edgeId)`
+  - `edgeIds()`
+  - `edgeIdsBetween(source, target)`
+  - `getEdgeEndpoints(edgeId)`
+  - `getEdgeWeightById(edgeId)`
+  - `setEdgeWeightById(edgeId, weight)`
+  - `removeEdgeById(edgeId)`
 
 `EdgeEndpoints` contract:
 
@@ -273,22 +280,14 @@ experimental `DiGraph` surface only.
 
 ### Return-shape guarantees (v0)
 
-- `nodes()` returns an array-like list of node IDs using the graph's chosen
-  runtime node-ID kind
+- `nodes()` returns an array-like list of node IDs using the graph class node-ID kind
 - `edgeIds()` returns an array-like list of numeric wrapper-managed edge IDs
 - `edgeIdsBetween()` returns an array-like list of numeric edge IDs matching
   the endpoint pair
-- `neighbors()` returns an array-like list of node IDs using the graph's chosen
-  runtime node-ID kind
-- `dijkstraShortestPaths()` returns a `DijkstraResult` object
+- `neighbors()` returns an array-like list of node IDs using the graph class node-ID kind
 - `getEdgeWeight()` returns a numeric scalar weight
 - `getEdgeEndpoints()` returns an `EdgeEndpoints` object
 - `getEdgeWeightById()` returns a numeric scalar weight
-- `distanceTo()` returns a numeric scalar distance
-- `pathTo()` returns an array-like ordered list of node IDs using the graph's
-  chosen runtime node-ID kind
-- `reachableNodes()` returns an array-like list of node IDs present in the
-  result using the graph's chosen runtime node-ID kind
 - mutation methods return no value
 
 ### Error contract (v0)
@@ -296,9 +295,6 @@ experimental `DiGraph` surface only.
 - methods throw JS exceptions when the wrapped C++ operation fails
 - at minimum, the following invalid operations must throw:
   - adding or querying with unsupported node ID shapes
-  - mixing numeric and string node IDs inside the same graph
-  - invalid shortest-path source queries
-  - invalid `DijkstraResult` target queries
   - `neighbors()` on a missing node
   - `removeNode()` on a missing node
   - `removeEdge()` on a missing edge or missing endpoint
@@ -306,6 +302,7 @@ experimental `DiGraph` surface only.
   - `getEdgeWeightById()` on a missing edge ID
   - `setEdgeWeightById()` on a missing edge ID
   - `getEdgeEndpoints()` on a missing edge ID
+  - `removeEdgeById()` on a missing edge ID
 - exact message text is not yet guaranteed in v0; exception presence is
   guaranteed by contract tests
 
@@ -316,7 +313,7 @@ The following are breaking changes and require versioned migration notes:
 - method rename/removal
 - parameter list or parameter-type changes
 - return-type/shape changes
-- removing currently-thrown failure behavior for invalid shortest-path queries
+- removing currently-thrown failure behavior for invalid graph-core queries
 
 The following are non-breaking for v0:
 
@@ -330,16 +327,16 @@ The following are non-breaking for v0:
 | Area | Status | Current coverage | Next step |
 |---|---|---|---|
 | Toolchain and build | Active | Emscripten + Node module build script | Keep CI stable on Node LTS matrix |
-| Core graph lifecycle | Partial | experimental `DiGraph` creation, `clear()`, and lazy numeric/string backend selection | Introduce the broader `Graph` / `DiGraph` / `MultiGraph` / `MultiDiGraph` family on top of the current core slice |
-| Graph mutation APIs | Partial | `addNode`, `addEdge`, `removeNode`, `removeEdge`, `setEdgeWeightById` | Add remaining `graph.hpp` mutation surface and then generalize it across the planned public graph family |
-| Query APIs | Partial | `hasNode`, `hasEdge`, `hasEdgeId`, `nodes`, `edgeIds`, `edgeIdsBetween`, `neighbors`, `getEdgeWeight`, `getEdgeWeightById`, `getEdgeEndpoints` with numeric/string runtime preservation | Add remaining `graph.hpp` query surface and extend the same node-type-aware model to the rest of the public graph family |
+| Core graph lifecycle | Active | explicit typed runtime constructors for `Graph*`, `DiGraph*`, `MultiGraph*`, `MultiDiGraph*` plus `clear()` | Expand lifecycle-oriented helpers only when they map cleanly to `graph.hpp` |
+| Graph mutation APIs | Partial | endpoint-based mutation on simple/multi graphs plus precise `removeEdgeById` on multigraphs | Add next `graph.hpp` mutation slices while preserving simple-vs-multigraph API policy |
+| Query APIs | Partial | endpoint-based queries on simple graphs plus edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
 | Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
-| Shortest paths | Partial | `dijkstraShortestPaths` + `DijkstraResult` (`distanceTo`, `pathTo`) | Expand to additional shortest-path helpers after `graph.hpp` coverage is stronger |
+| Shortest paths | Not started | none in current graph-core export contract | Add dedicated shortest-path exports in `shortest_paths` module after graph-core stabilization |
 | Components/topology | Not started | none | Add first exported component/topology slice |
 | Spanning/centrality | Not started | none | Add centrality subset after topology |
-| Flow/multigraph precision | Not started | none | Add edge-id-safe flow/multigraph exports |
-| TypeScript surface | Not started | none | Add `.d.ts` contract for current API |
-| NPM packaging | Not started | local scripts only | Build installable runtime package |
+| Flow/multigraph precision | Partial | `MultiGraph*` and `MultiDiGraph*` edge-id API with precise `removeEdgeById` and endpoint lookup wrappers | Add flow-oriented exports that preserve edge-id precision |
+| TypeScript surface | Active | generic TS interfaces + explicit typed runtime class declarations (`wasm/dist/index.d.ts`) and facade source tree under `wasm/ts/` | Expand algorithm module typings and wrappers as new wasm exports land |
+| NPM packaging | Partial | installable package now exposes `dist/index.js` + `dist/index.d.ts` over prebuilt wasm artifacts | Keep release automation aligned with facade build/publish flow |
 
 Keep this table updated whenever a new exported API family is merged.
 

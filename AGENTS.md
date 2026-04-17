@@ -81,6 +81,23 @@ When completing a task:
 - Keep npm and GitHub registry credentials in user-level `~/.npmrc` only; never commit tokens or repository-local auth files.
 - Recommended version bump before publish: `npm version patch --no-git-tag-version` in `wasm/`.
 
+## WASM Development Workflow
+- Use this mental model: core C++ (`include/nxpp/` + `tests/`), WASM binding layer (`wasm/include/nxpp_wasm/` + `wasm/src/`), TypeScript facade (`wasm/ts/` -> `wasm/dist/`).
+- If you touch core C++ behavior, run `bash scripts/unix/run_tests.sh`.
+- If you touch WASM bindings or TS facade, run in order:
+	- `bash wasm/scripts/build_wasm_node_module.sh`
+	- `npm --prefix wasm run build:types`
+	- `bash wasm/scripts/run_wasm_node_contract_tests.sh`
+- Keep smoke examples aligned with the current public surface:
+	- `wasm/nxpp_example.js`
+	- `wasm/nxpp_example.ts`
+- For wasm public API changes, treat these as mandatory checkpoints:
+	- runtime build passes
+	- TS facade build passes
+	- Node contract tests pass
+	- docs are updated (`wasm/README.md` and `wasm/WASM.md` when relevant)
+	- release/history docs are updated (`CHANGELOG.md`, `SESSION.md`, and `RELEASE_NOTES.md` when release-facing)
+
 ## Single Header
 - `include/nxpp.hpp` is the canonical umbrella include in the repository.
 - `dist/nxpp.hpp` is a generated artifact and must not be versioned in git.

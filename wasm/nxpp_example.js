@@ -1,10 +1,9 @@
-import nxpp from "@mik1810/nxpp-wasm";
-
-const graph = new nxpp.DiGraph();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var nxpp_wasm_1 = require("@mik1810/nxpp-wasm");
+var graph = new nxpp_wasm_1.default.DiGraphInt();
 graph.addEdge(1, 2, 1);
 graph.addEdge(2, 3, 2);
 graph.addEdge(1, 3, 5);
-
-const result = graph.dijkstraShortestPaths(1);
-console.log("distance 1->3:", result.distanceTo(3));
-console.log("path 1->3:", Array.from(result.pathTo(3)));
+console.log("neighbors(1):", graph.neighbors(1));
+console.log("weight(1,3):", graph.getEdgeWeight(1, 3));

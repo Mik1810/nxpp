@@ -1,0 +1,20 @@
+export type { DiGraph, EdgeEndpoints, Graph, MultiDiGraph, MultiGraph, NodeId, } from "./types.js";
+export { createNxpp, loadNxppRuntime } from "./load.js";
+export { DiGraphInt, DiGraphStr, GraphInt, GraphStr, } from "./core/graph.js";
+export { MultiDiGraphInt, MultiDiGraphStr, MultiGraphInt, MultiGraphStr, } from "./core/multigraph.js";
+import { DiGraphInt, DiGraphStr, GraphInt, GraphStr } from "./core/graph.js";
+import { MultiDiGraphInt, MultiDiGraphStr, MultiGraphInt, MultiGraphStr } from "./core/multigraph.js";
+import { createNxpp, loadNxppRuntime } from "./load.js";
+declare const nxpp: {
+    createNxpp: typeof createNxpp;
+    loadNxppRuntime: typeof loadNxppRuntime;
+    GraphInt: typeof GraphInt;
+    GraphStr: typeof GraphStr;
+    DiGraphInt: typeof DiGraphInt;
+    DiGraphStr: typeof DiGraphStr;
+    MultiGraphInt: typeof MultiGraphInt;
+    MultiGraphStr: typeof MultiGraphStr;
+    MultiDiGraphInt: typeof MultiDiGraphInt;
+    MultiDiGraphStr: typeof MultiDiGraphStr;
+};
+export default nxpp;

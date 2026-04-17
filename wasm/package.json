@@ -1,11 +1,22 @@
 {
   "name": "@mik1810/nxpp-wasm",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Experimental Node.js WASM bindings for nxpp",
   "type": "module",
-  "main": "./nxpp.mjs",
-  "exports": "./nxpp.mjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./runtime": "./nxpp.mjs"
+  },
   "files": [
+    "dist/",
+    "ts/",
+    "tsconfig.json",
     "nxpp.mjs",
     "build/nxpp_node.mjs",
     "build/nxpp_node.wasm",
@@ -22,10 +33,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "publish:npm": "npm publish --registry=https://registry.npmjs.org",
-    "publish:github": "npm publish --ignore-scripts --registry=https://npm.pkg.github.com",
-    "publish:all": "npm run publish:npm",
-    "postpublish": "npm run publish:github"
+    "build:types": "tsc -p tsconfig.json",
+    "check:node-contract": "bash scripts/run_wasm_node_contract_tests.sh",
+    "publish:npm": "npm publish --userconfig=.npmrc.publish-npm",
+    "publish:github": "npm publish --ignore-scripts --userconfig=.npmrc.publish-github",
+    "publish:all": "npm run publish:npm && npm run publish:github"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

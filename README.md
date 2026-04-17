@@ -339,23 +339,34 @@ g.set_edge_attr(e2, "label", "second");
 
 Current experimental wasm layout:
 
-- Node bindings: [wasm/node/nxpp_bindings.cpp](wasm/node/nxpp_bindings.cpp)
+- WASM umbrella header: [wasm/include/nxpp_wasm.hpp](wasm/include/nxpp_wasm.hpp)
+- WASM module headers: [wasm/include/nxpp_wasm/](wasm/include/nxpp_wasm/)
+- WASM module sources: [wasm/src/](wasm/src/)
+- TypeScript facade sources: [wasm/ts/](wasm/ts/)
+- Published JS/TS facade entrypoint: [wasm/dist/index.js](wasm/dist/index.js)
+- Published declarations: [wasm/dist/index.d.ts](wasm/dist/index.d.ts)
+- Facade dist artifacts are versioned in git under [wasm/dist/](wasm/dist/)
+- Publish routing configs (token-free): [wasm/.npmrc.publish-npm](wasm/.npmrc.publish-npm), [wasm/.npmrc.publish-github](wasm/.npmrc.publish-github)
+- Final Embind entrypoint: [wasm/src/nxpp_wasm.cpp](wasm/src/nxpp_wasm.cpp)
 - Node contract test: [wasm/test/node_api_contract_test.mjs](wasm/test/node_api_contract_test.mjs)
 - Node build artifacts: [wasm/build/](wasm/build/)
+
+The wasm npm publish flow is deterministic: `npm run publish:all` from
+`wasm/` publishes to npmjs first and then to GitHub Packages.
 
 Current wasm architecture direction:
 
 - finish `graph.hpp` coverage before moving to later semantic headers
 - move the public JS API toward a smaller NetworkX-like family:
-  - `Graph`
-  - `DiGraph`
-  - `MultiGraph`
-  - `MultiDiGraph`
+  - `GraphInt` / `GraphStr`
+  - `DiGraphInt` / `DiGraphStr`
+  - `MultiGraphInt` / `MultiGraphStr`
+  - `MultiDiGraphInt` / `MultiDiGraphStr`
 - keep concrete C++ graph aliases as internal wasm binding details
 - support both numeric and string node IDs without collapsing them into a
   single normalized representation internally
-- choose the internal node-ID backend lazily from first use and reject mixed
-  numeric/string IDs inside the same graph
+- keep each exported wasm class bound to one concrete backend (no runtime
+  backend switching by first inserted node)
 
 Useful generated-reference entry points:
 

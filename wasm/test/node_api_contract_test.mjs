@@ -1,217 +1,188 @@
 import nxpp from "@mik1810/nxpp-wasm";
 import assert from "node:assert/strict";
 
+assert.equal(typeof nxpp.DiGraphInt, "function", "DiGraphInt export is missing");
+assert.equal(typeof nxpp.DiGraphStr, "function", "DiGraphStr export is missing");
+assert.equal(typeof nxpp.GraphInt, "function", "GraphInt export is missing");
+assert.equal(typeof nxpp.GraphStr, "function", "GraphStr export is missing");
+assert.equal(typeof nxpp.MultiGraphInt, "function", "MultiGraphInt export is missing");
+assert.equal(typeof nxpp.MultiGraphStr, "function", "MultiGraphStr export is missing");
+assert.equal(typeof nxpp.MultiDiGraphInt, "function", "MultiDiGraphInt export is missing");
+assert.equal(typeof nxpp.MultiDiGraphStr, "function", "MultiDiGraphStr export is missing");
 
-assert.equal(typeof nxpp.DiGraph, "function", "DiGraph export is missing");
-assert.equal(typeof nxpp.DijkstraResult, "function", "DijkstraResult export is missing");
-assert.equal(typeof nxpp.EdgeEndpoints, "function", "EdgeEndpoints export is missing");
+assert.equal(typeof nxpp.DiGraph, "undefined", "Legacy DiGraph export must not be exposed");
+assert.equal(typeof nxpp.MultiDiGraph, "undefined", "Legacy MultiDiGraph export must not be exposed");
+assert.equal(typeof nxpp.DijkstraResult, "undefined", "DijkstraResult must not be part of graph-core exports");
 
-const graph = new nxpp.DiGraph();
-
-const expectedMethods = [
+const expectedSimpleMethods = [
     "addNode",
     "addEdge",
     "hasNode",
     "hasEdge",
-    "hasEdgeId",
     "nodes",
-    "edgeIds",
-    "edgeIdsBetween",
     "neighbors",
     "removeNode",
     "removeEdge",
     "getEdgeWeight",
-    "getEdgeEndpoints",
-    "getEdgeWeightById",
-    "setEdgeWeightById",
-    "dijkstraShortestPaths",
+    "setEdgeWeight",
     "clear",
 ];
 
-for (const methodName of expectedMethods) {
-    assert.equal(
-        typeof graph[methodName],
-        "function",
-        `Expected method ${methodName} to exist on DiGraph`
-    );
+const expectedMultiMethods = [
+    ...expectedSimpleMethods,
+    "hasEdgeId",
+    "edgeIds",
+    "edgeIdsBetween",
+    "getEdgeEndpoints",
+    "getEdgeWeightById",
+    "setEdgeWeightById",
+    "removeEdgeById",
+];
+
+function assertMethods(target, methods, graphName) {
+    for (const methodName of methods) {
+        assert.equal(
+            typeof target[methodName],
+            "function",
+            `Expected method ${methodName} to exist on ${graphName}`,
+        );
+    }
 }
 
-graph.addNode(1);
-graph.addNode(2);
-graph.addNode(3);
-graph.addEdge(1, 2, 1);
-graph.addEdge(2, 3, 2);
+const graphInt = new nxpp.GraphInt();
+assertMethods(graphInt, expectedSimpleMethods, "GraphInt");
+graphInt.addEdge(1, 2, 3);
+assert.equal(graphInt.hasEdge(1, 2), true, "GraphInt hasEdge() must support undirected edges");
+assert.equal(graphInt.hasEdge(2, 1), true, "GraphInt hasEdge() must support reverse endpoint lookup");
 
-assert.equal(graph.hasNode(1), true, "hasNode must return true for existing node");
-assert.equal(graph.hasNode(999), false, "hasNode must return false for missing node");
-assert.equal(graph.hasEdge(1, 2), true, "hasEdge must return true for existing edge");
-assert.equal(graph.hasEdge(1, 3), false, "hasEdge must return false for missing edge");
+const graphStr = new nxpp.GraphStr();
+assertMethods(graphStr, expectedSimpleMethods, "GraphStr");
+graphStr.addEdge("U", "V", 2);
+assert.equal(graphStr.hasEdge("U", "V"), true, "GraphStr hasEdge() must support undirected edges");
 
-const nodes = Array.from(graph.nodes()).sort((a, b) => a - b);
-assert.deepEqual(nodes, [1, 2, 3], "nodes() must return numeric node IDs");
+const multiGraphInt = new nxpp.MultiGraphInt();
+assertMethods(multiGraphInt, expectedMultiMethods, "MultiGraphInt");
+multiGraphInt.addEdge(1, 2, 1);
+multiGraphInt.addEdge(1, 2, 2);
+assert.equal(Array.from(new Set(Array.from(multiGraphInt.edgeIdsBetween(1, 2)))).length, 2, "MultiGraphInt edgeIdsBetween() must report both parallel edge IDs");
 
-const neighbors1 = Array.from(graph.neighbors(1)).sort((a, b) => a - b);
-assert.deepEqual(neighbors1, [2], "neighbors() must return outgoing neighbors");
+const multiGraphStr = new nxpp.MultiGraphStr();
+assertMethods(multiGraphStr, expectedMultiMethods, "MultiGraphStr");
+multiGraphStr.addEdge("X", "Y", 1);
+multiGraphStr.addEdge("X", "Y", 4);
+assert.equal(Array.from(new Set(Array.from(multiGraphStr.edgeIdsBetween("X", "Y")))).length, 2, "MultiGraphStr edgeIdsBetween() must report both parallel edge IDs");
 
-assert.equal(graph.getEdgeWeight(1, 2), 1, "getEdgeWeight() produced unexpected value");
+const diInt = new nxpp.DiGraphInt();
+assertMethods(diInt, expectedSimpleMethods, "DiGraphInt");
 
-const edgeIds = Array.from(graph.edgeIds()).sort((a, b) => a - b);
-assert.equal(edgeIds.length, 2, "edgeIds() must list both current edges");
-assert.equal(graph.hasEdgeId(edgeIds[0]), true, "hasEdgeId() must return true for existing edge");
-assert.equal(graph.hasEdgeId(999999), false, "hasEdgeId() must return false for missing edge");
+diInt.addNode(1);
+diInt.addNode(2);
+diInt.addNode(3);
+diInt.addEdge(1, 2, 4);
+diInt.addEdge(2, 3, 2);
 
-const edgeIdsBetween12 = Array.from(graph.edgeIdsBetween(1, 2));
-assert.equal(edgeIdsBetween12.length, 1, "edgeIdsBetween() must return matching edge ids");
+assert.equal(diInt.hasNode(1), true, "DiGraphInt hasNode() must return true for an existing node");
+assert.equal(diInt.hasNode(999), false, "DiGraphInt hasNode() must return false for a missing node");
+assert.equal(diInt.hasEdge(1, 2), true, "DiGraphInt hasEdge() must return true for an existing edge");
+assert.equal(diInt.hasEdge(1, 3), false, "DiGraphInt hasEdge() must return false for a missing edge");
+assert.deepEqual(Array.from(diInt.nodes()).sort((a, b) => a - b), [1, 2, 3], "DiGraphInt nodes() must preserve numeric IDs");
+assert.deepEqual(Array.from(diInt.neighbors(1)).sort((a, b) => a - b), [2], "DiGraphInt neighbors() must return outgoing adjacency");
+assert.equal(diInt.getEdgeWeight(1, 2), 4, "DiGraphInt getEdgeWeight() returned an unexpected value");
+diInt.setEdgeWeight(1, 2, 7);
+assert.equal(diInt.getEdgeWeight(1, 2), 7, "DiGraphInt setEdgeWeight() must update endpoint-selected weight");
 
-const endpoints12 = graph.getEdgeEndpoints(edgeIdsBetween12[0]);
-assert.equal(typeof endpoints12.source, "function", "EdgeEndpoints.source() must exist");
-assert.equal(typeof endpoints12.target, "function", "EdgeEndpoints.target() must exist");
-assert.equal(endpoints12.source(), 1, "getEdgeEndpoints() produced unexpected source");
-assert.equal(endpoints12.target(), 2, "getEdgeEndpoints() produced unexpected target");
+diInt.removeEdge(2, 3);
+assert.equal(diInt.hasEdge(2, 3), false, "DiGraphInt removeEdge() must remove selected edge");
+diInt.removeNode(2);
+assert.equal(diInt.hasNode(2), false, "DiGraphInt removeNode() must remove selected node");
 
-assert.equal(typeof graph.dijkstraDistance, "undefined", "dijkstraDistance alias must not be exposed");
-assert.equal(typeof graph.dijkstraPath, "undefined", "dijkstraPath alias must not be exposed");
-
-const shortestPaths = graph.dijkstraShortestPaths(1);
-assert.equal(typeof shortestPaths.hasPathTo, "function", "hasPathTo() must exist on DijkstraResult");
-assert.equal(typeof shortestPaths.distanceTo, "function", "distanceTo() must exist on DijkstraResult");
-assert.equal(typeof shortestPaths.pathTo, "function", "pathTo() must exist on DijkstraResult");
-assert.equal(typeof shortestPaths.reachableNodes, "function", "reachableNodes() must exist on DijkstraResult");
-
-assert.equal(shortestPaths.hasPathTo(3), true, "hasPathTo() must return true for reachable target");
-assert.equal(shortestPaths.distanceTo(3), 3, "distanceTo() produced unexpected value");
-assert.deepEqual(Array.from(shortestPaths.pathTo(3)), [1, 2, 3], "pathTo() produced unexpected path");
-
-const reachable = Array.from(shortestPaths.reachableNodes()).sort((a, b) => a - b);
-assert.deepEqual(reachable, [1, 2, 3], "reachableNodes() must list known nodes");
-
-assert.equal(graph.getEdgeWeightById(edgeIdsBetween12[0]), 1, "getEdgeWeightById() produced unexpected value");
-graph.setEdgeWeightById(edgeIdsBetween12[0], 7);
-assert.equal(graph.getEdgeWeightById(edgeIdsBetween12[0]), 7, "setEdgeWeightById() must update weight");
-assert.equal(graph.getEdgeWeight(1, 2), 7, "endpoint-based getEdgeWeight() must see updated precise weight");
-
-graph.removeEdge(2, 3);
-assert.equal(graph.hasEdge(2, 3), false, "removeEdge() must remove the selected edge");
-
-graph.removeNode(2);
-assert.equal(graph.hasNode(2), false, "removeNode() must remove the selected node");
-assert.deepEqual(Array.from(graph.nodes()).sort((a, b) => a - b), [1, 3], "removeNode() must update node list");
-
-let neighborsMissingThrew = false;
+let diIntTypeThrew = false;
 try {
-    graph.neighbors(999);
-} catch (error) {
-    neighborsMissingThrew = true;
+    diInt.addNode("x");
+} catch {
+    diIntTypeThrew = true;
 }
-assert.equal(neighborsMissingThrew, true, "neighbors() on a missing node must throw");
+assert.equal(diIntTypeThrew, true, "DiGraphInt must reject non-integer node IDs");
 
-let removeNodeMissingThrew = false;
+diInt.clear();
+assert.deepEqual(Array.from(diInt.nodes()), [], "DiGraphInt clear() must remove all nodes");
+
+const diStr = new nxpp.DiGraphStr();
+assertMethods(diStr, expectedSimpleMethods, "DiGraphStr");
+
+diStr.addNode("A");
+diStr.addNode("B");
+diStr.addNode("C");
+diStr.addEdge("A", "B", 1.5);
+diStr.addEdge("B", "C", 2.5);
+
+assert.equal(diStr.hasNode("A"), true, "DiGraphStr hasNode() must return true for existing nodes");
+assert.equal(diStr.hasEdge("A", "B"), true, "DiGraphStr hasEdge() must return true for existing edges");
+assert.deepEqual(Array.from(diStr.nodes()).sort(), ["A", "B", "C"], "DiGraphStr nodes() must preserve string IDs");
+assert.deepEqual(Array.from(diStr.neighbors("A")).sort(), ["B"], "DiGraphStr neighbors() must preserve string adjacency");
+assert.equal(diStr.getEdgeWeight("A", "B"), 1.5, "DiGraphStr getEdgeWeight() returned an unexpected value");
+diStr.setEdgeWeight("A", "B", 3.5);
+assert.equal(diStr.getEdgeWeight("A", "B"), 3.5, "DiGraphStr setEdgeWeight() must update endpoint-selected weight");
+
+let diStrTypeThrew = false;
 try {
-    graph.removeNode(999);
-} catch (error) {
-    removeNodeMissingThrew = true;
+    diStr.addNode(1);
+} catch {
+    diStrTypeThrew = true;
 }
-assert.equal(removeNodeMissingThrew, true, "removeNode() on a missing node must throw");
+assert.equal(diStrTypeThrew, true, "DiGraphStr must reject non-string node IDs");
 
-let removeEdgeMissingThrew = false;
+const multiInt = new nxpp.MultiDiGraphInt();
+assertMethods(multiInt, expectedMultiMethods, "MultiDiGraphInt");
+
+multiInt.addEdge(1, 2, 5);
+multiInt.addEdge(1, 2, 8);
+
+const multiIntIds = Array.from(multiInt.edgeIdsBetween(1, 2)).sort((a, b) => a - b);
+assert.equal(multiIntIds.length, 2, "MultiDiGraphInt edgeIdsBetween() must return all parallel edge IDs");
+assert.equal(multiInt.hasEdgeId(multiIntIds[0]), true, "MultiDiGraphInt hasEdgeId() must report existing IDs");
+
+const intEndpoints = multiInt.getEdgeEndpoints(multiIntIds[0]);
+assert.equal(typeof intEndpoints.source, "function", "MultiDiGraphInt getEdgeEndpoints() must return endpoint wrapper");
+assert.equal(typeof intEndpoints.target, "function", "MultiDiGraphInt getEdgeEndpoints() must return endpoint wrapper");
+assert.equal(intEndpoints.source(), 1, "MultiDiGraphInt edge endpoint source must match inserted edge");
+assert.equal(intEndpoints.target(), 2, "MultiDiGraphInt edge endpoint target must match inserted edge");
+
+const originalWeightById = multiInt.getEdgeWeightById(multiIntIds[1]);
+multiInt.setEdgeWeightById(multiIntIds[1], originalWeightById + 10);
+assert.equal(
+    multiInt.getEdgeWeightById(multiIntIds[1]),
+    originalWeightById + 10,
+    "MultiDiGraphInt setEdgeWeightById() must update only selected edge",
+);
+
+multiInt.removeEdgeById(multiIntIds[0]);
+assert.equal(multiInt.hasEdgeId(multiIntIds[0]), false, "MultiDiGraphInt removeEdgeById() must remove selected edge");
+assert.equal(multiInt.hasEdgeId(multiIntIds[1]), true, "MultiDiGraphInt removeEdgeById() must preserve other parallel edges");
+
+const multiStr = new nxpp.MultiDiGraphStr();
+assertMethods(multiStr, expectedMultiMethods, "MultiDiGraphStr");
+
+multiStr.addEdge("S", "T", 2.0);
+multiStr.addEdge("S", "T", 4.0);
+
+const multiStrIds = Array.from(multiStr.edgeIdsBetween("S", "T")).sort((a, b) => a - b);
+assert.equal(multiStrIds.length, 2, "MultiDiGraphStr edgeIdsBetween() must return all parallel edge IDs");
+assert.equal(multiStr.hasEdgeId(multiStrIds[0]), true, "MultiDiGraphStr hasEdgeId() must report existing IDs");
+
+const strEndpoints = multiStr.getEdgeEndpoints(multiStrIds[0]);
+assert.equal(strEndpoints.source(), "S", "MultiDiGraphStr edge endpoint source must match inserted edge");
+assert.equal(strEndpoints.target(), "T", "MultiDiGraphStr edge endpoint target must match inserted edge");
+
+multiStr.setEdgeWeightById(multiStrIds[0], 9.5);
+assert.equal(multiStr.getEdgeWeightById(multiStrIds[0]), 9.5, "MultiDiGraphStr setEdgeWeightById() must update selected edge");
+
+let multiStrTypeThrew = false;
 try {
-    graph.removeEdge(1, 2);
-} catch (error) {
-    removeEdgeMissingThrew = true;
+    multiStr.addNode(42);
+} catch {
+    multiStrTypeThrew = true;
 }
-assert.equal(removeEdgeMissingThrew, true, "removeEdge() on a missing edge must throw");
-
-let getWeightMissingThrew = false;
-try {
-    graph.getEdgeWeight(1, 2);
-} catch (error) {
-    getWeightMissingThrew = true;
-}
-assert.equal(getWeightMissingThrew, true, "getEdgeWeight() on a missing edge must throw");
-
-let getWeightByIdMissingThrew = false;
-try {
-    graph.getEdgeWeightById(999999);
-} catch (error) {
-    getWeightByIdMissingThrew = true;
-}
-assert.equal(getWeightByIdMissingThrew, true, "getEdgeWeightById() on a missing edge must throw");
-
-let setWeightByIdMissingThrew = false;
-try {
-    graph.setEdgeWeightById(999999, 5);
-} catch (error) {
-    setWeightByIdMissingThrew = true;
-}
-assert.equal(setWeightByIdMissingThrew, true, "setEdgeWeightById() on a missing edge must throw");
-
-let getEndpointsMissingThrew = false;
-try {
-    graph.getEdgeEndpoints(999999);
-} catch (error) {
-    getEndpointsMissingThrew = true;
-}
-assert.equal(getEndpointsMissingThrew, true, "getEdgeEndpoints() on a missing edge must throw");
-
-graph.clear();
-assert.deepEqual(Array.from(graph.nodes()), [], "clear() must remove all nodes");
-
-let threw = false;
-let thrownValue;
-try {
-    graph.dijkstraShortestPaths(1);
-} catch (error) {
-    threw = true;
-    thrownValue = error;
-}
-
-assert.equal(threw, true, "Invalid dijkstraShortestPaths() query must throw");
-assert.notEqual(thrownValue, undefined, "Invalid shortest path query must throw a value");
-
-const stringGraph = new nxpp.DiGraph();
-stringGraph.addNode("A");
-stringGraph.addNode("B");
-stringGraph.addNode("C");
-stringGraph.addEdge("A", "B", 1.5);
-stringGraph.addEdge("B", "C", 2.0);
-
-assert.equal(stringGraph.hasNode("A"), true, "string-backed hasNode() must return true for existing node");
-assert.equal(stringGraph.hasEdge("A", "B"), true, "string-backed hasEdge() must return true for existing edge");
-
-const stringNodes = Array.from(stringGraph.nodes()).sort();
-assert.deepEqual(stringNodes, ["A", "B", "C"], "nodes() must preserve string node IDs");
-
-const stringNeighbors = Array.from(stringGraph.neighbors("A")).sort();
-assert.deepEqual(stringNeighbors, ["B"], "neighbors() must support string node IDs");
-
-assert.equal(stringGraph.getEdgeWeight("A", "B"), 1.5, "getEdgeWeight() must support string-backed graphs");
-
-const stringEdgeIds = Array.from(stringGraph.edgeIds());
-assert.equal(stringEdgeIds.length, 2, "edgeIds() must work for string-backed graphs");
-
-const stringShortestPaths = stringGraph.dijkstraShortestPaths("A");
-assert.equal(stringShortestPaths.hasPathTo("C"), true, "hasPathTo() must support string-backed graphs");
-assert.equal(stringShortestPaths.distanceTo("C"), 3.5, "distanceTo() must support string-backed graphs");
-assert.deepEqual(Array.from(stringShortestPaths.pathTo("C")), ["A", "B", "C"], "pathTo() must preserve string node IDs");
-assert.deepEqual(Array.from(stringShortestPaths.reachableNodes()).sort(), ["A", "B", "C"], "reachableNodes() must preserve string node IDs");
-
-let mixedIdThrew = false;
-try {
-    stringGraph.addNode(123);
-} catch (error) {
-    mixedIdThrew = true;
-}
-assert.equal(mixedIdThrew, true, "mixing numeric and string node IDs in the same graph must throw");
-
-const numericGraph = new nxpp.DiGraph();
-numericGraph.addNode(1);
-
-let mixedEdgeIdThrew = false;
-try {
-    numericGraph.addEdge(1, "B", 1);
-} catch (error) {
-    mixedEdgeIdThrew = true;
-}
-assert.equal(mixedEdgeIdThrew, true, "addEdge() must reject mixed endpoint node ID types");
+assert.equal(multiStrTypeThrew, true, "MultiDiGraphStr must reject non-string node IDs");
 
 console.log("[WASM-NODE] contract-tests-ok");

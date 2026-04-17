@@ -1,9 +1,5 @@
-import createNxppModule from "./build/nxpp_node.mjs";
+export * from "./dist/index.js";
 
-export async function createNxpp(options = {}) {
-  return createNxppModule(options);
-}
-
-const nxpp = await createNxppModule();
+import nxpp from "./dist/index.js";
 
 export default nxpp;
