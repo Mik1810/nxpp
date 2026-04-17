@@ -110,8 +110,6 @@ Purpose:
 - cover core behavior, attribute failure paths, edge cases, multigraph behavior,
   flow wrappers, and `remove_node()` invariants
 - provide the main fast local and CI regression path
-- in CI, verify that the suite still builds and runs against the current
-  documented oldest-supported Boost baseline (`1.74.0`)
 
 What it is not:
 

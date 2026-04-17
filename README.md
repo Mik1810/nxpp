@@ -59,9 +59,6 @@ Requirements:
 - C++20 compiler
 - Boost headers
 
-The current compatibility baseline is now explicitly tracked against
-**Boost 1.74.0**.
-
 Use nxpp in one of these ways:
 
 1. Repository-local examples inside a clone of `nxpp`

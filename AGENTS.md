@@ -5,7 +5,7 @@ Act as a coding agent inside a university-level computer science project.
 Prefer solutions that are simple, readable, correct, and easy to explain to an instructor.
 
 ## General Rules
-- Before making significant changes, read the main project files and understand the structure (apply this only if you are not counscios of the project).
+- Before making significant changes, read the main project files and understand the structure.
 - Do not change more than necessary.
 - Follow the existing coding style in the repository.
 - Avoid unnecessary refactoring.
@@ -40,7 +40,7 @@ Prefer solutions that are simple, readable, correct, and easy to explain to an i
 - Do not modify sensitive configuration files unless strictly necessary.
 
 ## Testing and Verification
-- After every change, run existing tests if available and explicitly accepted by the author.
+- After every change, run existing tests if available.
 - If no tests exist, perform at least minimal verification consistent with the project.
 - If adding non-trivial logic, propose or add tests if the project already uses a testing framework.
 - Do not claim something works without verifying it.
@@ -53,16 +53,15 @@ When completing a task:
 4. describe how you verified the result.
 
 ## Documentation
-- Files like `CHANGELOG.md`, `RELEASE_NOTES.md`, and `SESSION.md` are the main project documentation files, but are very long, don't read them all but read the first few section of `CHANGELOG.md`, `RELEASE_NOTES.md`, for `SESSION.md` you don't need to read the entire file.
 - Every time we close an issue, we must discuss about the version and eventually the release in GitHhub, and update the `CHANGELOG.md` file accordingly.
-- If you change public behavior, update the `README.md` or relevant comments.
+- If you change public behavior, update the README or relevant comments.
 - If you add a command, explain how to run it.
 - `CHANGELOG.md` must be updated every time an issue is completed, it must report the version compliant to the semantic versioning standard x.y.z, update the version when you think it's appropriate.
 - `CHANGELOG.md` is the concise technical history of the project; keep it versioned and relatively compact.
 - `RELEASE_NOTES.md` is the richer release-facing document; GitHub release bodies should be derived from it instead of from `CHANGELOG.md`.
 - `SESSION.md` must always be updated in append-only mode.
 - `SESSION.md` must be updated every time important work is done, so it is expected to change more often than `CHANGELOG.md`.
-- The purpose of `SESSION.md` is to preserve enough chronological context for the model to resume work reliably in later sessions, but only if necessary.
+- The purpose of `SESSION.md` is to preserve enough chronological context for the model to resume work reliably in later sessions.
 - Every time an issue is finished and the related work is pushed, the assistant must always remember to update `README.md`, `CHANGELOG.md`, and `SESSION.md`.
 
 ## Release Process

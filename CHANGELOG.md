@@ -2,11 +2,6 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
-## [1.0.32] - 2026-04-17
-
-- Rebased the compatibility baseline onto **Boost 1.74.0**: `.github/workflows/compatibility.yml` now downloads and uses the official Boost 1.74.0 headers for the GCC/Clang formal suite and for the dedicated large-graph comparison job, replacing the previous mix of runner-provided Boost versions.
-- Documented Boost 1.74.0 as the current explicit compatibility floor in `README.md` and `docs/TEST.md`.
-
 ## [1.0.31] - 2026-04-13
 
 - Closed `#74` incremental wasm-node stabilization by fixing embind portability/build diagnostics in `wasm/node/nxpp_bindings.cpp`: finite checks now use `::isfinite(...)` and the affected `std::variant` wrappers now construct explicit alternatives through `std::in_place_type<...>`.

@@ -3,18 +3,6 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [1.0.32]
-
-### Highlights
-
-- The compatibility workflow now verifies `nxpp` against an explicit oldest
-  supported Boost baseline: **Boost 1.74.0**.
-- The formal GCC/Clang suite and the dedicated large-graph raw-Boost
-  comparison job now both download and compile against the official Boost
-  1.74.0 headers instead of inheriting newer runner-provided Boost versions.
-- The public docs now state that Boost 1.74.0 is the current explicit
-  compatibility floor.
-
 ## [1.0.31]
 
 ### Highlights

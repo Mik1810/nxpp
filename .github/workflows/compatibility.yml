@@ -13,14 +13,27 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            label: ubuntu-gcc-boost-1.74.0
+            label: ubuntu-gcc
             compiler: g++
+            platform_family: unix
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
-            label: ubuntu-clang-boost-1.74.0
+            label: ubuntu-clang
             compiler: clang++
-            install_compiler: sudo apt-get update && sudo apt-get install -y clang
+            platform_family: unix
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
+          - os: macos-latest
+            label: macos-clang
+            compiler: clang++
+            platform_family: unix
+            install_boost: brew install boost
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
+          - os: windows-latest
+            label: windows-msvc
+            compiler: cl
+            platform_family: windows
 
     runs-on: ${{ matrix.os }}
 
@@ -28,51 +41,106 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install compiler extras
-        if: matrix.install_compiler
+      - name: Install Boost Graph
+        if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          ${{ matrix.install_compiler }}
+          ${{ matrix.install_boost }}
 
-      - name: Cache Boost 1.74.0 archive and extract
+      - name: Export macOS Boost include path
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
+
+      - name: Cache Boost archive and extract
+        if: matrix.platform_family == 'windows'
         id: boost_cache
         uses: actions/cache@v5
         with:
           path: |
-            ${{ runner.temp }}/boost_1_74_0.tar.bz2
-            ${{ runner.temp }}/boost_1_74_0
-          key: unix-boost-1_74_0-v1
+            ${{ runner.temp }}\boost_1_90_0.zip
+            ${{ runner.temp }}\boost_1_90_0
+          key: windows-msvc-boost-1_90_0-v1
 
-      - name: Download and extract Boost 1.74.0
-        shell: bash
+      - name: Download and extract Boost
+        if: matrix.platform_family == 'windows'
+        shell: pwsh
         run: |
-          set -euo pipefail
-          boost_archive="${RUNNER_TEMP}/boost_1_74_0.tar.bz2"
-          boost_root="${RUNNER_TEMP}/boost_1_74_0"
-          cache_hit="${{ steps.boost_cache.outputs.cache-hit }}"
+          $boostZip = Join-Path $env:RUNNER_TEMP "boost_1_90_0.zip"
+          $boostRoot = Join-Path $env:RUNNER_TEMP "boost_1_90_0"
+          $cacheHit = "${{ steps.boost_cache.outputs.cache-hit }}"
 
-          echo "NXPP_BOOST_CACHE_HIT=${cache_hit}" >> "$GITHUB_ENV"
+          "NXPP_BOOST_CACHE_HIT=$cacheHit" >> $env:GITHUB_ENV
 
-          if [ -d "$boost_root/boost" ] && [ "$cache_hit" = "true" ]; then
-            echo "Using cached extracted Boost tree at $boost_root"
-          else
-            if [ ! -f "$boost_archive" ]; then
-              curl -L https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2 -o "$boost_archive"
-            fi
+          if ((Test-Path $boostRoot) -and $cacheHit -eq "true") {
+            Write-Host "Using cached extracted Boost tree at $boostRoot"
+          } else {
+            if (-not (Test-Path $boostZip)) {
+              Invoke-WebRequest `
+                -Uri "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.zip" `
+                -OutFile $boostZip
+            }
 
-            if [ ! -d "$boost_root/boost" ]; then
-              tar -xf "$boost_archive" -C "$RUNNER_TEMP"
-            fi
-          fi
+            if (-not (Test-Path $boostRoot)) {
+              $tarCmd = Get-Command tar -ErrorAction SilentlyContinue
 
-          if [ ! -d "$boost_root/boost" ]; then
-            echo "Boost headers were not prepared at $boost_root" >&2
-            exit 1
-          fi
+              if ($null -ne $tarCmd) {
+                & $tarCmd.Source -xf $boostZip -C $env:RUNNER_TEMP
+                if ($LASTEXITCODE -ne 0) {
+                  throw "tar extraction failed with exit code $LASTEXITCODE"
+                }
+              } else {
+                Expand-Archive -Path $boostZip -DestinationPath $env:RUNNER_TEMP
+              }
+            }
+          }
 
-          echo "NXPP_BOOST_INCLUDE=-I$boost_root" >> "$GITHUB_ENV"
+          if (-not (Test-Path $boostRoot)) {
+            throw "Boost root directory was not prepared at $boostRoot"
+          }
+
+          if (-not (Test-Path (Join-Path $boostRoot "boost"))) {
+            throw "Boost headers were not found under $boostRoot"
+          }
+
+          "BOOST_ROOT=$boostRoot" >> $env:GITHUB_ENV
+          "NXPP_EXTRA_INCLUDE=$boostRoot" >> $env:GITHUB_ENV
+          "CXX=${{ matrix.compiler }}" >> $env:GITHUB_ENV
+
+      - name: Initialize MSVC environment
+        if: matrix.platform_family == 'windows'
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $vswhere)) {
+            throw 'vswhere.exe was not found on the GitHub Actions Windows runner.'
+          }
+
+          $vsInstallPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstallPath)) {
+            throw 'Unable to locate a Visual Studio installation with C++ tools via vswhere.'
+          }
+
+          $vsInstallPath = $vsInstallPath.Trim()
+          $vsDevCmd = Join-Path $vsInstallPath 'Common7\Tools\VsDevCmd.bat'
+          if (-not (Test-Path $vsDevCmd)) {
+            throw "VsDevCmd.bat was not found under $vsInstallPath."
+          }
+
+          $envDump = cmd.exe /c "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && set"
+          if ($LASTEXITCODE -ne 0) {
+            throw "VsDevCmd.bat failed with exit code $LASTEXITCODE"
+          }
+
+          foreach ($line in $envDump) {
+            if ($line -match '^(PATH|INCLUDE|LIB|LIBPATH|VCToolsInstallDir|VSINSTALLDIR)=(.*)$') {
+              Add-Content -Path $env:GITHUB_ENV -Value $line
+            }
+          }
 
       - name: Run test suite
+        if: matrix.platform_family == 'unix'
         id: tests
         env:
           CXX: ${{ matrix.compiler }}
@@ -85,8 +153,19 @@ jobs:
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
 
+      - name: Run test suite
+        if: matrix.platform_family == 'windows'
+        id: tests_windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          & "$env:GITHUB_WORKSPACE\scripts\windows\run_tests.ps1" 2>&1 | Tee-Object -FilePath test-output.txt
+          $status = $LASTEXITCODE
+          "exit_code=$status" >> $env:GITHUB_OUTPUT
+          exit $status
+
       - name: Publish test summary
-        if: always()
+        if: always() && matrix.platform_family == 'unix'
         env:
           TEST_EXIT_CODE: ${{ steps.tests.outputs.exit_code }}
         shell: bash
@@ -105,8 +184,6 @@ jobs:
             echo "- Label: \`${{ matrix.label }}\`"
             echo "- Runner: \`${{ matrix.os }}\`"
             echo "- Compiler: \`${{ matrix.compiler }}\`"
-            echo "- Boost baseline: \`1.74.0\`"
-            echo "- Boost cache hit: \`${NXPP_BOOST_CACHE_HIT:-false}\`"
             cxxflags="${{ matrix.cxxflags }} ${NXPP_BOOST_INCLUDE:-}"
             cxxflags="$(printf '%s' "$cxxflags" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
             if [ -n "$cxxflags" ]; then
@@ -122,51 +199,55 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Publish test summary
+        if: always() && matrix.platform_family == 'windows'
+        shell: pwsh
+        env:
+          TEST_EXIT_CODE: ${{ steps.tests_windows.outputs.exit_code }}
+        run: |
+          if ($env:TEST_EXIT_CODE -eq "0") {
+            $statusWord = "SUCCESS"
+          } else {
+            $statusWord = "FAILURE"
+          }
+
+          $ansiRegex = [regex]"`e\[[0-9;]*[A-Za-z]"
+          if (Test-Path test-output.txt) {
+            $cleanOutput = $ansiRegex.Replace((Get-Content -Raw -Path test-output.txt), "")
+            Set-Content -Path test-output-clean.txt -Value $cleanOutput -NoNewline
+          }
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Compatibility Matrix'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Label: windows-msvc'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Runner: windows-latest'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Build path: PowerShell + cl + Boost zip include path'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: $env:NXPP_BOOST_CACHE_HIT"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Command: pwsh -File scripts/windows/run_tests.ps1'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '### Output'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
+          if (Test-Path test-output-clean.txt) {
+            Get-Content test-output-clean.txt | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          } else {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'No test output was captured because the job failed before the test step completed.'
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
+
   large-graph-compare:
-    name: large-graph-compare (ubuntu, boost 1.74.0)
+    name: large-graph-compare (ubuntu)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Cache Boost 1.74.0 archive and extract
-        id: boost_cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ${{ runner.temp }}/boost_1_74_0.tar.bz2
-            ${{ runner.temp }}/boost_1_74_0
-          key: unix-boost-1_74_0-v1
-
-      - name: Download and extract Boost 1.74.0
-        shell: bash
+      - name: Install Boost Graph
         run: |
-          set -euo pipefail
-          boost_archive="${RUNNER_TEMP}/boost_1_74_0.tar.bz2"
-          boost_root="${RUNNER_TEMP}/boost_1_74_0"
-          cache_hit="${{ steps.boost_cache.outputs.cache-hit }}"
-
-          echo "NXPP_BOOST_CACHE_HIT=${cache_hit}" >> "$GITHUB_ENV"
-
-          if [ -d "$boost_root/boost" ] && [ "$cache_hit" = "true" ]; then
-            echo "Using cached extracted Boost tree at $boost_root"
-          else
-            if [ ! -f "$boost_archive" ]; then
-              curl -L https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2 -o "$boost_archive"
-            fi
-
-            if [ ! -d "$boost_root/boost" ]; then
-              tar -xf "$boost_archive" -C "$RUNNER_TEMP"
-            fi
-          fi
-
-          if [ ! -d "$boost_root/boost" ]; then
-            echo "Boost headers were not prepared at $boost_root" >&2
-            exit 1
-          fi
-
-          echo "NXPP_BOOST_INCLUDE=-I$boost_root" >> "$GITHUB_ENV"
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -177,7 +258,7 @@ jobs:
         id: modular
         run: |
           set +e
-          env CXXFLAGS="${NXPP_BOOST_INCLUDE:-}" bash scripts/unix/run_large_graph_compare.sh | tee large-graph-modular-output.txt
+          bash scripts/unix/run_large_graph_compare.sh | tee large-graph-modular-output.txt
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
@@ -192,7 +273,7 @@ jobs:
         id: single_header
         run: |
           set +e
-          env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp CXXFLAGS="${NXPP_BOOST_INCLUDE:-}" bash scripts/unix/run_large_graph_compare.sh | tee large-graph-single-header-output.txt
+          env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/unix/run_large_graph_compare.sh | tee large-graph-single-header-output.txt
           status=${PIPESTATUS[0]}
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
@@ -222,12 +303,10 @@ jobs:
           {
             echo "## Large-Graph Comparison"
             echo
-            echo "- Boost baseline: \`1.74.0\`"
-            echo "- Boost cache hit: \`${NXPP_BOOST_CACHE_HIT:-false}\`"
             echo "- Modular header run: $(status_word "${MODULAR_EXIT_CODE:-1}")"
             echo "- Single-header run: $(status_word "${SINGLE_HEADER_EXIT_CODE:-1}")"
-            echo "- Modular command: \`env CXXFLAGS=\\\"${NXPP_BOOST_INCLUDE:-}\\\" bash scripts/unix/run_large_graph_compare.sh\`"
-            echo "- Single-header command: \`env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp CXXFLAGS=\\\"${NXPP_BOOST_INCLUDE:-}\\\" bash scripts/unix/run_large_graph_compare.sh\`"
+            echo "- Modular command: \`bash scripts/unix/run_large_graph_compare.sh\`"
+            echo "- Single-header command: \`env NXPP_HEADER_UNDER_TEST=dist/nxpp.hpp bash scripts/unix/run_large_graph_compare.sh\`"
             echo
             if [ -f large-graph-modular-output-clean.txt ]; then
               echo "### Modular Output"
