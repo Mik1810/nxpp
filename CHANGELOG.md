@@ -2,6 +2,14 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.37] - 2026-04-21
+
+- Closed the wasm `shortest_paths.hpp` block for the explicit typed graph family: the Node/TS lane now covers single-pair shortest paths, single-source wrappers (`dijkstra*`, `bellmanFord*`, `dagShortestPaths(...)`), and the all-pairs Floyd-Warshall surface.
+- Added JS/TS-facing all-pairs result shapes to the wasm facade: `floydWarshallAllPairsShortestPaths()` returns a dense `number[][]` matrix in stable node order, and `floydWarshallAllPairsShortestPathsMap()` returns serializable `{ source, distances: [{ target, distance }] }` DTO entries rather than a JS `Map`.
+- Extended the modular wasm Node contract suite and TS compile checks to cover the full shortest-path surface, including weighted-path behavior, single-source path reconstruction, all-pairs matrix/map views, and multigraph parallel-edge Floyd-Warshall handling.
+- Updated `wasm/README.md`, `wasm/WASM.md`, and `SESSION.md` to reflect that `shortest_paths.hpp` is now covered in full for the current wasm lane.
+- Advanced the experimental wasm package metadata from `0.2.0` to `0.3.0` in `wasm/package.json` (and synced `wasm/package-lock.json`) to mark the completed shortest-path surface as the next npm publish candidate.
+
 ## [1.0.36] - 2026-04-17
 
 - Published `@mik1810/nxpp-wasm@0.2.0` to both npmjs and GitHub Packages after the deterministic publish-flow hardening, and verified registry visibility on both channels.

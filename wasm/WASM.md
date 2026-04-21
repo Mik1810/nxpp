@@ -15,12 +15,15 @@ It combines:
 - experimental portability/build target
 - focused on Node runtime first
 - not yet a full JavaScript/TypeScript API parity layer
-- not yet a standalone package-distribution channel
+- now shipped as the experimental npm package `@mik1810/nxpp-wasm`
 
-The current binding exposes a narrow experimental graph-core slice centered on
-`Graph`, `DiGraph`, and the first multigraph export `MultiDiGraph`. That
-should be read as an implementation stepping stone, not as the final public
-JavaScript API shape.
+The current binding exposes an experimental typed graph surface centered on the
+explicit runtime classes (`GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`,
+`MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, `MultiDiGraphStr`) plus
+the completed `attributes.hpp` and `traversal.hpp` blocks plus the
+full `shortest_paths.hpp` block, including Floyd-Warshall all-pairs results.
+This should still be read as an implementation stepping stone, not as the
+final public JavaScript API shape.
 
 ## Objectives
 
@@ -146,8 +149,6 @@ Near-term implementation order is now explicit:
 3. keep internal numeric and string graph backends distinct instead of
    normalizing all node IDs to one representation
 4. only after that move to later semantic headers such as:
-   - `attributes.hpp`
-   - broader `shortest_paths.hpp`
    - `components.hpp`
    - `flow.hpp`
 5. treat any later JS convenience layer as behavior-focused and explicit,
@@ -192,6 +193,45 @@ Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
 - `setEdgeWeight(source, target, weight)`
+- `hasNodeAttr(id, key)`
+- `getNodeAttr(id, key)`
+- `tryGetNodeAttr(id, key)`
+- `setNodeAttr(id, key, value)`
+- `hasEdgeAttr(source, target, key)`
+- `getEdgeAttr(source, target, key)`
+- `tryGetEdgeAttr(source, target, key)`
+- `setEdgeAttr(source, target, key, value)`
+- `getEdgeNumericAttr(source, target, key)`
+- `bfsEdges(start)`
+- `bfsTree(start)` returning `{ nodes, edges }`
+- `bfsSuccessors(start)` returning sparse `{ node, successors }` entries
+- `dfsEdges(start)`
+- `dfsTree(start)` returning `{ nodes, edges }`
+- `dfsPredecessors(start)` returning sparse `{ node, predecessor }` entries
+- `dfsSuccessors(start)` returning sparse `{ node, successors }` entries
+- `shortestPath(source, target)`
+- `shortestPathWeighted(source, target, weightKey = "weight")`
+- `shortestPathLength(source, target)`
+- `shortestPathLengthWeighted(source, target, weightKey = "weight")`
+- `dijkstraPath(source, target)`
+- `dijkstraPathWeighted(source, target, weightKey = "weight")`
+- `dijkstraShortestPaths(source)` returning a result wrapper with
+  `distance`, `predecessor`, `hasPathTo(target)`, and `pathTo(target)`
+- `dijkstraPathLengths(source)` returning sparse `{ node, distance }` entries
+- `dijkstraPathLength(source, target)`
+- `dijkstraPathLengthWeighted(source, target, weightKey = "weight")`
+- `bellmanFordPath(source, target)`
+- `bellmanFordPathWeighted(source, target, weightKey = "weight")`
+- `bellmanFordShortestPaths(source)` returning a result wrapper with
+  `distance`, `predecessor`, `hasPathTo(target)`, and `pathTo(target)`
+- `bellmanFordPathLength(source, target)`
+- `bellmanFordPathLengthWeighted(source, target, weightKey = "weight")`
+- `dagShortestPaths(source)` returning a result wrapper with
+  `distance`, `predecessor`, `hasPathTo(target)`, and `pathTo(target)`
+- `floydWarshallAllPairsShortestPaths()` returning a dense `number[][]`
+  weighted matrix in stable node order
+- `floydWarshallAllPairsShortestPathsMap()` returning serializable
+  `{ source, distances: [{ target, distance }] }` entries
 - `clear()`
 
 Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
@@ -203,10 +243,15 @@ and additionally expose edge-ID-specific APIs:
 - `getEdgeEndpoints(edgeId)` returning `EdgeEndpointsInt` or `EdgeEndpointsStr`
 - `getEdgeWeightById(edgeId)`
 - `setEdgeWeightById(edgeId, weight)`
+- `hasEdgeAttrById(edgeId, key)`
+- `getEdgeAttrById(edgeId, key)`
+- `tryGetEdgeAttrById(edgeId, key)`
+- `setEdgeAttrById(edgeId, key, value)`
+- `getEdgeNumericAttrById(edgeId, key)`
 - `removeEdgeById(edgeId)`
 
-The graph-core layer intentionally does not expose algorithm-specific wrappers
-as part of the core class contract.
+Weighted shortest-path wrappers currently accept only the built-in `"weight"`
+channel.
 
 This is intentionally a narrow first slice and should not be treated as the
 final taxonomy of wasm graph types.
@@ -217,6 +262,14 @@ Current runtime behavior:
 - `*Int` bindings accept only integer-valued JS numbers as node IDs
 - `*Str` bindings accept only JS strings as node IDs
 - wrong node-ID types throw `std::runtime_error` with explicit messages
+- wasm attribute writes accept only `string`, finite `number`, and `boolean`
+- wasm `tryGet...` attribute reads return `null` when the value is missing or
+  unsupported by the wasm attribute contract
+- endpoint-based multigraph attribute reads/writes remain convenience-oriented;
+  the `*ById` methods are the precise path for one concrete parallel edge
+- traversal tree DTOs are built as explicit JS data (`{ nodes, edges }`) rather
+  than as nested graph wrapper instances, which keeps the wasm bridge stable
+  while preserving the traversal result content
 
 ## Planned public graph taxonomy
 

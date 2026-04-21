@@ -4,6 +4,21 @@ export function assertFiniteNumber(value: unknown, label: string): asserts value
   }
 }
 
+export function assertAttributeValue(
+  value: unknown,
+  label: string,
+): asserts value is string | number | boolean {
+  if (typeof value === "string" || typeof value === "boolean") {
+    return;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return;
+  }
+
+  throw new TypeError(`${label} must be a string, finite number, or boolean.`);
+}
+
 export function assertIntNodeId(value: unknown, label: string): asserts value is number {
   if (!Number.isInteger(value)) {
     throw new TypeError(`${label} must be an integer-valued number for *Int graphs.`);

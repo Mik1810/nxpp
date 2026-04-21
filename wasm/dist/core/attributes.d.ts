@@ -1,3 +1,1 @@
-export interface EdgeAttributeMap {
-    [key: string]: string | number | boolean | null;
-}
+export type { AttributeValue } from "../types.js";

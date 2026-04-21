@@ -1,10 +1,20 @@
 export type {
+  AllPairsShortestPathDistanceEntry,
+  AllPairsShortestPathSourceEntry,
+  AttributeValue,
   DiGraph,
   EdgeEndpoints,
   Graph,
   MultiDiGraph,
   MultiGraph,
   NodeId,
+  ShortestPathDistanceEntry,
+  ShortestPathPredecessorEntry,
+  SingleSourceShortestPathResult,
+  TraversalEdge,
+  TraversalPredecessorEntry,
+  TraversalSuccessorEntry,
+  TraversalTree,
 } from "./types.js";
 
 export { createNxpp, loadNxppRuntime } from "./load.js";

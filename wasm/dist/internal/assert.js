@@ -3,6 +3,15 @@ export function assertFiniteNumber(value, label) {
         throw new TypeError(`${label} must be a finite number.`);
     }
 }
+export function assertAttributeValue(value, label) {
+    if (typeof value === "string" || typeof value === "boolean") {
+        return;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return;
+    }
+    throw new TypeError(`${label} must be a string, finite number, or boolean.`);
+}
 export function assertIntNodeId(value, label) {
     if (!Number.isInteger(value)) {
         throw new TypeError(`${label} must be an integer-valued number for *Int graphs.`);

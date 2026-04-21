@@ -3,6 +3,31 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.37]
+
+### Highlights
+
+- Closed the current wasm `shortest_paths` implementation block for the
+  explicit typed graph family.
+- The Node/TS lane now exposes:
+  - single-pair shortest paths
+  - single-source shortest-path wrappers for Dijkstra, Bellman-Ford, and DAGs
+  - all-pairs Floyd-Warshall results
+- Added two JS/TS-facing all-pairs result shapes:
+  - `floydWarshallAllPairsShortestPaths()` returning a dense `number[][]`
+    matrix in stable node order
+  - `floydWarshallAllPairsShortestPathsMap()` returning serializable
+    `{ source, distances: [{ target, distance }] }` DTO entries
+- Advanced the experimental npm package candidate for `@mik1810/nxpp-wasm`
+  from `0.2.0` to `0.3.0` to reflect the completed shortest-path module.
+- Extended the wasm contract coverage with:
+  - weighted/unweighted shortest-path checks
+  - single-source result reconstruction checks
+  - all-pairs dense-matrix and DTO-map checks
+  - a multigraph parallel-edge Floyd-Warshall regression
+- Updated the wasm docs so `shortest_paths.hpp` is now documented as covered in
+  full for the current experimental wasm lane.
+
 ## [1.0.36]
 
 ### Highlights

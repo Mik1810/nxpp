@@ -91,6 +91,40 @@ Core endpoint-oriented methods:
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
 - `setEdgeWeight(source, target, weight)`
+- `hasNodeAttr(id, key)`
+- `getNodeAttr(id, key)`
+- `tryGetNodeAttr(id, key)`
+- `setNodeAttr(id, key, value)`
+- `hasEdgeAttr(source, target, key)`
+- `getEdgeAttr(source, target, key)`
+- `tryGetEdgeAttr(source, target, key)`
+- `setEdgeAttr(source, target, key, value)`
+- `getEdgeNumericAttr(source, target, key)`
+- `bfsEdges(start)`
+- `bfsTree(start)`
+- `bfsSuccessors(start)`
+- `dfsEdges(start)`
+- `dfsTree(start)`
+- `dfsPredecessors(start)`
+- `dfsSuccessors(start)`
+- `shortestPath(source, target)`
+- `shortestPathWeighted(source, target, weightKey = "weight")`
+- `shortestPathLength(source, target)`
+- `shortestPathLengthWeighted(source, target, weightKey = "weight")`
+- `dijkstraPath(source, target)`
+- `dijkstraPathWeighted(source, target, weightKey = "weight")`
+- `dijkstraShortestPaths(source)`
+- `dijkstraPathLengths(source)`
+- `dijkstraPathLength(source, target)`
+- `dijkstraPathLengthWeighted(source, target, weightKey = "weight")`
+- `bellmanFordPath(source, target)`
+- `bellmanFordPathWeighted(source, target, weightKey = "weight")`
+- `bellmanFordShortestPaths(source)`
+- `bellmanFordPathLength(source, target)`
+- `bellmanFordPathLengthWeighted(source, target, weightKey = "weight")`
+- `dagShortestPaths(source)`
+- `floydWarshallAllPairsShortestPaths()`
+- `floydWarshallAllPairsShortestPathsMap()`
 - `clear()`
 
 Multigraph classes (`MultiGraph*`, `MultiDiGraph*`) additionally expose
@@ -102,13 +136,41 @@ edge-ID-specific methods:
 - `getEdgeEndpoints(edgeId)`
 - `getEdgeWeightById(edgeId)`
 - `setEdgeWeightById(edgeId, weight)`
+- `hasEdgeAttrById(edgeId, key)`
+- `getEdgeAttrById(edgeId, key)`
+- `tryGetEdgeAttrById(edgeId, key)`
+- `setEdgeAttrById(edgeId, key, value)`
+- `getEdgeNumericAttrById(edgeId, key)`
 - `removeEdgeById(edgeId)`
+
+Current attribute-value contract is intentionally narrow and explicit:
+
+- supported attribute values are `string`, finite `number`, and `boolean`
+- `tryGet...` methods return `null` when the attribute is missing or the stored
+  value does not match the wasm contract
+- `null` is not accepted as an attribute value in writes
+- endpoint-based edge-attribute access on multigraphs remains convenience-only;
+  use `*ById` methods when one concrete parallel edge matters
 
 Current runtime type behavior is explicit by class:
 
 - `*Int` classes accept only integer-valued JS numbers as node IDs
 - `*Str` classes accept only JS strings as node IDs
 - wrong node-ID types throw explicit `std::runtime_error`
+
+Current shortest-path result behavior is explicit and JS-oriented:
+
+- single-pair methods return node arrays or numeric distances directly
+- `dijkstraShortestPaths(source)`, `bellmanFordShortestPaths(source)`, and
+  `dagShortestPaths(source)` return a result object with:
+  - `distance`
+  - `predecessor`
+  - `hasPathTo(target)`
+  - `pathTo(target)`
+- `floydWarshallAllPairsShortestPaths()` returns a dense `number[][]` matrix
+- `floydWarshallAllPairsShortestPathsMap()` returns serializable source/target
+  DTO entries instead of a JS `Map`
+- weighted wrappers currently accept only the built-in `"weight"` channel
 
 This surface is useful for iteration and contract testing, but it is not yet
 the long-term public API shape.
@@ -146,16 +208,9 @@ Important design choices for that direction:
 
 The current wasm lane is intentionally still below full `nxpp.hpp` parity.
 
-The next implementation goal is still to finish the `graph.hpp` surface before
-moving on to later semantic headers such as `attributes.hpp` or
-`shortest_paths.hpp`.
-
-That means:
-
-- keep extending the core graph contract in focused slices
-- close the `graph.hpp` gap before starting broader library-area rollout
-- avoid treating the current Embind graph layer as if it were already the
-  final JavaScript API
+The graph-core-plus-attributes-plus-traversal base is now in place for the
+explicit typed graph family. The next implementation goal is to continue by
+semantic module, starting with `shortest_paths.hpp`.
 
 Important design direction:
 
@@ -169,8 +224,9 @@ Important design direction:
 
 So the current wasm direction is:
 
-1. complete `graph.hpp` behavior in staged slices
-2. keep extending the explicit typed family (`Graph*`, `DiGraph*`,
-  `MultiGraph*`, `MultiDiGraph*`) by module
-3. preserve distinct concrete backends by class (no runtime switching)
-4. only then move outward to later semantic headers
+1. keep the explicit typed family (`Graph*`, `DiGraph*`, `MultiGraph*`,
+  `MultiDiGraph*`) aligned with the base C++ modules
+2. preserve distinct concrete backends by class (no runtime switching)
+3. close semantic headers block by block, with `attributes.hpp`,
+  `traversal.hpp`, and `shortest_paths.hpp` now covered
+4. continue with the next semantic headers after `shortest_paths.hpp`

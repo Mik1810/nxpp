@@ -1,4 +1,7 @@
 #include "../include/nxpp_wasm/multigraph.hpp"
+#include "../include/nxpp_wasm/attributes.hpp"
+#include "../include/nxpp_wasm/shortest_paths.hpp"
+#include "../include/nxpp_wasm/traversal.hpp"
 
 #include <emscripten/bind.h>
 
@@ -18,18 +21,30 @@ void register_multigraph_bindings() {
     emscripten::class_<MultiGraphIntBinding> multigraph_int("MultiGraphInt");
     multigraph_int.constructor<>();
     common::bind_multigraph_api(multigraph_int);
+    bind_attribute_api(multigraph_int);
+    bind_traversal_api(multigraph_int);
+    bind_shortest_paths_api(multigraph_int);
 
     emscripten::class_<MultiGraphStrBinding> multigraph_str("MultiGraphStr");
     multigraph_str.constructor<>();
     common::bind_multigraph_api(multigraph_str);
+    bind_attribute_api(multigraph_str);
+    bind_traversal_api(multigraph_str);
+    bind_shortest_paths_api(multigraph_str);
 
     emscripten::class_<MultiDiGraphIntBinding> multidigraph_int("MultiDiGraphInt");
     multidigraph_int.constructor<>();
     common::bind_multigraph_api(multidigraph_int);
+    bind_attribute_api(multidigraph_int);
+    bind_traversal_api(multidigraph_int);
+    bind_shortest_paths_api(multidigraph_int);
 
     emscripten::class_<MultiDiGraphStrBinding> multidigraph_str("MultiDiGraphStr");
     multidigraph_str.constructor<>();
     common::bind_multigraph_api(multidigraph_str);
+    bind_attribute_api(multidigraph_str);
+    bind_traversal_api(multidigraph_str);
+    bind_shortest_paths_api(multidigraph_str);
 }
 
 } // namespace nxpp_wasm
