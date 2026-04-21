@@ -6,6 +6,7 @@ Prefer solutions that are simple, readable, correct, and easy to explain to an i
 
 ## General Rules
 - Before making significant changes, read the main project files and understand the structure.
+- Do not cite yourself in commit messages or comments; write as if you are a human developer contributing to the project.
 - Do not change more than necessary.
 - Follow the existing coding style in the repository.
 - Avoid unnecessary refactoring.
