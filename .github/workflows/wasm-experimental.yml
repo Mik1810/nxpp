@@ -22,7 +22,7 @@ jobs:
       - name: Set up Emscripten
         uses: mymindstorm/setup-emsdk@v14
 
-      - name: Run wasm node build, contract tests, and formal suite
+      - name: Run wasm node build, contract tests, npm-pack consumer, and formal suite
         id: wasm
         shell: bash
         env:
@@ -38,7 +38,10 @@ jobs:
           NXPP_WASM_INCLUDE_NODE_CONTRACT=0 bash wasm/scripts/run_wasm_tests.sh | tee wasm-tests-output.txt
           tests_status=${PIPESTATUS[0]}
 
-          if [ "$node_build_status" -eq 0 ] && [ "$node_contract_status" -eq 0 ] && [ "$tests_status" -eq 0 ]; then
+          NXPP_WASM_NPM_PACK_SKIP_BUILD=1 bash wasm/scripts/run_npm_pack_consumer_test.sh | tee wasm-npm-pack-consumer-output.txt
+          npm_pack_consumer_status=${PIPESTATUS[0]}
+
+          if [ "$node_build_status" -eq 0 ] && [ "$node_contract_status" -eq 0 ] && [ "$tests_status" -eq 0 ] && [ "$npm_pack_consumer_status" -eq 0 ]; then
             status=0
           else
             status=1
@@ -47,6 +50,7 @@ jobs:
           echo "node_build_exit_code=$node_build_status" >> "$GITHUB_OUTPUT"
           echo "node_contract_exit_code=$node_contract_status" >> "$GITHUB_OUTPUT"
           echo "tests_exit_code=$tests_status" >> "$GITHUB_OUTPUT"
+          echo "npm_pack_consumer_exit_code=$npm_pack_consumer_status" >> "$GITHUB_OUTPUT"
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
 
@@ -57,6 +61,7 @@ jobs:
           WASM_NODE_BUILD_EXIT_CODE: ${{ steps.wasm.outputs.node_build_exit_code }}
           WASM_NODE_CONTRACT_EXIT_CODE: ${{ steps.wasm.outputs.node_contract_exit_code }}
           WASM_TESTS_EXIT_CODE: ${{ steps.wasm.outputs.tests_exit_code }}
+          WASM_NPM_PACK_CONSUMER_EXIT_CODE: ${{ steps.wasm.outputs.npm_pack_consumer_exit_code }}
         shell: bash
         run: |
           if [ "${WASM_EXIT_CODE:-1}" = "0" ]; then
@@ -77,6 +82,10 @@ jobs:
             perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' wasm-node-contract-output.txt > wasm-node-contract-output-clean.txt
           fi
 
+          if [ -f wasm-npm-pack-consumer-output.txt ]; then
+            perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' wasm-npm-pack-consumer-output.txt > wasm-npm-pack-consumer-output-clean.txt
+          fi
+
           {
             echo "## Wasm Experimental"
             echo
@@ -84,10 +93,12 @@ jobs:
             echo "- Node module build exit code: ${WASM_NODE_BUILD_EXIT_CODE:-unknown}"
             echo "- Node contract exit code: ${WASM_NODE_CONTRACT_EXIT_CODE:-unknown}"
             echo "- Suite exit code: ${WASM_TESTS_EXIT_CODE:-unknown}"
+            echo "- npm pack consumer exit code: ${WASM_NPM_PACK_CONSUMER_EXIT_CODE:-unknown}"
             echo "- Commands:"
             echo "  - \`bash wasm/scripts/build_wasm_node_module.sh\`"
             echo "  - \`NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh\`"
             echo "  - \`NXPP_WASM_INCLUDE_NODE_CONTRACT=0 NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh\`"
+            echo "  - \`NXPP_WASM_NPM_PACK_SKIP_BUILD=1 bash wasm/scripts/run_npm_pack_consumer_test.sh\`"
             echo "- Scope: experimental wasm build/runtime verification via Emscripten + Node.js"
             echo
             if [ -f wasm-node-build-output-clean.txt ]; then
@@ -111,6 +122,14 @@ jobs:
               echo
               echo '```text'
               cat wasm-tests-output-clean.txt
+              echo '```'
+              echo
+            fi
+            if [ -f wasm-npm-pack-consumer-output-clean.txt ]; then
+              echo "### npm pack consumer output"
+              echo
+              echo '```text'
+              cat wasm-npm-pack-consumer-output-clean.txt
               echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"

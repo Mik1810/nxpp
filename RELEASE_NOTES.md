@@ -3,6 +3,26 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.39]
+
+### Highlights
+
+- Closed `#76` with a new npm-pack consumer verification lane for the
+  experimental wasm package.
+- Added `wasm/scripts/run_npm_pack_consumer_test.sh`, which now:
+  - optionally rebuilds the Node wasm module
+  - runs `npm pack` for the current package state
+  - installs the generated tarball in an isolated fixture consumer
+  - executes a Node ESM smoke test through the public package entrypoint
+- Added a dedicated fixture consumer under:
+  - `wasm/test/npm_pack_consumer/package.json`
+  - `wasm/test/npm_pack_consumer/smoke_test.mjs`
+- Extended `.github/workflows/wasm-experimental.yml` so CI now runs and
+  reports the npm-pack consumer lane alongside build, Node contract, and wasm
+  formal-suite checks.
+- Added `check:npm-pack-consumer` in `wasm/package.json` and documented the
+  workflow in `wasm/README.md` and `docs/TEST.md`.
+
 ## [1.0.38]
 
 ### Highlights

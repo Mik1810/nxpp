@@ -2,6 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.39] - 2026-04-24
+
+- Closed `#76` by adding a real npm tarball consumer verification lane for the experimental wasm package: `wasm/scripts/run_npm_pack_consumer_test.sh` now builds (or reuses) the Node wasm module, runs `npm pack`, installs the generated tarball in an isolated fixture consumer, and executes an ESM smoke test through the public package entrypoint.
+- Added a dedicated fixture consumer under `wasm/test/npm_pack_consumer/` to verify installation and runtime behavior from packed artifacts instead of from repository-local sources.
+- Extended `.github/workflows/wasm-experimental.yml` so the wasm CI lane now includes the npm-pack consumer test with a dedicated exit code and job-summary output section.
+- Added `check:npm-pack-consumer` to `wasm/package.json` and documented the command in `wasm/README.md` and `docs/TEST.md`.
+
 ## [1.0.38] - 2026-04-24
 
 - Published `@mik1810/nxpp-wasm@0.6.0` to both npmjs and GitHub Packages after the facade lifetime-management and normalized-error-boundary updates, and verified registry visibility on both channels.

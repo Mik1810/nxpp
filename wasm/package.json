@@ -35,6 +35,7 @@
   "scripts": {
     "build:types": "tsc -p tsconfig.json",
     "check:node-contract": "bash scripts/run_wasm_node_contract_tests.sh",
+    "check:npm-pack-consumer": "bash scripts/run_npm_pack_consumer_test.sh",
     "publish:npm": "npm publish --registry=https://registry.npmjs.org/",
     "publish:github": "npm publish --registry=https://npm.pkg.github.com/",
     "publish:all": "npm run publish:npm && npm run publish:github"

@@ -350,6 +350,7 @@ Current experimental wasm layout:
 - Publish routing is defined directly in [wasm/package.json](wasm/package.json)
 - Final Embind entrypoint: [wasm/src/nxpp_wasm.cpp](wasm/src/nxpp_wasm.cpp)
 - Node contract test: [wasm/test/node_api_contract_test.mjs](wasm/test/node_api_contract_test.mjs)
+- npm-pack consumer test lane: [wasm/scripts/run_npm_pack_consumer_test.sh](wasm/scripts/run_npm_pack_consumer_test.sh)
 - Node build artifacts: [wasm/build/](wasm/build/)
 
 The wasm npm publish flow is deterministic: `npm run publish:all` from

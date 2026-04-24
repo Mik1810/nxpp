@@ -68,6 +68,17 @@ cd wasm
 npm pack
 ```
 
+To validate the packed tarball as a real external Node consumer:
+
+```bash
+cd wasm
+npm run check:npm-pack-consumer
+```
+
+This command builds the wasm module (unless skipped), packs the current
+package, installs that tarball in an isolated fixture consumer, and runs a
+smoke test through the published package entrypoint.
+
 ## Publish order (npm first)
 
 Use the package scripts to publish in a deterministic order:

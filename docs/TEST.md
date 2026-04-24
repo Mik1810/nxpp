@@ -28,6 +28,7 @@ The clearest mental model is:
 - `scripts/unix/run_external_consumer_tests.sh` is the end-to-end external-consumer integration layer
 - `test_large_graph_compare.cpp` is the separate scale-oriented raw-Boost comparison path
 - `wasm/` is the experimental Emscripten portability layer
+- `wasm/scripts/run_npm_pack_consumer_test.sh` is the npm tarball consumer-integration check for the wasm package
 
 ## Quick map
 
@@ -40,6 +41,7 @@ The clearest mental model is:
 | Single-header verification | `scripts/unix/build_single_header.sh`, `scripts/unix/run_single_header_tests.sh`, `single-header.yml`, `release.yml` | Validate the generated standalone header through a mix of smoke checks and deeper standalone-header suite runs | Not a replacement for the modular formal suite |
 | Large-graph raw-Boost comparison | `tests/test_large_graph_compare.cpp`, `scripts/unix/run_large_graph_compare.sh`, `compatibility.yml` | Cross-check `nxpp` against raw Boost on larger deterministic graphs in a dedicated heavy CI lane | Not a benchmark or a proof of full equivalence |
 | Experimental wasm path | `wasm/`, `wasm/scripts/build_wasm_node_module.sh`, `wasm/scripts/run_wasm_tests.sh`, `wasm-experimental.yml` | Verify Emscripten + Node.js portability for Node-facing API compilation and formal assertions | Not full JS bindings or official full-support guarantee |
+| Experimental wasm npm-pack consumer path | `wasm/scripts/run_npm_pack_consumer_test.sh`, `wasm/test/npm_pack_consumer/`, `wasm-experimental.yml` | Validate that `npm pack` output installs and runs as a real external Node consumer | Not a replacement for wasm contract/formal suite checks |
 
 ### 1. Showcase programs
 
