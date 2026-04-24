@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.43] - 2026-04-24
+
+- Closed `#81` by simplifying the root `README.md` into a real landing page focused on overview, quick start, installation summary, feature overview, stability/support status, and a concise docs/WASM navigation map.
+- Moved deep operational and policy detail out of the root read path by linking to the established companion sources (`docs/EXTERNAL_USAGE.md`, `docs/API_REFERENCE.md`, `docs/TEST.md`, and `wasm/*` docs) instead of duplicating long caveat and strategy sections in the README.
+
 ## [1.0.42] - 2026-04-24
 
 - Closed `#83` by adding an explicit WASM package release checklist in `wasm/README.md`, covering metadata checks, build/tests/smoke checks, deterministic publish order, and post-publish registry validation.

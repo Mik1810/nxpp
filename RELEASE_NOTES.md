@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.43]
+
+### Highlights
+
+- Closed `#81` by refactoring the root `README.md` into a cleaner landing page.
+- The root read path is now intentionally compact and scan-oriented, centered on:
+  - project pitch
+  - quick start
+  - installation/consumption summary
+  - concise feature overview
+  - stability/support status
+  - docs map
+  - brief WASM status
+- Deep policy and implementation detail stays in companion docs and is now linked
+  directly from the README instead of being inlined as long root-level sections.
+- This keeps onboarding fast for new readers while preserving the full technical
+  detail in the existing `docs/` and `wasm/` documentation set.
+
 ## [1.0.42]
 
 ### Highlights
