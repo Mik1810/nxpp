@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.44] - 2026-04-24
+
+- Closed `#86` by documenting the real cost model of `remove_node(...)` in `include/nxpp/graph.hpp` and by adding a hot-path section with anti-pattern and rebuild guidance in `docs/API_REFERENCE.md`, plus a short root README pointer after Quick Start.
+- Hardened the `remove_node` row in the core mutation table to flag O(V + E) per public call, matching the `COMPLEXITY.md` story.
+
 ## [1.0.43] - 2026-04-24
 
 - Closed `#81` by simplifying the root `README.md` into a real landing page focused on overview, quick start, installation summary, feature overview, stability/support status, and a concise docs/WASM navigation map.

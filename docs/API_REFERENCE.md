@@ -196,6 +196,63 @@ nxpp follows a consistent write-creates / read-does-not-create policy across the
 
 This matches the NetworkX convention: indexing and assignment create implicitly, while pure-read calls assume the element already exists.
 
+## Node removal and performance
+
+`remove_node(u)` is **O(V + E)** for each public call: it drops incident edge
+state, erases the vertex, and **rebuilds** the internal `NodeID` to
+vertex-descriptor and vertex-index maps. That cost profile differs from
+NetworkX-style expectations where removing one vertex may look more like
+O(degree(u)).
+
+If you call `remove_node` for many nodes, one at a time, the repeated map work
+makes the overall time roughly **O(V^2 + V*E)** in the worst case, not
+O(V) independent removals. Treat repeated single-node removal as a hot path only
+on small graphs or for rare updates.
+
+**Anti-pattern (sequential many removals on one graph):**
+
+```cpp
+// Each call is O(V + E); a loop that removes many nodes pays that cost per step.
+for (const auto& n : to_remove) {
+  if (G.has_node(n)) {
+    G.remove_node(n);
+  }
+}
+```
+
+**Typical better direction for large batch filtering:** build a new graph with
+the remaining nodes and the edges you still want, instead of in-place
+subtraction:
+
+```cpp
+#include <string>
+#include <unordered_set>
+#include "nxpp.hpp"
+
+void example_rebuild()
+{
+  nxpp::DiGraph g;
+  g.add_edge("A", "B", 1.0);
+  g.add_edge("B", "C", 2.0);
+
+  const std::unordered_set<std::string> to_remove = {"A"};
+
+  nxpp::DiGraph h;
+  for (const auto& n : g.nodes()) {
+    if (to_remove.find(n) == to_remove.end()) {
+      h.add_node(n);
+    }
+  }
+  for (const auto& [u, v, w] : g.edges()) {
+    if (to_remove.find(u) == to_remove.end() && to_remove.find(v) == to_remove.end()) {
+      h.add_edge(u, v, w);
+    }
+  }
+}
+```
+
+For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md).
+
 ## Core graph API reference
 
 ### Construction, mutation, inspection
@@ -229,7 +286,7 @@ This matches the NetworkX convention: indexing and assignment create implicitly,
 | `predecessors` | `(u)` | `std::vector<NodeID>` | Returns predecessor IDs in directed graphs. | `G.predecessors("B")` |
 | `remove_edge` | `(u, v)` | `void` | Removes the edge and tracked edge metadata. In multigraphs, this removes all parallel edges between `u` and `v` and cleans all tracked metadata for that pair. | `G.remove_edge(1,2);` |
 | `remove_edge` | `(edge_id)` | `void` | Removes one specific wrapper-tracked edge ID. This is the precise multigraph removal API. | `G.remove_edge(eid);` |
-| `remove_node` | `(u)` | `void` | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. | `G.remove_node("Rome");` |
+| `remove_node` | `(u)` | `void` | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. O(V + E) per public call. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
 | `operator[]` | `(u)` | `NodeProxy` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |

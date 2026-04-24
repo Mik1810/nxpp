@@ -767,6 +767,13 @@ public:
      * are updated too, so the graph stays internally consistent after
      * descriptor remapping.
      *
+     * @warning O(V + E) per public call: the implementation clears incident edge
+     * state, erases the vertex, and rebuilds the internal `NodeID` to
+     * descriptor and vertex-index maps. Calling this in a tight loop over many
+     * node removals can add up to roughly O(V^2 + V*E) total work. Prefer
+     * building a filtered copy of the graph when you need to drop many
+     * vertices at once, or use `clear()` to reset a graph entirely.
+     *
      * @throws std::runtime_error If the node is not present.
      */
     void remove_node(const NodeID& u) {

@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.42`
+Current release: `v1.0.44`
 
 `nxpp` is a modern C++20 graph library with a NetworkX-inspired API on top of
 Boost Graph Library. The goal is to keep graph code concise and readable while
@@ -36,6 +36,10 @@ Compile and run:
 g++ -std=c++20 -O2 -I. quick_start.cpp -o quick_start
 ./quick_start
 ```
+
+**Pitfall:** each `remove_node` call is **O(V + E)**. Calling it in a loop over
+many nodes can become very expensive in aggregate. See
+[Node removal and performance](docs/API_REFERENCE.md#node-removal-and-performance).
 
 ## Installation / Consumption
 

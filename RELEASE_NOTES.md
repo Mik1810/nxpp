@@ -3,6 +3,22 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.44]
+
+### Highlights
+
+- Closed `#86` with a developer-experience pass on `remove_node(...)`.
+- The public declaration in `include/nxpp/graph.hpp` now carries a clear Doxygen
+  `@warning` that each call is O(V + E) and that many sequential removals in one
+  graph can be a real hot path.
+- `docs/API_REFERENCE.md` now has a dedicated “Node removal and performance”
+  section with an anti-pattern (looping many `remove_node` calls) and a rebuild
+  example that materializes a filtered copy instead of repeated in-place
+  removals.
+- The root `README.md` now includes a very short “pitfall” note after Quick
+  Start, linking to the new guide section, so the warning is hard to miss for
+  early readers.
+
 ## [1.0.43]
 
 ### Highlights
