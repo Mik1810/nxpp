@@ -113,6 +113,61 @@ The split avoids lifecycle chaining issues (for example `postpublish` inheriting
 unexpected registry context) and keeps the first publish on npmjs. Credentials
 are expected to live in the user's npm configuration, not in repository files.
 
+## WASM package release checklist
+
+Use this checklist for every wasm package release.
+
+- [ ] Confirm runtime scope docs are still accurate (Node supported experimental target, browser still future work):
+  - `README.md` (wasm section)
+  - `wasm/README.md`
+  - `wasm/WASM.md`
+- [ ] Ensure package metadata is consistent:
+  - `wasm/package.json` version
+  - `wasm/package-lock.json` version
+- [ ] Rebuild the Node-compatible wasm module:
+
+```bash
+bash wasm/scripts/build_wasm_node_module.sh
+```
+
+- [ ] Verify TypeScript facade build:
+
+```bash
+npm --prefix wasm run build:types
+```
+
+- [ ] Verify Node API contract tests:
+
+```bash
+env NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh
+```
+
+- [ ] Verify npm-pack consumer lane:
+
+```bash
+env NXPP_WASM_NPM_PACK_SKIP_BUILD=1 bash wasm/scripts/run_npm_pack_consumer_test.sh
+```
+
+- [ ] Verify smoke example still runs:
+
+```bash
+node wasm/nxpp_example.js
+```
+
+- [ ] Update release/history docs in the same change:
+  - `CHANGELOG.md`
+  - `RELEASE_NOTES.md`
+  - `SESSION.md`
+- [ ] Publish in deterministic order from `wasm/`:
+
+```bash
+npm run publish:all
+```
+
+- [ ] Confirm both registries show the new version:
+  - npmjs
+  - GitHub Packages
+
 ## Current experimental surface
 
 Today the Node-facing wasm lane exposes an experimental first graph

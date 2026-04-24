@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.42] - 2026-04-24
+
+- Closed `#83` by adding an explicit WASM package release checklist in `wasm/README.md`, covering metadata checks, build/tests/smoke checks, deterministic publish order, and post-publish registry validation.
+- Added matching cross-links so the wasm docs are consistent: the root `README.md` now points to the checklist, and `wasm/WASM.md` now references the same release checklist as the release-oriented source of truth.
+
 ## [1.0.41] - 2026-04-24
 
 - Closed `#78` with a docs-only runtime-boundary clarification for the experimental wasm lane: `wasm/README.md` now separates current Node.js support from future browser work in an explicit support-status section.

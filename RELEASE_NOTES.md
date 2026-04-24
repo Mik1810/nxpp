@@ -3,6 +3,24 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.42]
+
+### Highlights
+
+- Closed `#83` by adding an explicit WASM package release checklist in
+  `wasm/README.md`.
+- The checklist now standardizes release-time steps for the experimental wasm
+  package, including:
+  - metadata/version consistency checks
+  - Node module build, TS build, contract tests, and npm-pack consumer checks
+  - smoke-example verification
+  - deterministic publish order (`npm run publish:all`)
+  - post-publish validation on npmjs and GitHub Packages
+- Added companion links so release guidance is easier to discover:
+  - root `README.md` now points to the checklist
+  - `wasm/WASM.md` now references the same checklist as the release-oriented
+    source of truth
+
 ## [1.0.41]
 
 ### Highlights

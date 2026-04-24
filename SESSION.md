@@ -674,3 +674,6 @@
 - Closed issue `#78` with a docs-only runtime-boundary clarification for wasm support: `wasm/README.md` now has an explicit support-status section that separates current Node.js support from future browser work.
 - Updated `wasm/WASM.md` so status/scope/CI text now states clearly that the current `wasm-experimental.yml` lane is a Node-runtime guarantee only and not a browser-runtime guarantee.
 - Updated release/history docs for this slice under `1.0.41` in `CHANGELOG.md` and `RELEASE_NOTES.md`.
+- Closed issue `#83` by adding an explicit WASM package release checklist in `wasm/README.md`, covering runtime-scope doc checks, package-version consistency, wasm build/types/contract/npm-pack/smoke verification, deterministic publish order, and post-publish registry checks.
+- Added release-checklist discoverability links so docs stay aligned: root `README.md` now points to the checklist, and `wasm/WASM.md` now references `wasm/README.md` as the release-oriented source of truth for wasm package publication steps.
+- Updated release/history docs for this slice under `1.0.42` in `CHANGELOG.md` and `RELEASE_NOTES.md`.

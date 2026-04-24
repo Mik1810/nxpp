@@ -355,6 +355,7 @@ Current experimental wasm layout:
 
 The wasm npm publish flow is deterministic: `npm run publish:all` from
 `wasm/` publishes to npmjs first and then to GitHub Packages.
+The wasm package release checklist is documented in `wasm/README.md`.
 
 Current runtime boundary for this experimental wasm lane:
 

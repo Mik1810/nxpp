@@ -73,6 +73,10 @@ before running the scripts.
 
 ## Commands
 
+For a full release-oriented step list (metadata, validation, publish order,
+and post-publish checks), use the WASM package release checklist in
+`wasm/README.md`.
+
 Build Node-compatible wasm module:
 
 ```bash
