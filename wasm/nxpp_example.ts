@@ -1,10 +1,10 @@
-import nxpp from "@mik1810/nxpp-wasm";
+import { DiGraphInt } from "@mik1810/nxpp-wasm";
 import type {
   DiGraph,
   SingleSourceShortestPathResult,
 } from "@mik1810/nxpp-wasm";
 
-const graph: DiGraph<number> = new nxpp.DiGraphInt();
+const graph: DiGraph<number> = new DiGraphInt();
 graph.addEdge(1, 2, 2);
 graph.addEdge(1, 3, 6);
 graph.addEdge(2, 3, 1);
