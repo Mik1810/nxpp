@@ -43,6 +43,7 @@ What currently lives here:
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
 - [`EXTERNAL_USAGE.md`](EXTERNAL_USAGE.md): current external-consumption story for modular headers and the release single-header asset
+- [`STABILITY.md`](STABILITY.md): public support and API stability table across C++ surfaces, packaging channels, and experimental wasm
 - [`TEST.md`](TEST.md): distinction between showcase programs, snippet parity, formal tests, single-header validation, and the large-graph comparison path
 - [`DOXYGEN_MAINPAGE.md`](DOXYGEN_MAINPAGE.md): landing page for the generated Doxygen reference scaffold
 - [`../wasm/WASM.md`](../wasm/WASM.md): consolidated experimental wasm + Node guide and development plan

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.45] - 2026-04-24
+
+- Closed `#82` by adding `docs/STABILITY.md` as the source-of-truth support and API stability matrix across C++ consumption, packaging channels, generated reference, and experimental wasm.
+- Realigned the root `README.md` to point at the new guide instead of duplicating a large table, and indexed the file from `docs/README.md`.
+
 ## [1.0.44] - 2026-04-24
 
 - Closed `#86` by documenting the real cost model of `remove_node(...)` in `include/nxpp/graph.hpp` and by adding a hot-path section with anti-pattern and rebuild guidance in `docs/API_REFERENCE.md`, plus a short root README pointer after Quick Start.

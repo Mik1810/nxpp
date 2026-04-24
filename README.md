@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.44`
+Current release: `v1.0.45`
 
 `nxpp` is a modern C++20 graph library with a NetworkX-inspired API on top of
 Boost Graph Library. The goal is to keep graph code concise and readable while
@@ -37,10 +37,6 @@ g++ -std=c++20 -O2 -I. quick_start.cpp -o quick_start
 ./quick_start
 ```
 
-**Pitfall:** each `remove_node` call is **O(V + E)**. Calling it in a loop over
-many nodes can become very expensive in aggregate. See
-[Node removal and performance](docs/API_REFERENCE.md#node-removal-and-performance).
-
 ## Installation / Consumption
 
 `nxpp` is header-only and requires:
@@ -72,19 +68,18 @@ see [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 - Graph generators (`complete_graph`, `path_graph`, `erdos_renyi_graph`)
 - Precise multigraph edge handling via `edge_id` APIs
 
-## Stability / Support Status
+## Support and API stability
 
-| Area | Status | Notes |
-| --- | --- | --- |
-| Core C++ library | Stable | Main documented and tested project surface |
-| Generated C++ API docs | Stable | Published at `mik1810.github.io/nxpp` |
-| Packaging channels | Active | See detailed channel status in `docs/EXTERNAL_USAGE.md` |
-| WASM + Node package | Experimental | Supported runtime is Node.js only for now |
-| WASM browser runtime | Planned | Future work, not currently supported |
+Not every install path and wrapper has the same upgrade contract as the C++
+public headers. The full matrix of **stable vs experimental** surfaces (CMake,
+Conan, vcpkg overlay, AUR, wasm, browser scope) is maintained in
+[docs/STABILITY.md](docs/STABILITY.md). First-class C++ paths are still described
+in [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 
 ## Documentation Map
 
 - Docs index: [docs/README.md](docs/README.md)
+- Public support and API stability: [docs/STABILITY.md](docs/STABILITY.md)
 - Curated API guide and caveats: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 - External usage and packaging policy: [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md)
 - Testing and CI map: [docs/TEST.md](docs/TEST.md)

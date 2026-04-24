@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.45]
+
+### Highlights
+
+- Closed `#82` by documenting a public support and stability matrix in
+  `docs/STABILITY.md`.
+- The matrix now separates **stable** first-class C++ surfaces (public headers,
+  primary CMake targets, tested single-header releases, generated reference docs)
+  from **experimental** or **secondary** packaging and wasm surfaces, with an
+  explicit statement that experimental channels are not treated as equal to the
+  core C++ contract.
+- The root `README.md` now routes readers to `STABILITY.md` for the full table
+  and keeps `EXTERNAL_USAGE.md` as the practical first-class consumption guide.
+
 ## [1.0.44]
 
 ### Highlights

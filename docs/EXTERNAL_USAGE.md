@@ -2,6 +2,9 @@
 
 This document explains how to consume `nxpp` from another project today.
 
+For which surfaces are **stable** versus **experimental**, see
+[`STABILITY.md`](STABILITY.md).
+
 `nxpp` is currently a **header-only C++20** library built on top of the
 **Boost Graph Library (BGL)**.
 
