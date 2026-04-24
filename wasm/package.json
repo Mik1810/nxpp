@@ -35,8 +35,8 @@
   "scripts": {
     "build:types": "tsc -p tsconfig.json",
     "check:node-contract": "bash scripts/run_wasm_node_contract_tests.sh",
-    "publish:npm": "npm publish --userconfig=.npmrc.publish-npm",
-    "publish:github": "npm publish --ignore-scripts --userconfig=.npmrc.publish-github",
+    "publish:npm": "npm publish --registry=https://registry.npmjs.org/",
+    "publish:github": "npm publish --registry=https://npm.pkg.github.com/",
     "publish:all": "npm run publish:npm && npm run publish:github"
   },
   "devDependencies": {

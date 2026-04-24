@@ -431,7 +431,13 @@ Symptom:
 Fix:
 
 ```bash
-source /workspaces/emsdk/emsdk_env.sh
+source /path/to/emsdk/emsdk_env.sh
+```
+
+On this repository the WSL-local path used during development is:
+
+```bash
+source "$HOME/.local/opt/emsdk/emsdk_env.sh"
 ```
 
 ### Boost headers not found during wasm build
