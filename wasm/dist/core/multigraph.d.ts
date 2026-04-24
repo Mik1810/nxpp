@@ -1,9 +1,10 @@
 import type { AllPairsShortestPathSourceEntry, AttributeValue, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawMultiGraph } from "../internal/wasm_types.js";
 declare class BaseMultiGraph<T extends NodeId> {
-    protected readonly raw: RawMultiGraph<T>;
+    private rawObject;
     private readonly assertNode;
     constructor(factory: () => RawMultiGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
+    protected get raw(): RawMultiGraph<T>;
     addNode(id: T): void;
     addEdge(source: T, target: T, weight: number): void;
     hasNode(id: T): boolean;
@@ -63,6 +64,7 @@ declare class BaseMultiGraph<T extends NodeId> {
     getEdgeNumericAttrById(edgeId: number, key: string): number;
     removeEdgeById(edgeId: number): void;
     clear(): void;
+    dispose(): void;
 }
 export declare class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number> {
     constructor();

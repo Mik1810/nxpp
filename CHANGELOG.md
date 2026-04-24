@@ -4,6 +4,8 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [1.0.38] - 2026-04-24
 
+- Added explicit lifetime management to the wasm TypeScript facade: all public graph facade classes now expose idempotent `dispose()` methods, attach `Symbol.dispose` when the JavaScript runtime provides it, and throw a clear error when graph operations are attempted after disposal.
+- Extended the wasm contract suite and TypeScript compile checks for facade disposal behavior, and advanced the experimental wasm package candidate from `0.4.0` to `0.5.0`.
 - Added the wasm `spanning_tree.hpp` block for the explicit typed graph family: `kruskalMinimumSpanningTree()` and `primMinimumSpanningTree(root)` now return serializable `{ source, target }` edge DTO arrays through the Node/TS facade.
 - Extended the wasm TypeScript facade, compile checks, and Node contract suite for the spanning-tree surface, and advanced the experimental wasm package candidate from `0.3.0` to `0.4.0`.
 - Updated the experimental wasm JS and TypeScript examples to use a richer weighted directed graph and demonstrate `dijkstraShortestPaths(1)` with path reconstruction and the single-source distance table.

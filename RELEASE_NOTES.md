@@ -7,6 +7,14 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Added explicit lifetime management to the wasm TypeScript facade.
+- All public graph facade classes now expose an idempotent `dispose()` method.
+- When the JavaScript runtime exposes `Symbol.dispose`, facade instances attach
+  it and route it to the same disposal path.
+- Graph operations after disposal now throw a clear facade-level error instead
+  of falling through to raw Embind behavior.
+- Advanced the experimental npm package candidate for `@mik1810/nxpp-wasm`
+  from `0.4.0` to `0.5.0` for the disposal API.
 - Added the wasm `spanning_tree.hpp` block for the explicit typed graph family.
 - The Node/TS lane now exposes:
   - `kruskalMinimumSpanningTree()`

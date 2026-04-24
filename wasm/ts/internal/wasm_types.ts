@@ -21,7 +21,11 @@ export interface RawEdgeEndpoints<T extends NodeId> {
   target(): T;
 }
 
-export interface RawSimpleGraph<T extends NodeId> {
+export interface RawDisposable {
+  delete(): void;
+}
+
+export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
   addNode(id: T): void;
   addEdge(source: T, target: T, weight: number): void;
   hasNode(id: T): boolean;

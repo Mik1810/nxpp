@@ -236,6 +236,7 @@ Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
 - `kruskalMinimumSpanningTree()` returning `{ source, target }` edge entries
 - `primMinimumSpanningTree(root)` returning `{ source, target }` edge entries
 - `clear()`
+- `dispose()` for explicit facade-side lifetime management
 
 Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
 and additionally expose edge-ID-specific APIs:
@@ -259,6 +260,11 @@ channel.
 Minimum-spanning-tree wrappers return plain edge DTO arrays. The Prim wrapper
 uses the native parent map internally and omits the root self-parent from the
 JS-facing edge list.
+
+Facade graph instances own Embind-backed WASM objects and expose explicit
+`dispose()` lifetime management. Disposal is idempotent, operations after
+disposal throw a clear facade error, and runtimes with `Symbol.dispose` get the
+same disposal path attached to that symbol.
 
 This is intentionally a narrow first slice and should not be treated as the
 final taxonomy of wasm graph types.

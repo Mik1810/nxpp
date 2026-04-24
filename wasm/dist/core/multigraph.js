@@ -2,12 +2,25 @@ import { runtime } from "../load.js";
 import { assertAttributeValue, assertEdgeId, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../internal/assert.js";
 import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
 import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
+const disposeSymbol = Symbol.dispose;
 class BaseMultiGraph {
-    raw;
+    rawObject;
     assertNode;
     constructor(factory, assertNode) {
-        this.raw = factory();
+        this.rawObject = factory();
         this.assertNode = assertNode;
+        if (disposeSymbol !== undefined) {
+            Object.defineProperty(this, disposeSymbol, {
+                value: () => this.dispose(),
+                configurable: true,
+            });
+        }
+    }
+    get raw() {
+        if (this.rawObject === null) {
+            throw new Error("WASM graph operation failed: graph has been disposed.");
+        }
+        return this.rawObject;
     }
     addNode(id) {
         this.assertNode(id, "id");
@@ -267,6 +280,13 @@ class BaseMultiGraph {
     }
     clear() {
         this.raw.clear();
+    }
+    dispose() {
+        if (this.rawObject === null) {
+            return;
+        }
+        this.rawObject.delete();
+        this.rawObject = null;
     }
 }
 export class MultiGraphInt extends BaseMultiGraph {

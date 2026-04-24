@@ -75,6 +75,7 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   graph.removeEdge(1, 2);
   graph.removeNode(1);
   graph.clear();
+  graph.dispose();
   void nodes;
   void neighbors;
   void nodeAttr;
@@ -160,6 +161,7 @@ function exerciseGraphString(graph: Graph<string>): void {
   graph.removeEdge("a", "b");
   graph.removeNode("a");
   graph.clear();
+  graph.dispose();
   void nodes;
   void neighbors;
   void nodeAttr;
@@ -213,6 +215,7 @@ function exerciseMultiGraphNumber(graph: MultiGraph<number>): void {
   graph.setEdgeAttrById(0, "capacity", 3);
   graph.hasEdgeAttrById(0, "capacity");
   graph.removeEdgeById(0);
+  graph.dispose();
   void ids;
   void idsBetween;
   void source;
@@ -239,6 +242,7 @@ function exerciseMultiGraphString(graph: MultiGraph<string>): void {
   graph.setEdgeAttrById(0, "capacity", 3);
   graph.hasEdgeAttrById(0, "capacity");
   graph.removeEdgeById(0);
+  graph.dispose();
   void ids;
   void idsBetween;
   void source;

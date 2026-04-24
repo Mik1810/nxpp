@@ -1,9 +1,10 @@
 import type { AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, Graph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawSimpleGraph } from "../internal/wasm_types.js";
 declare class BaseSimpleGraph<T extends NodeId> {
-    protected readonly raw: RawSimpleGraph<T>;
+    private rawObject;
     private readonly assertNode;
     constructor(factory: () => RawSimpleGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
+    protected get raw(): RawSimpleGraph<T>;
     addNode(id: T): void;
     addEdge(source: T, target: T, weight: number): void;
     hasNode(id: T): boolean;
@@ -51,6 +52,7 @@ declare class BaseSimpleGraph<T extends NodeId> {
     kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
     primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
     clear(): void;
+    dispose(): void;
 }
 export declare class GraphInt extends BaseSimpleGraph<number> implements Graph<number> {
     constructor();

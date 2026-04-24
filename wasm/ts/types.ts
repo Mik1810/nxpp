@@ -106,6 +106,7 @@ export interface Graph<T extends NodeId> {
   kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
   primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
   clear(): void;
+  dispose(): void;
 }
 
 export interface DiGraph<T extends NodeId> extends Graph<T> {}

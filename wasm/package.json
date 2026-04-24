@@ -1,6 +1,6 @@
 {
   "name": "@mik1810/nxpp-wasm",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Experimental Node.js WASM bindings for nxpp",
   "type": "module",
   "main": "./dist/index.js",

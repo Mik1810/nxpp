@@ -49,6 +49,7 @@ export const expectedSimpleMethods = [
     "kruskalMinimumSpanningTree",
     "primMinimumSpanningTree",
     "clear",
+    "dispose",
 ];
 
 export const expectedMultiMethods = [

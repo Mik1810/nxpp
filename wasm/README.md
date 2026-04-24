@@ -32,6 +32,23 @@ h.addNode("a");
 h.addEdge("a", "b", 2);
 ```
 
+Facade instances own Embind-backed WASM objects. Release them explicitly when a
+graph is no longer needed:
+
+```ts
+const g = new nxpp.GraphInt();
+try {
+  g.addEdge(1, 2, 1);
+  console.log(g.neighbors(1));
+} finally {
+  g.dispose();
+}
+```
+
+`dispose()` is safe to call more than once. Any graph operation after disposal
+throws a clear error. In runtimes that expose `Symbol.dispose`, facade
+instances also attach that symbol to the same disposal path.
+
 Design rules for the facade:
 
 - runtime classes stay explicit (`*Int` and `*Str`)
@@ -176,6 +193,7 @@ Current shortest-path result behavior is explicit and JS-oriented:
 - weighted wrappers currently accept only the built-in `"weight"` channel
 - minimum-spanning-tree wrappers return serializable `{ source, target }`
   edge entries
+- facade graph instances expose explicit `dispose()` lifetime management
 
 This surface is useful for iteration and contract testing, but it is not yet
 the long-term public API shape.

@@ -29,16 +29,31 @@ import {
   toSingleSourceShortestPathResult,
 } from "../algorithms/shortest_paths.js";
 
+const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
+
 class BaseMultiGraph<T extends NodeId> {
-  protected readonly raw: RawMultiGraph<T>;
+  private rawObject: RawMultiGraph<T> | null;
   private readonly assertNode: (value: unknown, label: string) => asserts value is T;
 
   constructor(
     factory: () => RawMultiGraph<T>,
     assertNode: (value: unknown, label: string) => asserts value is T,
   ) {
-    this.raw = factory();
+    this.rawObject = factory();
     this.assertNode = assertNode;
+    if (disposeSymbol !== undefined) {
+      Object.defineProperty(this, disposeSymbol, {
+        value: () => this.dispose(),
+        configurable: true,
+      });
+    }
+  }
+
+  protected get raw(): RawMultiGraph<T> {
+    if (this.rawObject === null) {
+      throw new Error("WASM graph operation failed: graph has been disposed.");
+    }
+    return this.rawObject;
   }
 
   addNode(id: T): void {
@@ -357,6 +372,14 @@ class BaseMultiGraph<T extends NodeId> {
 
   clear(): void {
     this.raw.clear();
+  }
+
+  dispose(): void {
+    if (this.rawObject === null) {
+      return;
+    }
+    this.rawObject.delete();
+    this.rawObject = null;
   }
 }
 
