@@ -7,6 +7,10 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Published `@mik1810/nxpp-wasm@0.6.0` on both package channels:
+  - npmjs
+  - GitHub Packages
+- Confirmed the new version is visible on both registries after publication.
 - Hardened runtime error mapping in the wasm TypeScript facade.
 - Raw Embind/C++ failures now pass through a stable facade boundary with a
   `WASM graph operation failed: ...` prefix.
