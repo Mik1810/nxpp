@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.46`
+Current release: `v1.1.0`
 
 `nxpp` is a modern C++20 graph library with a NetworkX-inspired API on top of
 Boost Graph Library. The goal is to keep graph code concise and readable while

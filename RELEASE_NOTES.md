@@ -3,7 +3,7 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [1.0.46]
+## [1.1.0]
 
 ### Highlights
 
