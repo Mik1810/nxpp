@@ -3,6 +3,27 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.38]
+
+### Highlights
+
+- Refreshed the experimental wasm smoke examples so both JavaScript and
+  TypeScript now build a slightly richer weighted directed graph.
+- The examples now demonstrate Dijkstra single-source usage through
+  `dijkstraShortestPaths(1)`, including:
+  - `pathTo(5)` for path reconstruction
+  - the exported single-source distance table
+- The TypeScript example now shows the public facade types directly, including
+  `DiGraph<number>` and `SingleSourceShortestPathResult<number>`.
+- Moved the wasm/TS continuation plan into `wasm/TODO.md` so the planning file
+  sits with the experimental package surface it describes.
+- Simplified wasm npm publish routing by using explicit `--registry=...`
+  arguments in `wasm/package.json` instead of repository-local
+  `.npmrc.publish-*` files.
+- Updated wasm Emscripten troubleshooting guidance so the docs no longer point
+  only at the old Codespaces path and instead describe a generic activation
+  path plus the current WSL-local example.
+
 ## [1.0.37]
 
 ### Highlights

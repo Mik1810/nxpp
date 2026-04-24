@@ -2,6 +2,14 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.38] - 2026-04-24
+
+- Updated the experimental wasm JS and TypeScript examples to use a richer weighted directed graph and demonstrate `dijkstraShortestPaths(1)` with path reconstruction and the single-source distance table.
+- Kept the TypeScript example aligned with the public facade types by annotating the graph and Dijkstra result with exported package interfaces.
+- Moved the wasm/TS continuation plan from the repository root to `wasm/TODO.md`, keeping the near-term planning next to the experimental package work.
+- Simplified wasm publish routing by removing the token-free per-target `.npmrc.publish-*` files and passing the npmjs / GitHub Packages registries directly in the publish scripts.
+- Updated the wasm troubleshooting docs to use a generic `emsdk_env.sh` activation path, with the current WSL-local path documented as an example.
+
 ## [1.0.37] - 2026-04-21
 
 - Closed the wasm `shortest_paths.hpp` block for the explicit typed graph family: the Node/TS lane now covers single-pair shortest paths, single-source wrappers (`dijkstra*`, `bellmanFord*`, `dagShortestPaths(...)`), and the all-pairs Floyd-Warshall surface.

@@ -334,7 +334,7 @@ g.set_edge_attr(e2, "label", "second");
 - Practical API guide: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 - Complexity model: [docs/COMPLEXITY.md](docs/COMPLEXITY.md)
 - Testing guide: [docs/TEST.md](docs/TEST.md)
-- Continuation plan: [TODO.md](TODO.md)
+- WASM continuation plan: [wasm/TODO.md](wasm/TODO.md)
 - Experimental wasm + Node plan/guide: [wasm/WASM.md](wasm/WASM.md)
 - Experimental wasm npm package guide: [wasm/README.md](wasm/README.md)
 
@@ -347,7 +347,7 @@ Current experimental wasm layout:
 - Published JS/TS facade entrypoint: [wasm/dist/index.js](wasm/dist/index.js)
 - Published declarations: [wasm/dist/index.d.ts](wasm/dist/index.d.ts)
 - Facade dist artifacts are versioned in git under [wasm/dist/](wasm/dist/)
-- Publish routing configs (token-free): [wasm/.npmrc.publish-npm](wasm/.npmrc.publish-npm), [wasm/.npmrc.publish-github](wasm/.npmrc.publish-github)
+- Publish routing is defined directly in [wasm/package.json](wasm/package.json)
 - Final Embind entrypoint: [wasm/src/nxpp_wasm.cpp](wasm/src/nxpp_wasm.cpp)
 - Node contract test: [wasm/test/node_api_contract_test.mjs](wasm/test/node_api_contract_test.mjs)
 - Node build artifacts: [wasm/build/](wasm/build/)
