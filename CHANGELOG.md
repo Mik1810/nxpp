@@ -4,6 +4,8 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 ## [1.0.38] - 2026-04-24
 
+- Hardened runtime error mapping in the wasm TypeScript facade: raw Embind/C++ failures now pass through a facade boundary with a stable `WASM graph operation failed: ...` prefix, and common graph lookup, edge lookup, attribute, traversal, shortest-path, and multigraph edge-id failures are pre-validated into predictable JavaScript `Error` messages.
+- Added Node contract coverage for normalized facade error messages and advanced the experimental wasm package candidate from `0.5.0` to `0.6.0`.
 - Added explicit lifetime management to the wasm TypeScript facade: all public graph facade classes now expose idempotent `dispose()` methods, attach `Symbol.dispose` when the JavaScript runtime provides it, and throw a clear error when graph operations are attempted after disposal.
 - Extended the wasm contract suite and TypeScript compile checks for facade disposal behavior, and advanced the experimental wasm package candidate from `0.4.0` to `0.5.0`.
 - Added the wasm `spanning_tree.hpp` block for the explicit typed graph family: `kruskalMinimumSpanningTree()` and `primMinimumSpanningTree(root)` now return serializable `{ source, target }` edge DTO arrays through the Node/TS facade.

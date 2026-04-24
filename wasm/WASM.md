@@ -266,6 +266,11 @@ Facade graph instances own Embind-backed WASM objects and expose explicit
 disposal throw a clear facade error, and runtimes with `Symbol.dispose` get the
 same disposal path attached to that symbol.
 
+Runtime failures from the raw C++/Embind layer are normalized at the TypeScript
+facade boundary. Common invalid graph operations throw JavaScript `Error`
+instances with a stable `WASM graph operation failed: ...` prefix, while
+successful behavior remains unchanged.
+
 This is intentionally a narrow first slice and should not be treated as the
 final taxonomy of wasm graph types.
 

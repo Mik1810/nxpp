@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrows,
+    assertThrowsMessage,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -13,8 +14,9 @@ graph.addEdge(1, 2, 1);
 graph.dispose();
 graph.dispose();
 
-assertThrows(
+assertThrowsMessage(
     () => graph.nodes(),
+    "WASM graph operation failed: graph has been disposed.",
     "GraphInt operations after dispose() must throw a clear error",
 );
 
@@ -24,8 +26,9 @@ multigraph.addEdge("a", "b", 1);
 multigraph.dispose();
 multigraph.dispose();
 
-assertThrows(
+assertThrowsMessage(
     () => multigraph.edgeIds(),
+    "WASM graph operation failed: graph has been disposed.",
     "MultiGraphStr operations after dispose() must throw a clear error",
 );
 
@@ -37,8 +40,9 @@ if (Symbol.dispose !== undefined) {
         "graph facade classes must expose Symbol.dispose when the runtime supports it",
     );
     disposable[Symbol.dispose]();
-    assertThrows(
+    assertThrowsMessage(
         () => disposable.nodes(),
+        "WASM graph operation failed: graph has been disposed.",
         "Symbol.dispose must release the underlying graph",
     );
 }

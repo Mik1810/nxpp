@@ -7,6 +7,14 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Hardened runtime error mapping in the wasm TypeScript facade.
+- Raw Embind/C++ failures now pass through a stable facade boundary with a
+  `WASM graph operation failed: ...` prefix.
+- Common invalid operations now receive predictable JavaScript `Error`
+  messages, including missing nodes, missing edges, missing attributes,
+  disconnected shortest-path lookups, and invalid multigraph edge IDs.
+- Advanced the experimental npm package candidate for `@mik1810/nxpp-wasm`
+  from `0.5.0` to `0.6.0` for the normalized error boundary.
 - Added explicit lifetime management to the wasm TypeScript facade.
 - All public graph facade classes now expose an idempotent `dispose()` method.
 - When the JavaScript runtime exposes `Symbol.dispose`, facade instances attach

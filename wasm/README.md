@@ -49,6 +49,11 @@ try {
 throws a clear error. In runtimes that expose `Symbol.dispose`, facade
 instances also attach that symbol to the same disposal path.
 
+Runtime failures from the C++/WASM layer are normalized at the TypeScript
+facade boundary. Common invalid operations throw JavaScript `Error` instances
+with a stable `WASM graph operation failed: ...` prefix instead of exposing raw
+Embind exception objects.
+
 Design rules for the facade:
 
 - runtime classes stay explicit (`*Int` and `*Str`)
@@ -194,6 +199,8 @@ Current shortest-path result behavior is explicit and JS-oriented:
 - minimum-spanning-tree wrappers return serializable `{ source, target }`
   edge entries
 - facade graph instances expose explicit `dispose()` lifetime management
+- facade graph operations normalize common runtime failures into predictable
+  JavaScript errors
 
 This surface is useful for iteration and contract testing, but it is not yet
 the long-term public API shape.

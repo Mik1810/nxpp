@@ -88,6 +88,34 @@ export function assertThrows(fn, message) {
     assert.equal(threw, true, message);
 }
 
+export function assertThrowsMessage(fn, expectedMessage, message) {
+    let thrown;
+    try {
+        fn();
+    } catch (error) {
+        thrown = error;
+    }
+
+    assert.notEqual(thrown, undefined, message);
+    assert.equal(thrown.message, expectedMessage, message);
+}
+
+export function assertThrowsMessageIncludes(fn, expectedText, message) {
+    let thrown;
+    try {
+        fn();
+    } catch (error) {
+        thrown = error;
+    }
+
+    assert.notEqual(thrown, undefined, message);
+    assert.equal(
+        thrown.message.includes(expectedText),
+        true,
+        `${message}: expected "${thrown.message}" to include "${expectedText}"`,
+    );
+}
+
 export function toSortedNumbers(values) {
     return Array.from(values).sort((a, b) => a - b);
 }

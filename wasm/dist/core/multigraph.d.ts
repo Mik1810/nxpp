@@ -5,6 +5,12 @@ declare class BaseMultiGraph<T extends NodeId> {
     private readonly assertNode;
     constructor(factory: () => RawMultiGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
     protected get raw(): RawMultiGraph<T>;
+    private operationFailed;
+    private requireNodeExists;
+    private requireEdgeExists;
+    private requireEdgeIdExists;
+    private requireWeightKey;
+    private runPathLookup;
     addNode(id: T): void;
     addEdge(source: T, target: T, weight: number): void;
     hasNode(id: T): boolean;
