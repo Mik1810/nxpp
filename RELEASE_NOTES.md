@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.40]
+
+### Highlights
+
+- Closed `#77` by adding a public wasm API parity and stability matrix in
+  `wasm/README.md`.
+- The matrix now documents, module by module, how the experimental wasm public
+  surface maps to native semantic headers and what stability level each area
+  currently has (`Experimental`, `In progress`, or `Planned`).
+- Added explicit guidance that this public matrix and the internal feature
+  tracking matrix in `wasm/WASM.md` must stay aligned as companion sources.
+
 ## [1.0.39]
 
 ### Highlights

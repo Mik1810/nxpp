@@ -271,3 +271,32 @@ So the current wasm direction is:
 3. close semantic headers block by block, with `attributes.hpp`,
   `traversal.hpp`, `shortest_paths.hpp`, and `spanning_tree.hpp` now covered
 4. continue with the next semantic headers after `spanning_tree.hpp`
+
+## API parity and stability matrix
+
+This matrix tracks wasm API parity against the native semantic modules and the
+current stability expectations for consumers.
+
+Stability levels used here:
+
+- `Experimental`: available now, but shape/details can still change in the
+  current experimental package lane
+- `In progress`: partially exposed; more API families are expected
+- `Planned`: not yet exported in the public wasm surface
+
+| Native semantic area | Wasm parity status | Stability | Notes |
+|---|---|---|---|
+| `graph.hpp` | Covered (explicit typed runtime family) | Experimental | `Graph*`, `DiGraph*`, `MultiGraph*`, `MultiDiGraph*` core methods |
+| `attributes.hpp` | Covered | Experimental | Node and edge attributes, including `*ById` multigraph paths |
+| `traversal.hpp` | Covered | Experimental | BFS/DFS edges, trees, successors/predecessors DTO shapes |
+| `shortest_paths.hpp` | Covered | Experimental | Single-pair, single-source, and Floyd-Warshall all-pairs wrappers |
+| `spanning_tree.hpp` | Covered | Experimental | Kruskal and rooted Prim edge-list wrappers |
+| `components.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
+| `centrality.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
+| `flow.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
+| `topological_sort.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
+| `generators.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
+| `sat.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
+
+When a new wasm API family is merged, update this table together with
+`wasm/WASM.md`, `CHANGELOG.md`, and `RELEASE_NOTES.md`.

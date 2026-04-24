@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.40] - 2026-04-24
+
+- Closed `#77` with a consumer-facing wasm API parity and stability matrix in `wasm/README.md`, documenting module-by-module coverage against the native semantic headers and the current stability level for each area.
+- Aligned `wasm/WASM.md` so the internal feature-tracking matrix and the public parity/stability matrix are explicitly linked as companion sources that must be updated together.
+
 ## [1.0.39] - 2026-04-24
 
 - Closed `#76` by adding a real npm tarball consumer verification lane for the experimental wasm package: `wasm/scripts/run_npm_pack_consumer_test.sh` now builds (or reuses) the Node wasm module, runs `npm pack`, installs the generated tarball in an isolated fixture consumer, and executes an ESM smoke test through the public package entrypoint.

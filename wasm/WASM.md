@@ -412,6 +412,10 @@ The following are non-breaking for v0:
 
 Keep this table updated whenever a new exported API family is merged.
 
+For the consumer-facing parity/stability snapshot used in package docs, keep
+the companion matrix in `wasm/README.md` aligned with this internal tracking
+table.
+
 ## Strategy note: Emscripten in include headers vs adapter layer
 
 Proposed idea:

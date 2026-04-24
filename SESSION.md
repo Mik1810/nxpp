@@ -668,3 +668,6 @@
 - Added a dedicated fixture consumer under `wasm/test/npm_pack_consumer/` (`package.json` + `smoke_test.mjs`) so pack/install/runtime behavior is checked against package artifacts instead of repository-local imports.
 - Integrated the new lane into CI by extending `.github/workflows/wasm-experimental.yml` with a dedicated npm-pack-consumer step, output status field, and summary block.
 - Updated package/docs/release-history wiring for the same slice: `wasm/package.json` now exposes `check:npm-pack-consumer`, `wasm/README.md` and `docs/TEST.md` now document the command/layer, and release docs were advanced to `1.0.39` in `CHANGELOG.md` and `RELEASE_NOTES.md`.
+- Closed issue `#77` with a docs-only parity/stability pass: `wasm/README.md` now includes a consumer-facing wasm API parity and stability matrix that maps native semantic headers to current wasm coverage and stability levels, including explicit out-of-near-term-scope markers for `topological_sort`, `generators`, and `sat`.
+- Linked the public matrix and internal tracking explicitly: `wasm/WASM.md` now states that its internal feature matrix and the consumer-facing matrix in `wasm/README.md` are companion sources that must remain aligned.
+- Updated release/history docs for the same slice under `1.0.40` in `CHANGELOG.md` and `RELEASE_NOTES.md`.
