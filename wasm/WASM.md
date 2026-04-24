@@ -14,6 +14,8 @@ It combines:
 
 - experimental portability/build target
 - focused on Node runtime first
+- Node runtime is the only currently supported experimental runtime target
+- browser runtimes are planned/future work and are not yet supported
 - not yet a full JavaScript/TypeScript API parity layer
 - now shipped as the experimental npm package `@mik1810/nxpp-wasm`
 
@@ -49,6 +51,13 @@ Current wasm lane includes:
 - wasm formal assertion suite execution in `wasm/scripts/run_wasm_tests.sh`
 - optional large-graph wasm execution via `NXPP_WASM_INCLUDE_LARGE=1`
 - dedicated CI lane in `.github/workflows/wasm-experimental.yml`
+
+Runtime boundary for the current scope:
+
+- Node.js runtime behavior is actively tested and maintained
+- browser runtime behavior is not part of current CI guarantees
+- browser-oriented examples/demos remain investigation items until promoted
+  explicitly into supported scope
 
 ## Prerequisites
 
@@ -102,6 +111,10 @@ The workflow publishes a summary with:
 - node-contract exit code
 - suite exit code
 - cleaned command outputs
+
+This CI lane is intentionally Node-only. Passing `wasm-experimental.yml` should
+be interpreted as a Node-runtime guarantee for the current experimental scope,
+not as a browser-runtime guarantee.
 
 ## Dependency model
 

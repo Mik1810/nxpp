@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.41]
+
+### Highlights
+
+- Closed `#78` with a docs-only runtime-boundary clarification for wasm.
+- `wasm/README.md` now separates current support from future work explicitly:
+  - Node.js is the current supported experimental runtime target
+  - browser runtimes are future/investigation scope and are not yet supported
+- `wasm/WASM.md` now reinforces the same boundary in status/scope/CI wording,
+  including explicit guidance that the `wasm-experimental.yml` lane is a
+  Node-runtime guarantee only and not a browser-runtime guarantee.
+
 ## [1.0.40]
 
 ### Highlights

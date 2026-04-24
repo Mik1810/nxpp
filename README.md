@@ -356,6 +356,11 @@ Current experimental wasm layout:
 The wasm npm publish flow is deterministic: `npm run publish:all` from
 `wasm/` publishes to npmjs first and then to GitHub Packages.
 
+Current runtime boundary for this experimental wasm lane:
+
+- Node.js is the current supported experimental runtime target
+- browser runtimes are future work and are not yet a supported target
+
 Current wasm architecture direction:
 
 - finish `graph.hpp` coverage before moving to later semantic headers

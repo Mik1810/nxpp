@@ -671,3 +671,6 @@
 - Closed issue `#77` with a docs-only parity/stability pass: `wasm/README.md` now includes a consumer-facing wasm API parity and stability matrix that maps native semantic headers to current wasm coverage and stability levels, including explicit out-of-near-term-scope markers for `topological_sort`, `generators`, and `sat`.
 - Linked the public matrix and internal tracking explicitly: `wasm/WASM.md` now states that its internal feature matrix and the consumer-facing matrix in `wasm/README.md` are companion sources that must remain aligned.
 - Updated release/history docs for the same slice under `1.0.40` in `CHANGELOG.md` and `RELEASE_NOTES.md`.
+- Closed issue `#78` with a docs-only runtime-boundary clarification for wasm support: `wasm/README.md` now has an explicit support-status section that separates current Node.js support from future browser work.
+- Updated `wasm/WASM.md` so status/scope/CI text now states clearly that the current `wasm-experimental.yml` lane is a Node-runtime guarantee only and not a browser-runtime guarantee.
+- Updated release/history docs for this slice under `1.0.41` in `CHANGELOG.md` and `RELEASE_NOTES.md`.

@@ -2,6 +2,22 @@
 
 Experimental Node.js wasm package for `nxpp`.
 
+## Runtime support status
+
+Current runtime support is intentionally split as follows:
+
+- Node.js: supported experimental target
+- Browser runtimes: not yet a supported target
+
+What this means in practice today:
+
+- CI and contract verification are Node-oriented
+- published artifacts and examples are validated on Node
+- browser usage is still future work and should be treated as investigation,
+  not as a compatibility guarantee
+
+For internal architecture and roadmap details, see `wasm/WASM.md`.
+
 ## Usage
 
 ```js

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.41] - 2026-04-24
+
+- Closed `#78` with a docs-only runtime-boundary clarification for the experimental wasm lane: `wasm/README.md` now separates current Node.js support from future browser work in an explicit support-status section.
+- Updated `wasm/WASM.md` so status, scope, and CI interpretation now state clearly that the current `wasm-experimental.yml` lane is a Node-runtime guarantee only and not a browser-runtime guarantee.
+
 ## [1.0.40] - 2026-04-24
 
 - Closed `#77` with a consumer-facing wasm API parity and stability matrix in `wasm/README.md`, documenting module-by-module coverage against the native semantic headers and the current stability level for each area.
