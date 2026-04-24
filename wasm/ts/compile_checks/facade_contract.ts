@@ -18,6 +18,7 @@ import type {
   MultiDiGraph,
   MultiGraph,
   ShortestPathDistanceEntry,
+  SpanningTreeEdge,
   SingleSourceShortestPathResult,
   TraversalEdge,
   TraversalPredecessorEntry,
@@ -65,6 +66,8 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   const floydWarshallAllPairsShortestPaths: number[][] = graph.floydWarshallAllPairsShortestPaths();
   const floydWarshallAllPairsShortestPathsMap: AllPairsShortestPathSourceEntry<number>[] =
     graph.floydWarshallAllPairsShortestPathsMap();
+  const kruskalMinimumSpanningTree: SpanningTreeEdge<number>[] = graph.kruskalMinimumSpanningTree();
+  const primMinimumSpanningTree: SpanningTreeEdge<number>[] = graph.primMinimumSpanningTree(1);
   graph.setNodeAttr(1, "label", "source");
   graph.setEdgeAttr(1, 2, "capacity", 3);
   graph.hasNodeAttr(1, "label");
@@ -104,6 +107,8 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   void dagShortestPaths;
   void floydWarshallAllPairsShortestPaths;
   void floydWarshallAllPairsShortestPathsMap;
+  void kruskalMinimumSpanningTree;
+  void primMinimumSpanningTree;
 }
 
 function exerciseGraphString(graph: Graph<string>): void {
@@ -146,6 +151,8 @@ function exerciseGraphString(graph: Graph<string>): void {
   const floydWarshallAllPairsShortestPaths: number[][] = graph.floydWarshallAllPairsShortestPaths();
   const floydWarshallAllPairsShortestPathsMap: AllPairsShortestPathSourceEntry<string>[] =
     graph.floydWarshallAllPairsShortestPathsMap();
+  const kruskalMinimumSpanningTree: SpanningTreeEdge<string>[] = graph.kruskalMinimumSpanningTree();
+  const primMinimumSpanningTree: SpanningTreeEdge<string>[] = graph.primMinimumSpanningTree("a");
   graph.setNodeAttr("a", "label", "source");
   graph.setEdgeAttr("a", "b", "capacity", 3);
   graph.hasNodeAttr("a", "label");
@@ -185,6 +192,8 @@ function exerciseGraphString(graph: Graph<string>): void {
   void dagShortestPaths;
   void floydWarshallAllPairsShortestPaths;
   void floydWarshallAllPairsShortestPathsMap;
+  void kruskalMinimumSpanningTree;
+  void primMinimumSpanningTree;
 }
 
 function exerciseMultiGraphNumber(graph: MultiGraph<number>): void {

@@ -1,4 +1,4 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SpanningTreeEdge, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 export interface RawSingleSourceShortestPathResult<T extends NodeId> {
     distance: Iterable<ShortestPathDistanceEntry<T>> | ArrayLike<ShortestPathDistanceEntry<T>>;
     predecessor: Iterable<ShortestPathPredecessorEntry<T>> | ArrayLike<ShortestPathPredecessorEntry<T>>;
@@ -52,6 +52,8 @@ export interface RawSimpleGraph<T extends NodeId> {
     dagShortestPaths(source: T): RawSingleSourceShortestPathResult<T>;
     floydWarshallAllPairsShortestPaths(): Iterable<Iterable<number> | ArrayLike<number>> | ArrayLike<Iterable<number> | ArrayLike<number>>;
     floydWarshallAllPairsShortestPathsMap(): Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>;
+    kruskalMinimumSpanningTree(): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
+    primMinimumSpanningTree(root: T): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
     clear(): void;
 }
 export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {

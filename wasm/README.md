@@ -57,11 +57,12 @@ npm run publish:all
 
 This always performs:
 
-1. `npm run publish:npm` using `.npmrc.publish-npm`
-2. `npm run publish:github` using `.npmrc.publish-github`
+1. `npm run publish:npm` against `https://registry.npmjs.org/`
+2. `npm run publish:github` against `https://npm.pkg.github.com/`
 
 The split avoids lifecycle chaining issues (for example `postpublish` inheriting
-unexpected registry context) and keeps the first publish on npmjs.
+unexpected registry context) and keeps the first publish on npmjs. Credentials
+are expected to live in the user's npm configuration, not in repository files.
 
 ## Current experimental surface
 
@@ -125,6 +126,8 @@ Core endpoint-oriented methods:
 - `dagShortestPaths(source)`
 - `floydWarshallAllPairsShortestPaths()`
 - `floydWarshallAllPairsShortestPathsMap()`
+- `kruskalMinimumSpanningTree()`
+- `primMinimumSpanningTree(root)`
 - `clear()`
 
 Multigraph classes (`MultiGraph*`, `MultiDiGraph*`) additionally expose
@@ -171,6 +174,8 @@ Current shortest-path result behavior is explicit and JS-oriented:
 - `floydWarshallAllPairsShortestPathsMap()` returns serializable source/target
   DTO entries instead of a JS `Map`
 - weighted wrappers currently accept only the built-in `"weight"` channel
+- minimum-spanning-tree wrappers return serializable `{ source, target }`
+  edge entries
 
 This surface is useful for iteration and contract testing, but it is not yet
 the long-term public API shape.
@@ -228,5 +233,5 @@ So the current wasm direction is:
   `MultiDiGraph*`) aligned with the base C++ modules
 2. preserve distinct concrete backends by class (no runtime switching)
 3. close semantic headers block by block, with `attributes.hpp`,
-  `traversal.hpp`, and `shortest_paths.hpp` now covered
-4. continue with the next semantic headers after `shortest_paths.hpp`
+  `traversal.hpp`, `shortest_paths.hpp`, and `spanning_tree.hpp` now covered
+4. continue with the next semantic headers after `spanning_tree.hpp`

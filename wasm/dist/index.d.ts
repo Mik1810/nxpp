@@ -1,4 +1,4 @@
-export type { AllPairsShortestPathDistanceEntry, AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, EdgeEndpoints, Graph, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree, } from "./types.js";
+export type { AllPairsShortestPathDistanceEntry, AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, EdgeEndpoints, Graph, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree, } from "./types.js";
 export { createNxpp, loadNxppRuntime } from "./load.js";
 export { DiGraphInt, DiGraphStr, GraphInt, GraphStr, } from "./core/graph.js";
 export { MultiDiGraphInt, MultiDiGraphStr, MultiGraphInt, MultiGraphStr, } from "./core/multigraph.js";

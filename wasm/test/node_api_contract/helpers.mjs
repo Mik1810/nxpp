@@ -46,6 +46,8 @@ export const expectedSimpleMethods = [
     "dagShortestPaths",
     "floydWarshallAllPairsShortestPaths",
     "floydWarshallAllPairsShortestPathsMap",
+    "kruskalMinimumSpanningTree",
+    "primMinimumSpanningTree",
     "clear",
 ];
 

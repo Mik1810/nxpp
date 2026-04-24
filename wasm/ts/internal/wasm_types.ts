@@ -4,6 +4,7 @@ import type {
   NodeId,
   ShortestPathDistanceEntry,
   ShortestPathPredecessorEntry,
+  SpanningTreeEdge,
   TraversalEdge,
   TraversalPredecessorEntry,
   TraversalSuccessorEntry,
@@ -65,6 +66,8 @@ export interface RawSimpleGraph<T extends NodeId> {
   dagShortestPaths(source: T): RawSingleSourceShortestPathResult<T>;
   floydWarshallAllPairsShortestPaths(): Iterable<Iterable<number> | ArrayLike<number>> | ArrayLike<Iterable<number> | ArrayLike<number>>;
   floydWarshallAllPairsShortestPathsMap(): Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>;
+  kruskalMinimumSpanningTree(): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
+  primMinimumSpanningTree(root: T): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
   clear(): void;
 }
 

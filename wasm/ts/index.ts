@@ -10,6 +10,7 @@ export type {
   NodeId,
   ShortestPathDistanceEntry,
   ShortestPathPredecessorEntry,
+  SpanningTreeEdge,
   SingleSourceShortestPathResult,
   TraversalEdge,
   TraversalPredecessorEntry,

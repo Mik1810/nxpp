@@ -7,6 +7,15 @@ version entries in `CHANGELOG.md`.
 
 ### Highlights
 
+- Added the wasm `spanning_tree.hpp` block for the explicit typed graph family.
+- The Node/TS lane now exposes:
+  - `kruskalMinimumSpanningTree()`
+  - `primMinimumSpanningTree(root)`
+- Both spanning-tree methods return serializable `{ source, target }` edge DTO
+  arrays, with the Prim wrapper converting the native parent map into an edge
+  list and omitting the root self-parent.
+- Advanced the experimental npm package candidate for `@mik1810/nxpp-wasm`
+  from `0.3.0` to `0.4.0` for the new spanning-tree surface.
 - Refreshed the experimental wasm smoke examples so both JavaScript and
   TypeScript now build a slightly richer weighted directed graph.
 - The examples now demonstrate Dijkstra single-source usage through

@@ -14,6 +14,7 @@ import type {
   Graph,
   NodeId,
   ShortestPathDistanceEntry,
+  SpanningTreeEdge,
   SingleSourceShortestPathResult,
   TraversalEdge,
   TraversalPredecessorEntry,
@@ -280,6 +281,15 @@ class BaseSimpleGraph<T extends NodeId> {
 
   floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[] {
     return toAllPairsShortestPathMap(this.raw.floydWarshallAllPairsShortestPathsMap());
+  }
+
+  kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[] {
+    return toArray(this.raw.kruskalMinimumSpanningTree());
+  }
+
+  primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[] {
+    this.assertNode(root, "root");
+    return toArray(this.raw.primMinimumSpanningTree(root));
   }
 
   clear(): void {

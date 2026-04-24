@@ -208,6 +208,13 @@ class BaseMultiGraph {
     floydWarshallAllPairsShortestPathsMap() {
         return toAllPairsShortestPathMap(this.raw.floydWarshallAllPairsShortestPathsMap());
     }
+    kruskalMinimumSpanningTree() {
+        return toArray(this.raw.kruskalMinimumSpanningTree());
+    }
+    primMinimumSpanningTree(root) {
+        this.assertNode(root, "root");
+        return toArray(this.raw.primMinimumSpanningTree(root));
+    }
     hasEdgeId(edgeId) {
         assertEdgeId(edgeId);
         return this.raw.hasEdgeId(edgeId);

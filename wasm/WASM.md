@@ -21,7 +21,8 @@ The current binding exposes an experimental typed graph surface centered on the
 explicit runtime classes (`GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`,
 `MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, `MultiDiGraphStr`) plus
 the completed `attributes.hpp` and `traversal.hpp` blocks plus the
-full `shortest_paths.hpp` block, including Floyd-Warshall all-pairs results.
+full `shortest_paths.hpp` block, including Floyd-Warshall all-pairs results,
+plus the current `spanning_tree.hpp` minimum-spanning-tree block.
 This should still be read as an implementation stepping stone, not as the
 final public JavaScript API shape.
 
@@ -232,6 +233,8 @@ Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
   weighted matrix in stable node order
 - `floydWarshallAllPairsShortestPathsMap()` returning serializable
   `{ source, distances: [{ target, distance }] }` entries
+- `kruskalMinimumSpanningTree()` returning `{ source, target }` edge entries
+- `primMinimumSpanningTree(root)` returning `{ source, target }` edge entries
 - `clear()`
 
 Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
@@ -252,6 +255,10 @@ and additionally expose edge-ID-specific APIs:
 
 Weighted shortest-path wrappers currently accept only the built-in `"weight"`
 channel.
+
+Minimum-spanning-tree wrappers return plain edge DTO arrays. The Prim wrapper
+uses the native parent map internally and omits the root self-parent from the
+JS-facing edge list.
 
 This is intentionally a narrow first slice and should not be treated as the
 final taxonomy of wasm graph types.
@@ -384,7 +391,8 @@ The following are non-breaking for v0:
 | Graph mutation APIs | Partial | endpoint-based mutation on simple/multi graphs plus precise `removeEdgeById` on multigraphs | Add next `graph.hpp` mutation slices while preserving simple-vs-multigraph API policy |
 | Query APIs | Partial | endpoint-based queries on simple graphs plus edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
 | Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
-| Shortest paths | Not started | none in current graph-core export contract | Add dedicated shortest-path exports in `shortest_paths` module after graph-core stabilization |
+| Shortest paths | Covered | single-pair, single-source Dijkstra/Bellman-Ford/DAG, and Floyd-Warshall all-pairs wrappers | Keep contract tests aligned with future facade changes |
+| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Continue with components / centrality / flow blocks |
 | Components/topology | Not started | none | Add first exported component/topology slice |
 | Spanning/centrality | Not started | none | Add centrality subset after topology |
 | Flow/multigraph precision | Partial | `MultiGraph*` and `MultiDiGraph*` edge-id API with precise `removeEdgeById` and endpoint lookup wrappers | Add flow-oriented exports that preserve edge-id precision |

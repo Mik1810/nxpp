@@ -38,6 +38,8 @@ function exerciseGraphNumber(graph) {
     const dagShortestPaths = graph.dagShortestPaths(1);
     const floydWarshallAllPairsShortestPaths = graph.floydWarshallAllPairsShortestPaths();
     const floydWarshallAllPairsShortestPathsMap = graph.floydWarshallAllPairsShortestPathsMap();
+    const kruskalMinimumSpanningTree = graph.kruskalMinimumSpanningTree();
+    const primMinimumSpanningTree = graph.primMinimumSpanningTree(1);
     graph.setNodeAttr(1, "label", "source");
     graph.setEdgeAttr(1, 2, "capacity", 3);
     graph.hasNodeAttr(1, "label");
@@ -77,6 +79,8 @@ function exerciseGraphNumber(graph) {
     void dagShortestPaths;
     void floydWarshallAllPairsShortestPaths;
     void floydWarshallAllPairsShortestPathsMap;
+    void kruskalMinimumSpanningTree;
+    void primMinimumSpanningTree;
 }
 function exerciseGraphString(graph) {
     graph.addNode("a");
@@ -117,6 +121,8 @@ function exerciseGraphString(graph) {
     const dagShortestPaths = graph.dagShortestPaths("a");
     const floydWarshallAllPairsShortestPaths = graph.floydWarshallAllPairsShortestPaths();
     const floydWarshallAllPairsShortestPathsMap = graph.floydWarshallAllPairsShortestPathsMap();
+    const kruskalMinimumSpanningTree = graph.kruskalMinimumSpanningTree();
+    const primMinimumSpanningTree = graph.primMinimumSpanningTree("a");
     graph.setNodeAttr("a", "label", "source");
     graph.setEdgeAttr("a", "b", "capacity", 3);
     graph.hasNodeAttr("a", "label");
@@ -156,6 +162,8 @@ function exerciseGraphString(graph) {
     void dagShortestPaths;
     void floydWarshallAllPairsShortestPaths;
     void floydWarshallAllPairsShortestPathsMap;
+    void kruskalMinimumSpanningTree;
+    void primMinimumSpanningTree;
 }
 function exerciseMultiGraphNumber(graph) {
     graph.addNode(1);

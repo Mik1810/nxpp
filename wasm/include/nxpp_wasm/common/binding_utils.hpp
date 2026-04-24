@@ -75,6 +75,18 @@ emscripten::val to_js_edge_list(const std::vector<std::pair<NodeT, NodeT>>& edge
 }
 
 template <typename NodeT>
+std::vector<std::pair<NodeT, NodeT>> parent_map_to_edge_list(const std::map<NodeT, NodeT>& parent_map) {
+    std::vector<std::pair<NodeT, NodeT>> edges;
+    edges.reserve(parent_map.size());
+    for (const auto& [node, parent] : parent_map) {
+        if (node != parent) {
+            edges.emplace_back(parent, node);
+        }
+    }
+    return edges;
+}
+
+template <typename NodeT>
 emscripten::val to_js_successor_entries(const nxpp::indexed_lookup_map<NodeT, std::vector<NodeT>>& map) {
     emscripten::val array = emscripten::val::array();
     std::size_t index = 0;
@@ -461,6 +473,14 @@ public:
         return to_js_all_pairs_distance_entries(graph_.floyd_warshall_all_pairs_shortest_paths_map());
     }
 
+    emscripten::val kruskal_minimum_spanning_tree() const {
+        return to_js_edge_list(graph_.kruskal_minimum_spanning_tree());
+    }
+
+    emscripten::val prim_minimum_spanning_tree(const emscripten::val& root) const {
+        return to_js_edge_list(parent_map_to_edge_list(graph_.prim_minimum_spanning_tree(as_node_id(root))));
+    }
+
 protected:
     static NodeT as_node_id(const emscripten::val& value) {
         return NodeJsPolicy<NodeT>::to_node_id(value);
@@ -757,6 +777,14 @@ public:
 
     emscripten::val floyd_warshall_all_pairs_shortest_paths_map() const {
         return to_js_all_pairs_distance_entries(graph_.floyd_warshall_all_pairs_shortest_paths_map());
+    }
+
+    emscripten::val kruskal_minimum_spanning_tree() const {
+        return to_js_edge_list(graph_.kruskal_minimum_spanning_tree());
+    }
+
+    emscripten::val prim_minimum_spanning_tree(const emscripten::val& root) const {
+        return to_js_edge_list(parent_map_to_edge_list(graph_.prim_minimum_spanning_tree(as_node_id(root))));
     }
 
 protected:

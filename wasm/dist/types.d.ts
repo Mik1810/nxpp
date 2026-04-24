@@ -8,6 +8,10 @@ export interface TraversalEdge<T extends NodeId> {
     source: T;
     target: T;
 }
+export interface SpanningTreeEdge<T extends NodeId> {
+    source: T;
+    target: T;
+}
 export interface TraversalTree<T extends NodeId> {
     nodes: T[];
     edges: TraversalEdge<T>[];
@@ -87,6 +91,8 @@ export interface Graph<T extends NodeId> {
     dagShortestPaths(source: T): SingleSourceShortestPathResult<T>;
     floydWarshallAllPairsShortestPaths(): number[][];
     floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[];
+    kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
+    primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
     clear(): void;
 }
 export interface DiGraph<T extends NodeId> extends Graph<T> {

@@ -208,6 +208,13 @@ class BaseSimpleGraph {
     floydWarshallAllPairsShortestPathsMap() {
         return toAllPairsShortestPathMap(this.raw.floydWarshallAllPairsShortestPathsMap());
     }
+    kruskalMinimumSpanningTree() {
+        return toArray(this.raw.kruskalMinimumSpanningTree());
+    }
+    primMinimumSpanningTree(root) {
+        this.assertNode(root, "root");
+        return toArray(this.raw.primMinimumSpanningTree(root));
+    }
     clear() {
         this.raw.clear();
     }

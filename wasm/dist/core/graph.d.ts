@@ -1,4 +1,4 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, Graph, NodeId, ShortestPathDistanceEntry, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, Graph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawSimpleGraph } from "../internal/wasm_types.js";
 declare class BaseSimpleGraph<T extends NodeId> {
     protected readonly raw: RawSimpleGraph<T>;
@@ -48,6 +48,8 @@ declare class BaseSimpleGraph<T extends NodeId> {
     dagShortestPaths(source: T): SingleSourceShortestPathResult<T>;
     floydWarshallAllPairsShortestPaths(): number[][];
     floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[];
+    kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
+    primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
     clear(): void;
 }
 export declare class GraphInt extends BaseSimpleGraph<number> implements Graph<number> {
