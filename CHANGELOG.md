@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.0.46] - 2026-04-24
+
+- Closed `#89` by adding `Graph::to_dot(std::ostream&)` and `Graph::to_dot_string()` in `include/nxpp/graph.hpp`, building Graphviz DOT output with `label` and optional wrapper node/edge attributes plus built-in `weight` for weighted graphs.
+- Added a formal check in `tests/test_core.cpp` and a new `snippet/dot/` pair (`dot_nxpp.cpp`, `dot.py`) that prints the same golden DOT for a small `DiGraphInt` instance.
+
 ## [1.0.45] - 2026-04-24
 
 - Closed `#82` by adding `docs/STABILITY.md` as the source-of-truth support and API stability matrix across C++ consumption, packaging channels, generated reference, and experimental wasm.

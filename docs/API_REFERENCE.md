@@ -288,6 +288,8 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `remove_edge` | `(edge_id)` | `void` | Removes one specific wrapper-tracked edge ID. This is the precise multigraph removal API. | `G.remove_edge(eid);` |
 | `remove_node` | `(u)` | `void` | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. O(V + E) per public call. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
+| `to_dot` | `(std::ostream&)` | `void` | Emits a Graphviz DOT view of the graph. Uses internal `n0`, `n1`, ... with `label` for public `NodeID`s; includes wrapper node/edge attributes and built-in `weight` on weighted graphs. | `G.to_dot(std::cout);` |
+| `to_dot_string` | `()` | `std::string` | Same as `to_dot` but returns a `std::string` for convenient capture. | `auto s = G.to_dot_string();` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
 | `operator[]` | `(u)` | `NodeProxy` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
 | `get_impl` | `()` | `const GraphType&` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |

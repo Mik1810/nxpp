@@ -105,6 +105,15 @@ void test_multigraph_remove_edge_cleanup() {
     expect(!graph.has_edge_attr(e2, "label"), "second edge attributes should be cleaned up");
 }
 
+void test_to_dot_serialization() {
+    nxpp::DiGraphInt g;
+    g.add_edge(0, 1, 2);
+    const std::string dot = g.to_dot_string();
+    expect(dot.find("digraph G") != std::string::npos, "to_dot should emit a digraph");
+    expect(dot.find("n0 [label=") != std::string::npos, "to_dot should emit a node for 0");
+    expect(dot.find("n0 -> n1 [weight=2]") != std::string::npos, "to_dot should emit a weighted edge");
+}
+
 void test_proxy_assignment_normalizes_c_strings() {
     nxpp::DiGraph graph;
 
@@ -132,12 +141,13 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 5;
+    constexpr int total = 6;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
     passed += run_test("multigraph edge_id path", test_multigraph_edge_id_path) ? 1 : 0;
     passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;
+    passed += run_test("to_dot serialization", test_to_dot_serialization) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
 
     return passed == total ? 0 : 1;

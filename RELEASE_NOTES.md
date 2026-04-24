@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.0.46]
+
+### Highlights
+
+- Closed `#89` with a first Graphviz DOT serializer on `nxpp::Graph`.
+- `to_dot` / `to_dot_string` emit a standard `digraph` / `graph` block, map each
+  public `NodeID` to internal `n0`, `n1`, ... names with a `label` field, and
+  forward wrapper-side node/edge `std::any` attributes into DOT. Weighted
+  graphs also emit the built-in `weight=...` edge attribute, while still
+  allowing extra edge metadata from the same attribute stores.
+- Added a small regression in `test_core` plus a `snippet/dot` pair that
+  hardens the string shape against a golden DOT document.
+
 ## [1.0.45]
 
 ### Highlights

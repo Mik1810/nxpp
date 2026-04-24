@@ -60,6 +60,7 @@ jobs:
               dag_sp) echo "Single-source shortest paths in a DAG" ;;
               dfs) echo "Depth-first search traversal events" ;;
               dijkstra) echo "Single-source shortest paths with Dijkstra" ;;
+              dot) echo "Graphviz DOT export for a small directed graph" ;;
               flow) echo "Maximum flow on a capacitated directed graph" ;;
               floyd_warshall) echo "All-pairs shortest paths with Floyd-Warshall" ;;
               graph_example) echo "Basic directed graph construction and edge iteration" ;;

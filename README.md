@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.0.45`
+Current release: `v1.0.46`
 
 `nxpp` is a modern C++20 graph library with a NetworkX-inspired API on top of
 Boost Graph Library. The goal is to keep graph code concise and readable while
@@ -67,6 +67,7 @@ see [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 - Traversal, shortest paths, components, flow/min-cut/min-cost, centrality
 - Graph generators (`complete_graph`, `path_graph`, `erdos_renyi_graph`)
 - Precise multigraph edge handling via `edge_id` APIs
+- Graphviz DOT export via `to_dot` / `to_dot_string` (see [docs/API_REFERENCE.md](docs/API_REFERENCE.md))
 
 ## Support and API stability
 
