@@ -29,7 +29,7 @@ jobs:
             compiler: clang++
             platform_family: unix
             install_boost: brew install boost
-            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -Wno-unused-parameter -O0
           - os: windows-latest
             label: windows-msvc
             compiler: cl
