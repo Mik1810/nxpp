@@ -3,6 +3,28 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.2.0]
+
+### Highlights
+
+- Closed `#91` with a dedicated header-only Graphviz DOT export layer under
+  `nxpp::viz`.
+- Added `include/nxpp/viz/dot.hpp` with `DotOptions`, `to_dot(...)`, and
+  `write_dot(...)`. The new API writes DOT without adding a mandatory Graphviz
+  dependency to the library.
+- Weighted edges now export as both `weight=...` and visible `label=...` values
+  by default, so Graphviz-rendered SVGs show the numeric edge weights while DOT
+  still carries layout weight semantics.
+- Removed the older `Graph::to_dot(std::ostream&)` and
+  `Graph::to_dot_string()` member APIs. Use `nxpp::viz::to_dot(G)` or
+  `nxpp::viz::write_dot(G, path)` instead.
+- Added focused coverage for directed, undirected, weighted, unweighted,
+  escaped string IDs, multigraph edge IDs, isolated nodes, and file output.
+- Moved the renderable graph example under `examples/print_graph/` and aligned
+  the README and API reference with the visualization API.
+- Removed the old `snippet/dot/` parity snippet so DOT export is covered by
+  formal tests and the renderable example instead of a snippet lane.
+
 ## [1.1.0]
 
 ### Highlights

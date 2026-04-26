@@ -1,0 +1,22 @@
+digraph G {
+  "Milan" [label="Milan"];
+  "Rome" [label="Rome"];
+  "Naples" [label="Naples"];
+  "Turin" [label="Turin"];
+  "Florence" [label="Florence"];
+  "Venice" [label="Venice"];
+  "Bologna" [label="Bologna"];
+  "Palermo" [label="Palermo"];
+  "Milan" -> "Rome" [weight=8 label=8];
+  "Milan" -> "Palermo" [weight=4 label=4];
+  "Rome" -> "Milan" [weight=5 label=5];
+  "Rome" -> "Venice" [weight=7 label=7];
+  "Naples" -> "Turin" [weight=1 label=1];
+  "Naples" -> "Bologna" [weight=2 label=2];
+  "Turin" -> "Venice" [weight=5 label=5];
+  "Turin" -> "Bologna" [weight=5 label=5];
+  "Florence" -> "Naples" [weight=8 label=8];
+  "Florence" -> "Palermo" [weight=1 label=1];
+  "Bologna" -> "Palermo" [weight=4 label=4];
+  "Palermo" -> "Milan" [weight=7 label=7];
+}

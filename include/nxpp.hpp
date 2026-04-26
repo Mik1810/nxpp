@@ -12,3 +12,4 @@
 #include "nxpp/centrality.hpp"
 #include "nxpp/generators.hpp"
 #include "nxpp/sat.hpp"
+#include "nxpp/viz/dot.hpp"

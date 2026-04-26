@@ -1,6 +1,9 @@
 #include <cmath>
+#include <filesystem>
 #include <functional>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -19,6 +22,16 @@ void expect(bool condition, const std::string& message) {
     if (!condition) {
         throw std::runtime_error(message);
     }
+}
+
+std::size_t count_occurrences(const std::string& text, const std::string& needle) {
+    std::size_t count = 0;
+    std::size_t pos = 0;
+    while ((pos = text.find(needle, pos)) != std::string::npos) {
+        ++count;
+        pos += needle.size();
+    }
+    return count;
 }
 
 void test_string_attributes_and_normalization() {
@@ -105,13 +118,72 @@ void test_multigraph_remove_edge_cleanup() {
     expect(!graph.has_edge_attr(e2, "label"), "second edge attributes should be cleaned up");
 }
 
-void test_to_dot_serialization() {
-    nxpp::DiGraphInt g;
-    g.add_edge(0, 1, 2);
-    const std::string dot = g.to_dot_string();
-    expect(dot.find("digraph G") != std::string::npos, "to_dot should emit a digraph");
-    expect(dot.find("n0 [label=") != std::string::npos, "to_dot should emit a node for 0");
-    expect(dot.find("n0 -> n1 [weight=2]") != std::string::npos, "to_dot should emit a weighted edge");
+void test_viz_dot_weighted_directed_export() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A\"1", "B", 3.5);
+
+    const std::string dot = nxpp::viz::to_dot(graph);
+
+    expect(dot.find("digraph G") != std::string::npos, "viz DOT should emit a directed graph");
+    expect(dot.find("\"A\\\"1\"") != std::string::npos, "viz DOT should escape quoted node IDs");
+    expect(dot.find("\"A\\\"1\" -> \"B\" [weight=3.5 label=3.5]") != std::string::npos,
+           "viz DOT should emit visible labels from built-in weights");
+}
+
+void test_viz_dot_unweighted_undirected_export() {
+    nxpp::UnweightedGraphStr graph;
+    graph.add_node("isolated");
+    graph.add_edge("A", "B");
+
+    const std::string dot = nxpp::viz::to_dot(graph);
+
+    expect(dot.find("graph G") != std::string::npos, "viz DOT should emit an undirected graph");
+    expect(dot.find("\"A\" -- \"B\"") != std::string::npos, "viz DOT should use undirected edge syntax");
+    expect(dot.find("weight=") == std::string::npos, "unweighted viz DOT should not emit weights");
+    expect(dot.find("\"isolated\" [label=\"isolated\"]") != std::string::npos,
+           "viz DOT should preserve isolated nodes");
+}
+
+void test_viz_dot_multigraph_edge_ids() {
+    nxpp::MultiDiGraph graph;
+    const auto first = graph.add_edge_with_id("A", "B", 1.0);
+    const auto second = graph.add_edge_with_id("A", "B", 2.0);
+
+    nxpp::viz::DotOptions options;
+    options.show_edge_ids = true;
+    const std::string dot = nxpp::viz::to_dot(graph, options);
+
+    expect(count_occurrences(dot, "\"A\" -> \"B\"") == 2,
+           "viz DOT should preserve parallel edges");
+    expect(dot.find("edge_id=" + std::to_string(first)) != std::string::npos,
+           "viz DOT should expose the first edge ID when requested");
+    expect(dot.find("edge_id=" + std::to_string(second)) != std::string::npos,
+           "viz DOT should expose the second edge ID when requested");
+}
+
+void test_viz_dot_quotes_string_weights() {
+    nxpp::Graph<std::string, std::string, true> graph;
+    graph.add_edge("A", "B", "fast train");
+
+    const std::string dot = nxpp::viz::to_dot(graph);
+
+    expect(dot.find("\"A\" -> \"B\" [weight=\"fast train\" label=\"fast train\"]") != std::string::npos,
+           "viz DOT should quote string weights that are not plain DOT identifiers");
+}
+
+void test_viz_write_dot_file() {
+    nxpp::DiGraphInt graph;
+    graph.add_edge(1, 2, 4);
+
+    const auto path = std::filesystem::temp_directory_path() / "nxpp_test_core_viz.dot";
+    nxpp::viz::write_dot(graph, path);
+
+    std::ifstream in(path);
+    std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    std::filesystem::remove(path);
+
+    expect(contents.find("\"1\" -> \"2\" [weight=4 label=4]") != std::string::npos,
+           "write_dot should write the same DOT representation to disk");
 }
 
 void test_proxy_assignment_normalizes_c_strings() {
@@ -141,13 +213,17 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 6;
+    constexpr int total = 10;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
     passed += run_test("multigraph edge_id path", test_multigraph_edge_id_path) ? 1 : 0;
     passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;
-    passed += run_test("to_dot serialization", test_to_dot_serialization) ? 1 : 0;
+    passed += run_test("viz DOT weighted directed export", test_viz_dot_weighted_directed_export) ? 1 : 0;
+    passed += run_test("viz DOT unweighted undirected export", test_viz_dot_unweighted_undirected_export) ? 1 : 0;
+    passed += run_test("viz DOT multigraph edge IDs", test_viz_dot_multigraph_edge_ids) ? 1 : 0;
+    passed += run_test("viz DOT quoted string weights", test_viz_dot_quotes_string_weights) ? 1 : 0;
+    passed += run_test("viz write_dot file", test_viz_write_dot_file) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
 
     return passed == total ? 0 : 1;
