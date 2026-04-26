@@ -86,74 +86,6 @@ concept node_id_orderable =
         { std::less<T>{}(lhs, rhs) } -> std::convertible_to<bool>;
     };
 
-inline std::string dot_quote_cstring(const std::string& s) {
-    std::string o = "\"";
-    for (char c : s) {
-        if (c == '\\' || c == '"') {
-            o += '\\';
-        }
-        o += c;
-    }
-    o += '"';
-    return o;
-}
-
-inline std::string format_graphviz_attr_value(const std::any& v) {
-    if (v.type() == typeid(std::string)) {
-        return dot_quote_cstring(std::any_cast<const std::string&>(v));
-    }
-    if (v.type() == typeid(const char*)) {
-        return dot_quote_cstring(std::string(std::any_cast<const char*>(v)));
-    }
-    if (v.type() == typeid(char*)) {
-        return dot_quote_cstring(std::string(std::any_cast<char*>(v)));
-    }
-    if (v.type() == typeid(bool)) {
-        return std::any_cast<bool>(v) ? "true" : "false";
-    }
-    if (v.type() == typeid(int)) {
-        return std::to_string(std::any_cast<int>(v));
-    }
-    if (v.type() == typeid(long)) {
-        return std::to_string(std::any_cast<long>(v));
-    }
-    if (v.type() == typeid(unsigned int)) {
-        return std::to_string(std::any_cast<unsigned int>(v));
-    }
-    if (v.type() == typeid(unsigned long)) {
-        return std::to_string(std::any_cast<unsigned long>(v));
-    }
-    if (v.type() == typeid(long long)) {
-        return std::to_string(std::any_cast<long long>(v));
-    }
-    if (v.type() == typeid(unsigned long long)) {
-        return std::to_string(std::any_cast<unsigned long long>(v));
-    }
-    if (v.type() == typeid(float)) {
-        std::ostringstream w;
-        w << std::any_cast<float>(v);
-        return w.str();
-    }
-    if (v.type() == typeid(double)) {
-        std::ostringstream w;
-        w << std::any_cast<double>(v);
-        return w.str();
-    }
-    if (v.type() == typeid(long double)) {
-        std::ostringstream w;
-        w << std::any_cast<long double>(v);
-        return w.str();
-    }
-    return dot_quote_cstring("unsupported_attribute_type");
-}
-
-template <typename NodeID>
-std::string node_id_to_label_string(const NodeID& id) {
-    std::ostringstream o;
-    o << id;
-    return o.str();
-}
-
 } // namespace detail
 
 template <typename GraphType>
@@ -1085,96 +1017,6 @@ public:
     /// Returns the wrapper-maintained dense vertex index used by algorithms.
     std::size_t get_vertex_index(VertexDesc v) const { return vertex_index_of(v); }
 
-    /**
-     * @brief Serializes the graph in Graphviz DOT format.
-     *
-     * The output uses internal vertex names `n0`, `n1`, ... in stable
-     * `nodes()` order. Each public `NodeID` is written as a `label` on the
-     * corresponding node. When a node or edge has entries in the
-     * wrapper attribute maps, they are emitted as additional DOT
-     * attributes. On weighted graphs, the built-in edge weight is written as
-     * `weight=...` unless the key `weight` in custom edge attributes
-     * overrides the presentation for that map entry. In multigraphs, each
-     * underlying edge appears as a separate statement.
-     */
-    void to_dot(std::ostream& os) const {
-        const char* kw = Directed ? "digraph" : "graph";
-        const char* op = Directed ? " -> " : " -- ";
-        os << kw << " G {\n";
-
-        std::map<NodeID, std::string> node_dot_id;
-        std::size_t next_index = 0;
-        for (const auto& node_id : bgl_to_id) {
-            node_dot_id[node_id] = "n" + std::to_string(next_index++);
-        }
-
-        for (const auto& node_id : bgl_to_id) {
-            const std::string& did = node_dot_id.at(node_id);
-            const auto nprop = node_properties.find(node_id);
-            std::string label_value;
-            if (nprop != node_properties.end()) {
-                const auto lit = nprop->second.find("label");
-                if (lit != nprop->second.end()) {
-                    label_value = detail::format_graphviz_attr_value(lit->second);
-                }
-            }
-            if (label_value.empty()) {
-                label_value = detail::dot_quote_cstring(detail::node_id_to_label_string(node_id));
-            }
-            os << "  " << did << " [label=" << label_value;
-            if (nprop != node_properties.end()) {
-                for (const auto& [key, val] : nprop->second) {
-                    if (key == "label") {
-                        continue;
-                    }
-                    os << " " << key << "=" << detail::format_graphviz_attr_value(val);
-                }
-            }
-            os << "];\n";
-        }
-
-        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
-            const NodeID& su = node_id_of(boost::source(*e, g));
-            const NodeID& ta = node_id_of(boost::target(*e, g));
-            const std::string& a = node_dot_id.at(su);
-            const std::string& b = node_dot_id.at(ta);
-            os << "  " << a << op << b;
-            std::string parts;
-            if constexpr (Weighted) {
-                std::ostringstream w;
-                w << weight_map[*e];
-                parts = "weight=" + w.str();
-            }
-            const std::size_t eid = get_edge_id(*e);
-            const auto eprop = edge_properties.find(eid);
-            if (eprop != edge_properties.end()) {
-                for (const auto& [key, val] : eprop->second) {
-                    if constexpr (Weighted) {
-                        if (key == "weight") {
-                            continue;
-                        }
-                    }
-                    if (!parts.empty()) {
-                        parts += " ";
-                    }
-                    parts += key + "=" + detail::format_graphviz_attr_value(val);
-                }
-            }
-            if (!parts.empty()) {
-                os << " [" << parts << "]";
-            }
-            os << ";\n";
-        }
-        os << "}\n";
-    }
-
-    /// @brief Returns the same data as @ref to_dot, assembled into a `std::string`.
-    std::string to_dot_string() const {
-        std::ostringstream oss;
-        to_dot(oss);
-        return oss.str();
-    }
-
     // Proxy Pattern per simulare G[u][v] = weight
     struct EdgeAttrProxy {
         Graph* graph;
@@ -1918,8 +1760,11 @@ auto num_vertices(const GraphWrapper& G) {
 using WeightedGraphInt = Graph<int, int>;                     ///< Weighted undirected graph with `int` node IDs and `int` weights.
 using WeightedDiGraphInt = Graph<int, int, true>;              ///< Weighted directed graph with `int` node IDs and `int` weights.
 using WeightedGraphStr = Graph<std::string>;                   ///< Weighted undirected graph with `std::string` node IDs and `double` weights.
+using WeightedDiGraphStr = Graph<std::string, double, true>;   ///< Weighted directed graph with `std::string` node IDs and `double` weights.
 using WeightedMultiGraphInt = Graph<int, int, false, true>;   ///< Weighted undirected multigraph with `int` node IDs and `int` weights.
 using WeightedMultiDiGraphInt = Graph<int, int, true, true>;  ///< Weighted directed multigraph with `int` node IDs and `int` weights.
+using WeightedMultiGraphStr = Graph<std::string, double, false, true>;  ///< Weighted undirected multigraph with `std::string` node IDs and `double` weights.
+using WeightedMultiDiGraphStr = Graph<std::string, double, true, true>; ///< Weighted directed multigraph with `std::string` node IDs and `double` weights.
 
 using WeightedDiGraph = Graph<std::string, double, true>;              ///< Weighted directed graph with `std::string` node IDs and `double` weights.
 using WeightedMultiGraph = Graph<std::string, double, false, true>;    ///< Weighted undirected multigraph with `std::string` node IDs and `double` weights.
@@ -1938,9 +1783,9 @@ using GraphStr = Graph<std::string>;                   ///< Compatibility alias 
 using MultiGraphInt = Graph<int, int, false, true>;   ///< Compatibility alias for `WeightedMultiGraphInt`.
 using MultiDiGraphInt = Graph<int, int, true, true>;  ///< Compatibility alias for `WeightedMultiDiGraphInt`.
 
-using DiGraph = Graph<std::string, double, true>;            ///< Compatibility alias for `WeightedDiGraph`.
-using MultiGraph = Graph<std::string, double, false, true>;  ///< Compatibility alias for `WeightedMultiGraph`.
-using MultiDiGraph = Graph<std::string, double, true, true>; ///< Compatibility alias for `WeightedMultiDiGraph`.
+using DiGraph = Graph<std::string, double, true>;            ///< Compatibility alias for `WeightedDiGraphStr`.
+using MultiGraph = Graph<std::string, double, false, true>;  ///< Compatibility alias for `WeightedMultiGraphStr`.
+using MultiDiGraph = Graph<std::string, double, true, true>; ///< Compatibility alias for `WeightedMultiDiGraphStr`.
 
 /**
  * @brief Explicit unweighted alias presets for the primary @ref Graph template.

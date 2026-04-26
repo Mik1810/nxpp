@@ -66,19 +66,22 @@ win on declaration-level detail.
 | `WeightedGraphInt` | `Graph<int, int>` | Explicit weighted preset |
 | `WeightedGraphStr` | `Graph<std::string>` | Explicit weighted preset |
 | `WeightedDiGraphInt` | `Graph<int, int, true>` | Explicit weighted preset |
+| `WeightedDiGraphStr` | `Graph<std::string, double, true>` | Explicit weighted preset |
 | `WeightedDiGraph` | `Graph<std::string, double, true>` | Explicit weighted preset |
 | `WeightedMultiGraphInt` | `Graph<int, int, false, true>` | Explicit weighted preset |
 | `WeightedMultiDiGraphInt` | `Graph<int, int, true, true>` | Explicit weighted preset |
+| `WeightedMultiGraphStr` | `Graph<std::string, double, false, true>` | Explicit weighted preset |
+| `WeightedMultiDiGraphStr` | `Graph<std::string, double, true, true>` | Explicit weighted preset |
 | `WeightedMultiGraph` | `Graph<std::string, double, false, true>` | Explicit weighted preset |
 | `WeightedMultiDiGraph` | `Graph<std::string, double, true, true>` | Explicit weighted preset |
 | `GraphInt` | `Graph<int, int>` | Thin synonym of `WeightedGraphInt` |
 | `GraphStr` | `Graph<std::string>` | Thin synonym of `WeightedGraphStr` |
 | `DiGraphInt` | `Graph<int, int, true>` | Thin synonym of `WeightedDiGraphInt` |
-| `DiGraph` | `Graph<std::string, double, true>` | Thin synonym of `WeightedDiGraph` |
+| `DiGraph` | `Graph<std::string, double, true>` | Thin synonym of `WeightedDiGraphStr` |
 | `MultiGraphInt` | `Graph<int, int, false, true>` | Thin synonym of `WeightedMultiGraphInt` |
 | `MultiDiGraphInt` | `Graph<int, int, true, true>` | Thin synonym of `WeightedMultiDiGraphInt` |
-| `MultiGraph` | `Graph<std::string, double, false, true>` | Thin synonym of `WeightedMultiGraph` |
-| `MultiDiGraph` | `Graph<std::string, double, true, true>` | Thin synonym of `WeightedMultiDiGraph` |
+| `MultiGraph` | `Graph<std::string, double, false, true>` | Thin synonym of `WeightedMultiGraphStr` |
+| `MultiDiGraph` | `Graph<std::string, double, true, true>` | Thin synonym of `WeightedMultiDiGraphStr` |
 | `UnweightedGraphInt` | `Graph<int, double, false, false, false>` | Explicit unweighted preset |
 | `UnweightedDiGraphInt` | `Graph<int, double, true, false, false>` | Explicit unweighted preset |
 | `UnweightedGraphStr` | `Graph<std::string, double, false, false, false>` | Explicit unweighted preset |
@@ -288,8 +291,6 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `remove_edge` | `(edge_id)` | `void` | Removes one specific wrapper-tracked edge ID. This is the precise multigraph removal API. | `G.remove_edge(eid);` |
 | `remove_node` | `(u)` | `void` | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. O(V + E) per public call. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
-| `to_dot` | `(std::ostream&)` | `void` | Emits a Graphviz DOT view of the graph. Uses internal `n0`, `n1`, ... with `label` for public `NodeID`s; includes wrapper node/edge attributes and built-in `weight` on weighted graphs. | `G.to_dot(std::cout);` |
-| `to_dot_string` | `()` | `std::string` | Same as `to_dot` but returns a `std::string` for convenient capture. | `auto s = G.to_dot_string();` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
 | `operator[]` | `(u)` | `NodeProxy` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
 | `get_impl` | `()` | `const GraphType&` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |
@@ -302,6 +303,42 @@ The `get_impl()` / translation-map getters above are advanced `const` escape
 hatches for integrations and wrapper-level utilities. They intentionally expose
 read-only internal state. The mutable wrapper-owned attribute stores are no
 longer part of the public surface.
+
+## Graphviz DOT export
+
+The visualization header is included by `nxpp.hpp` and can also be included
+directly:
+
+```cpp
+#include <nxpp/viz/dot.hpp>
+```
+
+`nxpp::viz::to_dot(G)` returns a DOT string and `nxpp::viz::write_dot(G, path)`
+writes the same representation to disk. The exporter is header-only, does not
+require Graphviz at build time, and is the supported DOT export API.
+
+```cpp
+nxpp::DiGraph g;
+g.add_edge("A", "B", 3.0);
+
+const auto dot = nxpp::viz::to_dot(g);
+nxpp::viz::write_dot(g, "graph.dot");
+```
+
+Weighted edges are emitted as both `weight=...` and `label=...` by default:
+
+```dot
+"A" -> "B" [weight=3 label=3];
+```
+
+The `weight` attribute preserves Graphviz layout semantics, while `label` is
+what Graphviz renders into SVG/PNG output. `nxpp::viz::DotOptions` can hide node
+labels, edge labels, weights, or expose wrapper edge IDs for multigraph
+inspection. Render a generated file with Graphviz, for example:
+
+```bash
+dot -Tsvg graph.dot -o graph.svg
+```
 
 ## Multigraph policy
 
