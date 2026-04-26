@@ -178,8 +178,11 @@ void test_viz_write_dot_file() {
     const auto path = std::filesystem::temp_directory_path() / "nxpp_test_core_viz.dot";
     nxpp::viz::write_dot(graph, path);
 
-    std::ifstream in(path);
-    std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    std::string contents;
+    {
+        std::ifstream in(path);
+        contents.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+    }
     std::filesystem::remove(path);
 
     expect(contents.find("\"1\" -> \"2\" [weight=4 label=4]") != std::string::npos,
