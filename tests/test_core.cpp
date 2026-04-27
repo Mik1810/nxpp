@@ -202,6 +202,88 @@ void test_proxy_assignment_normalizes_c_strings() {
            "node proxy assignment should normalize C-strings");
 }
 
+void test_subgraph_copies_induced_weighted_graph() {
+    nxpp::DiGraph graph;
+    graph.add_edge("Milan", "Rome", 5.0, {{"service", "fast"}});
+    graph.add_edge("Rome", "Florence", 2.0, {{"service", "regional"}});
+    graph.add_edge("Florence", "Naples", 4.0);
+    graph.node("Milan")["region"] = "Lombardy";
+    graph.node("Rome")["region"] = "Lazio";
+
+    const std::vector<std::string> selected = {"Milan", "Rome", "Florence"};
+    auto subgraph = graph.subgraph(selected);
+
+    expect(subgraph.num_vertices() == 3, "subgraph should copy selected nodes");
+    expect(subgraph.edges().size() == 2, "subgraph should copy only induced edges");
+    expect(subgraph.has_node("Milan"), "subgraph should contain Milan");
+    expect(!subgraph.has_node("Naples"), "subgraph should omit unselected nodes");
+    expect(subgraph.has_edge("Milan", "Rome"), "subgraph should keep internal edges");
+    expect(!subgraph.has_edge("Florence", "Naples"), "subgraph should omit edges leaving the selected set");
+    expect(std::abs(subgraph.get_edge_weight("Milan", "Rome") - 5.0) < 1e-9,
+           "subgraph should preserve built-in edge weights");
+    expect(subgraph.get_node_attr<std::string>("Rome", "region") == "Lazio",
+           "subgraph should copy node attributes");
+    expect(subgraph.get_edge_attr<std::string>("Milan", "Rome", "service") == "fast",
+           "subgraph should copy edge attributes");
+
+    subgraph.add_node("Bari");
+    subgraph.set_edge_attr(subgraph.edge_ids("Milan", "Rome").front(), "service", "local");
+
+    expect(!graph.has_node("Bari"), "subgraph should be independent from the source graph");
+    expect(graph.get_edge_attr<std::string>("Milan", "Rome", "service") == "fast",
+           "mutating subgraph edge attributes should not mutate the source graph");
+
+    nxpp::DiGraph moved_subgraph(std::move(subgraph));
+    expect(moved_subgraph.has_node("Milan") && moved_subgraph.has_edge("Milan", "Rome"),
+           "moved subgraph should keep node and edge property maps bound to itself");
+}
+
+void test_subgraph_initializer_list_and_missing_node() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 2.0);
+
+    auto subgraph = graph.subgraph({"A", "B"});
+    expect(subgraph.num_vertices() == 2, "initializer-list subgraph should copy selected nodes");
+    expect(subgraph.has_edge("A", "B"), "initializer-list subgraph should keep internal edges");
+    expect(!subgraph.has_node("C"), "initializer-list subgraph should omit unselected nodes");
+
+    bool threw = false;
+    try {
+        (void)graph.subgraph({"A", "missing"});
+    } catch (const std::invalid_argument&) {
+        threw = true;
+    }
+    expect(threw, "subgraph should reject missing input nodes");
+}
+
+void test_subgraph_preserves_multigraph_parallel_edges() {
+    nxpp::MultiDiGraph graph;
+    const auto first = graph.add_edge_with_id("A", "B", 1.0);
+    const auto second = graph.add_edge_with_id("A", "B", 2.0);
+    graph.add_edge("B", "C", 3.0);
+    graph.set_edge_attr(first, "label", "first");
+    graph.set_edge_attr(second, "label", "second");
+
+    auto subgraph = graph.subgraph(std::vector<std::string>{"A", "B"});
+    const auto copied_ids = subgraph.edge_ids("A", "B");
+
+    expect(copied_ids.size() == 2, "subgraph should preserve parallel edges");
+    expect(subgraph.edges().size() == 2, "subgraph should omit edges leaving the selected set");
+    expect(subgraph.get_edge_attr<std::string>(copied_ids[0], "label") == "first",
+           "subgraph should copy first parallel edge attributes");
+    expect(subgraph.get_edge_attr<std::string>(copied_ids[1], "label") == "second",
+           "subgraph should copy second parallel edge attributes");
+    expect(std::abs(subgraph.get_edge_weight(copied_ids[0]) - 1.0) < 1e-9,
+           "subgraph should preserve first parallel edge weight");
+    expect(std::abs(subgraph.get_edge_weight(copied_ids[1]) - 2.0) < 1e-9,
+           "subgraph should preserve second parallel edge weight");
+
+    nxpp::MultiDiGraph moved_subgraph(std::move(subgraph));
+    expect(moved_subgraph.edge_ids("A", "B").size() == 2,
+           "moved multigraph subgraph should keep edge ID maps bound to itself");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -216,7 +298,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 10;
+    constexpr int total = 13;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
@@ -228,6 +310,9 @@ int main() {
     passed += run_test("viz DOT quoted string weights", test_viz_dot_quotes_string_weights) ? 1 : 0;
     passed += run_test("viz write_dot file", test_viz_write_dot_file) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
+    passed += run_test("subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph) ? 1 : 0;
+    passed += run_test("subgraph initializer list and missing node", test_subgraph_initializer_list_and_missing_node) ? 1 : 0;
+    passed += run_test("subgraph preserves multigraph parallel edges", test_subgraph_preserves_multigraph_parallel_edges) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

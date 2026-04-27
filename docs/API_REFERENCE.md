@@ -291,6 +291,7 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `remove_edge` | `(edge_id)` | `void` | Removes one specific wrapper-tracked edge ID. This is the precise multigraph removal API. | `G.remove_edge(eid);` |
 | `remove_node` | `(u)` | `void` | Removes the node, clears incident metadata, erases the vertex, then repairs shifted mappings. O(V + E) per public call. | `G.remove_node("Rome");` |
 | `clear` | `()` | `void` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
+| `subgraph` | `(nodes)` | same `Graph` type | Returns an independent node-induced subgraph. Copies selected nodes, internal edges, built-in weights, and wrapper-managed node/edge attributes. Throws `std::invalid_argument` if a requested node is missing. | `auto H = G.subgraph({"A","B"});` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
 | `operator[]` | `(u)` | `NodeProxy` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
 | `get_impl` | `()` | `const GraphType&` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |
@@ -303,6 +304,28 @@ The `get_impl()` / translation-map getters above are advanced `const` escape
 hatches for integrations and wrapper-level utilities. They intentionally expose
 read-only internal state. The mutable wrapper-owned attribute stores are no
 longer part of the public surface.
+
+## Subgraphs
+
+`G.subgraph(nodes)` materializes a node-induced subgraph with the same graph
+type as `G`. The result is a new independent graph, not a view: later mutations
+to either graph do not affect the other.
+
+```cpp
+nxpp::DiGraph G;
+G.add_edge("Milan", "Rome", 5.0, {{"service", "fast"}});
+G.add_edge("Rome", "Florence", 2.0);
+G.add_edge("Florence", "Naples", 4.0);
+
+auto H = G.subgraph({"Milan", "Rome", "Florence"});
+```
+
+The returned graph contains only the requested nodes and the edges whose
+endpoints are both in that set. Built-in edge weights, node attributes, and edge
+attributes are copied. Multigraph subgraphs preserve parallel edge instances,
+but assign fresh edge IDs in the returned graph. Duplicate requested node IDs
+are ignored. Requesting a node that is not present in the source graph throws
+`std::invalid_argument`.
 
 ## Graphviz DOT export
 

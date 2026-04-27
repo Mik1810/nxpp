@@ -6,6 +6,7 @@ function exerciseGraphNumber(graph) {
     graph.hasEdge(1, 2);
     const nodes = graph.nodes();
     const neighbors = graph.neighbors(1);
+    const subgraph = graph.subgraph([1, 2]);
     const weight = graph.getEdgeWeight(1, 2);
     graph.setEdgeWeight(1, 2, weight);
     const nodeAttr = graph.getNodeAttr(1, "label");
@@ -50,6 +51,7 @@ function exerciseGraphNumber(graph) {
     graph.dispose();
     void nodes;
     void neighbors;
+    void subgraph;
     void nodeAttr;
     void maybeNodeAttr;
     void edgeAttr;
@@ -90,6 +92,7 @@ function exerciseGraphString(graph) {
     graph.hasEdge("a", "b");
     const nodes = graph.nodes();
     const neighbors = graph.neighbors("a");
+    const subgraph = graph.subgraph(["a", "b"]);
     const weight = graph.getEdgeWeight("a", "b");
     graph.setEdgeWeight("a", "b", weight);
     const nodeAttr = graph.getNodeAttr("a", "label");
@@ -134,6 +137,7 @@ function exerciseGraphString(graph) {
     graph.dispose();
     void nodes;
     void neighbors;
+    void subgraph;
     void nodeAttr;
     void maybeNodeAttr;
     void edgeAttr;
@@ -171,6 +175,7 @@ function exerciseMultiGraphNumber(graph) {
     graph.addNode(1);
     graph.addEdge(1, 2, 3);
     graph.hasEdgeId(0);
+    const subgraph = graph.subgraph([1, 2]);
     const ids = graph.edgeIds();
     const idsBetween = graph.edgeIdsBetween(1, 2);
     const endpoints = graph.getEdgeEndpoints(0);
@@ -186,6 +191,7 @@ function exerciseMultiGraphNumber(graph) {
     graph.removeEdgeById(0);
     graph.dispose();
     void ids;
+    void subgraph;
     void idsBetween;
     void source;
     void target;
@@ -197,6 +203,7 @@ function exerciseMultiGraphString(graph) {
     graph.addNode("a");
     graph.addEdge("a", "b", 3);
     graph.hasEdgeId(0);
+    const subgraph = graph.subgraph(["a", "b"]);
     const ids = graph.edgeIds();
     const idsBetween = graph.edgeIdsBetween("a", "b");
     const endpoints = graph.getEdgeEndpoints(0);
@@ -212,6 +219,7 @@ function exerciseMultiGraphString(graph) {
     graph.removeEdgeById(0);
     graph.dispose();
     void ids;
+    void subgraph;
     void idsBetween;
     void source;
     void target;

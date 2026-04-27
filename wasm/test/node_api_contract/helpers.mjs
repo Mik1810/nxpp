@@ -12,6 +12,7 @@ export const expectedSimpleMethods = [
     "removeEdge",
     "getEdgeWeight",
     "setEdgeWeight",
+    "subgraph",
     "hasNodeAttr",
     "getNodeAttr",
     "tryGetNodeAttr",

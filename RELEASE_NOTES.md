@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.0]
+
+### Highlights
+
+- Closed `#90` with a new materialized `Graph::subgraph(nodes)` API for
+  node-induced subgraphs.
+- The returned graph has the same template parameters as the source graph and
+  is independent from it.
+- Subgraph extraction copies selected node attributes, induced edge attributes,
+  built-in edge weights, and multigraph parallel edge instances.
+- Missing requested nodes now fail explicitly with `std::invalid_argument`.
+- Added focused tests for weighted directed subgraphs, initializer-list input,
+  missing-node rejection, copy independence, and multigraph parallel edges.
+
 ## [1.2.0]
 
 ### Highlights

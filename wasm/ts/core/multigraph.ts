@@ -32,15 +32,15 @@ import {
 
 const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
 
-class BaseMultiGraph<T extends NodeId> {
+abstract class BaseMultiGraph<T extends NodeId> {
   private rawObject: RawMultiGraph<T> | null;
   private readonly assertNode: (value: unknown, label: string) => asserts value is T;
 
   constructor(
-    factory: () => RawMultiGraph<T>,
+    factory: (() => RawMultiGraph<T>) | RawMultiGraph<T>,
     assertNode: (value: unknown, label: string) => asserts value is T,
   ) {
-    this.rawObject = wrapRawGraph(factory());
+    this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
     this.assertNode = assertNode;
     if (disposeSymbol !== undefined) {
       Object.defineProperty(this, disposeSymbol, {
@@ -56,6 +56,8 @@ class BaseMultiGraph<T extends NodeId> {
     }
     return this.rawObject;
   }
+
+  protected abstract createFromRaw(raw: RawMultiGraph<T>): this;
 
   private operationFailed(message: string): never {
     throw new Error(`WASM graph operation failed: ${message}`);
@@ -157,6 +159,17 @@ class BaseMultiGraph<T extends NodeId> {
     assertFiniteNumber(weight, "weight");
     this.requireEdgeExists(source, target);
     this.raw.setEdgeWeight(source, target, weight);
+  }
+
+  subgraph(nodes: T[]): this {
+    if (!Array.isArray(nodes)) {
+      this.operationFailed("subgraph nodes must be an array.");
+    }
+    for (const [index, node] of nodes.entries()) {
+      this.assertNode(node, `nodes[${index}]`);
+      this.requireNodeExists(node);
+    }
+    return this.createFromRaw(this.raw.subgraph(nodes));
   }
 
   hasNodeAttr(id: T, key: string): boolean {
@@ -492,25 +505,41 @@ class BaseMultiGraph<T extends NodeId> {
 }
 
 export class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number> {
-  constructor() {
-    super(() => new runtime.MultiGraphInt(), assertIntNodeId);
+  constructor(raw?: RawMultiGraph<number>) {
+    super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId);
+  }
+
+  protected createFromRaw(raw: RawMultiGraph<number>): this {
+    return new MultiGraphInt(raw) as this;
   }
 }
 
 export class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string> {
-  constructor() {
-    super(() => new runtime.MultiGraphStr(), assertStringNodeId);
+  constructor(raw?: RawMultiGraph<string>) {
+    super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId);
+  }
+
+  protected createFromRaw(raw: RawMultiGraph<string>): this {
+    return new MultiGraphStr(raw) as this;
   }
 }
 
 export class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number> {
-  constructor() {
-    super(() => new runtime.MultiDiGraphInt(), assertIntNodeId);
+  constructor(raw?: RawMultiGraph<number>) {
+    super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId);
+  }
+
+  protected createFromRaw(raw: RawMultiGraph<number>): this {
+    return new MultiDiGraphInt(raw) as this;
   }
 }
 
 export class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string> {
-  constructor() {
-    super(() => new runtime.MultiDiGraphStr(), assertStringNodeId);
+  constructor(raw?: RawMultiGraph<string>) {
+    super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId);
+  }
+
+  protected createFromRaw(raw: RawMultiGraph<string>): this {
+    return new MultiDiGraphStr(raw) as this;
   }
 }

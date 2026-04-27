@@ -17,6 +17,14 @@ assert.equal(multiGraphInt.hasNode(7), true, "MultiGraphInt hasNode() must repor
 assert.equal(multiGraphInt.hasEdge(2, 1), true, "MultiGraphInt hasEdge() must support reverse endpoint lookup");
 assert.equal(multiGraphIntIds.length, 2, "MultiGraphInt edgeIdsBetween() must report both parallel edge IDs");
 assert.deepEqual(toSortedNumbers(multiGraphInt.edgeIds()), multiGraphIntIds, "MultiGraphInt edgeIds() must list inserted edge IDs");
+const multiGraphIntSubgraph = multiGraphInt.subgraph([1, 2, 7]);
+const multiGraphIntSubgraphIds = toSortedNumbers(new Set(Array.from(multiGraphIntSubgraph.edgeIdsBetween(1, 2))));
+assert.equal(multiGraphIntSubgraphIds.length, 2, "MultiGraphInt subgraph() must preserve parallel edge IDs");
+assert.deepEqual(
+    toSortedNumbers(multiGraphIntSubgraph.edgeIds()),
+    multiGraphIntSubgraphIds,
+    "MultiGraphInt subgraph() must only contain induced edge IDs",
+);
 assert.equal(multiGraphInt.hasEdgeId(multiGraphIntIds[0]), true, "MultiGraphInt hasEdgeId() must report existing IDs");
 assert.equal(multiGraphInt.getEdgeWeight(1, 2), 1, "MultiGraphInt getEdgeWeight() must return the first matching edge weight");
 multiGraphInt.setEdgeWeight(1, 2, 5);
@@ -63,9 +71,20 @@ const multiStr = new nxpp.MultiDiGraphStr();
 assertMethods(multiStr, expectedMultiMethods, "MultiDiGraphStr");
 multiStr.addEdge("S", "T", 2.0);
 multiStr.addEdge("S", "T", 4.0);
+multiStr.addEdge("T", "U", 8.0);
 const multiStrIds = toSortedNumbers(multiStr.edgeIdsBetween("S", "T"));
 assert.equal(multiStrIds.length, 2, "MultiDiGraphStr edgeIdsBetween() must return all parallel edge IDs");
+multiStr.setEdgeAttrById(multiStrIds[0], "label", "first");
 assert.equal(multiStr.hasEdgeId(multiStrIds[0]), true, "MultiDiGraphStr hasEdgeId() must report existing IDs");
+const multiStrSubgraph = multiStr.subgraph(["S", "T"]);
+const multiStrSubgraphIds = toSortedNumbers(multiStrSubgraph.edgeIdsBetween("S", "T"));
+assert.equal(multiStrSubgraphIds.length, 2, "MultiDiGraphStr subgraph() must preserve parallel edges");
+assert.equal(multiStrSubgraph.hasEdge("T", "U"), false, "MultiDiGraphStr subgraph() must omit outgoing edges to omitted nodes");
+assert.equal(
+    multiStrSubgraph.getEdgeAttrById(multiStrSubgraphIds[0], "label"),
+    "first",
+    "MultiDiGraphStr subgraph() must copy edge-id attributes",
+);
 const strEndpoints = multiStr.getEdgeEndpoints(multiStrIds[0]);
 assert.equal(strEndpoints.source(), "S", "MultiDiGraphStr edge endpoint source must match inserted edge");
 assert.equal(strEndpoints.target(), "T", "MultiDiGraphStr edge endpoint target must match inserted edge");

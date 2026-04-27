@@ -211,6 +211,7 @@ Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
 - `setEdgeWeight(source, target, weight)`
+- `subgraph(nodes)`
 - `hasNodeAttr(id, key)`
 - `getNodeAttr(id, key)`
 - `tryGetNodeAttr(id, key)`
@@ -350,6 +351,7 @@ experimental `Graph`, `DiGraph`, `MultiGraph`, and `MultiDiGraph` surface.
   - `removeEdge(source, target)`
   - `getEdgeWeight(source, target)`
   - `setEdgeWeight(source, target, weight)`
+  - `subgraph(nodes)`
   - `clear()`
 
 - Multigraph-only additions (`MultiGraph*`, `MultiDiGraph*`):
@@ -417,7 +419,7 @@ The following are non-breaking for v0:
 | Toolchain and build | Active | Emscripten + Node module build script | Keep CI stable on Node LTS matrix |
 | Core graph lifecycle | Active | explicit typed runtime constructors for `Graph*`, `DiGraph*`, `MultiGraph*`, `MultiDiGraph*` plus `clear()` | Expand lifecycle-oriented helpers only when they map cleanly to `graph.hpp` |
 | Graph mutation APIs | Partial | endpoint-based mutation on simple/multi graphs plus precise `removeEdgeById` on multigraphs | Add next `graph.hpp` mutation slices while preserving simple-vs-multigraph API policy |
-| Query APIs | Partial | endpoint-based queries on simple graphs plus edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
+| Query APIs | Partial | endpoint-based queries, materialized subgraphs, and edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
 | Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
 | Shortest paths | Covered | single-pair, single-source Dijkstra/Bellman-Ford/DAG, and Floyd-Warshall all-pairs wrappers | Keep contract tests aligned with future facade changes |
 | Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Continue with components / centrality / flow blocks |

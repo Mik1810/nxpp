@@ -8,7 +8,7 @@ class BaseMultiGraph {
     rawObject;
     assertNode;
     constructor(factory, assertNode) {
-        this.rawObject = wrapRawGraph(factory());
+        this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
         this.assertNode = assertNode;
         if (disposeSymbol !== undefined) {
             Object.defineProperty(this, disposeSymbol, {
@@ -109,6 +109,16 @@ class BaseMultiGraph {
         assertFiniteNumber(weight, "weight");
         this.requireEdgeExists(source, target);
         this.raw.setEdgeWeight(source, target, weight);
+    }
+    subgraph(nodes) {
+        if (!Array.isArray(nodes)) {
+            this.operationFailed("subgraph nodes must be an array.");
+        }
+        for (const [index, node] of nodes.entries()) {
+            this.assertNode(node, `nodes[${index}]`);
+            this.requireNodeExists(node);
+        }
+        return this.createFromRaw(this.raw.subgraph(nodes));
     }
     hasNodeAttr(id, key) {
         this.assertNode(id, "id");
@@ -393,22 +403,34 @@ class BaseMultiGraph {
     }
 }
 export class MultiGraphInt extends BaseMultiGraph {
-    constructor() {
-        super(() => new runtime.MultiGraphInt(), assertIntNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId);
+    }
+    createFromRaw(raw) {
+        return new MultiGraphInt(raw);
     }
 }
 export class MultiGraphStr extends BaseMultiGraph {
-    constructor() {
-        super(() => new runtime.MultiGraphStr(), assertStringNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId);
+    }
+    createFromRaw(raw) {
+        return new MultiGraphStr(raw);
     }
 }
 export class MultiDiGraphInt extends BaseMultiGraph {
-    constructor() {
-        super(() => new runtime.MultiDiGraphInt(), assertIntNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId);
+    }
+    createFromRaw(raw) {
+        return new MultiDiGraphInt(raw);
     }
 }
 export class MultiDiGraphStr extends BaseMultiGraph {
-    constructor() {
-        super(() => new runtime.MultiDiGraphStr(), assertStringNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId);
+    }
+    createFromRaw(raw) {
+        return new MultiDiGraphStr(raw);
     }
 }

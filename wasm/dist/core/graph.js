@@ -8,7 +8,7 @@ class BaseSimpleGraph {
     rawObject;
     assertNode;
     constructor(factory, assertNode) {
-        this.rawObject = wrapRawGraph(factory());
+        this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
         this.assertNode = assertNode;
         if (disposeSymbol !== undefined) {
             Object.defineProperty(this, disposeSymbol, {
@@ -104,6 +104,16 @@ class BaseSimpleGraph {
         assertFiniteNumber(weight, "weight");
         this.requireEdgeExists(source, target);
         this.raw.setEdgeWeight(source, target, weight);
+    }
+    subgraph(nodes) {
+        if (!Array.isArray(nodes)) {
+            this.operationFailed("subgraph nodes must be an array.");
+        }
+        for (const [index, node] of nodes.entries()) {
+            this.assertNode(node, `nodes[${index}]`);
+            this.requireNodeExists(node);
+        }
+        return this.createFromRaw(this.raw.subgraph(nodes));
     }
     hasNodeAttr(id, key) {
         this.assertNode(id, "id");
@@ -328,22 +338,34 @@ class BaseSimpleGraph {
     }
 }
 export class GraphInt extends BaseSimpleGraph {
-    constructor() {
-        super(() => new runtime.GraphInt(), assertIntNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
+    }
+    createFromRaw(raw) {
+        return new GraphInt(raw);
     }
 }
 export class GraphStr extends BaseSimpleGraph {
-    constructor() {
-        super(() => new runtime.GraphStr(), assertStringNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
+    }
+    createFromRaw(raw) {
+        return new GraphStr(raw);
     }
 }
 export class DiGraphInt extends BaseSimpleGraph {
-    constructor() {
-        super(() => new runtime.DiGraphInt(), assertIntNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
+    }
+    createFromRaw(raw) {
+        return new DiGraphInt(raw);
     }
 }
 export class DiGraphStr extends BaseSimpleGraph {
-    constructor() {
-        super(() => new runtime.DiGraphStr(), assertStringNodeId);
+    constructor(raw) {
+        super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
+    }
+    createFromRaw(raw) {
+        return new DiGraphStr(raw);
     }
 }

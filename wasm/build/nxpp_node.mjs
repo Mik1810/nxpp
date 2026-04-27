@@ -2531,6 +2531,12 @@ ${functionBody}
     };
 
 
+  var __emval_get_property = (handle, key) => {
+      handle = Emval.toValue(handle);
+      key = Emval.toValue(key);
+      return Emval.toHandle(handle[key]);
+    };
+
   var __emval_incref = (handle) => {
       if (handle > 9) {
         emval_handles[handle + 1] += 1;
@@ -2769,6 +2775,8 @@ var wasmImports = {
   _emval_create_invoker: __emval_create_invoker,
   /** @export */
   _emval_decref: __emval_decref,
+  /** @export */
+  _emval_get_property: __emval_get_property,
   /** @export */
   _emval_incref: __emval_incref,
   /** @export */

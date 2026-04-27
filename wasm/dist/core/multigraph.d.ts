@@ -1,10 +1,11 @@
 import type { AllPairsShortestPathSourceEntry, AttributeValue, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawMultiGraph } from "../internal/wasm_types.js";
-declare class BaseMultiGraph<T extends NodeId> {
+declare abstract class BaseMultiGraph<T extends NodeId> {
     private rawObject;
     private readonly assertNode;
-    constructor(factory: () => RawMultiGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
+    constructor(factory: (() => RawMultiGraph<T>) | RawMultiGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
     protected get raw(): RawMultiGraph<T>;
+    protected abstract createFromRaw(raw: RawMultiGraph<T>): this;
     private operationFailed;
     private requireNodeExists;
     private requireEdgeExists;
@@ -21,6 +22,7 @@ declare class BaseMultiGraph<T extends NodeId> {
     removeEdge(source: T, target: T): void;
     getEdgeWeight(source: T, target: T): number;
     setEdgeWeight(source: T, target: T, weight: number): void;
+    subgraph(nodes: T[]): this;
     hasNodeAttr(id: T, key: string): boolean;
     getNodeAttr(id: T, key: string): AttributeValue;
     tryGetNodeAttr(id: T, key: string): AttributeValue | null;
@@ -73,15 +75,19 @@ declare class BaseMultiGraph<T extends NodeId> {
     dispose(): void;
 }
 export declare class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number> {
-    constructor();
+    constructor(raw?: RawMultiGraph<number>);
+    protected createFromRaw(raw: RawMultiGraph<number>): this;
 }
 export declare class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string> {
-    constructor();
+    constructor(raw?: RawMultiGraph<string>);
+    protected createFromRaw(raw: RawMultiGraph<string>): this;
 }
 export declare class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number> {
-    constructor();
+    constructor(raw?: RawMultiGraph<number>);
+    protected createFromRaw(raw: RawMultiGraph<number>): this;
 }
 export declare class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string> {
-    constructor();
+    constructor(raw?: RawMultiGraph<string>);
+    protected createFromRaw(raw: RawMultiGraph<string>): this;
 }
 export {};

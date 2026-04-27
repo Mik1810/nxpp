@@ -33,6 +33,7 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   graph.hasEdge(1, 2);
   const nodes: number[] = graph.nodes();
   const neighbors: number[] = graph.neighbors(1);
+  const subgraph: Graph<number> = graph.subgraph([1, 2]);
   const weight: number = graph.getEdgeWeight(1, 2);
   graph.setEdgeWeight(1, 2, weight);
   const nodeAttr: AttributeValue = graph.getNodeAttr(1, "label");
@@ -78,6 +79,7 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   graph.dispose();
   void nodes;
   void neighbors;
+  void subgraph;
   void nodeAttr;
   void maybeNodeAttr;
   void edgeAttr;
@@ -119,6 +121,7 @@ function exerciseGraphString(graph: Graph<string>): void {
   graph.hasEdge("a", "b");
   const nodes: string[] = graph.nodes();
   const neighbors: string[] = graph.neighbors("a");
+  const subgraph: Graph<string> = graph.subgraph(["a", "b"]);
   const weight: number = graph.getEdgeWeight("a", "b");
   graph.setEdgeWeight("a", "b", weight);
   const nodeAttr: AttributeValue = graph.getNodeAttr("a", "label");
@@ -164,6 +167,7 @@ function exerciseGraphString(graph: Graph<string>): void {
   graph.dispose();
   void nodes;
   void neighbors;
+  void subgraph;
   void nodeAttr;
   void maybeNodeAttr;
   void edgeAttr;
@@ -202,6 +206,7 @@ function exerciseMultiGraphNumber(graph: MultiGraph<number>): void {
   graph.addNode(1);
   graph.addEdge(1, 2, 3);
   graph.hasEdgeId(0);
+  const subgraph: MultiGraph<number> = graph.subgraph([1, 2]);
   const ids: number[] = graph.edgeIds();
   const idsBetween: number[] = graph.edgeIdsBetween(1, 2);
   const endpoints: EdgeEndpoints<number> = graph.getEdgeEndpoints(0);
@@ -217,6 +222,7 @@ function exerciseMultiGraphNumber(graph: MultiGraph<number>): void {
   graph.removeEdgeById(0);
   graph.dispose();
   void ids;
+  void subgraph;
   void idsBetween;
   void source;
   void target;
@@ -229,6 +235,7 @@ function exerciseMultiGraphString(graph: MultiGraph<string>): void {
   graph.addNode("a");
   graph.addEdge("a", "b", 3);
   graph.hasEdgeId(0);
+  const subgraph: MultiGraph<string> = graph.subgraph(["a", "b"]);
   const ids: number[] = graph.edgeIds();
   const idsBetween: number[] = graph.edgeIdsBetween("a", "b");
   const endpoints: EdgeEndpoints<string> = graph.getEdgeEndpoints(0);
@@ -244,6 +251,7 @@ function exerciseMultiGraphString(graph: MultiGraph<string>): void {
   graph.removeEdgeById(0);
   graph.dispose();
   void ids;
+  void subgraph;
   void idsBetween;
   void source;
   void target;

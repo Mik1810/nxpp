@@ -57,6 +57,7 @@ export interface Graph<T extends NodeId> {
     removeEdge(source: T, target: T): void;
     getEdgeWeight(source: T, target: T): number;
     setEdgeWeight(source: T, target: T, weight: number): void;
+    subgraph(nodes: T[]): Graph<T>;
     hasNodeAttr(id: T, key: string): boolean;
     getNodeAttr(id: T, key: string): AttributeValue;
     tryGetNodeAttr(id: T, key: string): AttributeValue | null;
@@ -97,8 +98,10 @@ export interface Graph<T extends NodeId> {
     dispose(): void;
 }
 export interface DiGraph<T extends NodeId> extends Graph<T> {
+    subgraph(nodes: T[]): DiGraph<T>;
 }
 export interface MultiGraph<T extends NodeId> extends Graph<T> {
+    subgraph(nodes: T[]): MultiGraph<T>;
     hasEdgeId(edgeId: number): boolean;
     edgeIds(): number[];
     edgeIdsBetween(source: T, target: T): number[];
@@ -113,4 +116,5 @@ export interface MultiGraph<T extends NodeId> extends Graph<T> {
     removeEdgeById(edgeId: number): void;
 }
 export interface MultiDiGraph<T extends NodeId> extends MultiGraph<T> {
+    subgraph(nodes: T[]): MultiDiGraph<T>;
 }

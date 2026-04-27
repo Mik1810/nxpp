@@ -2,6 +2,13 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.0] - 2026-04-27
+
+- Closed `#90` by adding `Graph::subgraph(nodes)` for materialized node-induced subgraphs.
+- Subgraph extraction returns an independent graph with the same template parameters as the source and copies selected node attributes, induced edge attributes, built-in weights, and multigraph parallel edge instances.
+- Added regression coverage for weighted directed subgraphs, initializer-list input, missing-node rejection, copy independence, and multigraph parallel-edge preservation.
+- Updated the root README, API reference, and repository package metadata to the `1.3.0` release candidate.
+
 ## [1.2.0] - 2026-04-26
 
 - Closed `#91` by adding the header-only `nxpp::viz` DOT export layer in `include/nxpp/viz/dot.hpp`, with `DotOptions`, `to_dot(...)`, and `write_dot(...)`.

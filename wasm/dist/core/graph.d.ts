@@ -1,10 +1,11 @@
 import type { AllPairsShortestPathSourceEntry, AttributeValue, DiGraph, Graph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawSimpleGraph } from "../internal/wasm_types.js";
-declare class BaseSimpleGraph<T extends NodeId> {
+declare abstract class BaseSimpleGraph<T extends NodeId> {
     private rawObject;
     private readonly assertNode;
-    constructor(factory: () => RawSimpleGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
+    constructor(factory: (() => RawSimpleGraph<T>) | RawSimpleGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
     protected get raw(): RawSimpleGraph<T>;
+    protected abstract createFromRaw(raw: RawSimpleGraph<T>): this;
     private operationFailed;
     private requireNodeExists;
     private requireEdgeExists;
@@ -20,6 +21,7 @@ declare class BaseSimpleGraph<T extends NodeId> {
     removeEdge(source: T, target: T): void;
     getEdgeWeight(source: T, target: T): number;
     setEdgeWeight(source: T, target: T, weight: number): void;
+    subgraph(nodes: T[]): this;
     hasNodeAttr(id: T, key: string): boolean;
     getNodeAttr(id: T, key: string): AttributeValue;
     tryGetNodeAttr(id: T, key: string): AttributeValue | null;
@@ -60,15 +62,19 @@ declare class BaseSimpleGraph<T extends NodeId> {
     dispose(): void;
 }
 export declare class GraphInt extends BaseSimpleGraph<number> implements Graph<number> {
-    constructor();
+    constructor(raw?: RawSimpleGraph<number>);
+    protected createFromRaw(raw: RawSimpleGraph<number>): this;
 }
 export declare class GraphStr extends BaseSimpleGraph<string> implements Graph<string> {
-    constructor();
+    constructor(raw?: RawSimpleGraph<string>);
+    protected createFromRaw(raw: RawSimpleGraph<string>): this;
 }
 export declare class DiGraphInt extends BaseSimpleGraph<number> implements DiGraph<number> {
-    constructor();
+    constructor(raw?: RawSimpleGraph<number>);
+    protected createFromRaw(raw: RawSimpleGraph<number>): this;
 }
 export declare class DiGraphStr extends BaseSimpleGraph<string> implements DiGraph<string> {
-    constructor();
+    constructor(raw?: RawSimpleGraph<string>);
+    protected createFromRaw(raw: RawSimpleGraph<string>): this;
 }
 export {};
