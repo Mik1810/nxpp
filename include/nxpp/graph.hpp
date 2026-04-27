@@ -40,6 +40,8 @@
 #include <limits>
 #include <queue>
 #include <memory>
+#include <set>
+#include <initializer_list>
 
 namespace nxpp {
 
@@ -402,6 +404,13 @@ private:
         }
     }
 
+    void rebind_property_maps() {
+        weight_map = built_in_weight_traits<GraphType, Weighted>::get(g);
+        vertex_name_map = boost::get(boost::vertex_name, g);
+        vertex_index_map = boost::get(boost::vertex_wrapper_index, g);
+        edge_id_map = boost::get(boost::edge_index, g);
+    }
+
     VertexDesc get_or_create_vertex(const NodeID& id) {
         auto it = id_to_bgl.find(id);
         if (it != id_to_bgl.end()) {
@@ -485,6 +494,51 @@ private:
         edge_properties[get_edge_id(e)][attr.first] = normalize_attr_any(attr.second);
     }
 
+    template <typename NodeRange>
+    Graph build_subgraph(const NodeRange& selected_nodes) const {
+        Graph result;
+        std::set<NodeID> selected;
+
+        for (const auto& node : selected_nodes) {
+            if (!has_node(node)) {
+                throw std::invalid_argument("Subgraph extraction failed: node not found.");
+            }
+            if (!selected.insert(node).second) {
+                continue;
+            }
+
+            result.add_node(node);
+            auto node_attr_it = node_properties.find(node);
+            if (node_attr_it != node_properties.end()) {
+                result.node_properties[node] = node_attr_it->second;
+            }
+        }
+
+        for (auto [edge, edge_end] = boost::edges(g); edge != edge_end; ++edge) {
+            const NodeID& source = node_id_of(boost::source(*edge, g));
+            const NodeID& target = node_id_of(boost::target(*edge, g));
+            if (!selected.contains(source) || !selected.contains(target)) {
+                continue;
+            }
+
+            auto [new_edge, added] = boost::add_edge(result.id_to_bgl.at(source), result.id_to_bgl.at(target), result.g);
+            (void)added;
+            if constexpr (Weighted) {
+                result.weight_map[new_edge] = weight_map[*edge];
+            }
+            const auto new_edge_id = result.next_edge_id++;
+            result.edge_id_map[new_edge] = new_edge_id;
+
+            const auto old_edge_id = get_edge_id(*edge);
+            const auto edge_attr_it = edge_properties.find(old_edge_id);
+            if (edge_attr_it != edge_properties.end()) {
+                result.edge_properties[new_edge_id] = edge_attr_it->second;
+            }
+        }
+
+        return result;
+    }
+
 public:
     Graph()
         : g(),
@@ -493,6 +547,64 @@ public:
           vertex_index_map(boost::get(boost::vertex_wrapper_index, g)),
           edge_id_map(boost::get(boost::edge_index, g)),
           id_to_bgl() {}
+
+    Graph(const Graph& other)
+        : g(other.g),
+          weight_map(built_in_weight_traits<GraphType, Weighted>::get(g)),
+          vertex_name_map(boost::get(boost::vertex_name, g)),
+          vertex_index_map(boost::get(boost::vertex_wrapper_index, g)),
+          edge_id_map(boost::get(boost::edge_index, g)),
+          id_to_bgl(),
+          bgl_to_id(),
+          next_edge_id(other.next_edge_id),
+          node_properties(other.node_properties),
+          edge_properties(other.edge_properties) {
+        rebuild_vertex_maps();
+    }
+
+    Graph(Graph&& other) noexcept
+        : g(std::move(other.g)),
+          weight_map(built_in_weight_traits<GraphType, Weighted>::get(g)),
+          vertex_name_map(boost::get(boost::vertex_name, g)),
+          vertex_index_map(boost::get(boost::vertex_wrapper_index, g)),
+          edge_id_map(boost::get(boost::edge_index, g)),
+          id_to_bgl(),
+          bgl_to_id(),
+          next_edge_id(other.next_edge_id),
+          node_properties(std::move(other.node_properties)),
+          edge_properties(std::move(other.edge_properties)) {
+        rebuild_vertex_maps();
+    }
+
+    Graph& operator=(const Graph& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        clear_min_cost_flow_state();
+        g = other.g;
+        rebind_property_maps();
+        next_edge_id = other.next_edge_id;
+        node_properties = other.node_properties;
+        edge_properties = other.edge_properties;
+        rebuild_vertex_maps();
+        return *this;
+    }
+
+    Graph& operator=(Graph&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        clear_min_cost_flow_state();
+        g = std::move(other.g);
+        rebind_property_maps();
+        next_edge_id = other.next_edge_id;
+        node_properties = std::move(other.node_properties);
+        edge_properties = std::move(other.edge_properties);
+        rebuild_vertex_maps();
+        return *this;
+    }
 
     ~Graph() {
         clear_min_cost_flow_state();
@@ -726,6 +838,30 @@ public:
         vertex_index_map = boost::get(boost::vertex_wrapper_index, g);
         edge_id_map = boost::get(boost::edge_index, g);
         next_edge_id = 0;
+    }
+
+    /**
+     * @brief Returns a materialized node-induced subgraph.
+     *
+     * The returned graph has the same template parameters as the source graph
+     * and is independent from it. Node attributes and edge attributes are
+     * copied for every selected node and every edge whose endpoints are both in
+     * the selected node set. Duplicate node IDs in @p selected_nodes are
+     * ignored.
+     *
+     * @tparam NodeRange Range whose elements are comparable to `NodeID`.
+     * @param selected_nodes Nodes to keep in the induced subgraph.
+     * @return A new graph containing only the selected nodes and internal edges.
+     * @throws std::invalid_argument If any requested node is not present.
+     */
+    template <typename NodeRange>
+    Graph subgraph(const NodeRange& selected_nodes) const {
+        return build_subgraph(selected_nodes);
+    }
+
+    /// Convenience overload for braced node lists such as `G.subgraph({"A", "B"})`.
+    Graph subgraph(std::initializer_list<NodeID> selected_nodes) const {
+        return build_subgraph(selected_nodes);
     }
 
     /**

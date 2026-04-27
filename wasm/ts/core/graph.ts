@@ -31,15 +31,15 @@ import {
 
 const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
 
-class BaseSimpleGraph<T extends NodeId> {
+abstract class BaseSimpleGraph<T extends NodeId> {
   private rawObject: RawSimpleGraph<T> | null;
   private readonly assertNode: (value: unknown, label: string) => asserts value is T;
 
   constructor(
-    factory: () => RawSimpleGraph<T>,
+    factory: (() => RawSimpleGraph<T>) | RawSimpleGraph<T>,
     assertNode: (value: unknown, label: string) => asserts value is T,
   ) {
-    this.rawObject = wrapRawGraph(factory());
+    this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
     this.assertNode = assertNode;
     if (disposeSymbol !== undefined) {
       Object.defineProperty(this, disposeSymbol, {
@@ -55,6 +55,8 @@ class BaseSimpleGraph<T extends NodeId> {
     }
     return this.rawObject;
   }
+
+  protected abstract createFromRaw(raw: RawSimpleGraph<T>): this;
 
   private operationFailed(message: string): never {
     throw new Error(`WASM graph operation failed: ${message}`);
@@ -150,6 +152,17 @@ class BaseSimpleGraph<T extends NodeId> {
     assertFiniteNumber(weight, "weight");
     this.requireEdgeExists(source, target);
     this.raw.setEdgeWeight(source, target, weight);
+  }
+
+  subgraph(nodes: T[]): this {
+    if (!Array.isArray(nodes)) {
+      this.operationFailed("subgraph nodes must be an array.");
+    }
+    for (const [index, node] of nodes.entries()) {
+      this.assertNode(node, `nodes[${index}]`);
+      this.requireNodeExists(node);
+    }
+    return this.createFromRaw(this.raw.subgraph(nodes));
   }
 
   hasNodeAttr(id: T, key: string): boolean {
@@ -413,25 +426,41 @@ class BaseSimpleGraph<T extends NodeId> {
 }
 
 export class GraphInt extends BaseSimpleGraph<number> implements Graph<number> {
-  constructor() {
-    super(() => new runtime.GraphInt(), assertIntNodeId);
+  constructor(raw?: RawSimpleGraph<number>) {
+    super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
+  }
+
+  protected createFromRaw(raw: RawSimpleGraph<number>): this {
+    return new GraphInt(raw) as this;
   }
 }
 
 export class GraphStr extends BaseSimpleGraph<string> implements Graph<string> {
-  constructor() {
-    super(() => new runtime.GraphStr(), assertStringNodeId);
+  constructor(raw?: RawSimpleGraph<string>) {
+    super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
+  }
+
+  protected createFromRaw(raw: RawSimpleGraph<string>): this {
+    return new GraphStr(raw) as this;
   }
 }
 
 export class DiGraphInt extends BaseSimpleGraph<number> implements DiGraph<number> {
-  constructor() {
-    super(() => new runtime.DiGraphInt(), assertIntNodeId);
+  constructor(raw?: RawSimpleGraph<number>) {
+    super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
+  }
+
+  protected createFromRaw(raw: RawSimpleGraph<number>): this {
+    return new DiGraphInt(raw) as this;
   }
 }
 
 export class DiGraphStr extends BaseSimpleGraph<string> implements DiGraph<string> {
-  constructor() {
-    super(() => new runtime.DiGraphStr(), assertStringNodeId);
+  constructor(raw?: RawSimpleGraph<string>) {
+    super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
+  }
+
+  protected createFromRaw(raw: RawSimpleGraph<string>): this {
+    return new DiGraphStr(raw) as this;
   }
 }

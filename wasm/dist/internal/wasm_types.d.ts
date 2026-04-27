@@ -21,6 +21,7 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
     removeEdge(source: T, target: T): void;
     getEdgeWeight(source: T, target: T): number;
     setEdgeWeight(source: T, target: T, weight: number): void;
+    subgraph(nodes: T[]): RawSimpleGraph<T>;
     hasNodeAttr(id: T, key: string): boolean;
     getNodeAttr(id: T, key: string): AttributeValue;
     tryGetNodeAttr(id: T, key: string): AttributeValue | null;
@@ -60,6 +61,7 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
     clear(): void;
 }
 export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {
+    subgraph(nodes: T[]): RawMultiGraph<T>;
     hasEdgeId(edgeId: number): boolean;
     edgeIds(): Iterable<number> | ArrayLike<number>;
     edgeIdsBetween(source: T, target: T): Iterable<number> | ArrayLike<number>;

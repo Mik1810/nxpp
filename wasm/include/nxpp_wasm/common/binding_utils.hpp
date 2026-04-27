@@ -228,6 +228,22 @@ struct NodeJsPolicy<std::string> {
 };
 
 template <typename NodeT>
+std::vector<NodeT> to_node_vector(const emscripten::val& values) {
+    const std::string length_type = js_type_of(values["length"]);
+    if (length_type != "number") {
+        throw std::runtime_error("WASM graph operation failed: subgraph nodes must be an array.");
+    }
+
+    const auto length = values["length"].as<std::size_t>();
+    std::vector<NodeT> nodes;
+    nodes.reserve(length);
+    for (std::size_t i = 0; i < length; ++i) {
+        nodes.push_back(NodeJsPolicy<NodeT>::to_node_id(values[i]));
+    }
+    return nodes;
+}
+
+template <typename NodeT>
 class EdgeEndpointsBindingT {
 public:
     explicit EdgeEndpointsBindingT(std::pair<NodeT, NodeT> endpoints)
@@ -249,6 +265,11 @@ template <typename NodeT, bool Directed>
 class SimpleGraphBindingBase {
 public:
     using GraphType = nxpp::Graph<NodeT, double, Directed, false>;
+
+    SimpleGraphBindingBase() = default;
+
+    explicit SimpleGraphBindingBase(GraphType graph)
+        : graph_(std::move(graph)) {}
 
     void add_node(const emscripten::val& id) {
         graph_.add_node(as_node_id(id));
@@ -298,6 +319,10 @@ public:
 
     void clear() {
         graph_.clear();
+    }
+
+    SimpleGraphBindingBase subgraph(const emscripten::val& nodes) const {
+        return SimpleGraphBindingBase(graph_.subgraph(to_node_vector<NodeT>(nodes)));
     }
 
     bool has_node_attr(const emscripten::val& id, const std::string& key) const {
@@ -496,6 +521,11 @@ public:
     using GraphType = nxpp::Graph<NodeT, double, Directed, true>;
     using EndpointsBindingType = EdgeEndpointsBindingT<NodeT>;
 
+    MultiGraphBindingBase() = default;
+
+    explicit MultiGraphBindingBase(GraphType graph)
+        : graph_(std::move(graph)) {}
+
     void add_node(const emscripten::val& id) {
         graph_.add_node(as_node_id(id));
     }
@@ -572,6 +602,10 @@ public:
 
     void clear() {
         graph_.clear();
+    }
+
+    MultiGraphBindingBase subgraph(const emscripten::val& nodes) const {
+        return MultiGraphBindingBase(graph_.subgraph(to_node_vector<NodeT>(nodes)));
     }
 
     bool has_node_attr(const emscripten::val& id, const std::string& key) const {
@@ -809,6 +843,7 @@ void bind_simple_graph_api(emscripten::class_<BindingT>& binding) {
         .function("removeEdge", &BindingT::remove_edge)
         .function("getEdgeWeight", &BindingT::get_edge_weight)
         .function("setEdgeWeight", &BindingT::set_edge_weight)
+        .function("subgraph", &BindingT::subgraph)
         .function("clear", &BindingT::clear);
 }
 

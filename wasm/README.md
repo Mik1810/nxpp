@@ -196,6 +196,7 @@ Core endpoint-oriented methods:
 - `removeEdge(source, target)`
 - `getEdgeWeight(source, target)`
 - `setEdgeWeight(source, target, weight)`
+- `subgraph(nodes)`
 - `hasNodeAttr(id, key)`
 - `getNodeAttr(id, key)`
 - `tryGetNodeAttr(id, key)`
