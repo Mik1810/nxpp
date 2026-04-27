@@ -61,5 +61,5 @@ if ($overallStatus -eq 0) {
     exit 0
 }
 
-Write-Output "[TEST] All tests passed ($passedTests/$totalTests) | FAIL"
+Write-Output "[TEST] Tests:  ($passedTests/$totalTests) | FAIL"
 exit 1

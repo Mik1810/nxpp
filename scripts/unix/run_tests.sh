@@ -58,5 +58,5 @@ if [ "$overall_status" -eq 0 ]; then
     exit 0
 fi
 
-echo "[TEST] All tests passed (${passed_tests}/${total_tests}) | ${RED}FAIL${RESET}"
+echo "[TEST] Tests: (${passed_tests}/${total_tests}) | ${RED}FAIL${RESET}"
 exit 1
