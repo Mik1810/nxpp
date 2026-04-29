@@ -7,6 +7,8 @@
 - Verification is currently blocked in this environment because Boost headers are not installed: both the focused `tests/test_edge_cases.cpp` compile and `bash scripts/unix/run_tests.sh` fail at `boost/functional/hash.hpp`.
 - After Boost headers became available, verification passed: the focused `tests/test_edge_cases.cpp` binary passed, and `bash scripts/unix/run_tests.sh` passed all formal tests (`53/53`).
 - Aligned the repository-facing release metadata to `1.3.1` in `README.md`, `CMakeLists.txt`, `conanfile.py`, and the vcpkg overlay manifest before committing the fix.
+- Continued the same `1.3.1` candidate with issue `#105`: changed undirected edge ID collection to scan one incident edge range and match either endpoint orientation, avoiding duplicate logical edge IDs while still finding reverse-inserted undirected edges.
+- Added `tests/test_multigraph.cpp` coverage for simple undirected edge IDs and undirected multigraph parallel IDs; focused multigraph test and `bash scripts/unix/run_tests.sh` passed (`54/54`).
 
 **Date:** March 24, 2026
 

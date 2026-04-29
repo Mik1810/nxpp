@@ -448,15 +448,17 @@ private:
     std::vector<std::size_t> collect_edge_ids_between(VertexDesc u, VertexDesc v) const {
         std::vector<std::size_t> edge_ids;
         for (auto [e, eend] = boost::out_edges(u, g); e != eend; ++e) {
-            if (boost::target(*e, g) == v) {
-                edge_ids.push_back(get_edge_id(*e));
-            }
-        }
-        if constexpr (!Directed) {
-            if (u != v) {
-                for (auto [e, eend] = boost::out_edges(v, g); e != eend; ++e) {
-                    if (boost::target(*e, g) == u) {
-                        edge_ids.push_back(get_edge_id(*e));
+            if constexpr (Directed) {
+                if (boost::target(*e, g) == v) {
+                    edge_ids.push_back(get_edge_id(*e));
+                }
+            } else {
+                const auto source = boost::source(*e, g);
+                const auto target = boost::target(*e, g);
+                if ((source == u && target == v) || (source == v && target == u)) {
+                    const auto edge_id = get_edge_id(*e);
+                    if (std::find(edge_ids.begin(), edge_ids.end(), edge_id) == edge_ids.end()) {
+                        edge_ids.push_back(edge_id);
                     }
                 }
             }

@@ -6,6 +6,8 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 - Closed `#104` by making `path_graph(0)` return an empty graph instead of underflowing the unsigned loop bound.
 - Added regression coverage for zero-node path graph generation.
+- Closed `#105` by making undirected `edge_ids(u, v)` collect each logical edge ID once, including edges inserted in reverse endpoint order.
+- Added regression coverage for simple undirected edge IDs and undirected multigraph parallel edge IDs.
 
 ## [1.3.0] - 2026-04-27
 

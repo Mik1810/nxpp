@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
@@ -32,6 +33,30 @@ void test_parallel_edges_get_distinct_ids() {
 
     const auto ids = graph.edge_ids("Milan", "Rome");
     expect(ids.size() == 3, "edge_ids(u, v) should return every parallel edge");
+}
+
+void test_undirected_edge_ids_are_not_duplicated() {
+    nxpp::GraphInt simple_graph;
+    const auto simple_id = simple_graph.add_edge_with_id(1, 2, 1);
+
+    const auto simple_ids = simple_graph.edge_ids(1, 2);
+    expect(simple_ids.size() == 1, "undirected edge_ids(u, v) should return one id for one edge");
+    expect(simple_ids.front() == simple_id, "undirected edge_ids(u, v) should return the stored edge id");
+
+    const auto reversed_simple_ids = simple_graph.edge_ids(2, 1);
+    expect(reversed_simple_ids.size() == 1, "undirected edge_ids(v, u) should return one id for one edge");
+    expect(reversed_simple_ids.front() == simple_id, "undirected edge_ids(v, u) should find the same edge id");
+
+    nxpp::MultiGraphInt multigraph;
+    const auto first = multigraph.add_edge_with_id(1, 2, 1);
+    const auto second = multigraph.add_edge_with_id(2, 1, 2);
+
+    const auto ids = multigraph.edge_ids(1, 2);
+    expect(ids.size() == 2, "undirected multigraph edge_ids(u, v) should not duplicate parallel ids");
+    expect(std::find(ids.begin(), ids.end(), first) != ids.end(),
+           "undirected multigraph edge_ids(u, v) should include the first edge id");
+    expect(std::find(ids.begin(), ids.end(), second) != ids.end(),
+           "undirected multigraph edge_ids(u, v) should include the reversed insertion edge id");
 }
 
 void test_parallel_edges_keep_distinct_attributes() {
@@ -152,9 +177,10 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 6;
+    constexpr int total = 7;
 
     passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
+    passed += run_test("undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated) ? 1 : 0;
     passed += run_test("parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes) ? 1 : 0;
     passed += run_test("remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise) ? 1 : 0;
     passed += run_test("remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges) ? 1 : 0;

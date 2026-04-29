@@ -11,6 +11,10 @@ version entries in `CHANGELOG.md`.
 - Zero-node path graph generation now returns an empty graph immediately instead
   of underflowing the unsigned edge-construction loop bound.
 - Added focused regression coverage for the empty path graph case.
+- Closed `#105` by fixing duplicate edge ID collection in undirected graphs.
+- `edge_ids(u, v)` now reports each logical undirected edge once, while still
+  finding edges inserted as `(v, u)` and preserving distinct parallel edge IDs
+  in multigraphs.
 
 ## [1.3.0]
 
