@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.1] - 2026-04-29
+
+- Closed `#104` by making `path_graph(0)` return an empty graph instead of underflowing the unsigned loop bound.
+- Added regression coverage for zero-node path graph generation.
+
 ## [1.3.0] - 2026-04-27
 
 - Closed `#90` by adding `Graph::subgraph(nodes)` for materialized node-induced subgraphs.

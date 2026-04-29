@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.1]
+
+### Highlights
+
+- Closed `#104` with a small correctness fix for `nxpp::path_graph(0)`.
+- Zero-node path graph generation now returns an empty graph immediately instead
+  of underflowing the unsigned edge-construction loop bound.
+- Added focused regression coverage for the empty path graph case.
+
 ## [1.3.0]
 
 ### Highlights

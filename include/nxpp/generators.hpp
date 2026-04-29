@@ -52,6 +52,9 @@ GraphType path_graph(size_t n) {
         std::constructible_from<NodeID, std::size_t>,
         "nxpp::path_graph requires GraphType::NodeType to be constructible from std::size_t because it synthesizes node IDs 0..n-1."
     );
+    if (n == 0) {
+        return G;
+    }
     for (size_t i = 0; i < n - 1; ++i) {
         G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(i + 1));
     }

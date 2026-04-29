@@ -231,6 +231,13 @@ void test_integer_generators_still_work() {
     expect(er.num_vertices() <= 6, "erdos_renyi_graph should stay within the requested integer ID range");
 }
 
+void test_path_graph_zero_is_empty() {
+    const auto path = nxpp::path_graph<nxpp::GraphInt>(0);
+
+    expect(path.num_vertices() == 0, "path_graph(0) should create no nodes");
+    expect(path.edges().empty(), "path_graph(0) should create no edges");
+}
+
 void test_betweenness_centrality_basic() {
     // Linear chain: A-B-C-D. B and C lie on all shortest paths between the endpoints,
     // so they should have strictly higher betweenness than the leaf nodes A and D.
@@ -334,7 +341,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 10;
+    constexpr int total = 11;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -343,6 +350,7 @@ int main() {
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
+    passed += run_test("path_graph(0) is empty", test_path_graph_zero_is_empty) ? 1 : 0;
     passed += run_test("implicit creation policy", test_implicit_creation_policy) ? 1 : 0;
     passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
     passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;

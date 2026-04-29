@@ -1,5 +1,13 @@
 # Session Log: nxpp Project MVP & Test Suite
 
+## Session Update: 2026-04-29
+
+- Started work on issue `#104` from `REVIEW.md`: `path_graph(0)` could underflow the `size_t` loop bound in `include/nxpp/generators.hpp`.
+- Added an early return for `n == 0`, added a regression test in `tests/test_edge_cases.cpp`, and opened the `1.3.1` release-candidate notes in `CHANGELOG.md` and `RELEASE_NOTES.md`.
+- Verification is currently blocked in this environment because Boost headers are not installed: both the focused `tests/test_edge_cases.cpp` compile and `bash scripts/unix/run_tests.sh` fail at `boost/functional/hash.hpp`.
+- After Boost headers became available, verification passed: the focused `tests/test_edge_cases.cpp` binary passed, and `bash scripts/unix/run_tests.sh` passed all formal tests (`53/53`).
+- Aligned the repository-facing release metadata to `1.3.1` in `README.md`, `CMakeLists.txt`, `conanfile.py`, and the vcpkg overlay manifest before committing the fix.
+
 **Date:** March 24, 2026
 
 ## Objectives Reached in this Session
