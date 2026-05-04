@@ -3,6 +3,14 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.11]
+
+### Highlights
+
+- Closed `#120` with a documentation correction for `connected_components()`.
+- The inline API comment now states that the method returns a
+  node-to-component-label map, not a component count.
+
 ## [1.3.10]
 
 ### Highlights

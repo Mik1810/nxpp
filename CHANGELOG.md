@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.11] - 2026-05-04
+
+- Closed `#120` by correcting the `connected_components()` inline documentation to describe its node-to-component-label map return value instead of a component count.
+
 ## [1.3.10] - 2026-05-04
 
 - Closed `#109` by routing eager shortest-path reconstruction helpers through a guarded predecessor-chain helper that detects inconsistent predecessor cycles.

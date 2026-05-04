@@ -1734,7 +1734,7 @@ public:
 
     /// Groups each connected component as a vector of node IDs.
     auto connected_component_groups() const;
-    /// Returns the number of connected components in an undirected graph.
+    /// Returns a node-to-component-label map for an undirected graph.
     auto connected_components() const;
     /// Groups each strongly connected component as a vector of node IDs.
     auto strongly_connected_component_groups() const;
