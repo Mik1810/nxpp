@@ -369,7 +369,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bfs_tree(const NodeID& start) const {
-    Graph<NodeID, double, Directed> tree;
+    Graph<NodeID, EdgeWeight, Directed> tree;
 
     if (!has_node(start)) {
         throw std::runtime_error("Traversal failed: start node not found.");
@@ -449,7 +449,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dfs_tree(const NodeID& start) const {
-    Graph<NodeID, double, Directed> tree;
+    Graph<NodeID, EdgeWeight, Directed> tree;
 
     if (!has_node(start)) {
         throw std::runtime_error("Traversal failed: start node not found.");

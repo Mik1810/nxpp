@@ -10,13 +10,18 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/strong_components.hpp>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace nxpp {
 
 /// Converts a signed 2-SAT literal into the internal implication-graph vertex ID.
+/// Throws std::invalid_argument because literal 0 is not valid in 2-SAT.
 inline int to_2sat_vertex_id(int literal) {
+    if (literal == 0) {
+        throw std::invalid_argument("Literal 0 is not valid in 2-SAT");
+    }
     return (literal > 0) ? (2 * literal - 2) : (-2 * literal - 1);
 }
 

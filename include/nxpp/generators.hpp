@@ -29,8 +29,13 @@ GraphType complete_graph(size_t n) {
         "nxpp::complete_graph requires GraphType::NodeType to be constructible from std::size_t because it synthesizes node IDs 0..n-1."
     );
     for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            if (i != j) {
+        if constexpr (GraphType::is_directed) {
+            for (size_t j = 0; j < n; ++j) {
+                if (i == j) continue;
+                G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(j));
+            }
+        } else {
+            for (size_t j = i + 1; j < n; ++j) {
                 G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(j));
             }
         }
@@ -79,6 +84,10 @@ GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
     );
     std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (size_t i = 0; i < n; ++i) {
+        G.add_node(static_cast<NodeID>(i));
+    }
 
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < (GraphType::is_directed ? n : i); ++j) {

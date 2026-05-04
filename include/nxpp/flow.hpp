@@ -14,6 +14,7 @@
 #include <boost/graph/find_flow_cost.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 
+#include <mutex>
 #include <set>
 
 #include "attributes.hpp"
@@ -163,11 +164,18 @@ auto& invalidated_min_cost_flow_graphs() {
     return invalidated;
 }
 
+template <typename GraphWrapper>
+auto& min_cost_flow_cache_mutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
 } // namespace detail
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 struct detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>> {
     static void invalidate(const void* graph_ptr) {
+        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
         auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
         if (cache.erase(graph_ptr) > 0) {
             detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>().insert(graph_ptr);
@@ -175,6 +183,7 @@ struct detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, 
     }
 
     static void clear(const void* graph_ptr) {
+        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
         auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
         auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
         cache.erase(graph_ptr);
@@ -405,7 +414,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
         auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;
@@ -456,7 +465,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
         auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;
@@ -505,7 +514,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
         auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
         (void)added; (void)rev_added;
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;
@@ -581,7 +590,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         (void)added; (void)rev_added;
         weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
         weight[rev] = -weight[e];
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;
@@ -627,7 +636,7 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         (void)added; (void)rev_added;
         state->weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
         state->weight[rev] = -state->weight[e];
-        state->capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        state->capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         state->capacity[rev] = 0;
         state->reverse[e] = rev;
         state->reverse[rev] = e;
@@ -638,15 +647,20 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         get_vertex_index(id_to_bgl.at(source_id)),
         get_vertex_index(id_to_bgl.at(target_id))
     );
-    auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-    auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-    cache[static_cast<const void*>(this)] = std::move(state);
-    invalidated.erase(static_cast<const void*>(this));
-    return cache.at(static_cast<const void*>(this))->value;
+    const long flow_value = state->value;
+    {
+        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
+        auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
+        auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
+        cache[static_cast<const void*>(this)] = std::move(state);
+        invalidated.erase(static_cast<const void*>(this));
+    }
+    return flow_value;
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::cycle_canceling(const std::string& weight_attr) const {
+    std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
     auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
     auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
     auto it = cache.find(static_cast<const void*>(this));
@@ -703,7 +717,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         (void)added; (void)rev_added;
         weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
         weight[rev] = -weight[e];
-        capacity[e] = static_cast<long>(get_edge_numeric_attr(edge_id, capacity_attr));
+        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
         capacity[rev] = 0;
         reverse[e] = rev;
         reverse[rev] = e;

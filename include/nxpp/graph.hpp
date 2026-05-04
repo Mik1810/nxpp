@@ -359,6 +359,75 @@ private:
         }
     }
 
+    static std::runtime_error invalid_flow_capacity_error() {
+        return std::runtime_error("Flow capacity setup failed: capacity must be a non-negative integral value representable as long.");
+    }
+
+    template <typename T>
+    static long checked_flow_capacity_value(T value) {
+        if constexpr (std::is_same_v<T, bool>) {
+            throw invalid_flow_capacity_error();
+        } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
+            if (value < 0 || static_cast<long double>(value) > static_cast<long double>(std::numeric_limits<long>::max())) {
+                throw invalid_flow_capacity_error();
+            }
+            return static_cast<long>(value);
+        } else if constexpr (std::is_integral_v<T> && std::is_unsigned_v<T>) {
+            if (static_cast<long double>(value) > static_cast<long double>(std::numeric_limits<long>::max())) {
+                throw invalid_flow_capacity_error();
+            }
+            return static_cast<long>(value);
+        } else if constexpr (std::is_floating_point_v<T>) {
+            if (!std::isfinite(value) || value < 0 || value > static_cast<T>(std::numeric_limits<long>::max()) ||
+                std::trunc(value) != value) {
+                throw invalid_flow_capacity_error();
+            }
+            return static_cast<long>(value);
+        } else {
+            throw invalid_flow_capacity_error();
+        }
+    }
+
+    template <typename T>
+    static std::optional<long> try_flow_capacity_any_cast(const std::any& value) {
+        if (const auto* typed_value = std::any_cast<T>(&value)) {
+            return checked_flow_capacity_value(*typed_value);
+        }
+        return std::nullopt;
+    }
+
+    long get_edge_flow_capacity(std::size_t edge_id, const std::string& key) const {
+        if (key == "weight") {
+            if constexpr (Weighted) {
+                return checked_flow_capacity_value(get_edge_weight(edge_id));
+            } else {
+                throw std::runtime_error("Edge attribute lookup failed: graph has no built-in edge weight.");
+            }
+        }
+
+        auto edge_it = edge_properties.find(edge_id);
+        if (edge_it == edge_properties.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
+        }
+        auto attr_it = edge_it->second.find(key);
+        if (attr_it == edge_it->second.end()) {
+            throw std::runtime_error("Edge attribute lookup failed: key not found.");
+        }
+
+        const auto& value = attr_it->second;
+        if (auto capacity = try_flow_capacity_any_cast<int>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<long>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<long long>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<unsigned int>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<unsigned long>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<unsigned long long>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<float>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<double>(value)) return *capacity;
+        if (auto capacity = try_flow_capacity_any_cast<long double>(value)) return *capacity;
+
+        throw std::runtime_error("Flow capacity setup failed: capacity attribute is not numeric.");
+    }
+
     std::size_t vertex_index_of(VertexDesc v) const {
         return boost::get(vertex_index_map, v);
     }
@@ -889,7 +958,20 @@ public:
         for (auto edge_id : collect_edge_ids_between(it_u->second, it_v->second)) {
             edge_properties.erase(edge_id);
         }
-        boost::remove_edge(it_u->second, it_v->second, g);
+        if constexpr (!Directed && Multi) {
+            const auto bu = it_u->second;
+            const auto bv = it_v->second;
+            boost::remove_edge_if(
+                [this, bu, bv](const EdgeDesc& edge) {
+                    const auto source = boost::source(edge, g);
+                    const auto target = boost::target(edge, g);
+                    return (source == bu && target == bv) || (source == bv && target == bu);
+                },
+                g
+            );
+        } else {
+            boost::remove_edge(it_u->second, it_v->second, g);
+        }
     }
 
     /**
@@ -1286,8 +1368,7 @@ public:
      * The node is created implicitly when it does not exist yet.
      */
     NodeAttrBaseProxy node(const NodeID& u) {
-        if (!has_node(u) && !Multi) add_node(u);
-        else if (!has_node(u)) add_node(u);
+        if (!has_node(u)) add_node(u);
         return NodeAttrBaseProxy(this, u);
     }
 
@@ -1307,7 +1388,7 @@ public:
      * @ref bfs_edges.
      *
      * @param start Node ID used as the BFS root.
-     * @return A `Graph<NodeID, double, Directed>` containing only the BFS tree.
+     * @return A `Graph<NodeID, EdgeWeight, Directed>` containing only the BFS tree.
      * @throws std::runtime_error If @p start is not present in the graph.
      */
     auto bfs_tree(const NodeID& start) const;
@@ -1368,7 +1449,7 @@ public:
      * @ref dfs_edges.
      *
      * @param start Node ID used as the DFS root.
-     * @return A `Graph<NodeID, double, Directed>` containing only the DFS tree.
+     * @return A `Graph<NodeID, EdgeWeight, Directed>` containing only the DFS tree.
      * @throws std::runtime_error If @p start is not present in the graph.
      */
     auto dfs_tree(const NodeID& start) const;

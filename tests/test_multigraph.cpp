@@ -120,6 +120,30 @@ void test_remove_edge_by_endpoints_removes_all_parallel_edges() {
            "all parallel edge attributes should be cleaned up");
 }
 
+void test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges() {
+    nxpp::MultiGraph graph;
+
+    const auto fast = graph.add_edge_with_id("Milan", "Rome", 5.0);
+    const auto night = graph.add_edge_with_id("Rome", "Milan", 8.0);
+    const auto cargo = graph.add_edge_with_id("Milan", "Rome", 12.0);
+
+    graph.set_edge_attr(fast, "service", "fast");
+    graph.set_edge_attr(night, "service", "night");
+    graph.set_edge_attr(cargo, "service", "cargo");
+    graph.remove_edge("Milan", "Rome");
+
+    expect(!graph.has_edge("Milan", "Rome"), "undirected remove_edge(u, v) should remove forward lookup");
+    expect(!graph.has_edge("Rome", "Milan"), "undirected remove_edge(u, v) should remove reverse lookup");
+    expect(graph.edge_ids("Milan", "Rome").empty(),
+           "undirected edge_ids(u, v) should be empty after removing all parallel edges");
+    expect(!graph.has_edge_id(fast) && !graph.has_edge_id(night) && !graph.has_edge_id(cargo),
+           "undirected endpoint removal should remove every parallel edge id");
+    expect(!graph.has_edge_attr(fast, "service") &&
+               !graph.has_edge_attr(night, "service") &&
+               !graph.has_edge_attr(cargo, "service"),
+           "undirected endpoint removal should clean every parallel edge attribute");
+}
+
 void test_edge_endpoints_stay_correct_after_partial_removal() {
     nxpp::MultiDiGraph graph;
 
@@ -177,13 +201,14 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 7;
+    constexpr int total = 8;
 
     passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
     passed += run_test("undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated) ? 1 : 0;
     passed += run_test("parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes) ? 1 : 0;
     passed += run_test("remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise) ? 1 : 0;
     passed += run_test("remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges) ? 1 : 0;
+    passed += run_test("undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges) ? 1 : 0;
     passed += run_test("edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal) ? 1 : 0;
     passed += run_test("multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw) ? 1 : 0;
 
