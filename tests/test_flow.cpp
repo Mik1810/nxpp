@@ -1,5 +1,6 @@
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -161,6 +162,17 @@ void test_cycle_canceling_invalidated_by_graph_mutation() {
         "cycle_canceling should reject stale staged state after graph mutation");
 }
 
+void test_staged_min_cost_flow_states_are_isolated_between_graph_instances() {
+    auto first = make_min_cost_flow_graph();
+    auto second = make_min_cost_flow_graph();
+
+    (void)first.push_relabel_maximum_flow(0, 5);
+    (void)second.push_relabel_maximum_flow(0, 5);
+
+    expect(first.cycle_canceling() == 22, "first graph should keep its staged flow state");
+    expect(second.cycle_canceling() == 22, "second graph should keep a separate staged flow state");
+}
+
 void test_successive_shortest_path_matches_reference_flow_and_cost() {
     auto graph = make_min_cost_flow_graph();
 
@@ -182,6 +194,26 @@ void test_min_cost_aliases_match_specialized_wrappers() {
            "max_flow_min_cost alias should match the cycle-canceling wrapper");
     expect(ssp_result.flow == 3 && ssp_result.cost == 22,
            "max_flow_min_cost_successive_shortest_path should match the SSP wrapper");
+}
+
+void test_fractional_flow_capacity_is_rejected() {
+    nxpp::UnweightedDiGraphInt graph;
+    graph.add_edge(0, 1, {"capacity", 1.5});
+
+    expect_runtime_error_message(
+        [&] { (void)graph.maximum_flow(0, 1); },
+        "Flow capacity setup failed: capacity must be a non-negative integral value representable as long.",
+        "maximum_flow should reject fractional capacities instead of truncating them");
+}
+
+void test_out_of_range_flow_capacity_is_rejected() {
+    nxpp::UnweightedDiGraphInt graph;
+    graph.add_edge(0, 1, {"capacity", std::numeric_limits<unsigned long long>::max()});
+
+    expect_runtime_error_message(
+        [&] { (void)graph.maximum_flow(0, 1); },
+        "Flow capacity setup failed: capacity must be a non-negative integral value representable as long.",
+        "maximum_flow should reject capacities outside the long range instead of truncating them");
 }
 
 void test_multigraph_flow_results_keep_precise_edge_ids() {
@@ -268,15 +300,18 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 10;
+    constexpr int total = 13;
 
     passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
     passed += run_test("cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation) ? 1 : 0;
+    passed += run_test("staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances) ? 1 : 0;
     passed += run_test("maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case) ? 1 : 0;
     passed += run_test("minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition) ? 1 : 0;
     passed += run_test("push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost) ? 1 : 0;
     passed += run_test("successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost) ? 1 : 0;
     passed += run_test("min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers) ? 1 : 0;
+    passed += run_test("fractional flow capacity is rejected", test_fractional_flow_capacity_is_rejected) ? 1 : 0;
+    passed += run_test("out-of-range flow capacity is rejected", test_out_of_range_flow_capacity_is_rejected) ? 1 : 0;
     passed += run_test("multigraph flow results keep precise edge ids", test_multigraph_flow_results_keep_precise_edge_ids) ? 1 : 0;
     passed += run_test("minimum_cut multigraph uses precise parallel capacities", test_minimum_cut_multigraph_uses_precise_parallel_capacities) ? 1 : 0;
     passed += run_test("multigraph min-cost flow results keep precise edge ids", test_multigraph_min_cost_flow_results_keep_precise_edge_ids) ? 1 : 0;

@@ -683,10 +683,10 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
 | `bfs_edges` | `(start)` | `std::vector<std::pair<NodeID, NodeID>>` | Runs BFS and returns discovered tree edges. | `auto es = G.bfs_edges(0);` |
-| `bfs_tree` | `(start)` | `Graph<NodeID, double, Directed>` | Builds a new graph containing the BFS tree rooted at `start`. | `auto T = G.bfs_tree(0);` |
+| `bfs_tree` | `(start)` | `Graph<NodeID, EdgeWeight, Directed>` | Builds a new graph containing the BFS tree rooted at `start`, preserving the source graph's edge-weight type. | `auto T = G.bfs_tree(0);` |
 | `bfs_successors` | `(start)` | `indexed_lookup_map<NodeID, std::vector<NodeID>>` | Groups BFS tree edges by parent with linear materialization and `O(log n)` key lookup. | `auto s = G.bfs_successors(0);` |
 | `dfs_edges` | `(start)` | `std::vector<std::pair<NodeID, NodeID>>` | Runs DFS and returns DFS tree edges. | `auto es = G.dfs_edges(0);` |
-| `dfs_tree` | `(start)` | `Graph<NodeID, double, Directed>` | Builds a new graph containing the DFS tree rooted at `start`. | `auto T = G.dfs_tree(0);` |
+| `dfs_tree` | `(start)` | `Graph<NodeID, EdgeWeight, Directed>` | Builds a new graph containing the DFS tree rooted at `start`, preserving the source graph's edge-weight type. | `auto T = G.dfs_tree(0);` |
 | `dfs_predecessors` | `(start)` | `indexed_lookup_map<NodeID, NodeID>` | Returns DFS predecessor map with linear materialization and `O(log n)` key lookup. | `auto p = G.dfs_predecessors(0);` |
 | `dfs_successors` | `(start)` | `indexed_lookup_map<NodeID, std::vector<NodeID>>` | Groups DFS tree edges by parent with linear materialization and `O(log n)` key lookup. | `auto s = G.dfs_successors(0);` |
 
@@ -721,15 +721,15 @@ arbitrary user-defined numeric edge attribute.
 
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
-| `shortest_path` | `(source, target)` | `std::vector<NodeID>` | Unweighted shortest path by edge count. | `auto p = G.shortest_path(0, 3);` |
+| `shortest_path` | `(source, target)` | `std::vector<NodeID>` | Unweighted shortest path by edge count, with guarded path reconstruction. | `auto p = G.shortest_path(0, 3);` |
 | `shortest_path_length` | `(source, target)` | `double` | Unweighted shortest-path length in edge count. | `auto d = G.shortest_path_length(0, 3);` |
 | `shortest_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Weighted shortest path through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto p = G.shortest_path(0, 3, "weight");` |
 | `shortest_path_length` | `(source, target, "weight")` | `double` | Weighted shortest-path length through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto d = G.shortest_path_length(0, 3, "weight");` |
-| `dijkstra_path` | `(source, target)` | `std::vector<NodeID>` | Direct Dijkstra source-target path wrapper. | `auto p = G.dijkstra_path(0, 3);` |
+| `dijkstra_path` | `(source, target)` | `std::vector<NodeID>` | Direct Dijkstra source-target path wrapper with guarded path reconstruction. | `auto p = G.dijkstra_path(0, 3);` |
 | `dijkstra_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above; explicit `"weight"` overload for compatibility-shaped usage around the built-in edge weight. | `auto p = G.dijkstra_path(0, 3, "weight");` |
 | `dijkstra_path_length` | `(source, target)` | `Distance` | Dijkstra distance to one target. | `auto d = G.dijkstra_path_length(0, 3);` |
 | `dijkstra_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.dijkstra_path_length(0, 3, "weight");` |
-| `bellman_ford_path` | `(source, target)` | `std::vector<NodeID>` | Bellman-Ford path wrapper. Throws on negative cycle. | `auto p = G.bellman_ford_path(0, 3);` |
+| `bellman_ford_path` | `(source, target)` | `std::vector<NodeID>` | Bellman-Ford path wrapper with guarded path reconstruction. Throws on negative cycle. | `auto p = G.bellman_ford_path(0, 3);` |
 | `bellman_ford_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto p = G.bellman_ford_path(0, 3, "weight");` |
 | `bellman_ford_path_length` | `(source, target)` | `Distance` | Bellman-Ford distance wrapper with a final accumulation over the reconstructed path. | `auto d = G.bellman_ford_path_length(0, 3);` |
 | `bellman_ford_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.bellman_ford_path_length(0, 3, "weight");` |
@@ -786,6 +786,10 @@ built-in cost channel, not as an open-ended attribute-name policy.
 
 ### Maximum flow / minimum cut
 
+Flow capacity attributes must be non-negative integral values representable as
+`long`. Fractional, negative, non-finite, non-numeric, and out-of-range values
+are rejected during flow-graph setup instead of being silently truncated.
+
 | Function | Parameters | Returns | Description | Example |
 |---|---|---:|---|---|
 | `edmonds_karp_maximum_flow` | `(source, sink, capacity_attr = "capacity")` | `MaximumFlowResult<NodeID>` | Max-flow wrapper returning total flow plus both an endpoint-keyed convenience view and a precise `edge_id`-keyed flow view. | `auto f = G.edmonds_karp_maximum_flow(0, 5);` |
@@ -799,6 +803,11 @@ built-in cost channel, not as an open-ended attribute-name policy.
 |---|---|---:|---|---|
 | `push_relabel_maximum_flow` | `(source, sink, capacity_attr = "capacity", weight_attr = "weight")` | `long` | Computes max flow and stages residual state for a later `cycle_canceling()`. Any later graph mutation invalidates that staged state. The default `"weight"` still refers to the built-in edge-weight property. | `long f = G.push_relabel_maximum_flow(0, 5);` |
 | `cycle_canceling` | `(weight_attr = "weight")` | deduced cost type | Runs cycle-canceling over staged state prepared by `push_relabel_maximum_flow`. If the graph changed in the meantime, this now throws and asks the caller to rerun the push-relabel stage first. The default `"weight"` still refers to the built-in edge-weight property. | `long c = G.cycle_canceling();` |
+
+The staged min-cost-flow cache used by this path is synchronized internally, so
+different graph instances of the same type do not race on the cache container.
+The graph object itself still requires external synchronization for concurrent
+mutation or concurrent use of the same instance.
 
 ### One-shot min-cost max-flow wrappers
 
@@ -817,10 +826,10 @@ These are good examples of public helpers that are useful in real C++ code even 
 |---|---|---:|---|---|
 | `complete_graph` | `(n)` | `GraphType` | Generates a complete graph for the chosen graph type template. | `auto K5 = nxpp::complete_graph(5);` |
 | `path_graph` | `(n)` | `GraphType` | Generates a path graph. | `auto P4 = nxpp::path_graph(4);` |
-| `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | Generates an Erdős–Rényi random graph. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
+| `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | Generates an Erdős–Rényi random graph and preserves isolated nodes. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
 | `num_vertices` | `()` | `int` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
 | `degree_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns degree centrality with NetworkX-like normalization by `n - 1`, using linear materialization plus `O(log n)` key lookup. | `auto c = G.degree_centrality();` |
 | `pagerank` | `()` | `indexed_lookup_map<NodeID, double>` | Returns PageRank scores keyed by `NodeID`, using a small fixed-iteration wrapper result instead of raw property-map plumbing. | `auto rank = G.pagerank();` |
 | `betweenness_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns normalized betweenness centrality for each node, matching NetworkX `betweenness_centrality(G, normalized=True)` semantics. Implemented via Brandes BFS without BGL property-map setup. | `auto bc = G.betweenness_centrality();` |
-| `to_2sat_vertex_id` | `(literal)` | `int` | Internal/public helper mapping a literal to its implication-graph vertex index. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
+| `to_2sat_vertex_id` | `(literal)` | `int` | Internal/public helper mapping a literal to its implication-graph vertex index. Throws `std::invalid_argument` for literal `0`, which is not valid in 2-SAT. | `auto id = nxpp::to_2sat_vertex_id(-2);` |
 | `two_sat_satisfiable` | `(num_variables, clauses)` | `bool` | 2-SAT satisfiability helper built on SCC computation. | `bool ok = nxpp::two_sat_satisfiable(2, {{1,2},{-1,2}});` |

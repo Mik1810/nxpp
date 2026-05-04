@@ -3,6 +3,93 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.10]
+
+### Highlights
+
+- Closed `#109` with guarded eager shortest-path reconstruction.
+- `shortest_path(...)`, `dijkstra_path(...)`, and `bellman_ford_path(...)` now
+  use a shared predecessor-chain reconstruction helper with a bounded hop count,
+  preventing infinite loops if predecessor data is inconsistent.
+- The guard preserves `O(V)` reconstruction bounds without adding hash-based
+  visited sets.
+
+## [1.3.9]
+
+### Highlights
+
+- Closed `#107` with a complete-graph generator correctness fix.
+- Undirected `complete_graph(...)` now emits each unordered pair once, avoiding
+  unintended parallel edges in undirected multigraphs.
+- Directed complete graphs still emit every ordered non-self pair.
+
+## [1.3.8]
+
+### Highlights
+
+- Closed `#114` by synchronizing the staged min-cost-flow cache used by
+  `push_relabel_maximum_flow(...)` and `cycle_canceling(...)`.
+- Different graph instances of the same type no longer race on the shared cache
+  container when staged min-cost-flow operations are used concurrently.
+- Added regression coverage for staged state isolation between graph instances.
+
+## [1.3.7]
+
+### Highlights
+
+- Closed `#113` with an explicit flow-capacity contract.
+- Flow capacities are now validated as non-negative integral values
+  representable as `long`; fractional and out-of-range values are rejected
+  during flow setup instead of being silently truncated.
+- Added focused regression coverage for fractional and out-of-range capacities.
+
+## [1.3.6]
+
+### Highlights
+
+- Closed `#110` with a correctness fix for endpoint-based removal in
+  undirected multigraphs.
+- `remove_edge(u, v)` now removes every matching BGL edge between the two
+  endpoints, including parallel edges inserted in the reversed endpoint order.
+- Added focused regression coverage for mixed forward/reversed parallel edges.
+
+## [1.3.5]
+
+### Highlights
+
+- Closed `#112` with a traversal-tree type fix.
+- `bfs_tree(...)` and `dfs_tree(...)` now preserve the source graph's
+  `EdgeWeight` template parameter instead of always returning a `double`-weighted
+  tree graph.
+- Added compile-time regression coverage for non-`double` edge-weight graphs.
+
+## [1.3.4]
+
+### Highlights
+
+- Closed `#108` with a correctness fix for Erdős–Rényi graph generation.
+- `erdos_renyi_graph(n, p, seed)` now creates every requested node before edge
+  sampling, so isolated nodes are preserved even for `p = 0.0`.
+- Added focused regression coverage for the zero-probability case.
+
+## [1.3.3]
+
+### Highlights
+
+- Closed `#106` with a small cleanup in `Graph::node(...)`.
+- Removed a duplicated missing-node branch while preserving the existing
+  implicit node-creation behavior for node-attribute proxy access.
+
+## [1.3.2]
+
+### Highlights
+
+- Closed `#111` with a small correctness fix for the public 2-SAT helper.
+- `nxpp::to_2sat_vertex_id(0)` now throws `std::invalid_argument` because
+  literal `0` is not valid in 2-SAT.
+- Added focused regression coverage for valid literal mapping and literal-zero
+  rejection.
+
 ## [1.3.1]
 
 ### Highlights

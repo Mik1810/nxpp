@@ -107,6 +107,32 @@ Distance normalize_weighted_distance(Distance value) {
 template <typename Distance>
 using shortest_path_calc_type = std::conditional_t<std::is_integral_v<Distance>, double, Distance>;
 
+template <typename GraphWrapper, typename VertexDesc>
+std::vector<typename GraphWrapper::NodeType> reconstruct_vertex_path(
+    const GraphWrapper& graph,
+    VertexDesc source,
+    VertexDesc target,
+    const std::vector<VertexDesc>& predecessor
+) {
+    std::vector<typename GraphWrapper::NodeType> path;
+    const auto max_hops = predecessor.size() + 1;
+    size_t hops = 0;
+
+    for (VertexDesc current = target;; current = predecessor[graph.get_vertex_index(current)]) {
+        path.push_back(graph.get_node_id(current));
+        if (current == source) {
+            break;
+        }
+        ++hops;
+        if (hops > max_hops) {
+            throw std::runtime_error("Path reconstruction failed: predecessor cycle detected.");
+        }
+    }
+
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
 template <typename Distance, typename CalcDistance>
 Distance convert_shortest_path_distance(CalcDistance value) {
     if constexpr (std::is_same_v<CalcDistance, Distance>) {
@@ -346,13 +372,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
     }
 
-    std::vector<NodeID> path;
-    for (VertexDesc curr = target; curr != source; curr = pred[get_vertex_index(curr)]) {
-        path.push_back(get_node_id(curr));
-    }
-    path.push_back(get_node_id(source));
-    std::reverse(path.begin(), path.end());
-    return path;
+    return reconstruct_vertex_path(*this, source, target, pred);
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -421,13 +441,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
     }
 
-    std::vector<NodeID> path;
-    for (VertexDesc curr = target; curr != source; curr = pred[get_vertex_index(curr)]) {
-        path.push_back(get_node_id(curr));
-    }
-    path.push_back(get_node_id(source));
-    std::reverse(path.begin(), path.end());
-    return path;
+    return reconstruct_vertex_path(*this, source, target, pred);
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -670,11 +684,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     if (!ok) throw std::runtime_error("Bellman-Ford failed: negative cycle detected.");
     if (dist[target_index] == std::numeric_limits<EdgeWeight>::max()) throw std::runtime_error("Shortest-path lookup failed: target node is unreachable.");
 
-    std::vector<NodeID> path;
-    for (VertexDesc curr = target; curr != source; curr = pred[get_vertex_index(curr)]) path.push_back(get_node_id(curr));
-    path.push_back(get_node_id(source));
-    std::reverse(path.begin(), path.end());
-    return path;
+    return reconstruct_vertex_path(*this, source, target, pred);
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

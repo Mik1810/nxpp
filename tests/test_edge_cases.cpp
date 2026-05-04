@@ -5,6 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #ifdef NXPP_HEADER_UNDER_TEST
@@ -13,10 +14,12 @@
 #include "include/nxpp/attributes.hpp"
 #include "include/nxpp/generators.hpp"
 #include "include/nxpp/graph.hpp"
+#include "include/nxpp/multigraph.hpp"
 #include "include/nxpp/traversal.hpp"
 #include "include/nxpp/shortest_paths.hpp"
 #include "include/nxpp/components.hpp"
 #include "include/nxpp/centrality.hpp"
+#include "include/nxpp/sat.hpp"
 #endif
 
 constexpr const char* green = "\033[32m";
@@ -54,6 +57,22 @@ void expect_runtime_error_message(Fn&& fn, const std::string& expected_message, 
     }
 
     throw std::runtime_error(failure_message + ": no std::runtime_error thrown");
+}
+
+template <typename Fn>
+void expect_invalid_argument_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
+    try {
+        fn();
+    } catch (const std::invalid_argument& ex) {
+        if (std::string(ex.what()) == expected_message) {
+            return;
+        }
+        throw std::runtime_error(
+            failure_message + ": expected \"" + expected_message + "\", got \"" + ex.what() + "\""
+        );
+    }
+
+    throw std::runtime_error(failure_message + ": no std::invalid_argument thrown");
 }
 
 void test_empty_graph_reports_empty_collections() {
@@ -221,6 +240,17 @@ void test_integer_generators_still_work() {
     const auto complete = nxpp::complete_graph<nxpp::GraphInt>(4);
     expect(complete.num_vertices() == 4, "complete_graph should create the requested number of nodes");
     expect(complete.has_edge(0, 1), "complete_graph should connect distinct node IDs");
+    expect(complete.edges().size() == 6, "undirected complete_graph should create one edge per unordered pair");
+
+    const auto directed_complete = nxpp::complete_graph<nxpp::DiGraphInt>(4);
+    expect(directed_complete.num_vertices() == 4, "directed complete_graph should create the requested nodes");
+    expect(directed_complete.edges().size() == 12, "directed complete_graph should keep every ordered pair");
+
+    const auto multigraph_complete = nxpp::complete_graph<nxpp::MultiGraphInt>(4);
+    expect(multigraph_complete.num_vertices() == 4, "multigraph complete_graph should create the requested nodes");
+    expect(multigraph_complete.edges().size() == 6, "undirected multigraph complete_graph should not duplicate pairs");
+    expect(multigraph_complete.edge_ids(0, 1).size() == 1,
+           "undirected multigraph complete_graph should create one edge id per unordered pair");
 
     const auto path = nxpp::path_graph<nxpp::GraphInt>(4);
     expect(path.num_vertices() == 4, "path_graph should create the requested number of nodes");
@@ -228,7 +258,28 @@ void test_integer_generators_still_work() {
            "path_graph should link consecutive integer node IDs");
 
     const auto er = nxpp::erdos_renyi_graph<nxpp::GraphInt>(6, 0.5, 7);
-    expect(er.num_vertices() <= 6, "erdos_renyi_graph should stay within the requested integer ID range");
+    expect(er.num_vertices() == 6, "erdos_renyi_graph should create every requested node");
+}
+
+void test_erdos_renyi_zero_probability_preserves_isolated_nodes() {
+    const auto graph = nxpp::erdos_renyi_graph<nxpp::GraphInt>(6, 0.0, 7);
+
+    expect(graph.num_vertices() == 6, "erdos_renyi_graph(n, 0.0) should preserve isolated nodes");
+    expect(graph.edges().empty(), "erdos_renyi_graph(n, 0.0) should create no edges");
+}
+
+void test_traversal_tree_preserves_edge_weight_type() {
+    nxpp::Graph<int, int, true> graph;
+    graph.add_edge(1, 2, 7);
+    graph.add_edge(1, 3, 9);
+
+    auto bfs_tree = graph.bfs_tree(1);
+    auto dfs_tree = graph.dfs_tree(1);
+
+    static_assert(std::is_same_v<decltype(bfs_tree), nxpp::Graph<int, int, true>>);
+    static_assert(std::is_same_v<decltype(dfs_tree), nxpp::Graph<int, int, true>>);
+    expect(bfs_tree.has_edge(1, 2), "bfs_tree should still materialize traversal edges");
+    expect(dfs_tree.has_edge(1, 2), "dfs_tree should still materialize traversal edges");
 }
 
 void test_path_graph_zero_is_empty() {
@@ -236,6 +287,15 @@ void test_path_graph_zero_is_empty() {
 
     expect(path.num_vertices() == 0, "path_graph(0) should create no nodes");
     expect(path.edges().empty(), "path_graph(0) should create no edges");
+}
+
+void test_2sat_literal_zero_is_rejected() {
+    expect(nxpp::to_2sat_vertex_id(1) == 0, "positive 2-SAT literals should map to even vertex IDs");
+    expect(nxpp::to_2sat_vertex_id(-1) == 1, "negative 2-SAT literals should map to odd vertex IDs");
+    expect_invalid_argument_message(
+        [] { (void)nxpp::to_2sat_vertex_id(0); },
+        "Literal 0 is not valid in 2-SAT",
+        "literal 0 should be rejected by the public 2-SAT vertex helper");
 }
 
 void test_betweenness_centrality_basic() {
@@ -341,7 +401,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 11;
+    constexpr int total = 14;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
@@ -350,7 +410,10 @@ int main() {
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
+    passed += run_test("erdos_renyi_graph zero probability preserves isolated nodes", test_erdos_renyi_zero_probability_preserves_isolated_nodes) ? 1 : 0;
+    passed += run_test("traversal tree preserves edge weight type", test_traversal_tree_preserves_edge_weight_type) ? 1 : 0;
     passed += run_test("path_graph(0) is empty", test_path_graph_zero_is_empty) ? 1 : 0;
+    passed += run_test("2-SAT literal zero is rejected", test_2sat_literal_zero_is_rejected) ? 1 : 0;
     passed += run_test("implicit creation policy", test_implicit_creation_policy) ? 1 : 0;
     passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
     passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;

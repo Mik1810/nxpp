@@ -2,6 +2,50 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.10] - 2026-05-04
+
+- Closed `#109` by routing eager shortest-path reconstruction helpers through a guarded predecessor-chain helper that detects inconsistent predecessor cycles.
+- Preserved `O(V)` path reconstruction bounds without adding hash-based visited sets.
+
+## [1.3.9] - 2026-05-04
+
+- Closed `#107` by making `complete_graph(...)` generate each unordered node pair only once for undirected graphs, while preserving ordered-pair generation for directed graphs.
+- Added regression coverage for simple, directed, and multigraph complete-graph edge counts.
+
+## [1.3.8] - 2026-05-04
+
+- Closed `#114` by synchronizing the staged min-cost-flow cache used by `push_relabel_maximum_flow(...)` and `cycle_canceling(...)`, preventing different graph instances of the same type from racing on the shared cache container.
+- Added regression coverage for staged min-cost-flow state isolation between graph instances.
+
+## [1.3.7] - 2026-05-04
+
+- Closed `#113` by validating flow capacities as non-negative integral values representable as `long` instead of converting through `double` and truncating silently.
+- Added regression coverage for fractional and out-of-range capacity rejection.
+
+## [1.3.6] - 2026-05-04
+
+- Closed `#110` by making endpoint-based removal in undirected multigraphs erase every matching BGL edge, including parallel edges inserted through reversed endpoints.
+- Added regression coverage for `MultiGraph::remove_edge(u, v)` with mixed forward and reversed parallel edge insertions.
+
+## [1.3.5] - 2026-05-04
+
+- Closed `#112` by making `bfs_tree(...)` and `dfs_tree(...)` return `Graph<NodeID, EdgeWeight, Directed>` instead of hardcoding `double` as the tree edge-weight type.
+- Added compile-time regression coverage that traversal trees preserve a non-`double` source edge-weight type.
+
+## [1.3.4] - 2026-05-04
+
+- Closed `#108` by making `erdos_renyi_graph(n, p, seed)` pre-create node IDs `0..n-1`, so isolated nodes are preserved even when no sampled edges touch them.
+- Added regression coverage for `erdos_renyi_graph(n, 0.0)` returning all requested nodes and zero edges.
+
+## [1.3.3] - 2026-05-04
+
+- Closed `#106` by simplifying the duplicated missing-node branch in `Graph::node(...)` without changing its implicit node-creation behavior.
+
+## [1.3.2] - 2026-05-04
+
+- Closed `#111` by making `to_2sat_vertex_id(0)` throw `std::invalid_argument` instead of returning an invalid implication-graph vertex index.
+- Added regression coverage for valid 2-SAT literal mapping and explicit literal-zero rejection.
+
 ## [1.3.1] - 2026-04-29
 
 - Closed `#104` by making `path_graph(0)` return an empty graph instead of underflowing the unsigned loop bound.
