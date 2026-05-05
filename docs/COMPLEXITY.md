@@ -235,7 +235,7 @@ The final column classifies the comparison like this:
 | `bellman_ford_shortest_paths(source)` | `boost::bellman_ford_shortest_paths` | `O(nm)` | `O(nm)` | `yes` | Ordered `distance` / `predecessor` materialization is `O(n log n)`, which stays lower-order than the Bellman-Ford core. Path reconstruction is now on-demand through `path_to(target)`. |
 | `dag_shortest_paths(source)` | `boost::dag_shortest_paths` | `O(n + m)` | `O(n + m)` | `yes` | Ordered `distance` / `predecessor` materialization is `O(n log n)`, which stays lower-order than the DAG shortest-path core. Path reconstruction is now on-demand through `path_to(target)`. |
 | `floyd_warshall_all_pairs_shortest_paths()` | `boost::floyd_warshall_all_pairs_shortest_paths` | `O(n^3)` | `O(n^3)` | `yes` | The matrix view preserves the same dominant order. |
-| `floyd_warshall_all_pairs_shortest_paths_map()` | `boost::floyd_warshall_all_pairs_shortest_paths` | `O(n^3)` | `O(n^3)` | `yes` | Converting the matrix into nested ordered maps adds `O(n^2 log n)`, which is lower-order than `O(n^3)`. |
+| `floyd_warshall_all_pairs_shortest_paths_map()` | `boost::floyd_warshall_all_pairs_shortest_paths` | `O(n^3)` | `O(n^3)` | `yes` | The map view reuses the same sorted node order as the matrix path, then adds `O(n^2 log n)` nested ordered-map materialization, which is lower-order than `O(n^3)`. |
 
 ### Components and centrality
 

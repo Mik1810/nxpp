@@ -786,9 +786,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
-template <bool W>
-requires(W)
-auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::floyd_warshall_all_pairs_shortest_paths() const {
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::floyd_warshall_matrix_with_order() const {
     using CalcDistance = std::conditional_t<std::is_integral_v<EdgeWeight>, long long, EdgeWeight>;
     const size_t n = boost::num_vertices(g);
     const CalcDistance inf = std::numeric_limits<CalcDistance>::max() / 4;
@@ -818,6 +816,15 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     std::vector<std::vector<EdgeWeight>> matrix(n, std::vector<EdgeWeight>(n));
     for (size_t i = 0; i < n; ++i) for (size_t j = 0; j < n; ++j)
         matrix[i][j] = internal_matrix[order[i]][order[j]] == inf ? std::numeric_limits<EdgeWeight>::max() : static_cast<EdgeWeight>(internal_matrix[order[i]][order[j]]);
+    return std::pair{std::move(matrix), std::move(order)};
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+template <bool W>
+requires(W)
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::floyd_warshall_all_pairs_shortest_paths() const {
+    auto [matrix, order] = floyd_warshall_matrix_with_order();
+    (void)order;
     return matrix;
 }
 
@@ -825,13 +832,8 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::floyd_warshall_all_pairs_shortest_paths_map() const {
-    const size_t n = boost::num_vertices(g);
-    std::vector<size_t> order(n);
-    for (size_t i = 0; i < n; ++i) order[i] = i;
-    if constexpr (std::is_arithmetic_v<NodeID> || std::is_same_v<NodeID, std::string>) {
-        std::sort(order.begin(), order.end(), [&](size_t lhs, size_t rhs) { return bgl_to_id[lhs] < bgl_to_id[rhs]; });
-    }
-    const auto matrix = floyd_warshall_all_pairs_shortest_paths();
+    const auto [matrix, order] = floyd_warshall_matrix_with_order();
+    const size_t n = matrix.size();
     std::map<NodeID, std::map<NodeID, EdgeWeight>> result;
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {

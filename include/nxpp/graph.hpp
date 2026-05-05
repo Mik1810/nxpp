@@ -1956,6 +1956,8 @@ private:
             static_cast<const void*>(this)
         );
     }
+
+    auto floyd_warshall_matrix_with_order() const;
 };
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

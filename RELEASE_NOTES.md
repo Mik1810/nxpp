@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.16]
+
+### Highlights
+
+- Closed `#126` with a Floyd-Warshall wrapper efficiency cleanup.
+- The dense matrix API and nested map API now share one internal matrix/order
+  construction path, so the map wrapper no longer sorts the node order once and
+  then calls a second helper that sorts it again.
+- Added focused coverage that the matrix and map views remain aligned.
+
 ## [1.3.15]
 
 ### Highlights

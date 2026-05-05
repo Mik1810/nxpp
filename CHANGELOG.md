@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.16] - 2026-05-05
+
+- Closed `#126` by sharing Floyd-Warshall matrix and node-order construction between the dense matrix and nested map APIs, avoiding duplicate node sorting in the map wrapper.
+- Added regression coverage that the Floyd-Warshall matrix and map views stay aligned.
+
 ## [1.3.15] - 2026-05-05
 
 - Closed `#136` by sharing numeric `std::any` conversion across simple graph and multigraph attribute lookups.

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -70,6 +71,22 @@ void test_dijkstra_result_wrapper() {
     const std::vector<std::string> expected_path = {"Milan", "Florence", "Naples"};
     expect(result.path_to("Naples") == expected_path,
            "wrong on-demand path for Naples");
+}
+
+void test_floyd_warshall_matrix_and_map_match() {
+    nxpp::DiGraph graph;
+    graph.add_edge("B", "C", 2.0);
+    graph.add_edge("A", "B", 1.0);
+    graph.add_node("D");
+
+    const auto matrix = graph.floyd_warshall_all_pairs_shortest_paths();
+    const auto map = graph.floyd_warshall_all_pairs_shortest_paths_map();
+
+    expect(matrix.size() == 4, "Floyd-Warshall matrix should include every node");
+    expect(matrix[0][2] == 3.0, "Floyd-Warshall matrix should use stable sorted node order");
+    expect(map.at("A").at("C") == 3.0, "Floyd-Warshall map should match matrix distances");
+    expect(map.at("A").at("D") == std::numeric_limits<double>::max(),
+           "Floyd-Warshall map should keep unreachable pairs at numeric infinity");
 }
 
 void test_multigraph_edge_id_path() {
@@ -308,10 +325,11 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 14;
+    constexpr int total = 15;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
+    passed += run_test("Floyd-Warshall matrix and map match", test_floyd_warshall_matrix_and_map_match) ? 1 : 0;
     passed += run_test("multigraph edge_id path", test_multigraph_edge_id_path) ? 1 : 0;
     passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;
     passed += run_test("viz DOT weighted directed export", test_viz_dot_weighted_directed_export) ? 1 : 0;
