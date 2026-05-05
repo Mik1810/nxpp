@@ -444,8 +444,8 @@ Current direction:
 | `try_get_node_attr<T>` | `(u, key)` | `std::optional<T>` | Safe optional-return node attribute lookup. | `G.try_get_node_attr<int>(1, "rank")` |
 | `try_get_edge_attr<T>` | `(u, v, key)` | `std::optional<T>` | Safe optional-return edge attribute lookup. In multigraphs, this uses the same non-stable `(u, v)` resolution as `get_edge_attr<T>`. | `G.try_get_edge_attr<long>(0,1,"capacity")` |
 | `try_get_edge_attr<T>` | `(edge_id, key)` | `std::optional<T>` | Safe optional-return edge attribute lookup for one specific wrapper-tracked edge ID. | `G.try_get_edge_attr<long>(eid, "capacity")` |
-| `get_edge_numeric_attr` | `(u, v, key)` | `double` | Returns a numeric edge attribute or the built-in `"weight"` as `double`. In multigraphs, this follows the same non-stable `(u, v)` resolution path as the other edge lookup helpers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
-| `get_edge_numeric_attr` | `(edge_id, key)` | `double` | Returns a numeric edge attribute or built-in `"weight"` for one specific wrapper-tracked edge ID. | `G.get_edge_numeric_attr(eid, "capacity")` |
+| `get_edge_numeric_attr` | `(u, v, key)` | `double` | Returns a signed integer, unsigned integer, floating-point edge attribute, or the built-in `"weight"` as `double`. In multigraphs, this follows the same non-stable `(u, v)` resolution path as the other edge lookup helpers. | `G.get_edge_numeric_attr(0, 1, "capacity")` |
+| `get_edge_numeric_attr` | `(edge_id, key)` | `double` | Returns a signed integer, unsigned integer, floating-point edge attribute, or built-in `"weight"` for one specific wrapper-tracked edge ID. | `G.get_edge_numeric_attr(eid, "capacity")` |
 | `set_edge_attr<T>` | `(edge_id, key, value)` | `void` | Sets one attribute on a specific wrapper-tracked edge ID after validating that the edge ID still exists. | `G.set_edge_attr(eid, "capacity", 5L)` |
 | `set_edge_weight` | `(edge_id, weight)` | `void` | Sets the built-in weight on a specific wrapper-tracked edge ID. | `G.set_edge_weight(eid, 3.5)` |
 

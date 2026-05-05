@@ -154,12 +154,9 @@ double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Ver
         throw std::runtime_error("Edge attribute lookup failed: key not found.");
     }
 
-    const auto& value = attr_it->second;
-    if (const auto* vptr = std::any_cast<int>(&value)) return static_cast<double>(*vptr);
-    if (const auto* vptr = std::any_cast<long>(&value)) return static_cast<double>(*vptr);
-    if (const auto* vptr = std::any_cast<long long>(&value)) return static_cast<double>(*vptr);
-    if (const auto* vptr = std::any_cast<float>(&value)) return static_cast<double>(*vptr);
-    if (const auto* vptr = std::any_cast<double>(&value)) return *vptr;
+    if (auto numeric_value = detail::try_numeric_any_cast(attr_it->second)) {
+        return *numeric_value;
+    }
 
     throw std::runtime_error("Edge attribute lookup failed: stored value is not numeric.");
 }

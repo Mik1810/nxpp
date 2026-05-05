@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.15] - 2026-05-05
+
+- Closed `#136` by sharing numeric `std::any` conversion across simple graph and multigraph attribute lookups.
+- Added support for unsigned integer and `long double` edge attributes in `get_edge_numeric_attr(...)`, including `std::size_t` values through the platform unsigned integer type.
+
 ## [1.3.14] - 2026-05-05
 
 - Closed `#145` by documenting staged min-cost-flow cache thread-safety boundaries and the need for external synchronization when sharing a graph instance.

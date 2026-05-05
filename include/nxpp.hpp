@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nxpp/graph.hpp"
+#include "nxpp/numeric.hpp"
 #include "nxpp/attributes.hpp"
 #include "nxpp/multigraph.hpp"
 #include "nxpp/traversal.hpp"

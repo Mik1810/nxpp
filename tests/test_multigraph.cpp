@@ -187,6 +187,15 @@ void test_multigraph_attr_bearing_endpoint_adds_throw() {
     expect(threw, "unweighted multigraph add_edge(u, v, attrs) should throw and suggest edge_id path");
 }
 
+void test_numeric_edge_attrs_support_unsigned_edge_ids() {
+    nxpp::MultiDiGraph graph;
+    const auto edge_id = graph.add_edge_with_id("A", "B", 1.0);
+    graph.set_edge_attr(edge_id, "capacity", static_cast<std::size_t>(21));
+
+    expect(graph.get_edge_numeric_attr(edge_id, "capacity") == 21.0,
+           "edge-id numeric lookup should support unsigned attribute values");
+}
+
 bool run_test(const std::string& name, const std::function<void()>& fn) {
     try {
         fn();
@@ -201,7 +210,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 8;
+    constexpr int total = 9;
 
     passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
     passed += run_test("undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated) ? 1 : 0;
@@ -211,6 +220,7 @@ int main() {
     passed += run_test("undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges) ? 1 : 0;
     passed += run_test("edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal) ? 1 : 0;
     passed += run_test("multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw) ? 1 : 0;
+    passed += run_test("numeric edge attrs support unsigned edge IDs", test_numeric_edge_attrs_support_unsigned_edge_ids) ? 1 : 0;
 
     return passed == total ? 0 : 1;
 }

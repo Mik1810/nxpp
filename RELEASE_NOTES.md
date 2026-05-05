@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.15]
+
+### Highlights
+
+- Closed `#136` with a shared numeric `std::any` conversion helper for
+  edge-attribute numeric lookups.
+- `get_edge_numeric_attr(...)` now accepts unsigned integer attributes,
+  including `std::size_t` values via their underlying platform unsigned type,
+  on both endpoint and edge-id lookup paths.
+- Added focused coverage for signed, unsigned, floating-point, multigraph, and
+  unsupported edge-attribute values.
+
 ## [1.3.14]
 
 ### Highlights
