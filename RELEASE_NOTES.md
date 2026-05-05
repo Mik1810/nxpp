@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.12]
+
+### Highlights
+
+- Closed `#144` with a DOT serialization correctness fix.
+- Attribute values such as `+3` are now quoted because Graphviz DOT accepts a
+  leading `-` for numeric literals, but not a leading `+`.
+- Added focused regression coverage for plus-signed string weights.
+
 ## [1.3.11]
 
 ### Highlights

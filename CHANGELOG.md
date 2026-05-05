@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.12] - 2026-05-05
+
+- Closed `#144` by making DOT attribute serialization quote numeric-looking values with a leading plus sign, matching Graphviz DOT number syntax.
+- Added regression coverage for plus-signed string weights in DOT export.
+
 ## [1.3.11] - 2026-05-04
 
 - Closed `#120` by correcting the `connected_components()` inline documentation to describe its node-to-component-label map return value instead of a component count.

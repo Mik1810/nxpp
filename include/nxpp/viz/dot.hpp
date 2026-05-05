@@ -79,7 +79,10 @@ inline bool is_dot_number(const std::string& value) {
             has_digit = true;
             continue;
         }
-        if ((c == '+' || c == '-') && (i == 0 || value[i - 1] == 'e' || value[i - 1] == 'E')) {
+        if (c == '-' && i == 0) {
+            continue;
+        }
+        if ((c == '+' || c == '-') && i > 0 && (value[i - 1] == 'e' || value[i - 1] == 'E')) {
             continue;
         }
         if (c == '.' && !has_dot && !has_exponent) {

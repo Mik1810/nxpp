@@ -171,6 +171,16 @@ void test_viz_dot_quotes_string_weights() {
            "viz DOT should quote string weights that are not plain DOT identifiers");
 }
 
+void test_viz_dot_quotes_plus_signed_numbers() {
+    nxpp::Graph<std::string, std::string, true> graph;
+    graph.add_edge("A", "B", "+3");
+
+    const std::string dot = nxpp::viz::to_dot(graph);
+
+    expect(dot.find("\"A\" -> \"B\" [weight=\"+3\" label=\"+3\"]") != std::string::npos,
+           "viz DOT should quote plus-signed numeric-looking weights");
+}
+
 void test_viz_write_dot_file() {
     nxpp::DiGraphInt graph;
     graph.add_edge(1, 2, 4);
@@ -298,7 +308,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 13;
+    constexpr int total = 14;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
@@ -308,6 +318,7 @@ int main() {
     passed += run_test("viz DOT unweighted undirected export", test_viz_dot_unweighted_undirected_export) ? 1 : 0;
     passed += run_test("viz DOT multigraph edge IDs", test_viz_dot_multigraph_edge_ids) ? 1 : 0;
     passed += run_test("viz DOT quoted string weights", test_viz_dot_quotes_string_weights) ? 1 : 0;
+    passed += run_test("viz DOT quoted plus-signed numbers", test_viz_dot_quotes_plus_signed_numbers) ? 1 : 0;
     passed += run_test("viz write_dot file", test_viz_write_dot_file) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
     passed += run_test("subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph) ? 1 : 0;
