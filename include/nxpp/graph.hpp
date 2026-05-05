@@ -1853,7 +1853,7 @@ public:
      * flow assignment.
      */
     auto max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
-    /// Runs push-relabel and stages residual state for a later `cycle_canceling()` call. Any later graph mutation invalidates that staged state. The default `"weight"` still refers to the built-in edge-weight property.
+    /// Runs push-relabel and stages residual state for a later `cycle_canceling()` call. Any later graph mutation invalidates that staged state. Concurrent staged-flow use of the same graph instance requires external synchronization. The default `"weight"` still refers to the built-in edge-weight property.
     long push_relabel_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr = "capacity", const std::string& weight_attr = "weight") const;
     /**
      * @brief Runs cycle canceling on the previously cached residual network.
@@ -1861,6 +1861,8 @@ public:
      * Any graph mutation after `push_relabel_maximum_flow(...)` invalidates the
      * staged residual state, so callers must rerun the push-relabel stage
      * before calling this function again.
+     * Concurrent staged-flow use of the same graph instance requires external
+     * synchronization.
      *
      * @param weight_attr Name of the numeric edge attribute used as cost. The default `"weight"` refers to the built-in edge-weight property.
      * @return The total min-cost value after cycle canceling as `long`.

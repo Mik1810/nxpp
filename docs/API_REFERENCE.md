@@ -806,8 +806,10 @@ are rejected during flow-graph setup instead of being silently truncated.
 
 The staged min-cost-flow cache used by this path is synchronized internally, so
 different graph instances of the same type do not race on the cache container.
-The graph object itself still requires external synchronization for concurrent
-mutation or concurrent use of the same instance.
+This synchronization is not a general graph thread-safety guarantee. The graph
+object itself still requires external synchronization for concurrent mutation,
+and callers should serialize `push_relabel_maximum_flow(...)` /
+`cycle_canceling(...)` staged-flow sequences that operate on the same instance.
 
 ### One-shot min-cost max-flow wrappers
 

@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.14]
+
+### Highlights
+
+- Closed `#145` with explicit thread-safety documentation for the staged
+  min-cost-flow path.
+- The docs now clarify that the internal cache container is synchronized, but
+  sharing or mutating the same graph instance concurrently still requires
+  external synchronization.
+
 ## [1.3.13]
 
 ### Highlights

@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.14] - 2026-05-05
+
+- Closed `#145` by documenting staged min-cost-flow cache thread-safety boundaries and the need for external synchronization when sharing a graph instance.
+
 ## [1.3.13] - 2026-05-05
 
 - Closed `#140` by packaging the CMake config template in both Conan recipes, so the package contains the CMake integration source it exports.
