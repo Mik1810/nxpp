@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.13]
+
+### Highlights
+
+- Closed `#140` with a Conan packaging correctness fix.
+- The in-repository Conan recipe and the Conan Center staging recipe now copy
+  `cmake/nxppConfig.cmake.in` into the package `cmake/` directory instead of
+  exporting it from sources and then omitting it during packaging.
+
 ## [1.3.12]
 
 ### Highlights

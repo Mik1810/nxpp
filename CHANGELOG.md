@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.13] - 2026-05-05
+
+- Closed `#140` by packaging the CMake config template in both Conan recipes, so the package contains the CMake integration source it exports.
+
 ## [1.3.12] - 2026-05-05
 
 - Closed `#144` by making DOT attribute serialization quote numeric-looking values with a leading plus sign, matching Graphviz DOT number syntax.

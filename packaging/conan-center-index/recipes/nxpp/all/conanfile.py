@@ -44,6 +44,12 @@ class NxppConan(ConanFile):
             src=os.path.join(self.source_folder, "include"),
             dst=os.path.join(self.package_folder, "include"),
         )
+        copy(
+            self,
+            "*.cmake.in",
+            src=os.path.join(self.source_folder, "cmake"),
+            dst=os.path.join(self.package_folder, "cmake"),
+        )
 
     def package_info(self):
         self.cpp_info.bindirs = []

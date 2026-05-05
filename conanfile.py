@@ -1,10 +1,11 @@
 from conan import ConanFile
 from conan.tools.files import copy
+import os
 
 
 class NxppConan(ConanFile):
     name = "nxpp"
-    version = "1.3.12"
+    version = "1.3.13"
     package_type = "header-library"
     default_options = {"boost/*:header_only": True}
 
@@ -26,6 +27,12 @@ class NxppConan(ConanFile):
     def package(self):
         copy(self, "LICENSE", src=self.source_folder, dst=self.package_folder)
         copy(self, "*.hpp", src=self.source_folder, dst=self.package_folder)
+        copy(
+            self,
+            "*.cmake.in",
+            src=os.path.join(self.source_folder, "cmake"),
+            dst=os.path.join(self.package_folder, "cmake"),
+        )
 
     def package_info(self):
         self.cpp_info.bindirs = []
