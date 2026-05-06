@@ -2,7 +2,29 @@ name: External Consumers
 
 on:
   push:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "benchmark/**"
+      - "imgs/**"
+      - "**.md"
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "benchmark/**"
+      - "imgs/**"
+      - "**.md"
   workflow_dispatch:
 
 jobs:
