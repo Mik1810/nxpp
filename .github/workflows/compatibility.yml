@@ -38,16 +38,19 @@ jobs:
             label: ubuntu-gcc
             compiler: g++
             platform_family: unix
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
             platform_family: unix
+            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
             platform_family: unix
+            install_boost: brew install boost
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -Wno-unused-parameter -O0
           - os: windows-latest
             label: windows-msvc
@@ -60,46 +63,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph (Linux)
-        if: matrix.platform_family == 'unix' && runner.os == 'Linux'
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev libboost-all-dev
-          if [ "${{ matrix.label }}" = "ubuntu-clang" ]; then
-            sudo apt-get install -y clang
-          fi
-          echo "NXPP_BOOST_INCLUDE=-I/usr/include" >> "$GITHUB_ENV"
-
-      - name: Install Boost Graph (macOS)
-        if: matrix.platform_family == 'unix' && runner.os == 'macOS'
-        shell: bash
-        run: |
-          brew install boost
-          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
-
-      - name: Detect and log Boost version
+      - name: Install Boost Graph
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          echo "=== Boost version info ==="
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            dpkg -l | awk '/libboost/ {print; c++; if (c >= 10) exit}' || true
-            if [ -f "/usr/include/boost/version.hpp" ]; then
-              grep "BOOST_LIB_VERSION" /usr/include/boost/version.hpp || true
-            else
-              echo "version.hpp not found under /usr/include/boost"
-            fi
-          fi
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            boost_prefix="$(brew --prefix boost)"
-            echo "Boost prefix: $boost_prefix"
-            if [ -f "$boost_prefix/include/boost/version.hpp" ]; then
-              grep "BOOST_LIB_VERSION" "$boost_prefix/include/boost/version.hpp" || true
-            else
-              echo "version.hpp not found under $boost_prefix/include/boost"
-            fi
-          fi
+          ${{ matrix.install_boost }}
+
+      - name: Export macOS Boost include path
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
 
       - name: Cache Boost archive and extract
         if: matrix.platform_family == 'windows'
@@ -186,19 +160,6 @@ jobs:
               Add-Content -Path $env:GITHUB_ENV -Value $line
             }
           }
-
-      - name: Verify Windows Boost installation
-        if: matrix.platform_family == 'windows'
-        shell: bash
-        run: |
-          echo "=== Windows Boost 1.90.0 verification ==="
-          if [ -n "$BOOST_ROOT" ]; then
-            if [ -f "$BOOST_ROOT/boost/version.hpp" ]; then
-              echo "Boost headers found at: $BOOST_ROOT"
-              grep "BOOST_LIB_VERSION" "$BOOST_ROOT/boost/version.hpp" | head -2 || true
-            fi
-          fi
-          echo "BOOST_ROOT: ${BOOST_ROOT:-not set}"
 
       - name: Run test suite
         if: matrix.platform_family == 'unix'
