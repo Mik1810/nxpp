@@ -1,5 +1,10 @@
 # Session Log: nxpp Project MVP & Test Suite
 
+## Session Update: 2026-05-06
+
+- Closed `#129` by updating `.github/workflows/compatibility.yml` so compatibility runs download the latest Boost release from `archives.boost.io` on all runners and print the resolved Boost version in the job summary.
+- Updated `docs/README.md`, `REVIEW.md`, and `CHANGELOG.md` to document the new compatibility Boost policy and the resolved issue.
+
 ## Session Update: 2026-04-29
 
 - Started work on issue `#104` from `REVIEW.md`: `path_graph(0)` could underflow the `size_t` loop bound in `include/nxpp/generators.hpp`.

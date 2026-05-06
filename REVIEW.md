@@ -376,13 +376,13 @@ None of the workflows compile with `-fsanitize=address,undefined`. Given the use
 
 ---
 
-### 5.2 Boost version not pinned consistently across platforms
+### 5.2 Boost version now reported from the latest archive release
 
 **File:** `.github/workflows/compatibility.yml` ~line 62
 
-Windows CI downloads Boost 1.90.0 explicitly. Linux and macOS use whatever the package manager currently provides (typically 1.74–1.83 on Ubuntu 22.04). A build that passes on Windows could behave differently on Linux with a different Boost version and no clear signal in CI.
+Compatibility CI now downloads the latest Boost release from `archives.boost.io` on Linux, macOS, Windows, and the large-graph comparison lane. The resolved Boost version is also printed in the workflow summary, so each run makes the exact library version explicit.
 
-**Fix:** Download Boost from `archives.boost.io` at a pinned version on all platforms, or document the tested Boost version range in the workflow summary.
+**Status:** addressed in `.github/workflows/compatibility.yml`.
 
 ---
 

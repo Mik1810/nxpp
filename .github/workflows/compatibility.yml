@@ -166,7 +166,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "VsDevCmd.bat failed with exit code $LASTEXITCODE"
           }
-
           foreach ($line in $envDump) {
             if ($line -match '^(PATH|INCLUDE|LIB|LIBPATH|VCToolsInstallDir|VSINSTALLDIR)=(.*)$') {
               Add-Content -Path $env:GITHUB_ENV -Value $line

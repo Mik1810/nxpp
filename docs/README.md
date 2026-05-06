@@ -146,6 +146,10 @@ Current status:
 - the compatibility workflow now owns both the normal formal suite and the
   dedicated large-graph comparison lane, keeping them in one CI family while
   still separating the heavier large-graph job from the day-to-day fast suite
+- the compatibility workflow now downloads the latest Boost release from
+  `archives.boost.io` on every runner and prints the resolved Boost version in
+  the workflow summary, so CI exposes the exact library version used for each
+  compatibility run
 - an experimental wasm lane now exists with wasm-specific assets centralized
   under `wasm/`, while `.github/workflows/wasm-experimental.yml` remains the
   CI entrypoint required by GitHub Actions
