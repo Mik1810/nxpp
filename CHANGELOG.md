@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.28] - 2026-05-06
+
+- Closed `#139` by moving heavyweight incidental includes out of `include/nxpp/graph.hpp` and into the semantic sub-headers that actually use them.
+
 ## [1.3.27] - 2026-05-06
 
 - Closed `#131` by restricting `.github/workflows/wasm-experimental.yml` to `wasm/**` changes and the workflow file itself, so unrelated PRs no longer trigger the experimental WASM lane.

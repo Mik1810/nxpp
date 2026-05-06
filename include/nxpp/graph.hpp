@@ -17,7 +17,6 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/functional/hash.hpp>
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
@@ -31,15 +30,10 @@
 #include <cmath>
 #include <concepts>
 #include <utility>
-#include <iostream>
-#include <sstream>
 #include <any>
 #include <map>
-#include <random>
 #include <optional>
 #include <limits>
-#include <queue>
-#include <memory>
 #include <set>
 #include <initializer_list>
 

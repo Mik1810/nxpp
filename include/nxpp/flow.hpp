@@ -14,6 +14,8 @@
 #include <boost/graph/find_flow_cost.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 
+#include <memory>
+#include <queue>
 #include <mutex>
 #include <set>
 

@@ -511,9 +511,9 @@ Each deprecated free function is `return G.method_name();` with a `[[deprecated]
 
 **File:** `include/nxpp/graph.hpp` ~lines 24–44
 
-`<iostream>`, `<random>`, `<queue>`, `<sstream>`, `<any>`, `<memory>`, `<set>`, and `<initializer_list>` are all included at the top level of the core header. Every translation unit that uses any nxpp header pays the full transitive include cost, increasing compile times significantly for large projects.
+The core header no longer needs to pull in the heaviest incidental headers. The include cleanup for `#139` moved `<random>` to `generators.hpp`, `<queue>` to `flow.hpp`, `centrality.hpp`, and `shortest_paths.hpp`, and removed the unused `<boost/functional/hash.hpp>` dependency from the core header.
 
-**Fix:** Move heavy includes to the semantic sub-headers where they are first needed (e.g., `<random>` → `generators.hpp`, `<queue>` → `traversal.hpp`/`shortest_paths.hpp`). `<iostream>` can likely be removed from the graph core entirely.
+**Status:** addressed in `include/nxpp/graph.hpp` and the affected semantic sub-headers.
 
 ---
 
@@ -675,7 +675,7 @@ All 13 open issues were filed by the repository owner (Mik1810) on 2026-04-24. N
 | **Low** | 5.3 | No path filters on CI workflows — doc changes trigger full suite |
 | **Low** | 5.4 | WASM CI can block unrelated PRs — missing `continue-on-error: true` |
 | **Low** | 5.5 | Doxygen build doesn't run on PRs — breakage discovered post-merge |
-| **Low** | 7.1 | `graph.hpp` unconditionally includes heavyweight standard headers |
+| **Low** | 7.1 | `graph.hpp` heavyweight include cleanup addressed (#139) |
 | **Low** | 7.4 | `to_dot` ignores user-defined node/edge attributes |
 | **Low** | 7.5 | `DotLayout` enum defined but never used |
 | **Low** | 7.7 | No `CONTRIBUTING.md` (open issue #98) |

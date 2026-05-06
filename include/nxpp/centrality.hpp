@@ -10,6 +10,8 @@
 
 #include "graph.hpp"
 
+#include <queue>
+
 namespace nxpp {
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

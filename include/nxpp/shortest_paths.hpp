@@ -13,6 +13,8 @@
 #include <boost/graph/dag_shortest_paths.hpp>
 #include <boost/graph/floyd_warshall_shortest.hpp>
 
+#include <queue>
+
 #include "graph.hpp"
 
 namespace nxpp {

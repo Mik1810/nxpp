@@ -10,6 +10,8 @@
 
 #include "graph.hpp"
 
+#include <random>
+
 namespace nxpp {
 
 // Generators
