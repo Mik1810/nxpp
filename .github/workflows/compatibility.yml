@@ -172,7 +172,7 @@ jobs:
 
           boost_version="unknown"
           if [ -f "$boost_header" ]; then
-            raw_version="$(sed -n 's/^#define[[:space:]]\+BOOST_LIB_VERSION[[:space:]]\+"\([0-9_][0-9_]*\)".*/\1/p' "$boost_header" | head -n 1)"
+            raw_version="$(awk '$1 == "#define" && $2 == "BOOST_LIB_VERSION" { gsub(/"/, "", $3); print $3; exit }' "$boost_header")"
             if [ -n "$raw_version" ]; then
               boost_version="${raw_version//_/.}"
             fi
