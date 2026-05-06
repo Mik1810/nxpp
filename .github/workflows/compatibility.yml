@@ -38,19 +38,16 @@ jobs:
             label: ubuntu-gcc
             compiler: g++
             platform_family: unix
-            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
             platform_family: unix
-            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
             platform_family: unix
-            install_boost: brew install boost
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -Wno-unused-parameter -O0
           - os: windows-latest
             label: windows-msvc
@@ -63,17 +60,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph
+      - name: Install Boost 1.90.0
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          ${{ matrix.install_boost }}
+          set -e
+          BOOST_VERSION="1.90.0"
+          BOOST_DIR="${RUNNER_TEMP}/boost_${BOOST_VERSION//./_}"
+          BOOST_TAR="boost_${BOOST_VERSION//./_}.tar.gz"
+          BOOST_URL="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_TAR}"
 
-      - name: Export macOS Boost include path
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
+          # Download and extract if not cached
+          if [ ! -d "$BOOST_DIR/boost" ]; then
+            cd "$RUNNER_TEMP"
+            if [ ! -f "$BOOST_TAR" ]; then
+              echo "Downloading Boost $BOOST_VERSION..."
+              curl -L -o "$BOOST_TAR" "$BOOST_URL"
+            fi
+            echo "Extracting Boost..."
+            tar -xzf "$BOOST_TAR"
+          fi
+
+          # Set environment variables
+          echo "BOOST_ROOT=$BOOST_DIR" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_INCLUDE=-I${BOOST_DIR}/boost" >> "$GITHUB_ENV"
+          echo "Boost $BOOST_VERSION installed at $BOOST_DIR"
 
       - name: Cache Boost archive and extract
         if: matrix.platform_family == 'windows'
@@ -160,6 +171,19 @@ jobs:
               Add-Content -Path $env:GITHUB_ENV -Value $line
             }
           }
+
+      - name: Verify Boost version
+        shell: bash
+        run: |
+          if [ -n "$BOOST_ROOT" ]; then
+            BOOST_VERSION_FILE="$BOOST_ROOT/boost/version.hpp"
+            if [ -f "$BOOST_VERSION_FILE" ]; then
+              echo "Boost version.hpp found at: $BOOST_VERSION_FILE"
+              grep "BOOST_LIB_VERSION" "$BOOST_VERSION_FILE" | head -5 || true
+            fi
+          fi
+          echo "BOOST_ROOT: ${BOOST_ROOT:-not set}"
+          echo "NXPP_BOOST_INCLUDE: ${NXPP_BOOST_INCLUDE:-not set}"
 
       - name: Run test suite
         if: matrix.platform_family == 'unix'
