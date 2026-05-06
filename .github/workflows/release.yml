@@ -77,6 +77,10 @@ jobs:
         run: |
           bash scripts/unix/run_single_header_tests.sh
 
+      - name: Run large-graph comparison
+        run: |
+          bash scripts/unix/run_large_graph_compare.sh
+
       - name: Create and push release tag
         if: steps.version.outputs.should_create_tag == 'true'
         env:
@@ -134,5 +138,6 @@ jobs:
             echo "- Header build: \`bash scripts/unix/build_single_header.sh\`"
             echo "- Modular tests: \`bash scripts/unix/run_tests.sh\`"
             echo "- Header test suite: \`bash scripts/unix/run_single_header_tests.sh\`"
+            echo "- Large-graph comparison: \`bash scripts/unix/run_large_graph_compare.sh\`"
             echo "- Release asset: tested \`dist/nxpp.hpp\` published as \`nxpp.hpp\` when a new release is created"
           } >> "$GITHUB_STEP_SUMMARY"

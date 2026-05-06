@@ -4,6 +4,16 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.37] - 2026-05-06
+
+- Closed `#100` by adding a dedicated Linux/GCC ASan and UBSan workflow for the formal CMake test suite.
+- Kept sanitizer coverage separate from the compatibility matrix while using the same documentation-only path filters.
+
+## [1.3.36] - 2026-05-06
+
+- Closed `#133` by running the large-graph comparison script in the release workflow before tag creation or publication.
+- Kept existing release-skip semantics intact when the matching GitHub release already exists.
+
 ## [1.3.35] - 2026-05-06
 
 - Closed `#127` by extracting shared capacity and weighted flow-graph construction helpers in `flow.hpp`.

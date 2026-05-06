@@ -1,0 +1,121 @@
+name: Sanitizers
+
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "benchmark/**"
+      - "imgs/**"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "benchmark/**"
+      - "imgs/**"
+      - "**.md"
+  workflow_dispatch:
+
+jobs:
+  asan-ubsan:
+    name: ASan + UBSan (ubuntu-gcc)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download latest Boost headers
+        run: |
+          set -euo pipefail
+
+          boost_release_html="$(curl -fsSL https://archives.boost.io/release/)"
+          boost_version="$(printf '%s' "$boost_release_html" | python3 -c 'import re,sys; s=sys.stdin.read(); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")')"
+
+          if [ -z "$boost_version" ]; then
+            echo "Failed to detect latest Boost version from archives.boost.io" >&2
+            exit 1
+          fi
+
+          boost_tag="${boost_version//./_}"
+          boost_archive="boost_${boost_tag}.tar.gz"
+          boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+
+          if [ ! -d "$boost_root/boost" ]; then
+            curl -fsSL "$boost_url" -o "$RUNNER_TEMP/$boost_archive"
+            tar -xzf "$RUNNER_TEMP/$boost_archive" -C "$RUNNER_TEMP"
+          fi
+
+          echo "NXPP_BOOST_INCLUDE=$boost_root" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_VERSION=$boost_version" >> "$GITHUB_ENV"
+
+      - name: Configure with ASan and UBSan
+        run: |
+          cmake -S . -B build-san \
+            -DNXPP_BUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -I${NXPP_BOOST_INCLUDE}" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+
+      - name: Build
+        run: |
+          cmake --build build-san
+
+      - name: Run tests under sanitizers
+        id: sanitizer_tests
+        env:
+          ASAN_OPTIONS: halt_on_error=1:detect_leaks=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          set +e
+          ctest --test-dir build-san --output-on-failure | tee sanitizer-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Publish sanitizer summary
+        if: always()
+        env:
+          TEST_EXIT_CODE: ${{ steps.sanitizer_tests.outputs.exit_code }}
+        run: |
+          if [ "${TEST_EXIT_CODE:-1}" = "0" ]; then
+            status_word="SUCCESS"
+          else
+            status_word="FAILURE"
+          fi
+
+          if [ -f sanitizer-output.txt ]; then
+            perl -pe 's/\e\[[0-9;]*[A-Za-z]//g' sanitizer-output.txt > sanitizer-output-clean.txt
+          fi
+
+          {
+            echo "## Sanitizers"
+            echo
+            echo "- Runner: \`ubuntu-latest\`"
+            echo "- Compiler: \`g++\`"
+            echo "- Sanitizers: \`address,undefined\`"
+            echo "- Boost version: \`${NXPP_BOOST_VERSION:-unknown}\`"
+            echo "- Status: ${status_word}"
+            echo "- Command: \`ctest --test-dir build-san --output-on-failure\`"
+            if [ -f sanitizer-output-clean.txt ]; then
+              echo
+              echo "### Output"
+              echo
+              echo '```text'
+              cat sanitizer-output-clean.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -3,6 +3,27 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.37]
+
+### Highlights
+
+- Closed `#100` by adding a dedicated `Sanitizers` GitHub Actions workflow.
+- The new Linux/GCC lane builds the formal CMake test suite with AddressSanitizer
+  and UndefinedBehaviorSanitizer enabled, then runs it through CTest.
+- Sanitizer coverage stays separate from the compatibility matrix, with the same
+  documentation-only path filters used by existing CI.
+
+## [1.3.36]
+
+### Highlights
+
+- Closed `#133` by adding `bash scripts/unix/run_large_graph_compare.sh` to
+  the release workflow.
+- Release runs now execute the large-graph algorithm comparison before creating
+  a workflow-dispatch tag or publishing a GitHub release.
+- Existing release behavior is preserved: publication is still skipped when the
+  matching GitHub release already exists.
+
 ## [1.3.35]
 
 ### Highlights
