@@ -15,6 +15,20 @@
 
 namespace nxpp {
 
+namespace detail {
+
+template <typename NodeID, typename EdgeWeight, bool Directed, typename EdgeRange>
+Graph<NodeID, EdgeWeight, Directed> build_tree_from_edges(const NodeID& root, const EdgeRange& edges) {
+    Graph<NodeID, EdgeWeight, Directed> tree;
+    tree.add_node(root);
+    for (const auto& [u, v] : edges) {
+        tree.add_edge(u, v);
+    }
+    return tree;
+}
+
+} // namespace detail
+
 /**
  * @brief Minimal visitor interface for wrapper-level traversal callbacks.
  *
@@ -369,17 +383,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bfs_tree(const NodeID& start) const {
-    Graph<NodeID, EdgeWeight, Directed> tree;
-
     if (!has_node(start)) {
         throw std::runtime_error("Traversal failed: start node not found.");
     }
 
-    tree.add_node(start);
-    for (const auto& [u, v] : bfs_edges(start)) {
-        tree.add_edge(u, v);
-    }
-    return tree;
+    return detail::build_tree_from_edges<NodeID, EdgeWeight, Directed>(start, bfs_edges(start));
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -449,17 +457,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dfs_tree(const NodeID& start) const {
-    Graph<NodeID, EdgeWeight, Directed> tree;
-
     if (!has_node(start)) {
         throw std::runtime_error("Traversal failed: start node not found.");
     }
 
-    tree.add_node(start);
-    for (const auto& [u, v] : dfs_edges(start)) {
-        tree.add_edge(u, v);
-    }
-    return tree;
+    return detail::build_tree_from_edges<NodeID, EdgeWeight, Directed>(start, dfs_edges(start));
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

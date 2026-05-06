@@ -3,6 +3,15 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.33]
+
+### Highlights
+
+- Closed `#137` by factoring the duplicated `bfs_tree(...)` and
+  `dfs_tree(...)` tree-construction loop into a shared traversal helper.
+- Traversal-tree behavior, returned graph type, and `O(n + m)` complexity remain
+  unchanged.
+
 ## [1.3.32]
 
 ### Highlights

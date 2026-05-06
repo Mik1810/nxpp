@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.33] - 2026-05-06
+
+- Closed `#137` by factoring the shared `bfs_tree(...)` and `dfs_tree(...)` tree-construction loop into a common traversal helper.
+- Preserved the existing traversal validation, returned graph type, and `O(n + m)` construction behavior.
+
 ## [1.3.32] - 2026-05-06
 
 - Closed `#134` by assigning a 30-second CTest timeout to each configured test target.
