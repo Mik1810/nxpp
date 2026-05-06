@@ -66,25 +66,35 @@ jobs:
         run: |
           set -e
           BOOST_VERSION="1.90.0"
-          BOOST_DIR="${RUNNER_TEMP}/boost_${BOOST_VERSION//./_}"
-          BOOST_TAR="boost_${BOOST_VERSION//./_}.tar.gz"
-          BOOST_URL="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_TAR}"
+          BOOST_ARCHIVE_NAME="boost_${BOOST_VERSION//./_}"
+          BOOST_DIR="${RUNNER_TEMP}/${BOOST_ARCHIVE_NAME}"
+          BOOST_TAR="${RUNNER_TEMP}/${BOOST_ARCHIVE_NAME}.tar.gz"
+          BOOST_URL="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_ARCHIVE_NAME}.tar.gz"
 
-          # Download and extract if not cached
+          # Download if not present
+          if [ ! -f "$BOOST_TAR" ]; then
+            echo "Downloading Boost $BOOST_VERSION from $BOOST_URL..."
+            curl -L -o "$BOOST_TAR" "$BOOST_URL"
+          fi
+
+          # Extract if not already done
           if [ ! -d "$BOOST_DIR/boost" ]; then
+            echo "Extracting Boost to $RUNNER_TEMP..."
             cd "$RUNNER_TEMP"
-            if [ ! -f "$BOOST_TAR" ]; then
-              echo "Downloading Boost $BOOST_VERSION..."
-              curl -L -o "$BOOST_TAR" "$BOOST_URL"
-            fi
-            echo "Extracting Boost..."
             tar -xzf "$BOOST_TAR"
+          fi
+
+          # Verify extraction
+          if [ ! -d "$BOOST_DIR/boost" ]; then
+            echo "ERROR: Boost headers not found at $BOOST_DIR/boost"
+            ls -la "$RUNNER_TEMP" | head -20
+            exit 1
           fi
 
           # Set environment variables
           echo "BOOST_ROOT=$BOOST_DIR" >> "$GITHUB_ENV"
-          echo "NXPP_BOOST_INCLUDE=-I${BOOST_DIR}/boost" >> "$GITHUB_ENV"
-          echo "Boost $BOOST_VERSION installed at $BOOST_DIR"
+          echo "NXPP_EXTRA_INCLUDE=$BOOST_DIR" >> "$GITHUB_ENV"
+          echo "Boost $BOOST_VERSION successfully installed at $BOOST_DIR"
 
       - name: Cache Boost archive and extract
         if: matrix.platform_family == 'windows'
