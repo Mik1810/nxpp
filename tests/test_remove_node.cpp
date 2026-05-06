@@ -11,26 +11,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
-
-template <typename Fn>
-void expect_throws(Fn&& fn, const std::string& message) {
-    try {
-        fn();
-    } catch (const std::runtime_error&) {
-        return;
-    }
-
-    throw std::runtime_error(message);
-}
+using namespace nxpp::test;
 
 void test_remove_middle_node_updates_nodes_and_edges() {
     nxpp::DiGraph graph;
@@ -124,27 +107,12 @@ void test_remove_node_in_multigraph_cleans_incident_edge_ids_only() {
            "remaining multigraph edge ids should still resolve to the right endpoints");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 5;
-
-    passed += run_test("remove middle node updates nodes and edges", test_remove_middle_node_updates_nodes_and_edges) ? 1 : 0;
-    passed += run_test("remove_node cleans node and incident edge attributes", test_remove_node_cleans_node_and_incident_edge_attributes) ? 1 : 0;
-    passed += run_test("algorithms still work after descriptor remap", test_algorithms_still_work_after_descriptor_remap) ? 1 : 0;
-    passed += run_test("remove_node updates component views", test_remove_node_updates_component_views) ? 1 : 0;
-    passed += run_test("remove_node in multigraph cleans incident edge ids only", test_remove_node_in_multigraph_cleans_incident_edge_ids_only) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"remove middle node updates nodes and edges", test_remove_middle_node_updates_nodes_and_edges},
+        {"remove_node cleans node and incident edge attributes", test_remove_node_cleans_node_and_incident_edge_attributes},
+        {"algorithms still work after descriptor remap", test_algorithms_still_work_after_descriptor_remap},
+        {"remove_node updates component views", test_remove_node_updates_component_views},
+        {"remove_node in multigraph cleans incident edge ids only", test_remove_node_in_multigraph_cleans_incident_edge_ids_only},
+    });
 }

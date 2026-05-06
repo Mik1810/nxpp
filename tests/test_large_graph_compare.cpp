@@ -39,15 +39,9 @@
 #include "include/nxpp/flow.hpp"
 #endif
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
+using namespace nxpp::test;
 
 using RawUndirectedGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using RawDirectedGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS>;
@@ -1759,39 +1753,24 @@ void test_large_successive_shortest_path_matches_raw_boost() {
            "large SSP cost should match raw Boost");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 17;
-
-    passed += run_test("large BFS matches raw Boost", test_large_bfs_matches_raw_boost) ? 1 : 0;
-    passed += run_test("large DFS tree matches raw Boost", test_large_dfs_tree_matches_raw_boost) ? 1 : 0;
-    passed += run_test("large connected components match raw Boost", test_large_connected_components_match_raw_boost) ? 1 : 0;
-    passed += run_test("large strongly connected components match raw Boost", test_large_strongly_connected_components_match_raw_boost) ? 1 : 0;
-    passed += run_test("large Dijkstra distances match raw Boost", test_large_dijkstra_distances_match_raw_boost) ? 1 : 0;
-    passed += run_test("large Bellman-Ford distances match raw Boost", test_large_bellman_ford_distances_match_raw_boost) ? 1 : 0;
-    passed += run_test("large DAG shortest paths match raw Boost", test_large_dag_shortest_paths_match_raw_boost) ? 1 : 0;
-    passed += run_test("negative cycle detection matches raw Boost", test_negative_cycle_detection_matches_raw_boost) ? 1 : 0;
-    passed += run_test("large remove_node state stays aligned with raw Boost", test_large_remove_node_state_stays_aligned_with_raw_boost) ? 1 : 0;
-    passed += run_test("large custom-selector Dijkstra and remove_node match raw Boost", test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost) ? 1 : 0;
-    passed += run_test("large custom outedge-selector Dijkstra and remove_node match raw Boost", test_large_custom_outedge_selector_dijkstra_and_remove_node_match_raw_boost) ? 1 : 0;
-    passed += run_test("large multigraph mutations stay aligned with raw Boost", test_large_multigraph_mutations_stay_aligned_with_raw_boost) ? 1 : 0;
-    passed += run_test("large attribute state survives repeated mutations", test_large_attribute_state_survives_repeated_mutations) ? 1 : 0;
-    passed += run_test("large combined weighted mutation sequence matches raw Boost", test_large_combined_weighted_mutation_sequence_matches_raw_boost) ? 1 : 0;
-    passed += run_test("large Floyd-Warshall all-pairs matches raw Boost", test_large_floyd_warshall_all_pairs_matches_raw_boost) ? 1 : 0;
-    passed += run_test("large max flow and min cut match raw Boost", test_large_max_flow_and_min_cut_match_raw_boost) ? 1 : 0;
-    passed += run_test("large successive shortest path matches raw Boost", test_large_successive_shortest_path_matches_raw_boost) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"large BFS matches raw Boost", test_large_bfs_matches_raw_boost},
+        {"large DFS tree matches raw Boost", test_large_dfs_tree_matches_raw_boost},
+        {"large connected components match raw Boost", test_large_connected_components_match_raw_boost},
+        {"large strongly connected components match raw Boost", test_large_strongly_connected_components_match_raw_boost},
+        {"large Dijkstra distances match raw Boost", test_large_dijkstra_distances_match_raw_boost},
+        {"large Bellman-Ford distances match raw Boost", test_large_bellman_ford_distances_match_raw_boost},
+        {"large DAG shortest paths match raw Boost", test_large_dag_shortest_paths_match_raw_boost},
+        {"negative cycle detection matches raw Boost", test_negative_cycle_detection_matches_raw_boost},
+        {"large remove_node state stays aligned with raw Boost", test_large_remove_node_state_stays_aligned_with_raw_boost},
+        {"large custom-selector Dijkstra and remove_node match raw Boost", test_large_custom_selector_dijkstra_and_remove_node_match_raw_boost},
+        {"large custom outedge-selector Dijkstra and remove_node match raw Boost", test_large_custom_outedge_selector_dijkstra_and_remove_node_match_raw_boost},
+        {"large multigraph mutations stay aligned with raw Boost", test_large_multigraph_mutations_stay_aligned_with_raw_boost},
+        {"large attribute state survives repeated mutations", test_large_attribute_state_survives_repeated_mutations},
+        {"large combined weighted mutation sequence matches raw Boost", test_large_combined_weighted_mutation_sequence_matches_raw_boost},
+        {"large Floyd-Warshall all-pairs matches raw Boost", test_large_floyd_warshall_all_pairs_matches_raw_boost},
+        {"large max flow and min cut match raw Boost", test_large_max_flow_and_min_cut_match_raw_boost},
+        {"large successive shortest path matches raw Boost", test_large_successive_shortest_path_matches_raw_boost},
+    });
 }

@@ -10,15 +10,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
+using namespace nxpp::test;
 
 void expect_near(double actual, double expected, double tolerance, const std::string& message) {
     if (std::abs(actual - expected) > tolerance) {
@@ -72,25 +66,10 @@ void test_betweenness_centrality_path_graph() {
     expect_near(bc.at("B"), bc.at("C"), 1e-9, "symmetric interior nodes should have equal betweenness");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 3;
-
-    passed += run_test("degree_centrality path graph", test_degree_centrality_path_graph) ? 1 : 0;
-    passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
-    passed += run_test("betweenness_centrality path graph", test_betweenness_centrality_path_graph) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"degree_centrality path graph", test_degree_centrality_path_graph},
+        {"pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking},
+        {"betweenness_centrality path graph", test_betweenness_centrality_path_graph},
+    });
 }

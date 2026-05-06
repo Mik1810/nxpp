@@ -11,15 +11,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
+using namespace nxpp::test;
 
 void test_parallel_edges_get_distinct_ids() {
     nxpp::MultiDiGraph graph;
@@ -209,32 +203,17 @@ void test_numeric_edge_attrs_support_unsigned_edge_ids() {
            "edge-id numeric lookup should support unsigned attribute values");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 10;
-
-    passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
-    passed += run_test("undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated) ? 1 : 0;
-    passed += run_test("parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes) ? 1 : 0;
-    passed += run_test("remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise) ? 1 : 0;
-    passed += run_test("remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges) ? 1 : 0;
-    passed += run_test("undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges) ? 1 : 0;
-    passed += run_test("edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal) ? 1 : 0;
-    passed += run_test("num_edges counts parallel edges", test_num_edges_counts_parallel_edges) ? 1 : 0;
-    passed += run_test("multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw) ? 1 : 0;
-    passed += run_test("numeric edge attrs support unsigned edge IDs", test_numeric_edge_attrs_support_unsigned_edge_ids) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"parallel edges get distinct ids", test_parallel_edges_get_distinct_ids},
+        {"undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated},
+        {"parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes},
+        {"remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise},
+        {"remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges},
+        {"undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges},
+        {"edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal},
+        {"num_edges counts parallel edges", test_num_edges_counts_parallel_edges},
+        {"multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw},
+        {"numeric edge attrs support unsigned edge IDs", test_numeric_edge_attrs_support_unsigned_edge_ids},
+    });
 }

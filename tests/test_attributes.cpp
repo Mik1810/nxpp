@@ -9,26 +9,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
-
-template <typename Fn>
-void expect_throws(Fn&& fn, const std::string& message) {
-    try {
-        fn();
-    } catch (const std::runtime_error&) {
-        return;
-    }
-
-    throw std::runtime_error(message);
-}
+using namespace nxpp::test;
 
 void test_missing_node_attr_throws() {
     nxpp::DiGraph graph;
@@ -115,28 +98,13 @@ void test_numeric_edge_attrs_support_common_arithmetic_types() {
            "numeric edge lookup should support long double");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 6;
-
-    passed += run_test("missing node attr throws", test_missing_node_attr_throws) ? 1 : 0;
-    passed += run_test("missing edge attr throws", test_missing_edge_attr_throws) ? 1 : 0;
-    passed += run_test("attribute type mismatch throws", test_type_mismatch_throws) ? 1 : 0;
-    passed += run_test("try_get returns empty for missing or mismatch", test_try_get_returns_empty_for_missing_or_mismatch) ? 1 : 0;
-    passed += run_test("non-numeric edge attr throws in numeric lookup", test_non_numeric_edge_attr_throws_in_numeric_lookup) ? 1 : 0;
-    passed += run_test("numeric edge attrs support common arithmetic types", test_numeric_edge_attrs_support_common_arithmetic_types) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"missing node attr throws", test_missing_node_attr_throws},
+        {"missing edge attr throws", test_missing_edge_attr_throws},
+        {"attribute type mismatch throws", test_type_mismatch_throws},
+        {"try_get returns empty for missing or mismatch", test_try_get_returns_empty_for_missing_or_mismatch},
+        {"non-numeric edge attr throws in numeric lookup", test_non_numeric_edge_attr_throws_in_numeric_lookup},
+        {"numeric edge attrs support common arithmetic types", test_numeric_edge_attrs_support_common_arithmetic_types},
+    });
 }

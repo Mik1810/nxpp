@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.34]
+
+### Highlights
+
+- Closed `#135` by moving duplicated C++ test helpers into a private
+  `tests/test_helpers.hpp` header.
+- Test files now define their cases as lists and let the shared runner compute
+  totals automatically, removing manually synchronized `constexpr total`
+  counters.
+- This is test infrastructure only and does not change library API, runtime
+  behavior, or algorithmic complexity.
+
 ## [1.3.33]
 
 ### Highlights

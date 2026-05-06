@@ -15,15 +15,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
+using namespace nxpp::test;
 
 std::size_t count_occurrences(const std::string& text, const std::string& needle) {
     std::size_t count = 0;
@@ -406,42 +400,27 @@ void test_subgraph_preserves_multigraph_parallel_edges() {
            "moved multigraph subgraph should keep edge ID maps bound to itself");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 20;
-
-    passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
-    passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
-    passed += run_test("num_edges counts current edges", test_num_edges_counts_current_edges) ? 1 : 0;
-    passed += run_test("Floyd-Warshall matrix and map match", test_floyd_warshall_matrix_and_map_match) ? 1 : 0;
-    passed += run_test("multigraph edge_id path", test_multigraph_edge_id_path) ? 1 : 0;
-    passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;
-    passed += run_test("viz DOT weighted directed export", test_viz_dot_weighted_directed_export) ? 1 : 0;
-    passed += run_test("viz DOT unweighted undirected export", test_viz_dot_unweighted_undirected_export) ? 1 : 0;
-    passed += run_test("viz DOT multigraph edge IDs", test_viz_dot_multigraph_edge_ids) ? 1 : 0;
-    passed += run_test("viz DOT quoted string weights", test_viz_dot_quotes_string_weights) ? 1 : 0;
-    passed += run_test("viz DOT quoted plus-signed numbers", test_viz_dot_quotes_plus_signed_numbers) ? 1 : 0;
-    passed += run_test("viz DOT layout option", test_viz_dot_layout_option) ? 1 : 0;
-    passed += run_test("viz DOT user attrs option", test_viz_dot_user_attrs_option) ? 1 : 0;
-    passed += run_test("viz write_dot file", test_viz_write_dot_file) ? 1 : 0;
-    passed += run_test("Prim MST root self-entry", test_prim_mst_root_self_entry) ? 1 : 0;
-    passed += run_test("lookup_map operator missing key throws", test_lookup_map_operator_missing_key_throws) ? 1 : 0;
-    passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
-    passed += run_test("subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph) ? 1 : 0;
-    passed += run_test("subgraph initializer list and missing node", test_subgraph_initializer_list_and_missing_node) ? 1 : 0;
-    passed += run_test("subgraph preserves multigraph parallel edges", test_subgraph_preserves_multigraph_parallel_edges) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"string attributes and normalization", test_string_attributes_and_normalization},
+        {"dijkstra result wrapper", test_dijkstra_result_wrapper},
+        {"num_edges counts current edges", test_num_edges_counts_current_edges},
+        {"Floyd-Warshall matrix and map match", test_floyd_warshall_matrix_and_map_match},
+        {"multigraph edge_id path", test_multigraph_edge_id_path},
+        {"multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup},
+        {"viz DOT weighted directed export", test_viz_dot_weighted_directed_export},
+        {"viz DOT unweighted undirected export", test_viz_dot_unweighted_undirected_export},
+        {"viz DOT multigraph edge IDs", test_viz_dot_multigraph_edge_ids},
+        {"viz DOT quoted string weights", test_viz_dot_quotes_string_weights},
+        {"viz DOT quoted plus-signed numbers", test_viz_dot_quotes_plus_signed_numbers},
+        {"viz DOT layout option", test_viz_dot_layout_option},
+        {"viz DOT user attrs option", test_viz_dot_user_attrs_option},
+        {"viz write_dot file", test_viz_write_dot_file},
+        {"Prim MST root self-entry", test_prim_mst_root_self_entry},
+        {"lookup_map operator missing key throws", test_lookup_map_operator_missing_key_throws},
+        {"proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings},
+        {"subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph},
+        {"subgraph initializer list and missing node", test_subgraph_initializer_list_and_missing_node},
+        {"subgraph preserves multigraph parallel edges", test_subgraph_preserves_multigraph_parallel_edges},
+    });
 }

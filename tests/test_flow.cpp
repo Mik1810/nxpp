@@ -11,42 +11,9 @@
 
 #include NXPP_HEADER_UNDER_TEST
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
-
-template <typename Fn>
-void expect_throws(Fn&& fn, const std::string& message) {
-    try {
-        fn();
-    } catch (const std::runtime_error&) {
-        return;
-    }
-
-    throw std::runtime_error(message);
-}
-
-template <typename Fn>
-void expect_runtime_error_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
-    try {
-        fn();
-    } catch (const std::runtime_error& ex) {
-        if (std::string(ex.what()) == expected_message) {
-            return;
-        }
-        throw std::runtime_error(
-            failure_message + ": expected \"" + expected_message + "\", got \"" + ex.what() + "\""
-        );
-    }
-
-    throw std::runtime_error(failure_message + ": no std::runtime_error thrown");
-}
+using namespace nxpp::test;
 
 nxpp::UnweightedDiGraphInt make_max_flow_graph() {
     nxpp::UnweightedDiGraphInt graph;
@@ -286,35 +253,20 @@ void test_multigraph_min_cost_flow_results_keep_precise_edge_ids() {
            "SSP result should also expose a precise edge-id keyed flow view");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 13;
-
-    passed += run_test("cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state) ? 1 : 0;
-    passed += run_test("cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation) ? 1 : 0;
-    passed += run_test("staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances) ? 1 : 0;
-    passed += run_test("maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case) ? 1 : 0;
-    passed += run_test("minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition) ? 1 : 0;
-    passed += run_test("push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost) ? 1 : 0;
-    passed += run_test("successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost) ? 1 : 0;
-    passed += run_test("min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers) ? 1 : 0;
-    passed += run_test("fractional flow capacity is rejected", test_fractional_flow_capacity_is_rejected) ? 1 : 0;
-    passed += run_test("out-of-range flow capacity is rejected", test_out_of_range_flow_capacity_is_rejected) ? 1 : 0;
-    passed += run_test("multigraph flow results keep precise edge ids", test_multigraph_flow_results_keep_precise_edge_ids) ? 1 : 0;
-    passed += run_test("minimum_cut multigraph uses precise parallel capacities", test_minimum_cut_multigraph_uses_precise_parallel_capacities) ? 1 : 0;
-    passed += run_test("multigraph min-cost flow results keep precise edge ids", test_multigraph_min_cost_flow_results_keep_precise_edge_ids) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state},
+        {"cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation},
+        {"staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances},
+        {"maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case},
+        {"minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition},
+        {"push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost},
+        {"successive_shortest_path matches reference flow and cost", test_successive_shortest_path_matches_reference_flow_and_cost},
+        {"min-cost aliases match specialized wrappers", test_min_cost_aliases_match_specialized_wrappers},
+        {"fractional flow capacity is rejected", test_fractional_flow_capacity_is_rejected},
+        {"out-of-range flow capacity is rejected", test_out_of_range_flow_capacity_is_rejected},
+        {"multigraph flow results keep precise edge ids", test_multigraph_flow_results_keep_precise_edge_ids},
+        {"minimum_cut multigraph uses precise parallel capacities", test_minimum_cut_multigraph_uses_precise_parallel_capacities},
+        {"multigraph min-cost flow results keep precise edge ids", test_multigraph_min_cost_flow_results_keep_precise_edge_ids},
+    });
 }

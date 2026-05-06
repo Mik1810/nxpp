@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.34] - 2026-05-06
+
+- Closed `#135` by extracting duplicated C++ test helper infrastructure into `tests/test_helpers.hpp`.
+- Replaced manually maintained per-file test totals with automatic counts derived from each file's test-case list.
+
 ## [1.3.33] - 2026-05-06
 
 - Closed `#137` by factoring the shared `bfs_tree(...)` and `dfs_tree(...)` tree-construction loop into a common traversal helper.

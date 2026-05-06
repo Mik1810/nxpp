@@ -22,42 +22,9 @@
 #include "include/nxpp/sat.hpp"
 #endif
 
-constexpr const char* green = "\033[32m";
-constexpr const char* red = "\033[31m";
-constexpr const char* reset = "\033[0m";
+#include "test_helpers.hpp"
 
-void expect(bool condition, const std::string& message) {
-    if (!condition) {
-        throw std::runtime_error(message);
-    }
-}
-
-template <typename Fn>
-void expect_throws(Fn&& fn, const std::string& message) {
-    try {
-        fn();
-    } catch (const std::runtime_error&) {
-        return;
-    }
-
-    throw std::runtime_error(message);
-}
-
-template <typename Fn>
-void expect_runtime_error_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
-    try {
-        fn();
-    } catch (const std::runtime_error& ex) {
-        if (std::string(ex.what()) == expected_message) {
-            return;
-        }
-        throw std::runtime_error(
-            failure_message + ": expected \"" + expected_message + "\", got \"" + ex.what() + "\""
-        );
-    }
-
-    throw std::runtime_error(failure_message + ": no std::runtime_error thrown");
-}
+using namespace nxpp::test;
 
 template <typename Fn>
 void expect_invalid_argument_message(Fn&& fn, const std::string& expected_message, const std::string& failure_message) {
@@ -446,38 +413,23 @@ void test_pagerank_returns_normalized_ranking() {
            "pagerank should rank an internally linked node above a sink-only leaf");
 }
 
-bool run_test(const std::string& name, const std::function<void()>& fn) {
-    try {
-        fn();
-        std::cout << "[TEST] " << name << " | " << green << "PASS" << reset << "\n";
-        return true;
-    } catch (const std::exception& ex) {
-        std::cout << "[TEST] " << name << " | " << red << "FAIL" << reset
-                  << " (" << ex.what() << ")\n";
-        return false;
-    }
-}
-
 int main() {
-    int passed = 0;
-    constexpr int total = 16;
-
-    passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
-    passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
-    passed += run_test("missing node operations throw", test_missing_node_operations_throw) ? 1 : 0;
-    passed += run_test("disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state) ? 1 : 0;
-    passed += run_test("shortest path WeightMode options", test_shortest_path_weight_mode_options) ? 1 : 0;
-    passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
-    passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
-    passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
-    passed += run_test("erdos_renyi_graph zero probability preserves isolated nodes", test_erdos_renyi_zero_probability_preserves_isolated_nodes) ? 1 : 0;
-    passed += run_test("traversal tree preserves edge weight type", test_traversal_tree_preserves_edge_weight_type) ? 1 : 0;
-    passed += run_test("path_graph(0) is empty", test_path_graph_zero_is_empty) ? 1 : 0;
-    passed += run_test("2-SAT literal zero is rejected", test_2sat_literal_zero_is_rejected) ? 1 : 0;
-    passed += run_test("implicit creation policy", test_implicit_creation_policy) ? 1 : 0;
-    passed += run_test("const operator lookup does not create nodes", test_const_operator_lookup_does_not_create_nodes) ? 1 : 0;
-    passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
-    passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;
-
-    return passed == total ? 0 : 1;
+    return run_tests({
+        {"empty graph reports empty collections", test_empty_graph_reports_empty_collections},
+        {"singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges},
+        {"missing node operations throw", test_missing_node_operations_throw},
+        {"disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state},
+        {"shortest path WeightMode options", test_shortest_path_weight_mode_options},
+        {"disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly},
+        {"ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support},
+        {"integer generators still work", test_integer_generators_still_work},
+        {"erdos_renyi_graph zero probability preserves isolated nodes", test_erdos_renyi_zero_probability_preserves_isolated_nodes},
+        {"traversal tree preserves edge weight type", test_traversal_tree_preserves_edge_weight_type},
+        {"path_graph(0) is empty", test_path_graph_zero_is_empty},
+        {"2-SAT literal zero is rejected", test_2sat_literal_zero_is_rejected},
+        {"implicit creation policy", test_implicit_creation_policy},
+        {"const operator lookup does not create nodes", test_const_operator_lookup_does_not_create_nodes},
+        {"pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking},
+        {"betweenness_centrality basic", test_betweenness_centrality_basic},
+    });
 }
