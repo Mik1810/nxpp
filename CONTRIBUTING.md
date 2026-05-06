@@ -4,7 +4,7 @@
 
 - CMake 3.16 or newer
 - A C++20-capable compiler
-- Boost Graph Library headers
+- Boost Graph Library headers (>=1.86.0)
 
 The repository is header-only, but the formal checks build small test binaries
 through CMake.
