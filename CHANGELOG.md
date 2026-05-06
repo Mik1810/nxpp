@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.29] - 2026-05-06
+
+- Closed `#138` by documenting the deprecated free-function wrappers as intentional compatibility shims instead of introducing a macro layer.
+
 ## [1.3.28] - 2026-05-06
 
 - Closed `#139` by moving heavyweight incidental includes out of `include/nxpp/graph.hpp` and into the semantic sub-headers that actually use them.

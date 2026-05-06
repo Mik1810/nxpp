@@ -495,13 +495,13 @@ Both functions: call the corresponding `_edges()` method, add the root node to a
 
 ---
 
-### 6.5 Deprecated free-function wrappers are 50+ identical one-liners
+### 6.5 Deprecated free-function wrappers are intentionally explicit
 
 **Files:** `include/nxpp/components.hpp`, `traversal.hpp`, `shortest_paths.hpp`, `spanning_tree.hpp`, `topological_sort.hpp`, `flow.hpp`, `centrality.hpp`
 
-Each deprecated free function is `return G.method_name();` with a `[[deprecated]]` annotation, repeated across six headers. While individually trivial, any addition or renaming requires touching multiple files.
+Each deprecated free function is intentionally written out as a small, readable forwarding shim. That repetition keeps the compatibility surface obvious and avoids hiding the deprecation text or target method behind a macro layer.
 
-**Fix:** Consider a `#define NXPP_DEPRECATED_ALIAS(fn, method)` macro to reduce these to single-line declarations, or accept the boilerplate and annotate it clearly as such.
+**Status:** accepted as intentional compatibility boilerplate.
 
 ---
 

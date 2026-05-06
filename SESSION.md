@@ -6,6 +6,7 @@
 - Updated `docs/README.md`, `REVIEW.md`, and `CHANGELOG.md` to document the new compatibility Boost policy and the resolved issue.
 - Closed `#131` by restricting `.github/workflows/wasm-experimental.yml` to `wasm/**` changes and the workflow file itself.
 - Closed `#139` by trimming heavyweight incidental includes from `include/nxpp/graph.hpp` and moving them to the headers that actually use them.
+- Closed `#138` by documenting the deprecated free-function wrappers as intentional compatibility shims.
 
 ## Session Update: 2026-04-29
 
