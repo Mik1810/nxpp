@@ -161,6 +161,41 @@ jobs:
             }
           }
 
+      - name: Detect Boost version
+        if: matrix.platform_family == 'unix'
+        shell: bash
+        run: |
+          boost_header="/usr/include/boost/version.hpp"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            boost_header="$(brew --prefix boost)/include/boost/version.hpp"
+          fi
+
+          boost_version="unknown"
+          if [ -f "$boost_header" ]; then
+            raw_version="$(awk -F'"' '/BOOST_LIB_VERSION/ { print $2; exit }' "$boost_header")"
+            if [ -n "$raw_version" ]; then
+              boost_version="${raw_version//_/.}"
+            fi
+          fi
+
+          echo "NXPP_BOOST_VERSION=$boost_version" >> "$GITHUB_ENV"
+
+      - name: Detect Boost version
+        if: matrix.platform_family == 'windows'
+        shell: pwsh
+        run: |
+          $boostVersion = "unknown"
+          $versionHeader = Join-Path $env:BOOST_ROOT "boost\version.hpp"
+
+          if (Test-Path $versionHeader) {
+            $line = Select-String -Path $versionHeader -Pattern 'BOOST_LIB_VERSION\s+"([0-9_]+)"' | Select-Object -First 1
+            if ($line -and $line.Matches.Count -gt 0) {
+              $boostVersion = $line.Matches[0].Groups[1].Value.Replace('_', '.')
+            }
+          }
+
+          Add-Content -Path $env:GITHUB_ENV -Value "NXPP_BOOST_VERSION=$boostVersion"
+
       - name: Run test suite
         if: matrix.platform_family == 'unix'
         id: tests
@@ -211,6 +246,7 @@ jobs:
             if [ -n "$cxxflags" ]; then
               echo "- CXXFLAGS: \`$cxxflags\`"
             fi
+            echo "- Boost version: \`${NXPP_BOOST_VERSION:-unknown}\`"
             echo "- Status: ${status_word}"
             echo "- Command: \`bash scripts/unix/run_tests.sh\`"
             echo
@@ -244,6 +280,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Label: windows-msvc'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Runner: windows-latest'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Build path: PowerShell + cl + Boost zip include path'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost version: $env:NXPP_BOOST_VERSION"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Boost cache hit: $env:NXPP_BOOST_CACHE_HIT"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: $statusWord"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Command: pwsh -File scripts/windows/run_tests.ps1'
