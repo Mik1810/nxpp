@@ -4,6 +4,7 @@
 
 - Closed `#129` by updating `.github/workflows/compatibility.yml` so compatibility runs download the latest Boost release from `archives.boost.io` on all runners and print the resolved Boost version in the job summary.
 - Updated `docs/README.md`, `REVIEW.md`, and `CHANGELOG.md` to document the new compatibility Boost policy and the resolved issue.
+- Closed `#131` by restricting `.github/workflows/wasm-experimental.yml` to `wasm/**` changes and the workflow file itself.
 
 ## Session Update: 2026-04-29
 

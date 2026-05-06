@@ -388,7 +388,7 @@ Compatibility CI now downloads the latest Boost release from `archives.boost.io`
 
 ### 5.3 No path filters on most workflows
 
-`compatibility.yml`, `single-header.yml`, `external-consumers.yml`, and `wasm-experimental.yml` all trigger on every push, including documentation-only changes. A CHANGELOG edit triggers a full four-platform compilation suite.
+`compatibility.yml`, `single-header.yml`, and `external-consumers.yml` still trigger on every push, including documentation-only changes. `wasm-experimental.yml` is now restricted to `wasm/**` changes plus its own workflow file, so unrelated PRs no longer pay the cost of the experimental WASM lane.
 
 **Fix:** Add a `paths` filter to each workflow:
 

@@ -2,29 +2,13 @@ name: Wasm Experimental
 
 on:
   push:
-    paths-ignore:
-      - "docs/**"
-      - "Doxyfile"
-      - "README.md"
-      - "CHANGELOG.md"
-      - "RELEASE_NOTES.md"
-      - "SESSION.md"
-      - "REVIEW.md"
-      - "benchmark/**"
-      - "imgs/**"
-      - "**.md"
+    paths:
+      - "wasm/**"
+      - ".github/workflows/wasm-experimental.yml"
   pull_request:
-    paths-ignore:
-      - "docs/**"
-      - "Doxyfile"
-      - "README.md"
-      - "CHANGELOG.md"
-      - "RELEASE_NOTES.md"
-      - "SESSION.md"
-      - "REVIEW.md"
-      - "benchmark/**"
-      - "imgs/**"
-      - "**.md"
+    paths:
+      - "wasm/**"
+      - ".github/workflows/wasm-experimental.yml"
   workflow_dispatch:
 
 jobs:

@@ -151,8 +151,8 @@ Current status:
   the workflow summary, so CI exposes the exact library version used for each
   compatibility run
 - an experimental wasm lane now exists with wasm-specific assets centralized
-  under `wasm/`, while `.github/workflows/wasm-experimental.yml` remains the
-  CI entrypoint required by GitHub Actions
+  under `wasm/`, and `.github/workflows/wasm-experimental.yml` is path-filtered
+  to `wasm/**` changes so it does not block unrelated PRs
 - the Doxygen / GitHub Pages presentation is now also more deliberate: the
   published site enables the tree/sidebar navigation again and uses the local
   theme more assertively for tables, code blocks, wrapper pages, and the main

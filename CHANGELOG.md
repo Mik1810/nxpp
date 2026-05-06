@@ -2,6 +2,10 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.27] - 2026-05-06
+
+- Closed `#131` by restricting `.github/workflows/wasm-experimental.yml` to `wasm/**` changes and the workflow file itself, so unrelated PRs no longer trigger the experimental WASM lane.
+
 ## [1.3.26] - 2026-05-06
 
 - Closed `#129` by making the compatibility workflows download the latest Boost release from `archives.boost.io` on every runner and print the resolved Boost version in the job summary.
