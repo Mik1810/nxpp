@@ -93,7 +93,7 @@ jobs:
 
           # Set environment variables
           echo "BOOST_ROOT=$BOOST_DIR" >> "$GITHUB_ENV"
-          echo "NXPP_EXTRA_INCLUDE=$BOOST_DIR" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_INCLUDE=-I${BOOST_DIR}/boost" >> "$GITHUB_ENV"
           echo "Boost $BOOST_VERSION successfully installed at $BOOST_DIR"
 
       - name: Cache Boost archive and extract
