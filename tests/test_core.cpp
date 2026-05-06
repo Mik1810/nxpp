@@ -1,4 +1,5 @@
 #include <cmath>
+#include <algorithm>
 #include <filesystem>
 #include <functional>
 #include <fstream>
@@ -7,6 +8,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #ifndef NXPP_HEADER_UNDER_TEST
@@ -96,6 +98,96 @@ void test_floyd_warshall_matrix_and_map_match() {
     expect(map.at("A").at("C") == 3.0, "Floyd-Warshall map should match matrix distances");
     expect(map.at("A").at("D") == std::numeric_limits<double>::max(),
            "Floyd-Warshall map should keep unreachable pairs at numeric infinity");
+}
+
+void test_topological_sort_orders_dag_and_rejects_cycle() {
+    nxpp::DiGraphInt graph;
+    graph.add_edge(1, 2, 1.0);
+    graph.add_edge(1, 3, 1.0);
+    graph.add_edge(2, 4, 1.0);
+    graph.add_edge(3, 4, 1.0);
+
+    const auto order = graph.topological_sort();
+    const auto before = [&](int left, int right) {
+        return std::find(order.begin(), order.end(), left) < std::find(order.begin(), order.end(), right);
+    };
+
+    expect(order.size() == 4, "topological_sort should return every DAG node");
+    expect(before(1, 2), "topological_sort should place source before successor 2");
+    expect(before(1, 3), "topological_sort should place source before successor 3");
+    expect(before(2, 4), "topological_sort should place node 2 before sink");
+    expect(before(3, 4), "topological_sort should place node 3 before sink");
+
+    graph.add_edge(4, 1, 1.0);
+
+    bool threw = false;
+    try {
+        (void)graph.topological_sort();
+    } catch (const std::exception&) {
+        threw = true;
+    }
+    expect(threw, "topological_sort should reject directed cycles");
+}
+
+void test_kruskal_minimum_spanning_tree_selects_light_edges() {
+    nxpp::GraphInt graph;
+    graph.add_edge(1, 2, 1);
+    graph.add_edge(2, 3, 2);
+    graph.add_edge(1, 3, 10);
+    graph.add_edge(3, 4, 3);
+    graph.add_edge(2, 4, 8);
+
+    const auto mst = graph.kruskal_minimum_spanning_tree();
+    const auto has_tree_edge = [&](int a, int b) {
+        return std::find(mst.begin(), mst.end(), std::pair<int, int>{a, b}) != mst.end()
+            || std::find(mst.begin(), mst.end(), std::pair<int, int>{b, a}) != mst.end();
+    };
+
+    expect(mst.size() == 3, "Kruskal MST should return n - 1 edges for a connected graph");
+    expect(has_tree_edge(1, 2), "Kruskal MST should keep the light 1-2 edge");
+    expect(has_tree_edge(2, 3), "Kruskal MST should keep the light 2-3 edge");
+    expect(has_tree_edge(3, 4), "Kruskal MST should keep the light 3-4 edge");
+    expect(!has_tree_edge(1, 3), "Kruskal MST should skip the heavy cycle edge");
+    expect(!has_tree_edge(2, 4), "Kruskal MST should skip the heavier alternative edge");
+}
+
+void test_dag_shortest_paths_small_weighted_graph() {
+    nxpp::WeightedDiGraphStr graph;
+    graph.add_edge("A", "B", 2.0);
+    graph.add_edge("A", "C", 5.0);
+    graph.add_edge("B", "C", 1.0);
+    graph.add_edge("C", "D", 3.0);
+    graph.add_node("E");
+
+    const auto result = graph.dag_shortest_paths("A");
+
+    expect(result.distance.at("A") == 0.0, "DAG shortest paths should set source distance to zero");
+    expect(result.distance.at("C") == 3.0, "DAG shortest paths should relax through B");
+    expect(result.distance.at("D") == 6.0, "DAG shortest paths should reach D through the light path");
+    expect(result.distance.at("E") == std::numeric_limits<double>::max(),
+           "DAG shortest paths should keep unreachable nodes at numeric infinity");
+    expect(result.path_to("D") == std::vector<std::string>({"A", "B", "C", "D"}),
+           "DAG shortest paths should reconstruct the light path");
+}
+
+void test_batch_node_and_edge_insertion() {
+    nxpp::Graph<> graph;
+    graph.add_nodes_from({"A", "B", "A"});
+    graph.add_edges_from(std::vector<std::pair<std::string, std::string>>{{"A", "B"}, {"B", "C"}});
+
+    expect(graph.num_vertices() == 3, "add_nodes_from and add_edges_from should create unique nodes");
+    expect(graph.has_edge("A", "B"), "add_edges_from should add the first unweighted edge");
+    expect(graph.has_edge("B", "C"), "add_edges_from should add the second unweighted edge");
+
+    nxpp::WeightedDiGraphStr weighted;
+    weighted.add_edges_from(std::vector<std::tuple<std::string, std::string, double>>{
+        {"A", "B", 2.5},
+        {"B", "C", 4.0},
+    });
+
+    expect(weighted.num_vertices() == 3, "weighted add_edges_from should create endpoint nodes");
+    expect(std::abs(weighted.get_edge_weight("A", "B") - 2.5) < 1e-9,
+           "weighted add_edges_from should store tuple weights");
 }
 
 void test_multigraph_edge_id_path() {
@@ -264,6 +356,20 @@ void test_viz_write_dot_file() {
            "write_dot should write the same DOT representation to disk");
 }
 
+void test_viz_write_dot_open_failure_throws() {
+    nxpp::DiGraphInt graph;
+    graph.add_edge(1, 2, 4);
+
+    const auto missing_dir = std::filesystem::temp_directory_path() / "nxpp_missing_dot_dir";
+    const auto output_path = missing_dir / "graph.dot";
+    std::filesystem::remove_all(missing_dir);
+
+    expect_runtime_error_message(
+        [&] { nxpp::viz::write_dot(graph, output_path); },
+        "DOT export failed: could not open output file.",
+        "write_dot should report file open failures");
+}
+
 void test_prim_mst_root_self_entry() {
     nxpp::GraphInt graph;
     graph.add_edge(1, 2, 3);
@@ -316,6 +422,31 @@ void test_proxy_assignment_normalizes_c_strings() {
            "edge proxy assignment should normalize C-strings");
     expect(graph.get_node_attr<std::string>("Rome", "nickname") == "Caput Mundi",
            "node proxy assignment should normalize C-strings");
+}
+
+void test_graph_copy_and_move_have_independent_state() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 2.0, {{"label", "original"}});
+    graph.node("A")["color"] = "red";
+
+    nxpp::DiGraph copied = graph;
+    copied.add_edge("B", "C", 3.0);
+    copied.node("A")["color"] = "blue";
+    copied.set_edge_attr(copied.edge_ids("A", "B").front(), "label", "copy");
+
+    expect(!graph.has_node("C"), "copy mutation should not add nodes to the source graph");
+    expect(graph.get_node_attr<std::string>("A", "color") == "red",
+           "copy mutation should not change source node attributes");
+    expect(graph.get_edge_attr<std::string>("A", "B", "label") == "original",
+           "copy mutation should not change source edge attributes");
+
+    nxpp::DiGraph moved(std::move(copied));
+    expect(moved.has_edge("A", "B") && moved.has_edge("B", "C"),
+           "moved graph should keep copied edge state");
+    expect(moved.get_node_attr<std::string>("A", "color") == "blue",
+           "moved graph should keep copied node attributes");
+    expect(moved.get_edge_attr<std::string>("A", "B", "label") == "copy",
+           "moved graph should keep copied edge attributes");
 }
 
 void test_subgraph_copies_induced_weighted_graph() {
@@ -373,6 +504,23 @@ void test_subgraph_initializer_list_and_missing_node() {
     expect(threw, "subgraph should reject missing input nodes");
 }
 
+void test_subgraph_copies_undirected_unweighted_graph() {
+    nxpp::Graph<> graph;
+    graph.add_edge("A", "B");
+    graph.add_edge("B", "C");
+    graph.add_edge("C", "D");
+
+    auto subgraph = graph.subgraph(std::vector<std::string>{"A", "B", "C"});
+
+    expect(subgraph.num_vertices() == 3, "undirected unweighted subgraph should copy selected nodes");
+    expect(subgraph.edges().size() == 2, "undirected unweighted subgraph should copy only induced edges");
+    expect(subgraph.has_edge("A", "B"), "undirected unweighted subgraph should keep A-B");
+    expect(subgraph.has_edge("B", "A"), "undirected unweighted subgraph should preserve reverse lookup");
+    expect(subgraph.has_edge("B", "C"), "undirected unweighted subgraph should keep B-C");
+    expect(!subgraph.has_node("D"), "undirected unweighted subgraph should omit unselected nodes");
+    expect(!subgraph.has_edge("C", "D"), "undirected unweighted subgraph should omit outgoing boundary edges");
+}
+
 void test_subgraph_preserves_multigraph_parallel_edges() {
     nxpp::MultiDiGraph graph;
     const auto first = graph.add_edge_with_id("A", "B", 1.0);
@@ -406,6 +554,10 @@ int main() {
         {"dijkstra result wrapper", test_dijkstra_result_wrapper},
         {"num_edges counts current edges", test_num_edges_counts_current_edges},
         {"Floyd-Warshall matrix and map match", test_floyd_warshall_matrix_and_map_match},
+        {"topological_sort orders DAG and rejects cycle", test_topological_sort_orders_dag_and_rejects_cycle},
+        {"Kruskal MST selects light edges", test_kruskal_minimum_spanning_tree_selects_light_edges},
+        {"DAG shortest paths small weighted graph", test_dag_shortest_paths_small_weighted_graph},
+        {"batch node and edge insertion", test_batch_node_and_edge_insertion},
         {"multigraph edge_id path", test_multigraph_edge_id_path},
         {"multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup},
         {"viz DOT weighted directed export", test_viz_dot_weighted_directed_export},
@@ -416,11 +568,14 @@ int main() {
         {"viz DOT layout option", test_viz_dot_layout_option},
         {"viz DOT user attrs option", test_viz_dot_user_attrs_option},
         {"viz write_dot file", test_viz_write_dot_file},
+        {"viz write_dot open failure throws", test_viz_write_dot_open_failure_throws},
         {"Prim MST root self-entry", test_prim_mst_root_self_entry},
         {"lookup_map operator missing key throws", test_lookup_map_operator_missing_key_throws},
         {"proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings},
+        {"graph copy and move have independent state", test_graph_copy_and_move_have_independent_state},
         {"subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph},
         {"subgraph initializer list and missing node", test_subgraph_initializer_list_and_missing_node},
+        {"subgraph copies undirected unweighted graph", test_subgraph_copies_undirected_unweighted_graph},
         {"subgraph preserves multigraph parallel edges", test_subgraph_preserves_multigraph_parallel_edges},
     });
 }

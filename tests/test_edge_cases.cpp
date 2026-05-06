@@ -144,6 +144,23 @@ void test_shortest_path_weight_mode_options() {
         "unsupported shortest_path string weight selector should still fail");
 }
 
+void test_two_sat_satisfiable_and_unsatisfiable_formulas() {
+    const std::vector<std::pair<int, int>> satisfiable = {
+        {1, 2},
+        {-1, 2},
+        {1, -2},
+    };
+    const std::vector<std::pair<int, int>> unsatisfiable = {
+        {1, 1},
+        {-1, -1},
+    };
+
+    expect(nxpp::two_sat_satisfiable(2, satisfiable),
+           "two_sat_satisfiable should accept a satisfiable formula");
+    expect(!nxpp::two_sat_satisfiable(1, unsatisfiable),
+           "two_sat_satisfiable should reject a contradictory formula");
+}
+
 void test_disconnected_component_groups_split_graph_correctly() {
     nxpp::Graph<> graph;
     graph.add_edge("A", "B");
@@ -420,6 +437,7 @@ int main() {
         {"missing node operations throw", test_missing_node_operations_throw},
         {"disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state},
         {"shortest path WeightMode options", test_shortest_path_weight_mode_options},
+        {"2-SAT satisfiable and unsatisfiable formulas", test_two_sat_satisfiable_and_unsatisfiable_formulas},
         {"disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly},
         {"ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support},
         {"integer generators still work", test_integer_generators_still_work},

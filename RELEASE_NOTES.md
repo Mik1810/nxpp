@@ -3,6 +3,20 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.38]
+
+### Highlights
+
+- Closed `#128` by adding focused formal test coverage for previously listed
+  algorithm and API gaps.
+- New tests cover topological sort, Kruskal and Prim MST behavior, DAG shortest
+  paths, 2-SAT satisfiability, batch insertion helpers, graph copy/move
+  independence, undirected unweighted subgraphs, DOT write failure handling,
+  directed betweenness normalization, edge-id attribute lookup, and missing
+  edge-id removal.
+- This is test coverage only. Public API, runtime behavior, and algorithmic
+  complexity remain unchanged.
+
 ## [1.3.37]
 
 ### Highlights

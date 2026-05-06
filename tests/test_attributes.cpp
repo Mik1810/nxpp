@@ -4,10 +4,14 @@
 #include <string>
 
 #ifndef NXPP_HEADER_UNDER_TEST
+#define NXPP_ATTRIBUTES_TEST_NEEDS_MULTIGRAPH_HEADER
 #define NXPP_HEADER_UNDER_TEST "include/nxpp/attributes.hpp"
 #endif
 
 #include NXPP_HEADER_UNDER_TEST
+#ifdef NXPP_ATTRIBUTES_TEST_NEEDS_MULTIGRAPH_HEADER
+#include "include/nxpp/multigraph.hpp"
+#endif
 
 #include "test_helpers.hpp"
 
@@ -61,6 +65,24 @@ void test_try_get_returns_empty_for_missing_or_mismatch() {
            "try_get_edge_attr should return empty for type mismatch");
 }
 
+void test_try_get_edge_attr_by_edge_id_returns_empty_for_missing_or_mismatch() {
+    nxpp::MultiDiGraph graph;
+    const auto edge_id = graph.add_edge_with_id("Milan", "Rome", 5.0);
+    graph.set_edge_attr(edge_id, "service", "fast");
+    graph.set_edge_attr(edge_id, "capacity", 12);
+
+    const auto service = graph.try_get_edge_attr<std::string>(edge_id, "service");
+
+    expect(service.has_value(), "edge-id try_get_edge_attr should return stored values");
+    expect(*service == "fast", "edge-id try_get_edge_attr should return the right string");
+    expect(!graph.try_get_edge_attr<std::string>(edge_id, "missing").has_value(),
+           "edge-id try_get_edge_attr should return empty for missing keys");
+    expect(!graph.try_get_edge_attr<std::string>(edge_id, "capacity").has_value(),
+           "edge-id try_get_edge_attr should return empty for type mismatch");
+    expect(!graph.try_get_edge_attr<std::string>(edge_id + 100, "service").has_value(),
+           "edge-id try_get_edge_attr should return empty for missing edge IDs");
+}
+
 void test_non_numeric_edge_attr_throws_in_numeric_lookup() {
     nxpp::DiGraph graph;
     graph["Milan"]["Rome"] = 5.0;
@@ -104,6 +126,7 @@ int main() {
         {"missing edge attr throws", test_missing_edge_attr_throws},
         {"attribute type mismatch throws", test_type_mismatch_throws},
         {"try_get returns empty for missing or mismatch", test_try_get_returns_empty_for_missing_or_mismatch},
+        {"try_get edge attr by edge ID returns empty for missing or mismatch", test_try_get_edge_attr_by_edge_id_returns_empty_for_missing_or_mismatch},
         {"non-numeric edge attr throws in numeric lookup", test_non_numeric_edge_attr_throws_in_numeric_lookup},
         {"numeric edge attrs support common arithmetic types", test_numeric_edge_attrs_support_common_arithmetic_types},
     });

@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.38] - 2026-05-06
+
+- Closed `#128` by adding focused assertion-based coverage for previously untested algorithms and API edge cases.
+- Covered topological sort, MST helpers, DAG shortest paths, 2-SAT satisfiability, batch insertion, copy/move independence, unweighted subgraph extraction, DOT failure handling, directed betweenness normalization, edge-id attribute lookups, and missing edge-id removal.
+
 ## [1.3.37] - 2026-05-06
 
 - Closed `#100` by adding a dedicated Linux/GCC ASan and UBSan workflow for the formal CMake test suite.

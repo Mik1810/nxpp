@@ -90,6 +90,18 @@ void test_remove_edge_by_id_is_precise() {
            "removed edge_id should lose tracked attributes");
 }
 
+void test_remove_missing_edge_id_throws_without_mutation() {
+    nxpp::MultiDiGraph graph;
+    const auto edge_id = graph.add_edge_with_id("Milan", "Rome", 5.0);
+
+    expect_runtime_error_message(
+        [&] { graph.remove_edge(edge_id + 100); },
+        "Edge lookup failed: edge not found.",
+        "remove_edge(edge_id) should reject missing edge IDs");
+    expect(graph.has_edge_id(edge_id), "failed remove_edge(edge_id) should not remove existing edges");
+    expect(graph.has_edge("Milan", "Rome"), "failed remove_edge(edge_id) should not remove endpoint edges");
+}
+
 void test_remove_edge_by_endpoints_removes_all_parallel_edges() {
     nxpp::MultiDiGraph graph;
 
@@ -209,6 +221,7 @@ int main() {
         {"undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated},
         {"parallel edges keep distinct attributes", test_parallel_edges_keep_distinct_attributes},
         {"remove_edge(edge_id) is precise", test_remove_edge_by_id_is_precise},
+        {"remove missing edge_id throws without mutation", test_remove_missing_edge_id_throws_without_mutation},
         {"remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges},
         {"undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges},
         {"edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal},

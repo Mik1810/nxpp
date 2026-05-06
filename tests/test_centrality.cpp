@@ -66,10 +66,23 @@ void test_betweenness_centrality_path_graph() {
     expect_near(bc.at("B"), bc.at("C"), 1e-9, "symmetric interior nodes should have equal betweenness");
 }
 
+void test_directed_betweenness_centrality_is_normalized() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 1.0);
+
+    const auto bc = graph.betweenness_centrality();
+
+    expect_near(bc.at("A"), 0.0, 1e-9, "directed source endpoint should have betweenness 0");
+    expect_near(bc.at("B"), 0.5, 1e-9, "directed middle node should be normalized by ordered pairs");
+    expect_near(bc.at("C"), 0.0, 1e-9, "directed sink endpoint should have betweenness 0");
+}
+
 int main() {
     return run_tests({
         {"degree_centrality path graph", test_degree_centrality_path_graph},
         {"pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking},
         {"betweenness_centrality path graph", test_betweenness_centrality_path_graph},
+        {"directed betweenness centrality is normalized", test_directed_betweenness_centrality_is_normalized},
     });
 }
