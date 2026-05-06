@@ -1,6 +1,6 @@
 {
   "name": "nxpp",
-  "version-string": "1.3.16",
+  "version-string": "1.3.25",
   "description": "Header-only C++20 graph library on top of Boost Graph Library",
   "homepage": "https://github.com/Mik1810/nxpp",
   "license": "MIT",

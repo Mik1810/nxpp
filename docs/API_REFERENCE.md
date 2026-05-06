@@ -280,6 +280,7 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `get_edge_weight` | `(edge_id)` | `EdgeWeight` | Returns the built-in edge weight for one specific wrapper-tracked edge ID. | `auto w = G.get_edge_weight(eid);` |
 | `nodes` | `()` | `std::vector<NodeID>` | Materializes all node IDs. | `auto ns = G.nodes();` |
 | `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | Materializes all edges. | `auto es = G.edges();` |
+| `num_edges` | `()` | `std::size_t` | Returns the current edge count without materializing the edge list. | `auto m = G.num_edges();` |
 | `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
 | `edge_ids` | `()` | `std::vector<size_t>` | Returns every wrapper-tracked edge ID currently present in the graph. | `auto ids = G.edge_ids();` |
 | `edge_ids` | `(u, v)` | `std::vector<size_t>` | Returns the tracked edge IDs between two endpoints. In multigraphs, this is the main way to enumerate parallel edges precisely. | `auto ids = G.edge_ids("A","B");` |
@@ -293,7 +294,7 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `clear` | `()` | `void` | Resets graph structure, translation maps, attribute stores, and edge-ID state. | `G.clear();` |
 | `subgraph` | `(nodes)` | same `Graph` type | Returns an independent node-induced subgraph. Copies selected nodes, internal edges, built-in weights, and wrapper-managed node/edge attributes. Throws `std::invalid_argument` if a requested node is missing. | `auto H = G.subgraph({"A","B"});` |
 | `node` | `(u)` | `NodeAttrBaseProxy` | Returns node-attribute proxy access. Creates the node if absent. | `G.node("A")["x"] = 7;` |
-| `operator[]` | `(u)` | `NodeProxy` | Returns a proxy for chained access such as `G[u][v]` and `G[u][v]["key"]`. Creates `u` if absent. | `G["A"]["B"] = 2.0;` |
+| `operator[]` | `(u)` | `NodeProxy` / `ConstNodeProxy` | Mutable access returns a write-creates proxy for `G[u][v]` and `G[u][v]["key"]`; const access never creates and throws if `u` is missing. | `G["A"]["B"] = 2.0;` |
 | `get_impl` | `()` | `const GraphType&` | Exposes the internal BGL graph for wrapper implementation or advanced inspection. | `auto& impl = G.get_impl();` |
 | `get_bgl_to_id_map` | `()` | `const std::vector<NodeID>&` | Exposes the wrapper's maintained index-ordered node list used by result normalization. | `auto& map = G.get_bgl_to_id_map();` |
 | `get_id_to_bgl_map` | `()` | `const std::map<NodeID, VertexDesc>&` | Exposes ID-to-descriptor mapping. | `auto& map = G.get_id_to_bgl_map();` |
@@ -356,8 +357,11 @@ Weighted edges are emitted as both `weight=...` and `label=...` by default:
 
 The `weight` attribute preserves Graphviz layout semantics, while `label` is
 what Graphviz renders into SVG/PNG output. `nxpp::viz::DotOptions` can hide node
-labels, edge labels, weights, or expose wrapper edge IDs for multigraph
-inspection. Render a generated file with Graphviz, for example:
+labels, edge labels, weights, select a Graphviz layout engine, or expose wrapper
+edge IDs for multigraph inspection. It can also emit graph-level Graphviz
+attributes through `graph_attrs` and, when `show_user_attrs` is enabled, include
+user-defined node and edge attributes stored through the graph attribute APIs.
+Render a generated file with Graphviz, for example:
 
 ```bash
 dot -Tsvg graph.dot -o graph.svg
@@ -541,8 +545,8 @@ These types are part of the public API and are worth knowing because they make s
 | `MinCostMaxFlowResult<NodeID>` | `flow`, `cost`, `edge_flows`, `edge_flows_by_id` | min-cost max-flow total flow, cost, aggregate endpoint view, and precise per-edge-ID flows |
 | `MinimumCutResult<NodeID>` | `value`, `reachable`, `non_reachable`, `cut_edges`, `cut_edge_ids` | cut value, partition information, aggregate endpoint cut view, and precise cut-edge IDs |
 | `SingleSourceShortestPathResult<NodeID, Distance>` | ordered `distance`, `predecessor`, plus `has_path_to(target)` / `path_to(target)` | single-source shortest-path results in a C++-friendly shape with tree-based map bounds and on-demand path reconstruction |
-| `lookup_map<Key, Value>` | `operator[]`, `at`, iterators over ordered storage | const-friendly ordered lookup wrapper returned by some component helpers |
-| `indexed_lookup_map<Key, Value>` | `at`, `operator[]`, `contains`, iterators over key-sorted storage | const-friendly indexed result wrapper that preserves linear materialization while keeping `O(log n)` key lookup |
+| `lookup_map<Key, Value>` | `operator[]`, `at`, iterators over ordered storage | const-friendly ordered lookup wrapper returned by some component helpers; const `operator[]` throws like `at()` on missing keys |
+| `indexed_lookup_map<Key, Value>` | `at`, `operator[]`, `contains`, iterators over key-sorted storage | const-friendly indexed result wrapper that preserves linear materialization while keeping `O(log n)` key lookup; `operator[]` is a read-style accessor and throws like `at()` on missing keys |
 | `visitor` | no-op hooks `examine_vertex`, `tree_edge`, `back_edge` | small visitor base for traversal entry points |
 
 This is one of the design directions that makes `nxpp` more than a thin parity layer:
@@ -664,6 +668,10 @@ for (const auto& [node, id] : components) {
 }
 ```
 
+`indexed_lookup_map::operator[]` is intentionally equivalent to `at()` and
+throws on missing keys. Use `contains(key)` or `find(key)` when absence is
+expected.
+
 Use this wrapper when you want:
 
 - a materialized result that still iterates like a small container
@@ -701,9 +709,15 @@ For operations on an existing graph, the canonical form is method-based: `G.foo(
 
 ## Shortest-path API reference
 
-### Built-in `"weight"` semantics
+### WeightMode and built-in `"weight"` semantics
 
-In the current API, the string `"weight"` has a narrow compatibility meaning:
+Use `nxpp::WeightMode` for new source-target shortest-path calls that need an
+explicit weighting choice:
+
+- `WeightMode::Unweighted` means edge-count shortest path
+- `WeightMode::BuiltIn` means the graph's built-in edge-weight property
+
+The legacy string `"weight"` has a narrow compatibility meaning:
 
 - it refers to the built-in edge-weight property
 - it is **not** a general custom edge-attribute key selector
@@ -723,15 +737,21 @@ arbitrary user-defined numeric edge attribute.
 |---|---|---:|---|---|
 | `shortest_path` | `(source, target)` | `std::vector<NodeID>` | Unweighted shortest path by edge count, with guarded path reconstruction. | `auto p = G.shortest_path(0, 3);` |
 | `shortest_path_length` | `(source, target)` | `double` | Unweighted shortest-path length in edge count. | `auto d = G.shortest_path_length(0, 3);` |
+| `shortest_path` | `(source, target, WeightMode)` | `std::vector<NodeID>` | Explicit mode overload for edge-count or built-in-weight shortest paths. | `auto p = G.shortest_path(0, 3, nxpp::WeightMode::BuiltIn);` |
+| `shortest_path_length` | `(source, target, WeightMode)` | `double` | Explicit mode overload for edge-count or built-in-weight shortest-path length. | `auto d = G.shortest_path_length(0, 3, nxpp::WeightMode::BuiltIn);` |
 | `shortest_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Weighted shortest path through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto p = G.shortest_path(0, 3, "weight");` |
 | `shortest_path_length` | `(source, target, "weight")` | `double` | Weighted shortest-path length through the built-in edge weight. The string `"weight"` is a compatibility name for the built-in weight property, not an arbitrary custom key. | `auto d = G.shortest_path_length(0, 3, "weight");` |
 | `dijkstra_path` | `(source, target)` | `std::vector<NodeID>` | Direct Dijkstra source-target path wrapper with guarded path reconstruction. | `auto p = G.dijkstra_path(0, 3);` |
+| `dijkstra_path` | `(source, target, WeightMode)` | `std::vector<NodeID>` | Explicit mode overload; `BuiltIn` uses Dijkstra and `Unweighted` routes to the edge-count helper. | `auto p = G.dijkstra_path(0, 3, nxpp::WeightMode::BuiltIn);` |
 | `dijkstra_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above; explicit `"weight"` overload for compatibility-shaped usage around the built-in edge weight. | `auto p = G.dijkstra_path(0, 3, "weight");` |
 | `dijkstra_path_length` | `(source, target)` | `Distance` | Dijkstra distance to one target. | `auto d = G.dijkstra_path_length(0, 3);` |
+| `dijkstra_path_length` | `(source, target, WeightMode)` | `Distance` | Explicit mode overload; `BuiltIn` uses Dijkstra and `Unweighted` returns edge-count distance converted to the graph weight type. | `auto d = G.dijkstra_path_length(0, 3, nxpp::WeightMode::BuiltIn);` |
 | `dijkstra_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.dijkstra_path_length(0, 3, "weight");` |
 | `bellman_ford_path` | `(source, target)` | `std::vector<NodeID>` | Bellman-Ford path wrapper with guarded path reconstruction. Throws on negative cycle. | `auto p = G.bellman_ford_path(0, 3);` |
+| `bellman_ford_path` | `(source, target, WeightMode)` | `std::vector<NodeID>` | Explicit mode overload; `BuiltIn` uses Bellman-Ford and `Unweighted` routes to the edge-count helper. | `auto p = G.bellman_ford_path(0, 3, nxpp::WeightMode::BuiltIn);` |
 | `bellman_ford_path` | `(source, target, "weight")` | `std::vector<NodeID>` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto p = G.bellman_ford_path(0, 3, "weight");` |
 | `bellman_ford_path_length` | `(source, target)` | `Distance` | Bellman-Ford distance wrapper with a final accumulation over the reconstructed path. | `auto d = G.bellman_ford_path_length(0, 3);` |
+| `bellman_ford_path_length` | `(source, target, WeightMode)` | `Distance` | Explicit mode overload; `BuiltIn` uses Bellman-Ford and `Unweighted` returns edge-count distance converted to the graph weight type. | `auto d = G.bellman_ford_path_length(0, 3, nxpp::WeightMode::BuiltIn);` |
 | `bellman_ford_path_length` | `(source, target, "weight")` | `Distance` | Same as above with explicit `"weight"` overload around the built-in edge weight. | `auto d = G.bellman_ford_path_length(0, 3, "weight");` |
 
 ### Single-source result helpers
@@ -768,9 +788,9 @@ arbitrary user-defined numeric edge attribute.
 |---|---|---:|---|---|
 | `topological_sort` | `()` | `std::vector<NodeID>` | Returns a topological ordering. | `auto order = G.topological_sort();` |
 | `kruskal_minimum_spanning_tree` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Returns MST edges as pairs. | `auto mst = G.kruskal_minimum_spanning_tree();` |
-| `prim_minimum_spanning_tree` | `(root)` | `std::map<NodeID, NodeID>` | Returns a `node -> parent` map rooted at `root`. | `auto p = G.prim_minimum_spanning_tree(0);` |
+| `prim_minimum_spanning_tree` | `(root)` | `std::map<NodeID, NodeID>` | Returns a `node -> parent` map rooted at `root`; the root maps to itself and should be skipped when treating entries as edges. | `auto p = G.prim_minimum_spanning_tree(0);` |
 | `minimum_spanning_tree` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Thin default wrapper delegating to Kruskal. | `auto mst = G.minimum_spanning_tree();` |
-| `minimum_spanning_tree` | `(root)` | `std::map<NodeID, NodeID>` | Thin rooted wrapper delegating to Prim. | `auto p = G.minimum_spanning_tree(0);` |
+| `minimum_spanning_tree` | `(root)` | `std::map<NodeID, NodeID>` | Thin rooted wrapper delegating to Prim, including the same root self-entry. | `auto p = G.minimum_spanning_tree(0);` |
 
 ## Flow and cut API reference
 
@@ -830,6 +850,7 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `path_graph` | `(n)` | `GraphType` | Generates a path graph. | `auto P4 = nxpp::path_graph(4);` |
 | `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | Generates an Erdős–Rényi random graph and preserves isolated nodes. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
 | `num_vertices` | `()` | `int` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
+| `num_edges` | `()` | `std::size_t` | Convenience wrapper over `boost::num_edges` that avoids `edges().size()` allocation. | `auto m = G.num_edges();` |
 | `degree_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns degree centrality with NetworkX-like normalization by `n - 1`, using linear materialization plus `O(log n)` key lookup. | `auto c = G.degree_centrality();` |
 | `pagerank` | `()` | `indexed_lookup_map<NodeID, double>` | Returns PageRank scores keyed by `NodeID`, using a small fixed-iteration wrapper result instead of raw property-map plumbing. | `auto rank = G.pagerank();` |
 | `betweenness_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns normalized betweenness centrality for each node, matching NetworkX `betweenness_centrality(G, normalized=True)` semantics. Implemented via Brandes BFS without BGL property-map setup. | `auto bc = G.betweenness_centrality();` |

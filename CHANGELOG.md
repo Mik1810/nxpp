@@ -2,6 +2,51 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.25] - 2026-05-06
+
+- Closed `#98` by adding `CONTRIBUTING.md` with repository build, test, style, documentation, and PR guidance.
+- Linked the contributor guide from the README.
+
+## [1.3.24] - 2026-05-06
+
+- Closed `#119` by adding explicit `WeightMode` overloads for source-target shortest-path helpers.
+- Kept legacy string selectors compatible while documenting `WeightMode` as the clearer API.
+
+## [1.3.23] - 2026-05-06
+
+- Closed `#116` by adding const `Graph::operator[]` proxy access that does not create missing nodes.
+- Documented the split between mutable write-creates proxy access and const checked proxy reads.
+
+## [1.3.22] - 2026-05-06
+
+- Closed `#118` by documenting that read-style `lookup_map` and `indexed_lookup_map` `operator[]` accessors throw like `at()` on missing keys.
+- Added regression coverage for missing-key throwing behavior.
+
+## [1.3.21] - 2026-05-06
+
+- Closed `#121` by documenting that `prim_minimum_spanning_tree(root)` keeps Boost's `root -> root` parent-map entry.
+- Added regression coverage that locks in the root self-entry behavior.
+
+## [1.3.20] - 2026-05-06
+
+- Closed `#142` by adding opt-in DOT export for graph-level attributes and stored user node/edge attributes.
+- Kept default DOT output stable by requiring `DotOptions::show_user_attrs` before user-defined node and edge attributes are emitted.
+
+## [1.3.19] - 2026-05-06
+
+- Closed `#141` by documenting the intentional Boost namespace property extension used for wrapper vertex indices.
+- Added a compile-time check that `vertex_wrapper_index_t` is installed as a BGL vertex property.
+
+## [1.3.18] - 2026-05-06
+
+- Closed `#143` by wiring `DotLayout` into `DotOptions`, allowing DOT export to emit an optional Graphviz `layout=...` graph attribute.
+- Preserved the default DOT output when no layout is selected.
+
+## [1.3.17] - 2026-05-06
+
+- Closed `#117` by adding `Graph::num_edges()` for direct edge-count queries without materializing edge vectors.
+- Added regression coverage for simple directed graphs and multigraph parallel-edge counts.
+
 ## [1.3.16] - 2026-05-05
 
 - Closed `#126` by sharing Floyd-Warshall matrix and node-order construction between the dense matrix and nested map APIs, avoiding duplicate node sorting in the map wrapper.

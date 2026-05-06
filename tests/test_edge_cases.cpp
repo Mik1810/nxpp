@@ -141,6 +141,42 @@ void test_disconnected_shortest_paths_preserve_unreachable_state() {
         "weighted shortest_path() should report the standardized unreachable-target error");
 }
 
+void test_shortest_path_weight_mode_options() {
+    nxpp::WeightedGraphStr graph;
+    graph.add_edge("A", "B", 100.0);
+    graph.add_edge("A", "C", 1.0);
+    graph.add_edge("C", "B", 1.0);
+
+    const auto unweighted = graph.shortest_path("A", "B", nxpp::WeightMode::Unweighted);
+    const auto weighted = graph.shortest_path("A", "B", nxpp::WeightMode::BuiltIn);
+    const auto old_weighted = graph.shortest_path("A", "B", "weight");
+    const auto dijkstra_unweighted = graph.dijkstra_path("A", "B", nxpp::WeightMode::Unweighted);
+    const auto dijkstra_weighted = graph.dijkstra_path("A", "B", "");
+    const auto bellman_weighted = graph.bellman_ford_path("A", "B", nxpp::WeightMode::BuiltIn);
+
+    expect(unweighted == std::vector<std::string>({"A", "B"}),
+           "WeightMode::Unweighted should use edge-count shortest paths");
+    expect(weighted == std::vector<std::string>({"A", "C", "B"}),
+           "WeightMode::BuiltIn should use built-in edge weights");
+    expect(old_weighted == weighted,
+           "legacy \"weight\" shortest_path selector should remain compatible");
+    expect(dijkstra_unweighted == unweighted,
+           "Dijkstra WeightMode::Unweighted should route to the unweighted path helper");
+    expect(dijkstra_weighted == weighted,
+           "legacy empty Dijkstra weight selector should remain built-in weighted");
+    expect(bellman_weighted == weighted,
+           "Bellman-Ford WeightMode::BuiltIn should use built-in edge weights");
+    expect(graph.shortest_path_length("A", "B", nxpp::WeightMode::Unweighted) == 1.0,
+           "WeightMode::Unweighted path length should count edges");
+    expect(graph.shortest_path_length("A", "B", nxpp::WeightMode::BuiltIn) == 2.0,
+           "WeightMode::BuiltIn path length should use built-in edge weights");
+
+    expect_runtime_error_message(
+        [&] { (void)graph.shortest_path("A", "B", "cost"); },
+        "Weight lookup failed: only the built-in edge weight property named 'weight' is supported.",
+        "unsupported shortest_path string weight selector should still fail");
+}
+
 void test_disconnected_component_groups_split_graph_correctly() {
     nxpp::Graph<> graph;
     graph.add_edge("A", "B");
@@ -364,6 +400,29 @@ void test_implicit_creation_policy() {
                   "neighbors() on absent node should throw, not create the node");
 }
 
+void test_const_operator_lookup_does_not_create_nodes() {
+    nxpp::WeightedGraphStr graph;
+    graph.add_edge("A", "B", 5.0);
+    graph["A"]["B"]["label"] = "main";
+
+    const auto& const_graph = graph;
+    const double weight = const_graph["A"]["B"];
+    const std::string label = const_graph["A"]["B"]["label"];
+
+    expect(weight == 5.0, "const operator[] should read an existing edge weight");
+    expect(label == "main", "const operator[] should read an existing edge attribute");
+
+    bool missing_node_threw = false;
+    try {
+        (void)const_graph["missing"];
+    } catch (const std::out_of_range&) {
+        missing_node_threw = true;
+    }
+
+    expect(missing_node_threw, "const operator[] should throw for a missing source node");
+    expect(!graph.has_node("missing"), "const operator[] should not create a missing source node");
+}
+
 void test_pagerank_returns_normalized_ranking() {
     nxpp::DiGraph graph;
     graph.add_edge("A", "B", 1.0);
@@ -401,12 +460,13 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 14;
+    constexpr int total = 16;
 
     passed += run_test("empty graph reports empty collections", test_empty_graph_reports_empty_collections) ? 1 : 0;
     passed += run_test("singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges) ? 1 : 0;
     passed += run_test("missing node operations throw", test_missing_node_operations_throw) ? 1 : 0;
     passed += run_test("disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state) ? 1 : 0;
+    passed += run_test("shortest path WeightMode options", test_shortest_path_weight_mode_options) ? 1 : 0;
     passed += run_test("disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly) ? 1 : 0;
     passed += run_test("ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support) ? 1 : 0;
     passed += run_test("integer generators still work", test_integer_generators_still_work) ? 1 : 0;
@@ -415,6 +475,7 @@ int main() {
     passed += run_test("path_graph(0) is empty", test_path_graph_zero_is_empty) ? 1 : 0;
     passed += run_test("2-SAT literal zero is rejected", test_2sat_literal_zero_is_rejected) ? 1 : 0;
     passed += run_test("implicit creation policy", test_implicit_creation_policy) ? 1 : 0;
+    passed += run_test("const operator lookup does not create nodes", test_const_operator_lookup_does_not_create_nodes) ? 1 : 0;
     passed += run_test("pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking) ? 1 : 0;
     passed += run_test("betweenness_centrality basic", test_betweenness_centrality_basic) ? 1 : 0;
 

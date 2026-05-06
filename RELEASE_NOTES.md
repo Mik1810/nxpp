@@ -3,6 +3,96 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.25]
+
+### Highlights
+
+- Closed `#98` by adding a repository-level contributor guide.
+- `CONTRIBUTING.md` now documents requirements, CMake build/test commands,
+  the focused Unix test script, code style expectations, release/history docs,
+  and PR checklist items.
+- The README now links to the contributor guide.
+
+## [1.3.24]
+
+### Highlights
+
+- Closed `#119` with explicit `nxpp::WeightMode` overloads for source-target
+  shortest-path helpers.
+- New code can request `WeightMode::Unweighted` or `WeightMode::BuiltIn`
+  instead of passing the compatibility string `"weight"`.
+- Existing string overloads remain compatible and continue to reject arbitrary
+  custom weight-key strings.
+
+## [1.3.23]
+
+### Highlights
+
+- Closed `#116` by clarifying and extending graph proxy indexing semantics.
+- Mutable `G[u]` keeps the existing write-creates behavior for compatibility.
+- Const `G[u]` is now available as a non-mutating checked read path; it throws
+  when the source node is missing instead of creating it.
+
+## [1.3.22]
+
+### Highlights
+
+- Closed `#118` by clarifying lookup-wrapper `operator[]` semantics.
+- Read-style `operator[]` access on `lookup_map` and `indexed_lookup_map`
+  throws like `at()` when a key is missing; callers should use `contains(...)`
+  or `find(...)` when absence is expected.
+- Added focused regression coverage for missing-key throwing behavior.
+
+## [1.3.21]
+
+### Highlights
+
+- Closed `#121` by clarifying the rooted Prim MST parent-map contract.
+- `prim_minimum_spanning_tree(root)` keeps Boost's `root -> root` self-entry;
+  callers should skip that entry when interpreting the map as tree edges.
+- Added focused regression coverage for the documented root self-entry.
+
+## [1.3.20]
+
+### Highlights
+
+- Closed `#142` with opt-in DOT export for user-defined graph metadata.
+- `nxpp::viz::DotOptions::graph_attrs` can now emit graph-level Graphviz
+  attributes such as `rankdir` or `bgcolor`.
+- `nxpp::viz::DotOptions::show_user_attrs` can include stored node and edge
+  attributes in DOT output, while the default output remains unchanged.
+
+## [1.3.19]
+
+### Highlights
+
+- Closed `#141` with a maintainability note at the Boost namespace extension
+  point used by nxpp's wrapper vertex index property.
+- Added a compile-time check that the custom `vertex_wrapper_index_t` tag is
+  installed as a BGL vertex property, so related integration failures stay close
+  to the declaration.
+- No public graph behavior changes.
+
+## [1.3.18]
+
+### Highlights
+
+- Closed `#143` by making the existing `DotLayout` enum part of the active
+  DOT export surface.
+- `nxpp::viz::DotOptions` can now request a Graphviz layout engine such as
+  `DotLayout::Neato`, emitting `layout=neato` in the generated DOT.
+- The default DOT output remains unchanged when no layout is selected.
+
+## [1.3.17]
+
+### Highlights
+
+- Closed `#117` with a direct `Graph::num_edges()` convenience method.
+- Users no longer need `edges().size()` when they only need the current edge
+  count, avoiding edge-vector materialization on that path.
+- Added focused coverage for simple directed graphs and multigraph parallel
+  edges.
+
 ## [1.3.16]
 
 ### Highlights

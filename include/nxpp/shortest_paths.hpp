@@ -153,6 +153,23 @@ Distance convert_shortest_path_distance(CalcDistance value) {
     }
 }
 
+inline WeightMode parse_shortest_path_weight_mode(const std::string& weight) {
+    if (weight.empty()) {
+        return WeightMode::Unweighted;
+    }
+    if (weight == "weight") {
+        return WeightMode::BuiltIn;
+    }
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+}
+
+inline WeightMode parse_builtin_shortest_path_weight_mode(const std::string& weight) {
+    if (weight.empty() || weight == "weight") {
+        return WeightMode::BuiltIn;
+    }
+    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+}
+
 // Algorithms: Shortest Paths
 
 template <typename GraphWrapper>
@@ -377,17 +394,22 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty()) {
+    return shortest_path(source_id, target_id, parse_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
         return shortest_path(source_id, target_id);
     }
-    if (weight == "weight") {
+    if (mode == WeightMode::BuiltIn) {
         if constexpr (Weighted) {
             return dijkstra_path(source_id, target_id);
         } else {
             throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
         }
     }
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -401,17 +423,22 @@ double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Ver
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty()) {
+    return shortest_path_length(source_id, target_id, parse_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+double Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::shortest_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
         return shortest_path_length(source_id, target_id);
     }
-    if (weight == "weight") {
+    if (mode == WeightMode::BuiltIn) {
         if constexpr (Weighted) {
             return dijkstra_path_length(source_id, target_id);
         } else {
             throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
         }
     }
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -448,10 +475,20 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty() || weight == "weight") {
+    return dijkstra_path(source_id, target_id, parse_builtin_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+template <bool W>
+requires(W)
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
+        return shortest_path(source_id, target_id);
+    }
+    if (mode == WeightMode::BuiltIn) {
         return dijkstra_path(source_id, target_id);
     }
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -511,10 +548,20 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty() || weight == "weight") {
+    return dijkstra_path_length(source_id, target_id, parse_builtin_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+template <bool W>
+requires(W)
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dijkstra_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
+        return static_cast<EdgeWeight>(shortest_path_length(source_id, target_id));
+    }
+    if (mode == WeightMode::BuiltIn) {
         return dijkstra_path_length(source_id, target_id);
     }
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename GraphWrapper>
@@ -727,8 +774,20 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty() || weight == "weight") return bellman_ford_path(source_id, target_id);
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    return bellman_ford_path(source_id, target_id, parse_builtin_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+template <bool W>
+requires(W)
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
+        return shortest_path(source_id, target_id);
+    }
+    if (mode == WeightMode::BuiltIn) {
+        return bellman_ford_path(source_id, target_id);
+    }
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -745,8 +804,20 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, const std::string& weight) const {
-    if (weight.empty() || weight == "weight") return bellman_ford_path_length(source_id, target_id);
-    throw std::runtime_error("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
+    return bellman_ford_path_length(source_id, target_id, parse_builtin_shortest_path_weight_mode(weight));
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+template <bool W>
+requires(W)
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const {
+    if (mode == WeightMode::Unweighted) {
+        return static_cast<EdgeWeight>(shortest_path_length(source_id, target_id));
+    }
+    if (mode == WeightMode::BuiltIn) {
+        return bellman_ford_path_length(source_id, target_id);
+    }
+    throw std::runtime_error("Weight lookup failed: unsupported shortest-path weight mode.");
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
