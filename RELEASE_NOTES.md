@@ -3,6 +3,36 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.32]
+
+### Highlights
+
+- Closed `#134` by adding explicit 30-second CTest timeouts to configured test
+  targets.
+- The normal formal/smoke test loop and the large-graph comparison target now
+  expose timeout properties through CTest metadata, preventing indefinite hangs
+  in CI when a test regresses.
+
+## [1.3.31]
+
+### Highlights
+
+- Closed `#92` by adding a general thread-safety policy to the README and API
+  guide.
+- Concurrent reads are documented as safe only when no thread modifies the same
+  graph instance.
+- Shared graph mutation and staged-flow sequences now explicitly require
+  external synchronization.
+
+## [1.3.30]
+
+### Highlights
+
+- Closed `#96` by adding `VERSIONING.md` as the repository-level SemVer policy.
+- Stable C++ public surfaces now have an explicit patch/minor/major compatibility
+  contract after `1.0.0`.
+- The README and docs index now link to the versioning policy.
+
 ## [1.3.25]
 
 ### Highlights

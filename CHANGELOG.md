@@ -2,6 +2,23 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
+
+## [1.3.32] - 2026-05-06
+
+- Closed `#134` by assigning a 30-second CTest timeout to each configured test target.
+- Covered both the normal formal/smoke tests and the large-graph comparison test target.
+
+## [1.3.31] - 2026-05-06
+
+- Closed `#92` by documenting the general graph thread-safety contract in the README and API guide.
+- Clarified that graph instances need external synchronization for mutation and staged-flow sequences.
+
+## [1.3.30] - 2026-05-06
+
+- Closed `#96` by adding a repository SemVer policy that defines patch, minor, and major increments for stable public surfaces.
+- Linked the versioning policy from the README and docs index.
+
 ## [1.3.29] - 2026-05-06
 
 - Closed `#138` by documenting the deprecated free-function wrappers as intentional compatibility shims instead of introducing a macro layer.
