@@ -280,6 +280,7 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `get_edge_weight` | `(edge_id)` | `EdgeWeight` | Returns the built-in edge weight for one specific wrapper-tracked edge ID. | `auto w = G.get_edge_weight(eid);` |
 | `nodes` | `()` | `std::vector<NodeID>` | Materializes all node IDs. | `auto ns = G.nodes();` |
 | `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | Materializes all edges. | `auto es = G.edges();` |
+| `num_edges` | `()` | `std::size_t` | Returns the current edge count without materializing the edge list. | `auto m = G.num_edges();` |
 | `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
 | `edge_ids` | `()` | `std::vector<size_t>` | Returns every wrapper-tracked edge ID currently present in the graph. | `auto ids = G.edge_ids();` |
 | `edge_ids` | `(u, v)` | `std::vector<size_t>` | Returns the tracked edge IDs between two endpoints. In multigraphs, this is the main way to enumerate parallel edges precisely. | `auto ids = G.edge_ids("A","B");` |
@@ -830,6 +831,7 @@ These are good examples of public helpers that are useful in real C++ code even 
 | `path_graph` | `(n)` | `GraphType` | Generates a path graph. | `auto P4 = nxpp::path_graph(4);` |
 | `erdos_renyi_graph` | `(n, p, seed = 42)` | `GraphType` | Generates an Erdős–Rényi random graph and preserves isolated nodes. | `auto G = nxpp::erdos_renyi_graph(100, 0.05);` |
 | `num_vertices` | `()` | `int` | Convenience wrapper over `boost::num_vertices`. | `auto n = G.num_vertices();` |
+| `num_edges` | `()` | `std::size_t` | Convenience wrapper over `boost::num_edges` that avoids `edges().size()` allocation. | `auto m = G.num_edges();` |
 | `degree_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns degree centrality with NetworkX-like normalization by `n - 1`, using linear materialization plus `O(log n)` key lookup. | `auto c = G.degree_centrality();` |
 | `pagerank` | `()` | `indexed_lookup_map<NodeID, double>` | Returns PageRank scores keyed by `NodeID`, using a small fixed-iteration wrapper result instead of raw property-map plumbing. | `auto rank = G.pagerank();` |
 | `betweenness_centrality` | `()` | `indexed_lookup_map<NodeID, double>` | Returns normalized betweenness centrality for each node, matching NetworkX `betweenness_centrality(G, normalized=True)` semantics. Implemented via Brandes BFS without BGL property-map setup. | `auto bc = G.betweenness_centrality();` |

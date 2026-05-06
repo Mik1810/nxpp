@@ -73,6 +73,21 @@ void test_dijkstra_result_wrapper() {
            "wrong on-demand path for Naples");
 }
 
+void test_num_edges_counts_current_edges() {
+    nxpp::DiGraph graph;
+
+    expect(graph.num_edges() == 0, "new graph should report zero edges");
+
+    graph.add_edge("Milan", "Rome", 5.0);
+    graph.add_edge("Rome", "Naples", 2.5);
+
+    expect(graph.num_edges() == 2, "num_edges should count inserted directed edges");
+
+    graph.remove_edge("Milan", "Rome");
+
+    expect(graph.num_edges() == 1, "num_edges should reflect removed edges");
+}
+
 void test_floyd_warshall_matrix_and_map_match() {
     nxpp::DiGraph graph;
     graph.add_edge("B", "C", 2.0);
@@ -325,10 +340,11 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 15;
+    constexpr int total = 16;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
+    passed += run_test("num_edges counts current edges", test_num_edges_counts_current_edges) ? 1 : 0;
     passed += run_test("Floyd-Warshall matrix and map match", test_floyd_warshall_matrix_and_map_match) ? 1 : 0;
     passed += run_test("multigraph edge_id path", test_multigraph_edge_id_path) ? 1 : 0;
     passed += run_test("multigraph remove_edge cleanup", test_multigraph_remove_edge_cleanup) ? 1 : 0;

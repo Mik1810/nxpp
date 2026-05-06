@@ -157,6 +157,19 @@ void test_edge_endpoints_stay_correct_after_partial_removal() {
            "remaining parallel edge should still report the correct endpoints");
 }
 
+void test_num_edges_counts_parallel_edges() {
+    nxpp::MultiGraphInt graph;
+
+    const auto first = graph.add_edge_with_id(1, 2, 1);
+    graph.add_edge_with_id(1, 2, 2);
+
+    expect(graph.num_edges() == 2, "num_edges should count parallel edges separately");
+
+    graph.remove_edge(first);
+
+    expect(graph.num_edges() == 1, "num_edges should update after removing one parallel edge");
+}
+
 void test_multigraph_attr_bearing_endpoint_adds_throw() {
     nxpp::MultiDiGraph weighted_graph;
 
@@ -210,7 +223,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 9;
+    constexpr int total = 10;
 
     passed += run_test("parallel edges get distinct ids", test_parallel_edges_get_distinct_ids) ? 1 : 0;
     passed += run_test("undirected edge_ids are not duplicated", test_undirected_edge_ids_are_not_duplicated) ? 1 : 0;
@@ -219,6 +232,7 @@ int main() {
     passed += run_test("remove_edge(u, v) removes all parallel edges", test_remove_edge_by_endpoints_removes_all_parallel_edges) ? 1 : 0;
     passed += run_test("undirected remove_edge(u, v) removes reversed parallel edges", test_undirected_remove_edge_by_endpoints_removes_reversed_parallel_edges) ? 1 : 0;
     passed += run_test("edge endpoints stay correct after partial removal", test_edge_endpoints_stay_correct_after_partial_removal) ? 1 : 0;
+    passed += run_test("num_edges counts parallel edges", test_num_edges_counts_parallel_edges) ? 1 : 0;
     passed += run_test("multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw) ? 1 : 0;
     passed += run_test("numeric edge attrs support unsigned edge IDs", test_numeric_edge_attrs_support_unsigned_edge_ids) ? 1 : 0;
 

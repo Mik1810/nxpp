@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.17]
+
+### Highlights
+
+- Closed `#117` with a direct `Graph::num_edges()` convenience method.
+- Users no longer need `edges().size()` when they only need the current edge
+  count, avoiding edge-vector materialization on that path.
+- Added focused coverage for simple directed graphs and multigraph parallel
+  edges.
+
 ## [1.3.16]
 
 ### Highlights

@@ -2,6 +2,11 @@
 
 This project starts explicit release versioning with `0.4.1`. Older entries below remain as date-based pre-versioning history.
 
+## [1.3.17] - 2026-05-06
+
+- Closed `#117` by adding `Graph::num_edges()` for direct edge-count queries without materializing edge vectors.
+- Added regression coverage for simple directed graphs and multigraph parallel-edge counts.
+
 ## [1.3.16] - 2026-05-05
 
 - Closed `#126` by sharing Floyd-Warshall matrix and node-order construction between the dense matrix and nested map APIs, avoiding duplicate node sorting in the map wrapper.

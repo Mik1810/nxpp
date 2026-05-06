@@ -1908,6 +1908,9 @@ public:
     /// @brief Returns the number of vertices currently stored in the graph.
     /// @return The current vertex count as an `int`.
     auto num_vertices() const;
+    /// @brief Returns the number of edges currently stored in the graph without materializing the edge list.
+    /// @return The current edge count as `std::size_t`.
+    std::size_t num_edges() const;
     /**
      * @brief Computes normalized degree centrality for every node.
      *
@@ -1965,12 +1968,24 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     return static_cast<int>(boost::num_vertices(g));
 }
 
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::num_edges() const {
+    return static_cast<std::size_t>(boost::num_edges(g));
+}
+
 
 template <typename GraphWrapper>
 /// @brief Deprecated free-function alias for num_vertices().
 [[deprecated("Use G.num_vertices() instead.")]]
 auto num_vertices(const GraphWrapper& G) {
     return G.num_vertices();
+}
+
+template <typename GraphWrapper>
+/// @brief Deprecated free-function alias for num_edges().
+[[deprecated("Use G.num_edges() instead.")]]
+auto num_edges(const GraphWrapper& G) {
+    return G.num_edges();
 }
 
 
