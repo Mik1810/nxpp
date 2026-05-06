@@ -38,19 +38,19 @@ jobs:
             label: ubuntu-gcc
             compiler: g++
             platform_family: unix
-            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev
+            install_deps: sudo apt-get update
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
             platform_family: unix
-            install_boost: sudo apt-get update && sudo apt-get install -y libboost-graph-dev clang
+            install_deps: sudo apt-get update && sudo apt-get install -y clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
             platform_family: unix
-            install_boost: brew install boost
+            install_deps: true
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -Wno-unused-parameter -O0
           - os: windows-latest
             label: windows-msvc
@@ -63,58 +63,68 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph
+      - name: Install toolchain dependencies
+        if: matrix.platform_family == 'unix' && runner.os == 'Linux'
+        shell: bash
+        run: |
+          ${{ matrix.install_deps }}
+
+      - name: Download latest Boost headers (Unix)
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          ${{ matrix.install_boost }}
+          set -euo pipefail
 
-      - name: Export macOS Boost include path
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
+          boost_release_html="$(curl -fsSL https://archives.boost.io/release/)"
+          boost_version="$(printf '%s' "$boost_release_html" | python3 -c 'import re,sys; s=sys.stdin.read(); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")')"
 
-      - name: Cache Boost archive and extract
-        if: matrix.platform_family == 'windows'
-        id: boost_cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ${{ runner.temp }}\boost_1_90_0.zip
-            ${{ runner.temp }}\boost_1_90_0
-          key: windows-msvc-boost-1_90_0-v1
+          if [ -z "$boost_version" ]; then
+            echo "Failed to detect latest Boost version from archives.boost.io" >&2
+            exit 1
+          fi
 
-      - name: Download and extract Boost
+          boost_tag="${boost_version//./_}"
+          boost_archive="boost_${boost_tag}.tar.gz"
+          boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+
+          if [ ! -d "$boost_root/boost" ]; then
+            curl -fsSL "$boost_url" -o "$RUNNER_TEMP/$boost_archive"
+            tar -xzf "$RUNNER_TEMP/$boost_archive" -C "$RUNNER_TEMP"
+          fi
+
+          echo "BOOST_ROOT=$boost_root" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_INCLUDE=-I$boost_root" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_VERSION=$boost_version" >> "$GITHUB_ENV"
+
+      - name: Download latest Boost headers (Windows)
         if: matrix.platform_family == 'windows'
         shell: pwsh
         run: |
-          $boostZip = Join-Path $env:RUNNER_TEMP "boost_1_90_0.zip"
-          $boostRoot = Join-Path $env:RUNNER_TEMP "boost_1_90_0"
-          $cacheHit = "${{ steps.boost_cache.outputs.cache-hit }}"
+          $releaseIndex = (Invoke-WebRequest -Uri "https://archives.boost.io/release/").Content
+          $matches = [regex]::Matches($releaseIndex, 'href="([0-9]+\.[0-9]+\.[0-9]+)/"')
+          if ($matches.Count -eq 0) {
+            throw "Unable to detect latest Boost version from archives.boost.io"
+          }
 
-          "NXPP_BOOST_CACHE_HIT=$cacheHit" >> $env:GITHUB_ENV
+          $latestVersion = ($matches | ForEach-Object { [version]$_.Groups[1].Value } | Sort-Object -Descending | Select-Object -First 1).ToString()
+          $boostTag = $latestVersion.Replace('.', '_')
+          $boostZip = Join-Path $env:RUNNER_TEMP "boost_$boostTag.zip"
+          $boostRoot = Join-Path $env:RUNNER_TEMP "boost_$boostTag"
 
-          if ((Test-Path $boostRoot) -and $cacheHit -eq "true") {
-            Write-Host "Using cached extracted Boost tree at $boostRoot"
-          } else {
-            if (-not (Test-Path $boostZip)) {
-              Invoke-WebRequest `
-                -Uri "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.zip" `
-                -OutFile $boostZip
-            }
+          if (-not (Test-Path $boostZip)) {
+            Invoke-WebRequest -Uri "https://archives.boost.io/release/$latestVersion/source/boost_$boostTag.zip" -OutFile $boostZip
+          }
 
-            if (-not (Test-Path $boostRoot)) {
-              $tarCmd = Get-Command tar -ErrorAction SilentlyContinue
-
-              if ($null -ne $tarCmd) {
-                & $tarCmd.Source -xf $boostZip -C $env:RUNNER_TEMP
-                if ($LASTEXITCODE -ne 0) {
-                  throw "tar extraction failed with exit code $LASTEXITCODE"
-                }
-              } else {
-                Expand-Archive -Path $boostZip -DestinationPath $env:RUNNER_TEMP
+          if (-not (Test-Path $boostRoot)) {
+            $tarCmd = Get-Command tar -ErrorAction SilentlyContinue
+            if ($null -ne $tarCmd) {
+              & $tarCmd.Source -xf $boostZip -C $env:RUNNER_TEMP
+              if ($LASTEXITCODE -ne 0) {
+                throw "tar extraction failed with exit code $LASTEXITCODE"
               }
+            } else {
+              Expand-Archive -Path $boostZip -DestinationPath $env:RUNNER_TEMP
             }
           }
 
@@ -128,6 +138,8 @@ jobs:
 
           "BOOST_ROOT=$boostRoot" >> $env:GITHUB_ENV
           "NXPP_EXTRA_INCLUDE=$boostRoot" >> $env:GITHUB_ENV
+          "NXPP_BOOST_VERSION=$latestVersion" >> $env:GITHUB_ENV
+          "NXPP_BOOST_CACHE_HIT=n/a" >> $env:GITHUB_ENV
           "CXX=${{ matrix.compiler }}" >> $env:GITHUB_ENV
 
       - name: Initialize MSVC environment
@@ -165,10 +177,7 @@ jobs:
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          boost_header="/usr/include/boost/version.hpp"
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            boost_header="$(brew --prefix boost)/include/boost/version.hpp"
-          fi
+          boost_header="$BOOST_ROOT/boost/version.hpp"
 
           boost_version="unknown"
           if [ -f "$boost_header" ]; then
@@ -303,10 +312,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph
+      - name: Download latest Boost headers
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev
+          set -euo pipefail
+          boost_release_html="$(curl -fsSL https://archives.boost.io/release/)"
+          boost_version="$(printf '%s' "$boost_release_html" | python3 -c 'import re,sys; s=sys.stdin.read(); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")')"
+
+          if [ -z "$boost_version" ]; then
+            echo "Failed to detect latest Boost version from archives.boost.io" >&2
+            exit 1
+          fi
+
+          boost_tag="${boost_version//./_}"
+          boost_archive="boost_${boost_tag}.tar.gz"
+          boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+
+          if [ ! -d "$boost_root/boost" ]; then
+            curl -fsSL "$boost_url" -o "$RUNNER_TEMP/$boost_archive"
+            tar -xzf "$RUNNER_TEMP/$boost_archive" -C "$RUNNER_TEMP"
+          fi
+
+          echo "NXPP_BOOST_INCLUDE=-I$boost_root" >> "$GITHUB_ENV"
+          echo "NXPP_BOOST_VERSION=$boost_version" >> "$GITHUB_ENV"
+          echo "CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -O2 -I$boost_root" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@v6
