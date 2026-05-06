@@ -2,7 +2,7 @@
 
 [![Compatibility CI](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml/badge.svg?branch=main)](https://github.com/Mik1810/nxpp/actions/workflows/compatibility.yml) ![Boost](https://img.shields.io/badge/Boost-required-F7901E?logo=boost&logoColor=white) ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B)
 
-Current release: `v1.3.25`
+Current release: `v1.3.32`
 
 `nxpp` is a modern C++20 graph library with a NetworkX-inspired API on top of
 Boost Graph Library. The goal is to keep graph code concise and readable while
@@ -81,9 +81,25 @@ Conan, vcpkg overlay, AUR, wasm, browser scope) is maintained in
 [docs/STABILITY.md](docs/STABILITY.md). First-class C++ paths are still described
 in [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md).
 
+Repository releases follow [Semantic Versioning](VERSIONING.md) for the stable
+C++ public API and first-class consumption paths.
+
+## Thread Safety
+
+`nxpp` graph objects are not thread-safe by default. Concurrent reads on the
+same graph are safe only when no thread is modifying that graph. Any write
+operation, including node/edge mutation and attribute updates, requires external
+synchronization when a graph instance is shared across threads.
+
+Flow helpers that stage residual state, such as `push_relabel_maximum_flow(...)`
+followed by `cycle_canceling(...)`, should be serialized per graph instance.
+The staged cache container is synchronized internally, but that is not a general
+graph-instance synchronization guarantee.
+
 ## Documentation Map
 
 - Docs index: [docs/README.md](docs/README.md)
+- Versioning policy: [VERSIONING.md](VERSIONING.md)
 - Public support and API stability: [docs/STABILITY.md](docs/STABILITY.md)
 - Curated API guide and caveats: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 - External usage and packaging policy: [docs/EXTERNAL_USAGE.md](docs/EXTERNAL_USAGE.md)

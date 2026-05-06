@@ -46,6 +46,23 @@ It should not try to become a second full copy of the generated declaration
 reference. When this file and the generated docs overlap, the generated docs
 win on declaration-level detail.
 
+## Thread Safety
+
+`nxpp` graph objects are not thread-safe by default.
+
+- Concurrent reads on the same graph instance are safe only when no thread is
+  modifying that graph.
+- Any write operation, including `add_node(...)`, `add_edge(...)`,
+  `remove_node(...)`, edge removal, and node or edge attribute updates, requires
+  external synchronization if the graph instance is shared across threads.
+- Staged flow operations such as `push_relabel_maximum_flow(...)` followed by
+  `cycle_canceling(...)` cache residual state. Do not run overlapping staged-flow
+  sequences on the same graph instance without external synchronization.
+
+Internal synchronization around the staged-flow cache prevents races between
+different graph instances of the same type, but it does not make one shared graph
+instance safe for concurrent mutation.
+
 ## Public graph template and aliases
 
 ### Primary template

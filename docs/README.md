@@ -39,6 +39,8 @@ What currently lives here:
 - [`API_REFERENCE.md`](API_REFERENCE.md): curated API companion guide for aliases,
   result-wrapper shapes, proxy syntax, high-value reference tables, and the
   write-creates / read-does-not-create implicit-creation policy
+- [`../VERSIONING.md`](../VERSIONING.md): repository SemVer policy for stable
+  release tags and public API compatibility
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers
 - [`GRAPH_CONFIGURATION.md`](GRAPH_CONFIGURATION.md): graph selector/configuration policy and supported BGL customization surface
 - [`COMPLEXITY.md`](COMPLEXITY.md): complexity policy, Boost-vs-`nxpp` cost model, and documentation rules
