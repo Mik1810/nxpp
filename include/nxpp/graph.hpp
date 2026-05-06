@@ -70,8 +70,18 @@ struct MinCostFlowCacheHooks {
 
 namespace boost {
 
+// This is an intentional BGL extension point. BGL custom vertex properties are
+// installed globally in namespace boost, so keep the nxpp-specific name stable
+// and close to the wrapper storage that relies on it.
 enum vertex_wrapper_index_t { vertex_wrapper_index };
 BOOST_INSTALL_PROPERTY(vertex, wrapper_index);
+static_assert(
+    std::is_same_v<
+        property_kind<vertex_wrapper_index_t>::type,
+        vertex_property_tag
+    >,
+    "nxpp Boost property extension must install vertex_wrapper_index_t as a vertex property"
+);
 
 } // namespace boost
 
@@ -108,6 +118,12 @@ struct built_in_weight_traits<GraphType, false> {
     }
 };
 
+/// Explicit source-target shortest-path weighting mode.
+enum class WeightMode {
+    Unweighted,
+    BuiltIn
+};
+
 template <typename Key, typename Value>
 class lookup_map {
 public:
@@ -119,6 +135,7 @@ public:
         return data[key];
     }
 
+    /// Reads an existing value in const contexts; throws like `at()` if missing.
     const Value& operator[](const Key& key) const {
         return data.at(key);
     }
@@ -191,6 +208,7 @@ public:
         return at(key);
     }
 
+    /// Reads an existing value; this wrapper never inserts through `operator[]`.
     const Value& operator[](const Key& key) const {
         return at(key);
     }
@@ -1232,6 +1250,18 @@ public:
     const std::vector<NodeID>& get_bgl_to_id_map() const { return bgl_to_id; }
     /// Returns the maintained node-ID-to-vertex translation table.
     const IdMap& get_id_to_bgl_map() const { return id_to_bgl; }
+    /// Returns the user-defined attributes stored on a node, or an empty map.
+    const AttrMap& node_attrs(const NodeID& u) const {
+        static const AttrMap empty;
+        auto it = node_properties.find(u);
+        return it == node_properties.end() ? empty : it->second;
+    }
+    /// Returns the user-defined attributes stored on an edge ID, or an empty map.
+    const AttrMap& edge_attrs(std::size_t edge_id) const {
+        static const AttrMap empty;
+        auto it = edge_properties.find(edge_id);
+        return it == edge_properties.end() ? empty : it->second;
+    }
     /// Returns the wrapper-side node ID associated with a Boost vertex descriptor.
     const NodeID& get_node_id(VertexDesc v) const { return node_id_of(v); }
     /// Returns the wrapper-maintained dense vertex index used by algorithms.
@@ -1316,6 +1346,38 @@ public:
         }
     };
 
+    struct ConstEdgeAttrProxy {
+        const Graph* graph;
+        NodeID u, v;
+        std::string key;
+
+        template <typename T>
+        operator T() const {
+            return graph->template get_edge_attr<T>(u, v, key);
+        }
+    };
+
+    class ConstEdgeProxy {
+        const Graph* graph;
+        NodeID u, v;
+    public:
+        ConstEdgeProxy(const Graph* g, NodeID u, NodeID v) : graph(g), u(u), v(v) {}
+
+        template <bool W = Weighted>
+        requires(W)
+        operator EdgeWeight() const {
+            return graph->get_edge_weight(u, v);
+        }
+
+        ConstEdgeAttrProxy operator[](const std::string& key) const {
+            return {graph, u, v, key};
+        }
+
+        ConstEdgeAttrProxy operator[](const char* key) const {
+            return {graph, u, v, std::string(key)};
+        }
+    };
+
     class NodeProxy {
         Graph* graph;
         NodeID u;
@@ -1324,6 +1386,17 @@ public:
         
         EdgeProxy operator[](const NodeID& v) {
             return EdgeProxy(graph, u, v);
+        }
+    };
+
+    class ConstNodeProxy {
+        const Graph* graph;
+        NodeID u;
+    public:
+        ConstNodeProxy(const Graph* g, NodeID u) : graph(g), u(u) {}
+
+        ConstEdgeProxy operator[](const NodeID& v) const {
+            return ConstEdgeProxy(graph, u, v);
         }
     };
 
@@ -1360,6 +1433,19 @@ public:
             add_node(u);
         }
         return NodeProxy(this, u);
+    }
+
+    /**
+     * @brief Returns a non-mutating proxy for `G[u][v]` on const graphs.
+     *
+     * This overload never creates nodes or edges. Missing nodes, missing edges,
+     * and missing attributes are reported by the underlying checked read paths.
+     */
+    ConstNodeProxy operator[](const NodeID& u) const {
+        if (!has_node(u)) {
+            throw std::out_of_range("Graph::operator[] const: node not found");
+        }
+        return ConstNodeProxy(this, u);
     }
 
     /**
@@ -1516,6 +1602,16 @@ public:
      */
     auto shortest_path(const NodeID& source_id, const NodeID& target_id) const;
     /**
+     * @brief Computes a shortest path using an explicit weighting mode.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param mode `WeightMode::Unweighted` for edge-count paths or
+     * `WeightMode::BuiltIn` for the built-in edge-weight property.
+     * @return A `std::vector<NodeID>` describing the path from source to target.
+     */
+    auto shortest_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
+    /**
      * @brief Computes a shortest path using the built-in edge-weight property.
      *
      * This overload accepts the compatibility-shaped `"weight"` name, but it
@@ -1537,6 +1633,16 @@ public:
      * @throws std::runtime_error If either node is missing or the target is unreachable.
      */
     double shortest_path_length(const NodeID& source_id, const NodeID& target_id) const;
+    /**
+     * @brief Returns shortest-path length using an explicit weighting mode.
+     *
+     * @param source_id Source node ID.
+     * @param target_id Target node ID.
+     * @param mode `WeightMode::Unweighted` for edge-count distance or
+     * `WeightMode::BuiltIn` for the built-in edge-weight property.
+     * @return The shortest-path length.
+     */
+    double shortest_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
     /**
      * @brief Returns the length of a shortest path using the built-in edge-weight property.
      *
@@ -1562,6 +1668,9 @@ public:
     template <bool W = Weighted>
     requires(W)
     auto dijkstra_path(const NodeID& source_id, const NodeID& target_id) const;
+    template <bool W = Weighted>
+    requires(W)
+    auto dijkstra_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
 
     /**
      * @brief Computes the shortest path using the built-in edge-weight property.
@@ -1613,6 +1722,9 @@ public:
     template <bool W = Weighted>
     requires(W)
     auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id) const;
+    template <bool W = Weighted>
+    requires(W)
+    auto dijkstra_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
 
     /**
      * @brief Returns the shortest-path length using the built-in edge-weight property.
@@ -1641,6 +1753,9 @@ public:
     template <bool W = Weighted>
     requires(W)
     auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id) const;
+    template <bool W = Weighted>
+    requires(W)
+    auto bellman_ford_path(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
 
     /**
      * @brief Returns distances and predecessors for all nodes using Bellman-Ford.
@@ -1678,6 +1793,9 @@ public:
     template <bool W = Weighted>
     requires(W)
     auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id) const;
+    template <bool W = Weighted>
+    requires(W)
+    auto bellman_ford_path_length(const NodeID& source_id, const NodeID& target_id, WeightMode mode) const;
 
     /**
      * @brief Returns the Bellman-Ford shortest-path length with a named edge attribute.
@@ -1770,6 +1888,8 @@ public:
      * @tparam W Internal enable/disable gate for weighted graph specializations.
      * @param root_id Root node used to seed Prim's algorithm.
      * @return An ordered `std::map<NodeID, NodeID>` parent map for the spanning tree.
+     * The root follows Boost convention and maps to itself; skip that entry
+     * when interpreting the map as tree edges.
      */
     template <bool W = Weighted>
     requires(W)
@@ -1792,6 +1912,7 @@ public:
      * @tparam W Internal enable/disable gate for weighted graph specializations.
      * @param root_id Root node used to seed Prim's algorithm.
      * @return An ordered `std::map<NodeID, NodeID>` parent map for the spanning tree.
+     * The root entry maps to itself, matching `prim_minimum_spanning_tree(root_id)`.
      */
     template <bool W = Weighted>
     requires(W)

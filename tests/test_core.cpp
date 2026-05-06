@@ -213,6 +213,45 @@ void test_viz_dot_quotes_plus_signed_numbers() {
            "viz DOT should quote plus-signed numeric-looking weights");
 }
 
+void test_viz_dot_layout_option() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B");
+
+    nxpp::viz::DotOptions options;
+    options.layout = nxpp::viz::DotLayout::Neato;
+    const std::string dot = nxpp::viz::to_dot(graph, options);
+
+    expect(dot.find("  layout=neato;\n") != std::string::npos,
+           "viz DOT should emit a selected Graphviz layout when requested");
+}
+
+void test_viz_dot_user_attrs_option() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 3.0, {{"tooltip", "fast train"}, {"capacity", 8}});
+    graph.node("A")["color"] = "light blue";
+
+    const std::string default_dot = nxpp::viz::to_dot(graph);
+    expect(default_dot.find("tooltip=") == std::string::npos,
+           "viz DOT should hide user edge attributes by default");
+    expect(default_dot.find("color=") == std::string::npos,
+           "viz DOT should hide user node attributes by default");
+
+    nxpp::viz::DotOptions options;
+    options.show_user_attrs = true;
+    options.graph_attrs["rankdir"] = "LR";
+    options.graph_attrs["bgcolor"] = "light gray";
+    const std::string dot = nxpp::viz::to_dot(graph, options);
+
+    expect(dot.find("  bgcolor=\"light gray\";\n") != std::string::npos,
+           "viz DOT should quote graph attributes when needed");
+    expect(dot.find("  rankdir=LR;\n") != std::string::npos,
+           "viz DOT should emit plain graph attributes without quotes");
+    expect(dot.find("\"A\" [label=\"A\" color=\"light blue\"]") != std::string::npos,
+           "viz DOT should emit quoted user node attributes when requested");
+    expect(dot.find("\"A\" -> \"B\" [weight=3 label=3 capacity=8 tooltip=\"fast train\"]") != std::string::npos,
+           "viz DOT should emit built-in and user edge attributes when requested");
+}
+
 void test_viz_write_dot_file() {
     nxpp::DiGraphInt graph;
     graph.add_edge(1, 2, 4);
@@ -229,6 +268,47 @@ void test_viz_write_dot_file() {
 
     expect(contents.find("\"1\" -> \"2\" [weight=4 label=4]") != std::string::npos,
            "write_dot should write the same DOT representation to disk");
+}
+
+void test_prim_mst_root_self_entry() {
+    nxpp::GraphInt graph;
+    graph.add_edge(1, 2, 3);
+    graph.add_edge(2, 3, 4);
+    graph.add_edge(1, 3, 10);
+
+    const auto parents = graph.prim_minimum_spanning_tree(1);
+
+    expect(parents.at(1) == 1, "Prim MST parent map should keep the root self-entry");
+    expect(parents.at(2) == 1, "Prim MST should connect node 2 through the root");
+    expect(parents.at(3) == 2, "Prim MST should connect node 3 through node 2");
+}
+
+void test_lookup_map_operator_missing_key_throws() {
+    nxpp::lookup_map<std::string, int> legacy;
+    legacy["present"] = 7;
+    const auto& const_legacy = legacy;
+
+    expect(const_legacy["present"] == 7, "lookup_map const operator[] should read existing keys");
+
+    bool lookup_threw = false;
+    try {
+        (void)const_legacy["missing"];
+    } catch (const std::out_of_range&) {
+        lookup_threw = true;
+    }
+    expect(lookup_threw, "lookup_map const operator[] should throw for missing keys");
+
+    nxpp::indexed_lookup_map<std::string, int> indexed;
+    indexed.push_back("present", 11);
+    expect(indexed["present"] == 11, "indexed_lookup_map operator[] should read existing keys");
+
+    bool indexed_threw = false;
+    try {
+        (void)indexed["missing"];
+    } catch (const std::out_of_range&) {
+        indexed_threw = true;
+    }
+    expect(indexed_threw, "indexed_lookup_map operator[] should throw for missing keys");
 }
 
 void test_proxy_assignment_normalizes_c_strings() {
@@ -340,7 +420,7 @@ bool run_test(const std::string& name, const std::function<void()>& fn) {
 
 int main() {
     int passed = 0;
-    constexpr int total = 16;
+    constexpr int total = 20;
 
     passed += run_test("string attributes and normalization", test_string_attributes_and_normalization) ? 1 : 0;
     passed += run_test("dijkstra result wrapper", test_dijkstra_result_wrapper) ? 1 : 0;
@@ -353,7 +433,11 @@ int main() {
     passed += run_test("viz DOT multigraph edge IDs", test_viz_dot_multigraph_edge_ids) ? 1 : 0;
     passed += run_test("viz DOT quoted string weights", test_viz_dot_quotes_string_weights) ? 1 : 0;
     passed += run_test("viz DOT quoted plus-signed numbers", test_viz_dot_quotes_plus_signed_numbers) ? 1 : 0;
+    passed += run_test("viz DOT layout option", test_viz_dot_layout_option) ? 1 : 0;
+    passed += run_test("viz DOT user attrs option", test_viz_dot_user_attrs_option) ? 1 : 0;
     passed += run_test("viz write_dot file", test_viz_write_dot_file) ? 1 : 0;
+    passed += run_test("Prim MST root self-entry", test_prim_mst_root_self_entry) ? 1 : 0;
+    passed += run_test("lookup_map operator missing key throws", test_lookup_map_operator_missing_key_throws) ? 1 : 0;
     passed += run_test("proxy assignment normalizes C-strings", test_proxy_assignment_normalizes_c_strings) ? 1 : 0;
     passed += run_test("subgraph copies induced weighted graph", test_subgraph_copies_induced_weighted_graph) ? 1 : 0;
     passed += run_test("subgraph initializer list and missing node", test_subgraph_initializer_list_and_missing_node) ? 1 : 0;

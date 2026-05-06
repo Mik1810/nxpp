@@ -10,12 +10,16 @@
 
 #include "../graph.hpp"
 
+#include <any>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <map>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace nxpp::viz {
 
@@ -34,6 +38,9 @@ struct DotOptions {
     bool show_edge_labels = true;
     bool show_weights = true;
     bool show_edge_ids = false;
+    bool show_user_attrs = false;
+    std::map<std::string, std::string> graph_attrs;
+    std::optional<DotLayout> layout = std::nullopt;
     std::string graph_name = "G";
 };
 
@@ -108,11 +115,85 @@ inline std::string attr_value(const std::string& value) {
     return is_plain_dot_id(value) || is_dot_number(value) ? value : quote_dot_string(value);
 }
 
+inline const char* dot_layout_name(DotLayout layout) {
+    switch (layout) {
+    case DotLayout::Dot:
+        return "dot";
+    case DotLayout::Neato:
+        return "neato";
+    case DotLayout::Fdp:
+        return "fdp";
+    case DotLayout::Sfdp:
+        return "sfdp";
+    case DotLayout::Circo:
+        return "circo";
+    }
+    return "dot";
+}
+
+using DotAttrList = std::vector<std::pair<std::string, std::string>>;
+
+inline bool has_dot_attr(const DotAttrList& attrs, const std::string& key) {
+    return std::any_of(
+        attrs.begin(),
+        attrs.end(),
+        [&](const auto& attr) { return attr.first == key; }
+    );
+}
+
+inline void append_dot_attr(DotAttrList& attrs, const std::string& key, const std::string& value) {
+    if (!has_dot_attr(attrs, key)) {
+        attrs.emplace_back(key, value);
+    }
+}
+
+inline std::string format_dot_attrs(const DotAttrList& attrs) {
+    std::string out;
+    for (const auto& [key, value] : attrs) {
+        if (!out.empty()) {
+            out += " ";
+        }
+        out += graph_id(key) + "=" + attr_value(value);
+    }
+    return out;
+}
+
 template <typename T>
 std::string to_string(const T& value) {
     std::ostringstream out;
     out << value;
     return out.str();
+}
+
+template <typename T>
+std::optional<std::string> any_attr_as_string(const std::any& value) {
+    if (const auto* typed = std::any_cast<T>(&value)) {
+        return to_string(*typed);
+    }
+    return std::nullopt;
+}
+
+inline std::string any_attr_value(const std::any& value) {
+    if (const auto* typed = std::any_cast<std::string>(&value)) {
+        return *typed;
+    }
+    if (const auto* typed = std::any_cast<bool>(&value)) {
+        return *typed ? "true" : "false";
+    }
+
+    if (auto converted = any_attr_as_string<short>(value)) return *converted;
+    if (auto converted = any_attr_as_string<unsigned short>(value)) return *converted;
+    if (auto converted = any_attr_as_string<int>(value)) return *converted;
+    if (auto converted = any_attr_as_string<unsigned int>(value)) return *converted;
+    if (auto converted = any_attr_as_string<long>(value)) return *converted;
+    if (auto converted = any_attr_as_string<unsigned long>(value)) return *converted;
+    if (auto converted = any_attr_as_string<long long>(value)) return *converted;
+    if (auto converted = any_attr_as_string<unsigned long long>(value)) return *converted;
+    if (auto converted = any_attr_as_string<float>(value)) return *converted;
+    if (auto converted = any_attr_as_string<double>(value)) return *converted;
+    if (auto converted = any_attr_as_string<long double>(value)) return *converted;
+
+    throw std::runtime_error("DOT export failed: unsupported user attribute type.");
 }
 
 } // namespace detail
@@ -143,12 +224,37 @@ std::string to_dot(
 
     std::ostringstream out;
     out << graph_keyword << " " << detail::graph_id(options.graph_name) << " {\n";
+    detail::DotAttrList graph_attrs;
+    if (options.layout.has_value()) {
+        detail::append_dot_attr(graph_attrs, "layout", detail::dot_layout_name(*options.layout));
+    }
+    for (const auto& [key, value] : options.graph_attrs) {
+        detail::append_dot_attr(graph_attrs, key, value);
+    }
+    for (const auto& [key, value] : graph_attrs) {
+        out << "  " << detail::graph_id(key) << "=" << detail::attr_value(value) << ";\n";
+    }
 
     for (const auto& node : graph.nodes()) {
         const std::string node_text = detail::to_string(node);
         out << "  " << detail::quote_dot_string(node_text);
+        std::string attrs;
         if (options.show_node_labels) {
-            out << " [label=" << detail::quote_dot_string(node_text) << "]";
+            attrs += "label=" + detail::quote_dot_string(node_text);
+        }
+        if (options.show_user_attrs) {
+            for (const auto& [key, value] : graph.node_attrs(node)) {
+                if (options.show_node_labels && key == "label") {
+                    continue;
+                }
+                if (!attrs.empty()) {
+                    attrs += " ";
+                }
+                attrs += detail::graph_id(key) + "=" + detail::attr_value(detail::any_attr_value(value));
+            }
+        }
+        if (!attrs.empty()) {
+            out << " [" << attrs << "]";
         }
         out << ";\n";
     }
@@ -159,32 +265,34 @@ std::string to_dot(
             << edge_operator
             << detail::quote_dot_string(detail::to_string(target));
 
-        std::string attrs;
+        detail::DotAttrList attrs;
         if constexpr (Weighted) {
             if (options.show_weights) {
                 const std::string weight = detail::to_string(graph.get_edge_weight(edge_id));
-                const std::string formatted_weight = detail::attr_value(weight);
-                attrs += "weight=" + formatted_weight;
+                detail::append_dot_attr(attrs, "weight", weight);
                 if (options.show_edge_labels) {
-                    attrs += " label=" + formatted_weight;
+                    detail::append_dot_attr(attrs, "label", weight);
                 }
             }
         }
 
         if (options.show_edge_ids) {
-            if (!attrs.empty()) {
-                attrs += " ";
-            }
-            attrs += "edge_id=" + std::to_string(edge_id);
+            detail::append_dot_attr(attrs, "edge_id", std::to_string(edge_id));
             if constexpr (!Weighted) {
                 if (options.show_edge_labels) {
-                    attrs += " label=" + detail::quote_dot_string("edge_id=" + std::to_string(edge_id));
+                    detail::append_dot_attr(attrs, "label", "edge_id=" + std::to_string(edge_id));
                 }
             }
         }
 
+        if (options.show_user_attrs) {
+            for (const auto& [key, value] : graph.edge_attrs(edge_id)) {
+                detail::append_dot_attr(attrs, key, detail::any_attr_value(value));
+            }
+        }
+
         if (!attrs.empty()) {
-            out << " [" << attrs << "]";
+            out << " [" << detail::format_dot_attrs(attrs) << "]";
         }
         out << ";\n";
     }
