@@ -60,8 +60,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph
-        if: matrix.platform_family == 'unix'
+      - name: Install Boost Graph (Linux)
+        if: matrix.platform_family == 'unix' && runner.os == 'Linux'
         shell: bash
         run: |
           sudo apt-get update
@@ -69,18 +69,36 @@ jobs:
           if [ "${{ matrix.label }}" = "ubuntu-clang" ]; then
             sudo apt-get install -y clang
           fi
+          echo "NXPP_BOOST_INCLUDE=-I/usr/include" >> "$GITHUB_ENV"
+
+      - name: Install Boost Graph (macOS)
+        if: matrix.platform_family == 'unix' && runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install boost
+          echo "NXPP_BOOST_INCLUDE=-I$(brew --prefix boost)/include" >> "$GITHUB_ENV"
 
       - name: Detect and log Boost version
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
           echo "=== Boost version info ==="
-          if dpkg -l | grep -q libboost-graph; then
-            dpkg -l | grep libboost | head -10
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            dpkg -l | awk '/libboost/ {print; c++; if (c >= 10) exit}' || true
+            if [ -f "/usr/include/boost/version.hpp" ]; then
+              grep "BOOST_LIB_VERSION" /usr/include/boost/version.hpp || true
+            else
+              echo "version.hpp not found under /usr/include/boost"
+            fi
           fi
-          if [ -d /usr/include/boost ]; then
-            ls -la /usr/include/boost | head -10
-            grep "BOOST_LIB_VERSION" /usr/include/boost/version.hpp 2>/dev/null || echo "version.hpp not found"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            boost_prefix="$(brew --prefix boost)"
+            echo "Boost prefix: $boost_prefix"
+            if [ -f "$boost_prefix/include/boost/version.hpp" ]; then
+              grep "BOOST_LIB_VERSION" "$boost_prefix/include/boost/version.hpp" || true
+            else
+              echo "version.hpp not found under $boost_prefix/include/boost"
+            fi
           fi
 
       - name: Cache Boost archive and extract
