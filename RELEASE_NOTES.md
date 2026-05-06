@@ -3,6 +3,16 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.39]
+
+### Highlights
+
+- Closed `#99` by marking `Graph::num_vertices()` and `Graph::num_edges()`
+  as `noexcept`.
+- Added compile-time test coverage for the new noexcept contract.
+- Broader predicate methods that depend on user-provided node comparison remain
+  unchanged because their exception guarantees can depend on `NodeID`.
+
 ## [1.3.38]
 
 ### Highlights

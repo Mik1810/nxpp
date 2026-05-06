@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.39] - 2026-05-06
+
+- Closed `#99` by marking the non-allocating graph count queries `num_vertices()` and `num_edges()` as `noexcept`.
+- Added compile-time coverage for the new noexcept contract.
+
 ## [1.3.38] - 2026-05-06
 
 - Closed `#128` by adding focused assertion-based coverage for previously untested algorithms and API edge cases.

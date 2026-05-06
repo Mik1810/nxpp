@@ -2022,10 +2022,10 @@ public:
 
     /// @brief Returns the number of vertices currently stored in the graph.
     /// @return The current vertex count as an `int`.
-    auto num_vertices() const;
+    auto num_vertices() const noexcept;
     /// @brief Returns the number of edges currently stored in the graph without materializing the edge list.
     /// @return The current edge count as `std::size_t`.
-    std::size_t num_edges() const;
+    std::size_t num_edges() const noexcept;
     /**
      * @brief Computes normalized degree centrality for every node.
      *
@@ -2079,12 +2079,12 @@ private:
 };
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
-auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::num_vertices() const {
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::num_vertices() const noexcept {
     return static_cast<int>(boost::num_vertices(g));
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
-std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::num_edges() const {
+std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::num_edges() const noexcept {
     return static_cast<std::size_t>(boost::num_edges(g));
 }
 

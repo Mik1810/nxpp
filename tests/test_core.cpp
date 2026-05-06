@@ -21,6 +21,9 @@
 
 using namespace nxpp::test;
 
+static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_vertices()));
+static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_edges()));
+
 std::size_t count_occurrences(const std::string& text, const std::string& needle) {
     std::size_t count = 0;
     std::size_t pos = 0;
