@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.35]
+
+### Highlights
+
+- Closed `#127` by factoring repeated flow-graph setup into shared internal
+  helpers for capacity-only and weighted min-cost flow graphs.
+- Maximum flow, minimum cut, staged cycle-canceling, and successive shortest
+  path min-cost flow now share the same node, capacity, reverse-edge, and
+  original-edge bookkeeping construction path.
+- This is an internal maintainability refactor. Public API, runtime behavior,
+  and flow setup complexity remain unchanged.
+
 ## [1.3.34]
 
 ### Highlights

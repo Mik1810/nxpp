@@ -91,23 +91,44 @@ struct FlowEdgeRecord {
     FlowEdgeDesc edge_desc;
 };
 
-template <typename NodeID, typename FlowEdgeDesc, typename CapacityMap, typename ResidualMap>
-void fill_flow_views(
-    const std::vector<FlowEdgeRecord<NodeID, FlowEdgeDesc>>& original_edges,
-    const CapacityMap& capacity,
-    const ResidualMap& residual,
-    std::map<std::pair<NodeID, NodeID>, long>& endpoint_flows,
-    std::map<std::size_t, long>& edge_flows_by_id
-) {
-    for (const auto& edge : original_edges) {
-        const long flow_value = capacity[edge.edge_desc] - residual[edge.edge_desc];
-        endpoint_flows[{edge.source_id, edge.target_id}] += flow_value;
-        edge_flows_by_id[edge.edge_id] = flow_value;
-    }
-}
+template <typename NodeID>
+struct CapacityFlowGraphState {
+    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
+    using FlowGraph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        boost::no_property,
+        boost::property<
+            boost::edge_capacity_t,
+            long,
+            boost::property<
+                boost::edge_residual_capacity_t,
+                long,
+                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>
+            >
+        >
+    >;
+    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
+    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
+    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
+    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
+
+    FlowGraph flow_graph;
+    CapacityMap capacity;
+    ResidualMap residual;
+    ReverseMap reverse;
+    std::vector<FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
+
+    CapacityFlowGraphState()
+        : flow_graph(),
+          capacity(boost::get(boost::edge_capacity, flow_graph)),
+          residual(boost::get(boost::edge_residual_capacity, flow_graph)),
+          reverse(boost::get(boost::edge_reverse, flow_graph)) {}
+};
 
 template <typename NodeID>
-struct MinCostFlowState {
+struct WeightedFlowGraphState {
     using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
     using FlowGraph = boost::adjacency_list<
         boost::vecS,
@@ -140,17 +161,102 @@ struct MinCostFlowState {
     ResidualMap residual;
     ReverseMap reverse;
     std::vector<FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
-    NodeID source_id;
-    NodeID target_id;
-    long value = 0;
-    long cost = 0;
 
-    MinCostFlowState()
+    WeightedFlowGraphState()
         : flow_graph(),
           weight(boost::get(boost::edge_weight, flow_graph)),
           capacity(boost::get(boost::edge_capacity, flow_graph)),
           residual(boost::get(boost::edge_residual_capacity, flow_graph)),
           reverse(boost::get(boost::edge_reverse, flow_graph)) {}
+};
+
+template <typename FlowState>
+void add_flow_vertices(FlowState& state, std::size_t count) {
+    for (std::size_t i = 0; i < count; ++i) {
+        boost::add_vertex(state.flow_graph);
+    }
+}
+
+template <typename FlowState>
+auto add_capacity_edge_pair(FlowState& state, std::size_t source_index, std::size_t target_index, long capacity_value) {
+    auto [edge, added] = boost::add_edge(source_index, target_index, state.flow_graph);
+    auto [reverse_edge, reverse_added] = boost::add_edge(target_index, source_index, state.flow_graph);
+    (void)added;
+    (void)reverse_added;
+    state.capacity[edge] = capacity_value;
+    state.capacity[reverse_edge] = 0;
+    state.reverse[edge] = reverse_edge;
+    state.reverse[reverse_edge] = edge;
+    return edge;
+}
+
+template <typename GraphWrapper, typename FlowState, typename EdgeIdFn, typename CapacityFn>
+void add_capacity_flow_edges(
+    const GraphWrapper& graph,
+    FlowState& state,
+    EdgeIdFn&& edge_id_for,
+    CapacityFn&& capacity_for
+) {
+    const auto& impl = graph.get_impl();
+    for (auto [eit, eend] = boost::edges(impl); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, impl);
+        const auto target = boost::target(*eit, impl);
+        const auto source_index = graph.get_vertex_index(source);
+        const auto target_index = graph.get_vertex_index(target);
+        const auto& source_id = graph.get_node_id(source);
+        const auto& target_id = graph.get_node_id(target);
+        const auto edge_id = edge_id_for(*eit);
+        const auto edge = add_capacity_edge_pair(state, source_index, target_index, capacity_for(edge_id));
+        state.original_edges.push_back({edge_id, source_id, target_id, edge});
+    }
+}
+
+template <typename GraphWrapper, typename FlowState, typename EdgeIdFn, typename CapacityFn, typename WeightFn>
+void add_weighted_flow_edges(
+    const GraphWrapper& graph,
+    FlowState& state,
+    EdgeIdFn&& edge_id_for,
+    CapacityFn&& capacity_for,
+    WeightFn&& weight_for
+) {
+    const auto& impl = graph.get_impl();
+    for (auto [eit, eend] = boost::edges(impl); eit != eend; ++eit) {
+        const auto source = boost::source(*eit, impl);
+        const auto target = boost::target(*eit, impl);
+        const auto source_index = graph.get_vertex_index(source);
+        const auto target_index = graph.get_vertex_index(target);
+        const auto& source_id = graph.get_node_id(source);
+        const auto& target_id = graph.get_node_id(target);
+        const auto edge_id = edge_id_for(*eit);
+        const auto edge = add_capacity_edge_pair(state, source_index, target_index, capacity_for(edge_id));
+        const auto reverse_edge = state.reverse[edge];
+        state.weight[edge] = weight_for(edge_id);
+        state.weight[reverse_edge] = -state.weight[edge];
+        state.original_edges.push_back({edge_id, source_id, target_id, edge});
+    }
+}
+
+template <typename NodeID, typename FlowEdgeDesc, typename CapacityMap, typename ResidualMap>
+void fill_flow_views(
+    const std::vector<FlowEdgeRecord<NodeID, FlowEdgeDesc>>& original_edges,
+    const CapacityMap& capacity,
+    const ResidualMap& residual,
+    std::map<std::pair<NodeID, NodeID>, long>& endpoint_flows,
+    std::map<std::size_t, long>& edge_flows_by_id
+) {
+    for (const auto& edge : original_edges) {
+        const long flow_value = capacity[edge.edge_desc] - residual[edge.edge_desc];
+        endpoint_flows[{edge.source_id, edge.target_id}] += flow_value;
+        edge_flows_by_id[edge.edge_id] = flow_value;
+    }
+}
+
+template <typename NodeID>
+struct MinCostFlowState : WeightedFlowGraphState<NodeID> {
+    NodeID source_id;
+    NodeID target_id;
+    long value = 0;
+    long cost = 0;
 };
 
 template <typename GraphWrapper>
@@ -387,102 +493,46 @@ auto max_flow_min_cost(const GraphWrapper& G, const typename GraphWrapper::NodeT
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::edmonds_karp_maximum_flow(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
     if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
-    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
-    using FlowGraph = boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-        boost::property<boost::edge_capacity_t, long,
-            boost::property<boost::edge_residual_capacity_t, long,
-                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>>>>;
-    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
-    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
-    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
-    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
-
-    FlowGraph flow_graph;
-    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
-    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto& all_nodes = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
-
-    std::vector<detail::FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
-        (void)added; (void)rev_added;
-        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        capacity[rev] = 0;
-        reverse[e] = rev;
-        reverse[rev] = e;
-        original_edges.push_back({edge_id, u, v, e});
-    }
+    detail::CapacityFlowGraphState<NodeID> state;
+    detail::add_flow_vertices(state, get_bgl_to_id_map().size());
+    detail::add_capacity_flow_edges(
+        *this,
+        state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); }
+    );
 
     const long flow_value = boost::edmonds_karp_max_flow(
-        flow_graph,
-        get_vertex_index(id_to_bgl.at(source_id)),
-        get_vertex_index(id_to_bgl.at(target_id))
+        state.flow_graph,
+        get_vertex_index(get_id_to_bgl_map().at(source_id)),
+        get_vertex_index(get_id_to_bgl_map().at(target_id))
     );
-    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     MaximumFlowResult<NodeID> result;
     result.value = flow_value;
-    detail::fill_flow_views(original_edges, capacity, residual, result.flow, result.edge_flows_by_id);
+    detail::fill_flow_views(state.original_edges, state.capacity, state.residual, result.flow, result.edge_flows_by_id);
     return result;
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::push_relabel_maximum_flow_result(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
     if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
-    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
-    using FlowGraph = boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-        boost::property<boost::edge_capacity_t, long,
-            boost::property<boost::edge_residual_capacity_t, long,
-                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>>>>;
-    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
-    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
-    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
-    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
-
-    FlowGraph flow_graph;
-    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
-    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto& all_nodes = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
-
-    std::vector<detail::FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
-        (void)added; (void)rev_added;
-        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        capacity[rev] = 0;
-        reverse[e] = rev;
-        reverse[rev] = e;
-        original_edges.push_back({edge_id, u, v, e});
-    }
+    detail::CapacityFlowGraphState<NodeID> state;
+    detail::add_flow_vertices(state, get_bgl_to_id_map().size());
+    detail::add_capacity_flow_edges(
+        *this,
+        state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); }
+    );
 
     const long flow_value = boost::push_relabel_max_flow(
-        flow_graph,
-        get_vertex_index(id_to_bgl.at(source_id)),
-        get_vertex_index(id_to_bgl.at(target_id))
+        state.flow_graph,
+        get_vertex_index(get_id_to_bgl_map().at(source_id)),
+        get_vertex_index(get_id_to_bgl_map().at(target_id))
     );
-    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
     MaximumFlowResult<NodeID> result;
     result.value = flow_value;
-    detail::fill_flow_views(original_edges, capacity, residual, result.flow, result.edge_flows_by_id);
+    detail::fill_flow_views(state.original_edges, state.capacity, state.residual, result.flow, result.edge_flows_by_id);
     return result;
 }
 
@@ -492,39 +542,18 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::minimum_cut(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr) const {
     if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
-    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
-    using FlowGraph = boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-        boost::property<boost::edge_capacity_t, long,
-            boost::property<boost::edge_residual_capacity_t, long,
-                boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>>>>;
-    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
-    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
-    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
-
-    FlowGraph flow_graph;
-    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
-    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
+    detail::CapacityFlowGraphState<NodeID> state;
     const auto& index_to_node = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < index_to_node.size(); ++i) { boost::add_vertex(flow_graph); }
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
-        (void)added; (void)rev_added;
-        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        capacity[rev] = 0;
-        reverse[e] = rev;
-        reverse[rev] = e;
-    }
-    const auto source_index = get_vertex_index(id_to_bgl.at(source_id));
-    const auto target_index = get_vertex_index(id_to_bgl.at(target_id));
-    const long cut_value = boost::edmonds_karp_max_flow(flow_graph, source_index, target_index);
-    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    detail::add_flow_vertices(state, index_to_node.size());
+    detail::add_capacity_flow_edges(
+        *this,
+        state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); }
+    );
+    const auto source_index = get_vertex_index(get_id_to_bgl_map().at(source_id));
+    const auto target_index = get_vertex_index(get_id_to_bgl_map().at(target_id));
+    const long cut_value = boost::edmonds_karp_max_flow(state.flow_graph, source_index, target_index);
     std::vector<bool> visited(index_to_node.size(), false);
     std::queue<std::size_t> q;
     visited[source_index] = true;
@@ -532,9 +561,9 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     while (!q.empty()) {
         const auto current = q.front();
         q.pop();
-        for (auto [eit, eend] = boost::out_edges(current, flow_graph); eit != eend; ++eit) {
-            const auto next = boost::target(*eit, flow_graph);
-            if (!visited[next] && residual[*eit] > 0) { visited[next] = true; q.push(next); }
+        for (auto [eit, eend] = boost::out_edges(current, state.flow_graph); eit != eend; ++eit) {
+            const auto next = boost::target(*eit, state.flow_graph);
+            if (!visited[next] && state.residual[*eit] > 0) { visited[next] = true; q.push(next); }
         }
     }
     MinimumCutResult<NodeID> result;
@@ -559,57 +588,26 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::max_flow_min_cost_cycle_canceling(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr, const std::string& weight_attr) const {
     if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
-    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
-    using FlowGraph = boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-        boost::property<boost::edge_weight_t, long,
-            boost::property<boost::edge_capacity_t, long,
-                boost::property<boost::edge_residual_capacity_t, long,
-                    boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>>>>>;
-    using WeightMap = typename boost::property_map<FlowGraph, boost::edge_weight_t>::type;
-    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
-    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
-    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
-    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
-
-    FlowGraph flow_graph;
-    WeightMap weight = boost::get(boost::edge_weight, flow_graph);
-    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
-    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto& all_nodes = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
-    std::vector<detail::FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
-        (void)added; (void)rev_added;
-        weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
-        weight[rev] = -weight[e];
-        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        capacity[rev] = 0;
-        reverse[e] = rev;
-        reverse[rev] = e;
-        original_edges.push_back({edge_id, u, v, e});
-    }
-    boost::push_relabel_max_flow(
-        flow_graph,
-        get_vertex_index(id_to_bgl.at(source_id)),
-        get_vertex_index(id_to_bgl.at(target_id))
+    detail::WeightedFlowGraphState<NodeID> state;
+    detail::add_flow_vertices(state, get_bgl_to_id_map().size());
+    detail::add_weighted_flow_edges(
+        *this,
+        state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); },
+        [this, &weight_attr](std::size_t edge_id) { return static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr)); }
     );
-    boost::cycle_canceling(flow_graph);
-    const long cost = boost::find_flow_cost(flow_graph);
-    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    boost::push_relabel_max_flow(
+        state.flow_graph,
+        get_vertex_index(get_id_to_bgl_map().at(source_id)),
+        get_vertex_index(get_id_to_bgl_map().at(target_id))
+    );
+    boost::cycle_canceling(state.flow_graph);
+    const long cost = boost::find_flow_cost(state.flow_graph);
     MinCostMaxFlowResult<NodeID> result;
     result.cost = cost;
-    detail::fill_flow_views(original_edges, capacity, residual, result.edge_flows, result.edge_flows_by_id);
-    for (const auto& edge : original_edges) {
+    detail::fill_flow_views(state.original_edges, state.capacity, state.residual, result.edge_flows, result.edge_flows_by_id);
+    for (const auto& edge : state.original_edges) {
         if (edge.source_id == source_id) {
             result.flow += result.edge_flows_by_id[edge.edge_id];
         }
@@ -623,31 +621,18 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     auto state = std::make_unique<detail::MinCostFlowState<NodeID>>();
     state->source_id = source_id;
     state->target_id = target_id;
-    const auto& all_nodes = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(state->flow_graph); }
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, state->flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, state->flow_graph);
-        (void)added; (void)rev_added;
-        state->weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
-        state->weight[rev] = -state->weight[e];
-        state->capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        state->capacity[rev] = 0;
-        state->reverse[e] = rev;
-        state->reverse[rev] = e;
-        state->original_edges.push_back({edge_id, u, v, e});
-    }
+    detail::add_flow_vertices(*state, get_bgl_to_id_map().size());
+    detail::add_weighted_flow_edges(
+        *this,
+        *state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); },
+        [this, &weight_attr](std::size_t edge_id) { return static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr)); }
+    );
     state->value = boost::push_relabel_max_flow(
         state->flow_graph,
-        get_vertex_index(id_to_bgl.at(source_id)),
-        get_vertex_index(id_to_bgl.at(target_id))
+        get_vertex_index(get_id_to_bgl_map().at(source_id)),
+        get_vertex_index(get_id_to_bgl_map().at(target_id))
     );
     const long flow_value = state->value;
     {
@@ -686,56 +671,27 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::successive_shortest_path_nonnegative_weights(const NodeID& source_id, const NodeID& target_id, const std::string& capacity_attr, const std::string& weight_attr) const {
     if (!has_node(source_id) || !has_node(target_id)) throw std::runtime_error("Flow setup failed: source or target node not found.");
-    using FlowTraits = boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS>;
-    using FlowGraph = boost::adjacency_list<
-        boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-        boost::property<boost::edge_weight_t, long,
-            boost::property<boost::edge_capacity_t, long,
-                boost::property<boost::edge_residual_capacity_t, long,
-                    boost::property<boost::edge_reverse_t, typename FlowTraits::edge_descriptor>>>>>;
-    using WeightMap = typename boost::property_map<FlowGraph, boost::edge_weight_t>::type;
-    using CapacityMap = typename boost::property_map<FlowGraph, boost::edge_capacity_t>::type;
-    using ResidualMap = typename boost::property_map<FlowGraph, boost::edge_residual_capacity_t>::type;
-    using ReverseMap = typename boost::property_map<FlowGraph, boost::edge_reverse_t>::type;
-    using FlowEdgeDesc = typename boost::graph_traits<FlowGraph>::edge_descriptor;
-
-    FlowGraph flow_graph;
-    WeightMap weight = boost::get(boost::edge_weight, flow_graph);
-    CapacityMap capacity = boost::get(boost::edge_capacity, flow_graph);
-    ReverseMap reverse = boost::get(boost::edge_reverse, flow_graph);
-    const auto& all_nodes = get_bgl_to_id_map();
-    for (std::size_t i = 0; i < all_nodes.size(); ++i) { boost::add_vertex(flow_graph); }
-    std::vector<detail::FlowEdgeRecord<NodeID, FlowEdgeDesc>> original_edges;
-    for (auto [eit, eend] = boost::edges(g); eit != eend; ++eit) {
-        const auto source = boost::source(*eit, g);
-        const auto target = boost::target(*eit, g);
-        const auto source_index = get_vertex_index(source);
-        const auto target_index = get_vertex_index(target);
-        const auto& u = get_node_id(source);
-        const auto& v = get_node_id(target);
-        const auto edge_id = get_edge_id(*eit);
-        auto [e, added] = boost::add_edge(source_index, target_index, flow_graph);
-        auto [rev, rev_added] = boost::add_edge(target_index, source_index, flow_graph);
-        (void)added; (void)rev_added;
-        weight[e] = static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr));
-        weight[rev] = -weight[e];
-        capacity[e] = get_edge_flow_capacity(edge_id, capacity_attr);
-        capacity[rev] = 0;
-        reverse[e] = rev;
-        reverse[rev] = e;
-        original_edges.push_back({edge_id, u, v, e});
-    }
-    const auto source_index = get_vertex_index(id_to_bgl.at(source_id));
-    const auto target_index = get_vertex_index(id_to_bgl.at(target_id));
-    boost::successive_shortest_path_nonnegative_weights(flow_graph, source_index, target_index);
-    ResidualMap residual = boost::get(boost::edge_residual_capacity, flow_graph);
+    detail::WeightedFlowGraphState<NodeID> state;
+    detail::add_flow_vertices(state, get_bgl_to_id_map().size());
+    detail::add_weighted_flow_edges(
+        *this,
+        state,
+        [this](EdgeDesc edge) { return get_edge_id(edge); },
+        [this, &capacity_attr](std::size_t edge_id) { return get_edge_flow_capacity(edge_id, capacity_attr); },
+        [this, &weight_attr](std::size_t edge_id) { return static_cast<long>(get_edge_numeric_attr(edge_id, weight_attr)); }
+    );
+    const auto source_index = get_vertex_index(get_id_to_bgl_map().at(source_id));
+    const auto target_index = get_vertex_index(get_id_to_bgl_map().at(target_id));
+    boost::successive_shortest_path_nonnegative_weights(state.flow_graph, source_index, target_index);
     long flow_value = 0;
-    for (auto [eit, eend] = boost::out_edges(source_index, flow_graph); eit != eend; ++eit) flow_value += capacity[*eit] - residual[*eit];
-    const long cost = boost::find_flow_cost(flow_graph);
+    for (auto [eit, eend] = boost::out_edges(source_index, state.flow_graph); eit != eend; ++eit) {
+        flow_value += state.capacity[*eit] - state.residual[*eit];
+    }
+    const long cost = boost::find_flow_cost(state.flow_graph);
     MinCostMaxFlowResult<NodeID> result;
     result.flow = flow_value;
     result.cost = cost;
-    detail::fill_flow_views(original_edges, capacity, residual, result.edge_flows, result.edge_flows_by_id);
+    detail::fill_flow_views(state.original_edges, state.capacity, state.residual, result.edge_flows, result.edge_flows_by_id);
     return result;
 }
 
