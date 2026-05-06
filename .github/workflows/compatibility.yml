@@ -60,41 +60,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost 1.90.0
+      - name: Install Boost Graph
         if: matrix.platform_family == 'unix'
         shell: bash
         run: |
-          set -e
-          BOOST_VERSION="1.90.0"
-          BOOST_ARCHIVE_NAME="boost_${BOOST_VERSION//./_}"
-          BOOST_DIR="${RUNNER_TEMP}/${BOOST_ARCHIVE_NAME}"
-          BOOST_TAR="${RUNNER_TEMP}/${BOOST_ARCHIVE_NAME}.tar.gz"
-          BOOST_URL="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_ARCHIVE_NAME}.tar.gz"
-
-          # Download if not present
-          if [ ! -f "$BOOST_TAR" ]; then
-            echo "Downloading Boost $BOOST_VERSION from $BOOST_URL..."
-            curl -L -o "$BOOST_TAR" "$BOOST_URL"
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev libboost-all-dev
+          if [ "${{ matrix.label }}" = "ubuntu-clang" ]; then
+            sudo apt-get install -y clang
           fi
 
-          # Extract if not already done
-          if [ ! -d "$BOOST_DIR/boost" ]; then
-            echo "Extracting Boost to $RUNNER_TEMP..."
-            cd "$RUNNER_TEMP"
-            tar -xzf "$BOOST_TAR"
+      - name: Detect and log Boost version
+        if: matrix.platform_family == 'unix'
+        shell: bash
+        run: |
+          echo "=== Boost version info ==="
+          if dpkg -l | grep -q libboost-graph; then
+            dpkg -l | grep libboost | head -10
           fi
-
-          # Verify extraction
-          if [ ! -d "$BOOST_DIR/boost" ]; then
-            echo "ERROR: Boost headers not found at $BOOST_DIR/boost"
-            ls -la "$RUNNER_TEMP" | head -20
-            exit 1
+          if [ -d /usr/include/boost ]; then
+            ls -la /usr/include/boost | head -10
+            grep "BOOST_LIB_VERSION" /usr/include/boost/version.hpp 2>/dev/null || echo "version.hpp not found"
           fi
-
-          # Set environment variables
-          echo "BOOST_ROOT=$BOOST_DIR" >> "$GITHUB_ENV"
-          echo "NXPP_BOOST_INCLUDE=-I${BOOST_DIR}/boost" >> "$GITHUB_ENV"
-          echo "Boost $BOOST_VERSION successfully installed at $BOOST_DIR"
 
       - name: Cache Boost archive and extract
         if: matrix.platform_family == 'windows'
@@ -182,18 +169,18 @@ jobs:
             }
           }
 
-      - name: Verify Boost version
+      - name: Verify Windows Boost installation
+        if: matrix.platform_family == 'windows'
         shell: bash
         run: |
+          echo "=== Windows Boost 1.90.0 verification ==="
           if [ -n "$BOOST_ROOT" ]; then
-            BOOST_VERSION_FILE="$BOOST_ROOT/boost/version.hpp"
-            if [ -f "$BOOST_VERSION_FILE" ]; then
-              echo "Boost version.hpp found at: $BOOST_VERSION_FILE"
-              grep "BOOST_LIB_VERSION" "$BOOST_VERSION_FILE" | head -5 || true
+            if [ -f "$BOOST_ROOT/boost/version.hpp" ]; then
+              echo "Boost headers found at: $BOOST_ROOT"
+              grep "BOOST_LIB_VERSION" "$BOOST_ROOT/boost/version.hpp" | head -2 || true
             fi
           fi
           echo "BOOST_ROOT: ${BOOST_ROOT:-not set}"
-          echo "NXPP_BOOST_INCLUDE: ${NXPP_BOOST_INCLUDE:-not set}"
 
       - name: Run test suite
         if: matrix.platform_family == 'unix'
