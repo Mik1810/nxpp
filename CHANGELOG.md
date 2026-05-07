@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.1] - 2026-05-07
+
+- Closed `#97` by adding a dedicated performance workflow for compile benchmark CSV tracking.
+- Added `scripts/compare_bench.py` to compare candidate benchmark CSVs against a main-branch baseline with a configurable regression threshold.
+
 ## [1.4.0] - 2026-05-07
 
 - Closed `#115` by making `Graph::edges()` return endpoint pairs for both weighted and unweighted graphs.

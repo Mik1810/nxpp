@@ -4,7 +4,7 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
-project(nxpp VERSION 1.4.0 LANGUAGES CXX)
+project(nxpp VERSION 1.4.1 LANGUAGES CXX)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)

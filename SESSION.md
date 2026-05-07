@@ -814,3 +814,11 @@
 - Decision: Made `edges()` return endpoint pairs uniformly and added `weighted_edges()` for weighted tuple materialization. This is a deliberate breaking API change for weighted graph callers.
 - Verified: focused `test_core` and `test_large_graph_compare` build/run; `bash scripts/unix/run_tests.sh` (`92/92`); release metadata check at `1.4.0`; `git diff --check`.
 - Next: Commit, push, and close issue `#115`.
+
+### 2026-05-07 - Issue #97
+
+- Branch/commit:
+- Files: `.github/workflows/performance.yml`, `scripts/compare_bench.py`, release metadata.
+- Decision: Added CI tracking for compile benchmark CSVs rather than treating the large-graph comparison path as a benchmark.
+- Verified: synthetic pass/fail CSV comparisons through `scripts/compare_bench.py`; release metadata check at `1.4.1`; `git diff --check`.
+- Next: Commit, push, and close issue `#97`. Local full benchmark smoke exceeded the 30s command limit before completing all snippets.

@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.4.1]
+
+### Highlights
+
+- Closed `#97` by adding a dedicated `Performance` GitHub Actions workflow for
+  compile benchmark tracking.
+- The workflow uploads benchmark CSV artifacts, preserves a main-branch
+  baseline artifact, and compares pull-request results against that baseline
+  when available.
+- Added `scripts/compare_bench.py` for dependency-free CSV comparison with a
+  configurable regression threshold.
+
 ## [1.4.0]
 
 ### Highlights

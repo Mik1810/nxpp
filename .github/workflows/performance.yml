@@ -1,0 +1,129 @@
+name: Performance
+
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "imgs/**"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "Doxyfile"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "RELEASE_NOTES.md"
+      - "SESSION.md"
+      - "REVIEW.md"
+      - "imgs/**"
+      - "**.md"
+  workflow_dispatch:
+
+jobs:
+  compile-benchmark:
+    name: compile benchmark (ubuntu-gcc)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install benchmark dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev time
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Run compile benchmark
+        run: |
+          mkdir -p benchmark
+          snippets=(
+            2sat
+            bellman_ford
+            bfs
+            cc
+            centrality
+            dag_sp
+            dfs
+            dijkstra
+            flow
+            floyd_warshall
+            graph_example
+            kruskal
+            mcmf_cc
+            mcmf_ssp
+            prim
+            scc
+            scc_named
+            ts
+          )
+
+          : > benchmark/compile_bench_ci.csv
+          first=1
+          for snippet in "${snippets[@]}"; do
+            tmp_csv="$(mktemp)"
+            bash scripts/unix/benchmark_snippet_compile.sh \
+              --snippet "$snippet" \
+              --iterations 3 \
+              --csv "$tmp_csv"
+            if [ "$first" = "1" ]; then
+              cat "$tmp_csv" >> benchmark/compile_bench_ci.csv
+              first=0
+            else
+              tail -n +2 "$tmp_csv" >> benchmark/compile_bench_ci.csv
+            fi
+          done
+
+      - name: Download baseline benchmark
+        if: github.event_name == 'pull_request'
+        uses: dawidd6/action-download-artifact@v3
+        continue-on-error: true
+        with:
+          workflow: performance.yml
+          branch: main
+          name: compile-benchmark-main
+          path: benchmark-baseline
+
+      - name: Compare benchmark against baseline
+        if: github.event_name == 'pull_request'
+        run: |
+          baseline="benchmark-baseline/compile_bench_ci.csv"
+          if [ ! -f "$baseline" ]; then
+            echo "No main-branch benchmark baseline found; skipping comparison."
+            exit 0
+          fi
+          python3 scripts/compare_bench.py "$baseline" benchmark/compile_bench_ci.csv --threshold 1.15
+
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-benchmark-${{ github.sha }}
+          path: benchmark/compile_bench_ci.csv
+
+      - name: Upload main baseline
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-benchmark-main
+          path: benchmark/compile_bench_ci.csv
+
+      - name: Publish performance summary
+        if: always()
+        run: |
+          {
+            echo "## Performance"
+            echo
+            echo "- Benchmark: selected CI compile snippets via \`scripts/unix/benchmark_snippet_compile.sh --snippet ... --iterations 3\`"
+            echo "- Candidate CSV: \`benchmark/compile_bench_ci.csv\`"
+            echo "- PR comparison threshold: \`1.15\`"
+          } >> "$GITHUB_STEP_SUMMARY"
