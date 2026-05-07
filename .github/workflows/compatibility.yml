@@ -28,8 +28,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  detect-boost-version:
+    name: detect-boost-version
+    runs-on: ubuntu-latest
+    outputs:
+      boost_version: ${{ steps.detect.outputs.boost_version }}
+
+    steps:
+      - name: Detect latest Boost version
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          boost_version="$(
+            curl -fsSL https://archives.boost.io/release/ |
+              python3 -c 'import re,sys; s=sys.stdin.buffer.read().replace(b"\x00", b"").decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")'
+          )"
+
+          if [ -z "$boost_version" ]; then
+            echo "Failed to detect latest Boost version from archives.boost.io" >&2
+            exit 1
+          fi
+
+          echo "boost_version=$boost_version" >> "$GITHUB_OUTPUT"
+
   test-suite:
     name: test-suite (${{ matrix.label }})
+    needs: detect-boost-version
     strategy:
       fail-fast: false
       matrix:
@@ -75,16 +101,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          boost_version="$(
-            curl -fsSL https://archives.boost.io/release/ |
-              python3 -c 'import re,sys; s=sys.stdin.buffer.read().replace(b"\x00", b"").decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")'
-          )"
-
-          if [ -z "$boost_version" ]; then
-            echo "Failed to detect latest Boost version from archives.boost.io" >&2
-            exit 1
-          fi
-
+          boost_version="${{ needs.detect-boost-version.outputs.boost_version }}"
           boost_tag="${boost_version//./_}"
           boost_archive="boost_${boost_tag}.tar.gz"
           boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
@@ -103,13 +120,7 @@ jobs:
         if: matrix.platform_family == 'windows'
         shell: pwsh
         run: |
-          $releaseIndex = (Invoke-WebRequest -Uri "https://archives.boost.io/release/").Content
-          $matches = [regex]::Matches($releaseIndex, 'href="([0-9]+\.[0-9]+\.[0-9]+)/"')
-          if ($matches.Count -eq 0) {
-            throw "Unable to detect latest Boost version from archives.boost.io"
-          }
-
-          $latestVersion = ($matches | ForEach-Object { [version]$_.Groups[1].Value } | Sort-Object -Descending | Select-Object -First 1).ToString()
+          $latestVersion = "${{ needs.detect-boost-version.outputs.boost_version }}"
           $boostTag = $latestVersion.Replace('.', '_')
           $boostZip = Join-Path $env:RUNNER_TEMP "boost_$boostTag.zip"
           $boostRoot = Join-Path $env:RUNNER_TEMP "boost_$boostTag"
@@ -307,6 +318,7 @@ jobs:
 
   large-graph-compare:
     name: large-graph-compare (ubuntu)
+    needs: detect-boost-version
     runs-on: ubuntu-latest
 
     steps:
@@ -316,16 +328,7 @@ jobs:
       - name: Download latest Boost headers
         run: |
           set -euo pipefail
-          boost_version="$(
-            curl -fsSL https://archives.boost.io/release/ |
-              python3 -c 'import re,sys; s=sys.stdin.buffer.read().replace(b"\x00", b"").decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")'
-          )"
-
-          if [ -z "$boost_version" ]; then
-            echo "Failed to detect latest Boost version from archives.boost.io" >&2
-            exit 1
-          fi
-
+          boost_version="${{ needs.detect-boost-version.outputs.boost_version }}"
           boost_tag="${boost_version//./_}"
           boost_archive="boost_${boost_tag}.tar.gz"
           boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
