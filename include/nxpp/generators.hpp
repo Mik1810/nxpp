@@ -17,6 +17,7 @@ namespace nxpp {
 // Generators
 
 template <typename GraphType = Graph<int>>
+    requires NumericNodeID<typename GraphType::NodeType>
 /**
  * @brief Builds the complete graph on node IDs 0 through n - 1.
  *
@@ -26,10 +27,6 @@ template <typename GraphType = Graph<int>>
 GraphType complete_graph(size_t n) {
     GraphType G;
     using NodeID = typename GraphType::NodeType;
-    static_assert(
-        std::constructible_from<NodeID, std::size_t>,
-        "nxpp::complete_graph requires GraphType::NodeType to be constructible from std::size_t because it synthesizes node IDs 0..n-1."
-    );
     for (size_t i = 0; i < n; ++i) {
         if constexpr (GraphType::is_directed) {
             for (size_t j = 0; j < n; ++j) {
@@ -46,6 +43,7 @@ GraphType complete_graph(size_t n) {
 }
 
 template <typename GraphType = Graph<int>>
+    requires NumericNodeID<typename GraphType::NodeType>
 /**
  * @brief Builds a simple path on node IDs 0 through n - 1.
  *
@@ -55,10 +53,6 @@ template <typename GraphType = Graph<int>>
 GraphType path_graph(size_t n) {
     GraphType G;
     using NodeID = typename GraphType::NodeType;
-    static_assert(
-        std::constructible_from<NodeID, std::size_t>,
-        "nxpp::path_graph requires GraphType::NodeType to be constructible from std::size_t because it synthesizes node IDs 0..n-1."
-    );
     if (n == 0) {
         return G;
     }
@@ -69,6 +63,7 @@ GraphType path_graph(size_t n) {
 }
 
 template <typename GraphType = Graph<int>>
+    requires NumericNodeID<typename GraphType::NodeType>
 /**
  * @brief Builds an Erdos-Renyi random graph on node IDs 0 through n - 1.
  *
@@ -80,10 +75,6 @@ template <typename GraphType = Graph<int>>
 GraphType erdos_renyi_graph(size_t n, double p, int seed = 42) {
     GraphType G;
     using NodeID = typename GraphType::NodeType;
-    static_assert(
-        std::constructible_from<NodeID, std::size_t>,
-        "nxpp::erdos_renyi_graph requires GraphType::NodeType to be constructible from std::size_t because it synthesizes node IDs 0..n-1."
-    );
     std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0.0, 1.0);
 

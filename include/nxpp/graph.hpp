@@ -39,14 +39,25 @@
 
 namespace nxpp {
 
+template <typename T>
+concept ValidNodeID =
+    std::copy_constructible<T> &&
+    std::equality_comparable<T> &&
+    requires(const T& lhs, const T& rhs) {
+        { std::less<T>{}(lhs, rhs) } -> std::convertible_to<bool>;
+    };
+
+template <typename T>
+concept NumericNodeID = ValidNodeID<T> && std::constructible_from<T, std::size_t>;
+
 template <
-    typename NodeID,
-    typename EdgeWeight,
-    bool Directed,
-    bool Multi,
-    bool Weighted,
-    typename OutEdgeSelector,
-    typename VertexSelector
+    typename NodeID = std::string,
+    typename EdgeWeight = double,
+    bool Directed = false,
+    bool Multi = false,
+    bool Weighted = true,
+    typename OutEdgeSelector = boost::vecS,
+    typename VertexSelector = boost::vecS
 >
 class Graph;
 
@@ -83,16 +94,6 @@ namespace nxpp {
 
 template <typename GraphType, bool HasWeight>
 struct built_in_weight_traits;
-
-namespace detail {
-
-template <typename T>
-concept node_id_orderable =
-    requires(const T& lhs, const T& rhs) {
-        { std::less<T>{}(lhs, rhs) } -> std::convertible_to<bool>;
-    };
-
-} // namespace detail
 
 template <typename GraphType>
 struct built_in_weight_traits<GraphType, true> {
@@ -262,13 +263,13 @@ private:
 // Core Graph Class
 
 template <
-    typename NodeID = std::string,
-    typename EdgeWeight = double,
-    bool Directed = false,
-    bool Multi = false,
-    bool Weighted = true,
-    typename OutEdgeSelector = boost::vecS,
-    typename VertexSelector = boost::vecS
+    typename NodeID,
+    typename EdgeWeight,
+    bool Directed,
+    bool Multi,
+    bool Weighted,
+    typename OutEdgeSelector,
+    typename VertexSelector
 >
 /**
  * @brief Graph wrapper around Boost Graph Library with Python-inspired helpers.
@@ -320,18 +321,8 @@ public:
 
 private:
     static_assert(
-        std::copy_constructible<NodeID>,
-        "nxpp::Graph requires NodeID to be copy-constructible because node IDs are stored and materialized across wrapper-owned containers."
-    );
-
-    static_assert(
-        std::equality_comparable<NodeID>,
-        "nxpp::Graph requires NodeID to support operator== because several wrapper result helpers compare reconstructed node IDs directly."
-    );
-
-    static_assert(
-        detail::node_id_orderable<NodeID>,
-        "nxpp::Graph requires NodeID to be orderable with std::less because wrapper-owned maps and key-sorted result containers rely on that ordering."
+        ValidNodeID<NodeID>,
+        "nxpp::Graph requires NodeID to satisfy nxpp::ValidNodeID: copy-constructible, equality comparable, and orderable with std::less."
     );
 
     GraphType g;

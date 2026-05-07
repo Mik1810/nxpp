@@ -192,6 +192,9 @@ struct OrderedOnlyNodeId {
     }
 };
 
+static_assert(nxpp::ValidNodeID<OrderedOnlyNodeId>);
+static_assert(!nxpp::NumericNodeID<OrderedOnlyNodeId>);
+
 OrderedOnlyNodeId make_node_id(const char* value) {
     return OrderedOnlyNodeId{value};
 }

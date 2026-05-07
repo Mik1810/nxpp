@@ -24,6 +24,8 @@ using namespace nxpp::test;
 
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_vertices()));
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_edges()));
+static_assert(nxpp::ValidNodeID<int>);
+static_assert(nxpp::NumericNodeID<int>);
 static_assert(std::is_same_v<nxpp::storage::Vec, nxpp::Graph<>::OutEdgeListSelector>);
 static_assert(std::is_same_v<
     decltype(std::declval<const nxpp::WeightedDiGraphInt&>().edges()),
