@@ -697,6 +697,8 @@ public:
           edge_properties(std::move(other.edge_properties)) {
         rebuild_vertex_maps();
         rebuild_edge_id_index();
+        other.clear_min_cost_flow_state();
+        other.clear();
     }
 
     Graph& operator=(const Graph& other) {
@@ -728,6 +730,8 @@ public:
         edge_properties = std::move(other.edge_properties);
         rebuild_vertex_maps();
         rebuild_edge_id_index();
+        other.clear_min_cost_flow_state();
+        other.clear();
         return *this;
     }
 

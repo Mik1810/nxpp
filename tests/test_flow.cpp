@@ -140,6 +140,41 @@ void test_staged_min_cost_flow_states_are_isolated_between_graph_instances() {
     expect(second.cycle_canceling() == 22, "second graph should keep a separate staged flow state");
 }
 
+void test_copy_after_staged_flow_has_no_cached_flow_state() {
+    auto graph = make_min_cost_flow_graph();
+
+    (void)graph.push_relabel_maximum_flow(0, 5);
+    auto copied = graph;
+
+    expect_runtime_error_message(
+        [&] { (void)copied.cycle_canceling(); },
+        "Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.",
+        "copied graph should not inherit staged min-cost-flow state");
+    expect(graph.cycle_canceling() == 22, "copying should not clear the source graph's staged flow state");
+}
+
+void test_move_after_staged_flow_leaves_source_empty_and_uncached() {
+    auto graph = make_min_cost_flow_graph();
+
+    (void)graph.push_relabel_maximum_flow(0, 5);
+    nxpp::WeightedDiGraphInt moved(std::move(graph));
+
+    expect(graph.num_vertices() == 0 && graph.num_edges() == 0,
+           "moved-from graph should be valid and empty after staged flow move");
+    expect_runtime_error_message(
+        [&] { (void)graph.cycle_canceling(); },
+        "Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.",
+        "moved-from graph should not retain staged min-cost-flow state");
+    expect_runtime_error_message(
+        [&] { (void)moved.cycle_canceling(); },
+        "Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.",
+        "moved graph should not inherit stale staged min-cost-flow state");
+
+    expect(moved.push_relabel_maximum_flow(0, 5) == 3,
+           "moved graph should be able to stage flow again");
+    expect(moved.cycle_canceling() == 22, "moved graph should compute min-cost flow after restaging");
+}
+
 void test_successive_shortest_path_matches_reference_flow_and_cost() {
     auto graph = make_min_cost_flow_graph();
 
@@ -258,6 +293,8 @@ int main() {
         {"cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state},
         {"cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation},
         {"staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances},
+        {"copy after staged flow has no cached flow state", test_copy_after_staged_flow_has_no_cached_flow_state},
+        {"move after staged flow leaves source empty and uncached", test_move_after_staged_flow_leaves_source_empty_and_uncached},
         {"maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case},
         {"minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition},
         {"push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost},

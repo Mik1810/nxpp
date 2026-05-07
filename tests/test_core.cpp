@@ -489,6 +489,10 @@ void test_graph_copy_and_move_have_independent_state() {
            "moved graph should keep copied node attributes");
     expect(moved.get_edge_attr<std::string>("A", "B", "label") == "copy",
            "moved graph should keep copied edge attributes");
+    expect(copied.num_vertices() == 0 && copied.num_edges() == 0,
+           "moved-from graph should be valid and empty");
+    copied.add_node("after-move");
+    expect(copied.has_node("after-move"), "moved-from graph should remain usable");
 }
 
 void test_subgraph_copies_induced_weighted_graph() {
