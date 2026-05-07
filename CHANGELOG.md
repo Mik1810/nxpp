@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.44] - 2026-05-07
+
+- Closed `#122` by adding a deterministic reverse edge-ID index for descriptor lookups.
+- Edge-ID lookup helpers now avoid full edge scans and use `O(log E)` worst-case lookup while preserving raw graph algorithm complexity.
+
 ## [1.3.43] - 2026-05-07
 
 - Closed `#88` by adding `nxpp::storage` selector aliases for advanced `Graph<...>` storage configuration.

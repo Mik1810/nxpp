@@ -798,3 +798,11 @@
 - Decision: Added `nxpp::storage::{Vec,List,Set}` as public aliases for advanced `Graph<...>` selector configuration while preserving raw Boost selector compatibility.
 - Verified: focused `test_core` build/run; `bash scripts/unix/run_tests.sh` (`88/88`).
 - Next: Close issue `#88` after review/commit.
+
+### 2026-05-07 - Issue #122
+
+- Branch/commit:
+- Files: `include/nxpp/graph.hpp`, `include/nxpp/multigraph.hpp`, `tests/test_multigraph.cpp`, release metadata.
+- Decision: Added a deterministic `std::map` reverse edge-ID index for `O(log E)` worst-case descriptor lookups, avoiding hash-table expected-runtime behavior.
+- Verified: focused `test_multigraph` build/run in `build-issue122`.
+- Next: Run full test script and release metadata checks before commit.

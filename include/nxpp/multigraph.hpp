@@ -64,7 +64,7 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
     auto [e, added] = boost::add_edge(bu, bv, g);
     (void)added;
     weight_map[e] = w;
-    edge_id_map[e] = next_edge_id++;
+    assign_next_edge_id(e);
     return get_edge_id(e);
 }
 
@@ -85,7 +85,7 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
 
     auto [e, added] = boost::add_edge(bu, bv, g);
     (void)added;
-    edge_id_map[e] = next_edge_id++;
+    assign_next_edge_id(e);
     return get_edge_id(e);
 }
 
@@ -97,6 +97,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         throw std::runtime_error("Edge lookup failed: edge not found.");
     }
     edge_properties.erase(edge_id);
+    erase_edge_id_index(edge_id);
     boost::remove_edge(*edge_desc, g);
 }
 

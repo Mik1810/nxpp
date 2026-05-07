@@ -314,6 +314,7 @@ public:
     using AttrMap = std::map<std::string, std::any>;
     using NodeAttrStorage = std::map<NodeID, AttrMap>;
     using EdgeAttrStorage = std::map<std::size_t, AttrMap>;
+    using EdgeIdIndex = std::map<std::size_t, EdgeDesc>;
     static constexpr bool is_directed = Directed;
     static constexpr bool has_builtin_edge_weight = Weighted;
 
@@ -343,6 +344,7 @@ private:
     std::size_t next_edge_id = 0;
     NodeAttrStorage node_properties;
     EdgeAttrStorage edge_properties;
+    EdgeIdIndex edge_id_to_desc;
 
 private:
     static_assert(
@@ -518,11 +520,32 @@ private:
         return boost::get(edge_id_map, e);
     }
 
-    std::optional<EdgeDesc> try_find_edge_desc_by_id(std::size_t edge_id) const {
+    void set_edge_id(EdgeDesc e, std::size_t edge_id) {
+        edge_id_map[e] = edge_id;
+        edge_id_to_desc[edge_id] = e;
+    }
+
+    std::size_t assign_next_edge_id(EdgeDesc e) {
+        const auto edge_id = next_edge_id++;
+        set_edge_id(e, edge_id);
+        return edge_id;
+    }
+
+    void erase_edge_id_index(std::size_t edge_id) {
+        edge_id_to_desc.erase(edge_id);
+    }
+
+    void rebuild_edge_id_index() {
+        edge_id_to_desc.clear();
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
-            if (get_edge_id(*e) == edge_id) {
-                return *e;
-            }
+            edge_id_to_desc[get_edge_id(*e)] = *e;
+        }
+    }
+
+    std::optional<EdgeDesc> try_find_edge_desc_by_id(std::size_t edge_id) const {
+        auto edge_it = edge_id_to_desc.find(edge_id);
+        if (edge_it != edge_id_to_desc.end()) {
+            return edge_it->second;
         }
         return std::nullopt;
     }
@@ -570,6 +593,7 @@ private:
         }
         for (auto edge_id : edge_ids) {
             edge_properties.erase(edge_id);
+            erase_edge_id_index(edge_id);
         }
     }
 
@@ -624,7 +648,7 @@ private:
                 result.weight_map[new_edge] = weight_map[*edge];
             }
             const auto new_edge_id = result.next_edge_id++;
-            result.edge_id_map[new_edge] = new_edge_id;
+            result.set_edge_id(new_edge, new_edge_id);
 
             const auto old_edge_id = get_edge_id(*edge);
             const auto edge_attr_it = edge_properties.find(old_edge_id);
@@ -657,6 +681,7 @@ public:
           node_properties(other.node_properties),
           edge_properties(other.edge_properties) {
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
     }
 
     Graph(Graph&& other) noexcept
@@ -671,6 +696,7 @@ public:
           node_properties(std::move(other.node_properties)),
           edge_properties(std::move(other.edge_properties)) {
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
     }
 
     Graph& operator=(const Graph& other) {
@@ -685,6 +711,7 @@ public:
         node_properties = other.node_properties;
         edge_properties = other.edge_properties;
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
         return *this;
     }
 
@@ -700,6 +727,7 @@ public:
         node_properties = std::move(other.node_properties);
         edge_properties = std::move(other.edge_properties);
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
         return *this;
     }
 
@@ -797,8 +825,9 @@ public:
         }
         
         auto [e, added] = boost::add_edge(bu, bv, g);
+        (void)added;
         weight_map[e] = w;
-        edge_id_map[e] = next_edge_id++;
+        assign_next_edge_id(e);
     }
 
     template <bool W = Weighted>
@@ -836,7 +865,7 @@ public:
 
         auto [e, added] = boost::add_edge(bu, bv, g);
         (void)added;
-        edge_id_map[e] = next_edge_id++;
+        assign_next_edge_id(e);
     }
 
     template <bool W = Weighted>
@@ -983,6 +1012,7 @@ public:
         }
         for (auto edge_id : collect_edge_ids_between(it_u->second, it_v->second)) {
             edge_properties.erase(edge_id);
+            erase_edge_id_index(edge_id);
         }
         if constexpr (!Directed && Multi) {
             const auto bu = it_u->second;
@@ -1037,6 +1067,7 @@ public:
         
         node_properties.erase(u);
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
     }
 
     /**
@@ -1083,6 +1114,7 @@ public:
         }
 
         rebuild_vertex_maps();
+        rebuild_edge_id_index();
     }
 
     /**

@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.44]
+
+### Highlights
+
+- Closed `#122` by adding a deterministic reverse edge-ID index for
+  `edge_id -> descriptor` lookups.
+- Edge-ID operations such as `has_edge_id(...)`, `get_edge_endpoints(...)`,
+  `get_edge_weight(...)`, `set_edge_weight(...)`, and edge-id attribute writes
+  now avoid full edge scans and use `O(log E)` worst-case lookup.
+- The index is maintained across edge insertion, edge removal, node removal,
+  copy/move, and subgraph construction while preserving existing graph
+  algorithm complexity.
+
 ## [1.3.43]
 
 ### Highlights
