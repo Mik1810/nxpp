@@ -75,8 +75,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          boost_release_html="$(curl -fsSL https://archives.boost.io/release/)"
-          boost_version="$(printf '%s' "$boost_release_html" | python3 -c 'import re,sys; s=sys.stdin.buffer.read().decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")')"
+          boost_version="$(
+            curl -fsSL https://archives.boost.io/release/ |
+              python3 -c 'import re,sys; s=sys.stdin.buffer.read().replace(b"\x00", b"").decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")'
+          )"
 
           if [ -z "$boost_version" ]; then
             echo "Failed to detect latest Boost version from archives.boost.io" >&2
@@ -314,8 +316,10 @@ jobs:
       - name: Download latest Boost headers
         run: |
           set -euo pipefail
-          boost_release_html="$(curl -fsSL https://archives.boost.io/release/)"
-          boost_version="$(printf '%s' "$boost_release_html" | python3 -c 'import re,sys; s=sys.stdin.buffer.read().decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")')"
+          boost_version="$(
+            curl -fsSL https://archives.boost.io/release/ |
+              python3 -c 'import re,sys; s=sys.stdin.buffer.read().replace(b"\x00", b"").decode("utf-8", "ignore"); vs={tuple(map(int,m.split("."))) for m in re.findall(r"href=\"([0-9]+\.[0-9]+\.[0-9]+)/\"", s)}; print(".".join(map(str,max(vs))) if vs else "")'
+          )"
 
           if [ -z "$boost_version" ]; then
             echo "Failed to detect latest Boost version from archives.boost.io" >&2
