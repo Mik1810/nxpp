@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.42] - 2026-05-07
+
+- Closed `#124` by adding convergence tolerance and maximum-iteration controls to `Graph::pagerank()`.
+- PageRank now stops when the L1 delta between iterations is below tolerance while keeping default-call compatibility.
+
 ## [1.3.41] - 2026-05-07
 
 - Closed `#125` by adding `Graph::remove_nodes_from(...)` for batched node removal with a single vertex-map rebuild.

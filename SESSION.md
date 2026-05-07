@@ -788,3 +788,5 @@
 - Verified issue `#99` locally with `git diff --check`, release metadata check, focused `test_core` build, and focused `ctest`; all passed. Closed GitHub issue `#99` after verification.
 - Started issue `#95`. Marked pure-query graph APIs and result accessors as `[[nodiscard]]`, covering node, edge, attribute, traversal, shortest-path, component, centrality, spanning-tree, and flow query surfaces. Advanced release/history metadata to `1.3.40`. This is a compile-time API annotation only and does not affect runtime behavior or algorithmic complexity.
 - Verified issue `#95` locally with `git diff --check`, release metadata check, focused `test_core` build and CTest, and `bash scripts/unix/run_tests.sh` (`84/84`); all passed.
+- Started issue `#124`. Added optional `tolerance` and `max_iterations` controls to `Graph::pagerank()`, stopping when the L1 delta between iterations falls below tolerance while preserving default-call compatibility. Advanced release/history metadata to `1.3.42`.
+- Verified issue `#124` locally with focused `tests/test_centrality.cpp` build/run and `bash scripts/unix/run_tests.sh` (`85/85`); all passed.

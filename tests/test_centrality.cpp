@@ -51,6 +51,22 @@ void test_pagerank_returns_normalized_ranking() {
     expect(rank.at("C") > rank.at("D"), "internally linked node should rank above sink-only leaf");
 }
 
+void test_pagerank_tolerance_can_stop_before_iteration_cap() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 1.0);
+    graph.add_edge("C", "A", 1.0);
+    graph.add_edge("A", "D", 1.0);
+
+    const auto early_stop = graph.pagerank(1.0, 100);
+    const auto one_iteration = graph.pagerank(0.0, 1);
+
+    expect_near(early_stop.at("A"), one_iteration.at("A"), 1e-12, "pagerank A should stop before cap");
+    expect_near(early_stop.at("B"), one_iteration.at("B"), 1e-12, "pagerank B should stop before cap");
+    expect_near(early_stop.at("C"), one_iteration.at("C"), 1e-12, "pagerank C should stop before cap");
+    expect_near(early_stop.at("D"), one_iteration.at("D"), 1e-12, "pagerank D should stop before cap");
+}
+
 void test_betweenness_centrality_path_graph() {
     nxpp::Graph<> graph;
     graph.add_edge("A", "B", 1.0);
@@ -82,6 +98,7 @@ int main() {
     return run_tests({
         {"degree_centrality path graph", test_degree_centrality_path_graph},
         {"pagerank returns normalized ranking", test_pagerank_returns_normalized_ranking},
+        {"pagerank tolerance can stop before iteration cap", test_pagerank_tolerance_can_stop_before_iteration_cap},
         {"betweenness_centrality path graph", test_betweenness_centrality_path_graph},
         {"directed betweenness centrality is normalized", test_directed_betweenness_centrality_is_normalized},
     });

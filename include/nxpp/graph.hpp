@@ -2100,16 +2100,16 @@ public:
     /**
      * @brief Computes PageRank scores for every node.
      *
-     * The current wrapper uses a small fixed-iteration implementation with
-     * damping factor `0.85` and explicit redistribution of dangling-node mass.
-     * It is intentionally conservative and returns a ready-to-consume result
-     * keyed by public node ID instead of exposing lower-level property-map
-     * plumbing.
+     * The current wrapper uses damping factor `0.85`, explicit redistribution
+     * of dangling-node mass, and stops when the L1 delta between iterations is
+     * below `tolerance` or `max_iterations` is reached. It is intentionally
+     * conservative and returns a ready-to-consume result keyed by public node ID
+     * instead of exposing lower-level property-map plumbing.
      *
      * @return An `indexed_lookup_map<NodeID, double>` keyed by public node ID
      * containing one PageRank score per node.
      */
-    [[nodiscard]] auto pagerank() const;
+    [[nodiscard]] auto pagerank(double tolerance = 1e-6, std::size_t max_iterations = 100) const;
     /**
      * @brief Computes normalized betweenness centrality for every node.
      *

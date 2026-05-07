@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.42]
+
+### Highlights
+
+- Closed `#124` by adding optional convergence controls to `Graph::pagerank()`.
+- PageRank now accepts `tolerance` and `max_iterations` parameters, defaulting
+  to `1e-6` and `100`, and stops early when the L1 delta between iterations
+  falls below the requested tolerance.
+- Existing `graph.pagerank()` calls remain source-compatible through default
+  arguments.
+
 ## [1.3.41]
 
 ### Highlights

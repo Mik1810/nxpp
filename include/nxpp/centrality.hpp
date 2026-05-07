@@ -10,6 +10,8 @@
 
 #include "graph.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <queue>
 
 namespace nxpp {
@@ -45,7 +47,10 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
-auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::pagerank() const {
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::pagerank(
+    double tolerance,
+    std::size_t max_iterations
+) const {
     const auto node_count = boost::num_vertices(g);
     if (node_count == 0) {
         return indexed_lookup_map<NodeID, double>{};
@@ -56,7 +61,7 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     std::vector<double> rank(static_cast<std::size_t>(node_count), 1.0 / n);
     std::vector<double> next(static_cast<std::size_t>(node_count), 0.0);
 
-    for (int iteration = 0; iteration < 20; ++iteration) {
+    for (std::size_t iteration = 0; iteration < max_iterations; ++iteration) {
         const double base = (1.0 - damping) / n;
         std::fill(next.begin(), next.end(), base);
 
@@ -82,7 +87,15 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
             }
         }
 
+        double delta = 0.0;
+        for (std::size_t i = 0; i < rank.size(); ++i) {
+            delta += std::abs(next[i] - rank[i]);
+        }
+
         rank.swap(next);
+        if (delta < tolerance) {
+            break;
+        }
     }
 
     return build_node_indexed_result<double>([&](VertexDesc v) {
