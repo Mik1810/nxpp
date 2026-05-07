@@ -790,3 +790,11 @@
 - Verified issue `#95` locally with `git diff --check`, release metadata check, focused `test_core` build and CTest, and `bash scripts/unix/run_tests.sh` (`84/84`); all passed.
 - Started issue `#124`. Added optional `tolerance` and `max_iterations` controls to `Graph::pagerank()`, stopping when the L1 delta between iterations falls below tolerance while preserving default-call compatibility. Advanced release/history metadata to `1.3.42`.
 - Verified issue `#124` locally with focused `tests/test_centrality.cpp` build/run and `bash scripts/unix/run_tests.sh` (`85/85`); all passed.
+
+### 2026-05-07 - Issue #88
+
+- Branch/commit:
+- Files: `include/nxpp/storage.hpp`, `include/nxpp.hpp`, `docs/GRAPH_CONFIGURATION.md`, `tests/test_core.cpp`, release metadata.
+- Decision: Added `nxpp::storage::{Vec,List,Set}` as public aliases for advanced `Graph<...>` selector configuration while preserving raw Boost selector compatibility.
+- Verified: focused `test_core` build/run; `bash scripts/unix/run_tests.sh` (`88/88`).
+- Next: Close issue `#88` after review/commit.

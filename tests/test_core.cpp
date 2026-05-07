@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #ifndef NXPP_HEADER_UNDER_TEST
@@ -23,6 +24,16 @@ using namespace nxpp::test;
 
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_vertices()));
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_edges()));
+static_assert(std::is_same_v<nxpp::storage::Vec, nxpp::Graph<>::OutEdgeListSelector>);
+
+void test_storage_selector_aliases() {
+    nxpp::Graph<int, int, true, false, true, nxpp::storage::List, nxpp::storage::List> graph;
+
+    graph.add_edge(1, 2, 3);
+
+    expect(graph.num_vertices() == 2, "storage alias graph should store vertices");
+    expect(graph.num_edges() == 1, "storage alias graph should store edges");
+}
 
 std::size_t count_occurrences(const std::string& text, const std::string& needle) {
     std::size_t count = 0;
@@ -553,6 +564,7 @@ void test_subgraph_preserves_multigraph_parallel_edges() {
 
 int main() {
     return run_tests({
+        {"storage selector aliases", test_storage_selector_aliases},
         {"string attributes and normalization", test_string_attributes_and_normalization},
         {"dijkstra result wrapper", test_dijkstra_result_wrapper},
         {"num_edges counts current edges", test_num_edges_counts_current_edges},

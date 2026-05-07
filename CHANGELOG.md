@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.43] - 2026-05-07
+
+- Closed `#88` by adding `nxpp::storage` selector aliases for advanced `Graph<...>` storage configuration.
+- Documented `nxpp::storage::Vec`, `List`, and `Set` as the recommended public selector names while preserving raw Boost selector compatibility.
+
 ## [1.3.42] - 2026-05-07
 
 - Closed `#124` by adding convergence tolerance and maximum-iteration controls to `Graph::pagerank()`.

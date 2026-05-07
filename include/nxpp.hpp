@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nxpp/storage.hpp"
 #include "nxpp/graph.hpp"
 #include "nxpp/numeric.hpp"
 #include "nxpp/attributes.hpp"

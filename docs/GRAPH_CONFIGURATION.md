@@ -18,8 +18,8 @@ boost::adjacency_list<OutEdgeSelector, VertexSelector, DirectedSelector, ...>
 
 with:
 
-- vertex storage selector defaulting to `boost::vecS`
-- out-edge storage selector defaulting to `boost::vecS`
+- vertex storage selector defaulting to `nxpp::storage::Vec`
+- out-edge storage selector defaulting to `nxpp::storage::Vec`
 - directedness selected via `Directed`, using `boost::bidirectionalS` for directed graphs and `boost::undirectedS` for undirected graphs
 - built-in edge weight property enabled/disabled via `Weighted`
 - edge index property enabled for internal edge-ID tracking
@@ -55,15 +55,15 @@ The free numeric generators are narrower still:
 These helpers synthesize node IDs `0..n-1`, so they additionally require
 `NodeID` to be constructible from `std::size_t`.
 
-The existing alias types remain the default presets and still resolve to the standard `boost::vecS` / `boost::vecS` backend.
+The existing alias types remain the default presets and still resolve to the standard `nxpp::storage::Vec` / `nxpp::storage::Vec` backend.
 
 Example:
 
 ```cpp
 nxpp::WeightedDiGraphInt default_graph;
 
-nxpp::Graph<int, int, true, false, true, boost::listS> custom_out_edge_graph;
-nxpp::Graph<int, int, true, false, true, boost::listS, boost::listS> custom_vertex_graph;
+nxpp::Graph<int, int, true, false, true, nxpp::storage::List> custom_out_edge_graph;
+nxpp::Graph<int, int, true, false, true, nxpp::storage::List, nxpp::storage::List> custom_vertex_graph;
 ```
 
 ## Currently supported selector policy
@@ -72,9 +72,9 @@ Selector customization is now broader than the default aliases:
 
 - `OutEdgeSelector` may be customized on `Graph<...>`
 - `VertexSelector` may also be customized on `Graph<...>`
-- `Multi=true` is intentionally rejected with `boost::setS`
+- `Multi=true` is intentionally rejected with `nxpp::storage::Set`
 
-This means the default aliases stay simple, while advanced users can opt into alternate storage selectors directly on the primary template.
+This means the default aliases stay simple, while advanced users can opt into alternate storage selectors directly on the primary template. Raw Boost selector types still work for backward compatibility, but `nxpp::storage` is the recommended public naming layer.
 
 ## Still not exposed as public knobs
 
@@ -113,5 +113,5 @@ Any such extension should remain additive and preserve the current default `Grap
 
 - The alias types remain the recommended default entry points.
 - Direct `Graph<...>` instantiation is the advanced path when custom selectors are needed.
-- The default aliases intentionally stay on `boost::vecS` / `boost::vecS`.
+- The default aliases intentionally stay on `nxpp::storage::Vec` / `nxpp::storage::Vec`.
 - Any expansion beyond the current selector constraints must ship with explicit invariants and targeted tests.

@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.43]
+
+### Highlights
+
+- Closed `#88` by adding `nxpp::storage` aliases for advanced graph storage
+  selector configuration.
+- Users can now write `nxpp::storage::Vec`, `nxpp::storage::List`, and
+  `nxpp::storage::Set` in `Graph<...>` template arguments instead of naming
+  Boost selector types directly.
+- Raw Boost selector types remain source-compatible.
+
 ## [1.3.42]
 
 ### Highlights
