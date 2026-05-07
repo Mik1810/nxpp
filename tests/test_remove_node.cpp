@@ -107,6 +107,39 @@ void test_remove_node_in_multigraph_cleans_incident_edge_ids_only() {
            "remaining multigraph edge ids should still resolve to the right endpoints");
 }
 
+void test_remove_nodes_from_removes_batch_and_ignores_duplicates() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0, {{"label", "ab"}});
+    graph.add_edge("B", "C", 2.0, {{"label", "bc"}});
+    graph.add_edge("C", "D", 3.0, {{"label", "cd"}});
+    graph.node("B")["kind"] = "middle";
+
+    graph.remove_nodes_from({"B", "C", "B"});
+
+    expect(!graph.has_node("B") && !graph.has_node("C"), "batch removal should remove each requested node once");
+    expect(graph.has_node("A") && graph.has_node("D"), "batch removal should keep non-requested nodes");
+    expect(graph.edges().empty(), "batch removal should remove incident edges for all requested nodes");
+    expect(!graph.has_node_attr("B", "kind"), "batch removal should clean node attributes");
+    expect(!graph.has_edge_attr("A", "B", "label"), "batch removal should clean incident edge attributes");
+    expect(!graph.has_edge_attr("C", "D", "label"), "batch removal should clean incident edge attributes");
+}
+
+void test_remove_nodes_from_missing_node_throws_without_mutating() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B", 1.0);
+    graph.add_edge("B", "C", 2.0);
+
+    expect_runtime_error_message(
+        [&graph] { graph.remove_nodes_from({"B", "missing"}); },
+        "Node lookup failed: node not found.",
+        "remove_nodes_from should reject any missing node"
+    );
+
+    expect(graph.has_node("A") && graph.has_node("B") && graph.has_node("C"),
+           "failed batch removal should leave nodes unchanged");
+    expect(graph.edges().size() == 2, "failed batch removal should leave edges unchanged");
+}
+
 int main() {
     return run_tests({
         {"remove middle node updates nodes and edges", test_remove_middle_node_updates_nodes_and_edges},
@@ -114,5 +147,7 @@ int main() {
         {"algorithms still work after descriptor remap", test_algorithms_still_work_after_descriptor_remap},
         {"remove_node updates component views", test_remove_node_updates_component_views},
         {"remove_node in multigraph cleans incident edge ids only", test_remove_node_in_multigraph_cleans_incident_edge_ids_only},
+        {"remove_nodes_from removes batch and ignores duplicates", test_remove_nodes_from_removes_batch_and_ignores_duplicates},
+        {"remove_nodes_from missing node throws without mutating", test_remove_nodes_from_missing_node_throws_without_mutating},
     });
 }
