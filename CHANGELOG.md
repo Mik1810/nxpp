@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.40] - 2026-05-07
+
+- Closed `#95` by marking pure-query graph and result accessors as `[[nodiscard]]`.
+- Covered node, edge, attribute, traversal, shortest-path, component, centrality, spanning-tree, and flow query surfaces without changing runtime behavior.
+
 ## [1.3.39] - 2026-05-06
 
 - Closed `#99` by marking the non-allocating graph count queries `num_vertices()` and `num_edges()` as `noexcept`.

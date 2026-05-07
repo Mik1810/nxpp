@@ -46,7 +46,7 @@ struct SingleSourceShortestPathResult {
     std::map<NodeID, NodeID> predecessor;
 
     /// Returns true when the target exists in the result and is reachable.
-    bool has_path_to(const NodeID& target) const {
+    [[nodiscard]] bool has_path_to(const NodeID& target) const {
         const auto it = distance.find(target);
         return it != distance.end() && it->second != std::numeric_limits<Distance>::max();
     }
@@ -59,7 +59,7 @@ struct SingleSourceShortestPathResult {
      * @throws std::runtime_error If the target is missing, unreachable, or the
      * predecessor map is inconsistent.
      */
-    std::vector<NodeID> path_to(const NodeID& target) const {
+    [[nodiscard]] std::vector<NodeID> path_to(const NodeID& target) const {
         const auto distance_it = distance.find(target);
         if (distance_it == distance.end()) {
             throw std::runtime_error("Path reconstruction failed: target node not found in result.");

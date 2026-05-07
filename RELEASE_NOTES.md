@@ -3,6 +3,19 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.40]
+
+### Highlights
+
+- Closed `#95` by adding `[[nodiscard]]` to pure-query graph APIs and result
+  accessors.
+- Discarding calls such as `has_node(...)`, `has_edge(...)`, `degree`-style
+  result queries, traversal results, shortest-path results, component maps,
+  centrality maps, spanning-tree results, and flow/min-cut result objects can
+  now be diagnosed by compilers that warn on ignored `[[nodiscard]]` values.
+- This is a compile-time API annotation only. Runtime behavior and algorithmic
+  complexity are unchanged.
+
 ## [1.3.39]
 
 ### Highlights
