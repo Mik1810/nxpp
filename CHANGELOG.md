@@ -4,6 +4,12 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.3.41] - 2026-05-07
+
+- Closed `#125` by adding `Graph::remove_nodes_from(...)` for batched node removal with a single vertex-map rebuild.
+- Preserved `remove_node(...)`'s missing-node error policy, ignored duplicate IDs in the batch, and covered mixed existing/missing inputs.
+- Optimized incident edge-attribute cleanup to scan only edges incident to the removed vertex.
+
 ## [1.3.40] - 2026-05-07
 
 - Closed `#95` by marking pure-query graph and result accessors as `[[nodiscard]]`.

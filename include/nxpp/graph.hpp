@@ -505,6 +505,15 @@ private:
         return v;
     }
 
+    std::optional<VertexDesc> find_vertex_by_id(const NodeID& id) const {
+        for (auto [v, vend] = boost::vertices(g); v != vend; ++v) {
+            if (boost::get(vertex_name_map, *v) == id) {
+                return *v;
+            }
+        }
+        return std::nullopt;
+    }
+
     std::size_t get_edge_id(EdgeDesc e) const {
         return boost::get(edge_id_map, e);
     }
@@ -549,9 +558,14 @@ private:
 
     void erase_incident_edge_properties(VertexDesc v) {
         std::vector<std::size_t> edge_ids;
-        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
-            if (boost::source(*e, g) == v || boost::target(*e, g) == v) {
-                edge_ids.push_back(get_edge_id(*e));
+        for (auto [e, eend] = boost::out_edges(v, g); e != eend; ++e) {
+            edge_ids.push_back(get_edge_id(*e));
+        }
+        if constexpr (Directed) {
+            for (auto [e, eend] = boost::in_edges(v, g); e != eend; ++e) {
+                if (boost::source(*e, g) != v) {
+                    edge_ids.push_back(get_edge_id(*e));
+                }
             }
         }
         for (auto edge_id : edge_ids) {
@@ -1004,8 +1018,8 @@ public:
      * state, erases the vertex, and rebuilds the internal `NodeID` to
      * descriptor and vertex-index maps. Calling this in a tight loop over many
      * node removals can add up to roughly O(V^2 + V*E) total work. Prefer
-     * building a filtered copy of the graph when you need to drop many
-     * vertices at once, or use `clear()` to reset a graph entirely.
+     * remove_nodes_from() when you need to drop many vertices at once, or use
+     * `clear()` to reset a graph entirely.
      *
      * @throws std::runtime_error If the node is not present.
      */
@@ -1022,6 +1036,52 @@ public:
         boost::remove_vertex(v, g);
         
         node_properties.erase(u);
+        rebuild_vertex_maps();
+    }
+
+    /**
+     * @brief Removes a batch of nodes and all of their incident edges.
+     *
+     * Duplicate node IDs in the input are ignored after the first occurrence.
+     * Missing node IDs follow remove_node()'s error policy: the call throws
+     * before mutating the graph if any requested node is absent.
+     *
+     * This rebuilds wrapper-side vertex maps once after the full batch.
+     *
+     * @throws std::runtime_error If any requested node is not present.
+     */
+    void remove_nodes_from(const std::vector<NodeID>& nodes) {
+        std::vector<NodeID> unique_nodes;
+        std::set<NodeID> seen;
+        for (const auto& node : nodes) {
+            if (seen.insert(node).second) {
+                unique_nodes.push_back(node);
+            }
+        }
+
+        for (const auto& node : unique_nodes) {
+            if (!has_node(node)) {
+                throw std::runtime_error("Node lookup failed: node not found.");
+            }
+        }
+
+        if (unique_nodes.empty()) {
+            return;
+        }
+
+        invalidate_min_cost_flow_state();
+        for (const auto& node : unique_nodes) {
+            auto vertex = find_vertex_by_id(node);
+            if (!vertex.has_value()) {
+                continue;
+            }
+
+            erase_incident_edge_properties(*vertex);
+            boost::clear_vertex(*vertex, g);
+            boost::remove_vertex(*vertex, g);
+            node_properties.erase(node);
+        }
+
         rebuild_vertex_maps();
     }
 

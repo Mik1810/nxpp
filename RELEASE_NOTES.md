@@ -3,6 +3,18 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.3.41]
+
+### Highlights
+
+- Closed `#125` by adding `Graph::remove_nodes_from(...)` for batched node
+  removal.
+- The new API validates the full input first, follows `remove_node(...)`'s
+  missing-node error policy, ignores duplicate IDs, and rebuilds wrapper-side
+  vertex maps once after the batch.
+- Incident edge-attribute cleanup now scans the removed vertex's incident edges
+  instead of the whole graph.
+
 ## [1.3.40]
 
 ### Highlights
