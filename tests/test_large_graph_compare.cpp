@@ -813,7 +813,7 @@ std::vector<int> nxpp_nodes_sorted(const GraphType& graph) {
 
 template <typename GraphType>
 std::vector<std::tuple<int, int, int>> nxpp_weighted_edges_sorted(const GraphType& graph) {
-    auto edges = graph.edges();
+    auto edges = graph.weighted_edges();
     std::sort(edges.begin(), edges.end());
     return edges;
 }

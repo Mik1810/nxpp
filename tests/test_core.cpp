@@ -25,6 +25,14 @@ using namespace nxpp::test;
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_vertices()));
 static_assert(noexcept(std::declval<const nxpp::DiGraph&>().num_edges()));
 static_assert(std::is_same_v<nxpp::storage::Vec, nxpp::Graph<>::OutEdgeListSelector>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const nxpp::WeightedDiGraphInt&>().edges()),
+    decltype(std::declval<const nxpp::UnweightedDiGraphInt&>().edges())
+>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const nxpp::WeightedDiGraphInt&>().weighted_edges()),
+    std::vector<std::tuple<int, int, int>>
+>);
 
 void test_storage_selector_aliases() {
     nxpp::Graph<int, int, true, false, true, nxpp::storage::List, nxpp::storage::List> graph;
@@ -33,6 +41,26 @@ void test_storage_selector_aliases() {
 
     expect(graph.num_vertices() == 2, "storage alias graph should store vertices");
     expect(graph.num_edges() == 1, "storage alias graph should store edges");
+}
+
+void test_edges_are_endpoint_pairs_for_all_graphs() {
+    nxpp::WeightedDiGraphInt weighted;
+    weighted.add_edge(1, 2, 7);
+
+    nxpp::UnweightedDiGraphInt unweighted;
+    unweighted.add_edge(1, 2);
+
+    expect(weighted.edges() == unweighted.edges(),
+           "edges() should expose endpoint pairs for weighted and unweighted graphs");
+    expect(weighted.edge_pairs() == weighted.edges(),
+           "edge_pairs() should remain an alias for endpoint-pair edges");
+
+    const auto weighted_edges = weighted.weighted_edges();
+    expect(weighted_edges.size() == 1, "weighted_edges() should expose weighted edges");
+    expect(std::get<0>(weighted_edges.front()) == 1 &&
+               std::get<1>(weighted_edges.front()) == 2 &&
+               std::get<2>(weighted_edges.front()) == 7,
+           "weighted_edges() should preserve endpoints and weight");
 }
 
 std::size_t count_occurrences(const std::string& text, const std::string& needle) {
@@ -565,6 +593,7 @@ void test_subgraph_preserves_multigraph_parallel_edges() {
 int main() {
     return run_tests({
         {"storage selector aliases", test_storage_selector_aliases},
+        {"edges are endpoint pairs for all graphs", test_edges_are_endpoint_pairs_for_all_graphs},
         {"string attributes and normalization", test_string_attributes_and_normalization},
         {"dijkstra result wrapper", test_dijkstra_result_wrapper},
         {"num_edges counts current edges", test_num_edges_counts_current_edges},

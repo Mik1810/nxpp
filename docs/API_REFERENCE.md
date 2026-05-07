@@ -263,7 +263,7 @@ void example_rebuild()
       h.add_node(n);
     }
   }
-  for (const auto& [u, v, w] : g.edges()) {
+  for (const auto& [u, v, w] : g.weighted_edges()) {
     if (to_remove.find(u) == to_remove.end() && to_remove.find(v) == to_remove.end()) {
       h.add_edge(u, v, w);
     }
@@ -296,9 +296,10 @@ For a structured complexity discussion, see also [`COMPLEXITY.md`](COMPLEXITY.md
 | `get_edge_weight` | `(u, v)` | `EdgeWeight` | Returns the built-in edge weight. In multigraphs, this resolves through one edge returned by `boost::edge(u, v, g)` and should not be treated as a stable single-parallel-edge lookup. | `auto w = G.get_edge_weight(1,2);` |
 | `get_edge_weight` | `(edge_id)` | `EdgeWeight` | Returns the built-in edge weight for one specific wrapper-tracked edge ID. | `auto w = G.get_edge_weight(eid);` |
 | `nodes` | `()` | `std::vector<NodeID>` | Materializes all node IDs. | `auto ns = G.nodes();` |
-| `edges` | `()` | weighted graphs: `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>`; unweighted graphs: `std::vector<std::pair<NodeID, NodeID>>` | Materializes all edges. | `auto es = G.edges();` |
+| `edges` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Materializes all edges as endpoint pairs for both weighted and unweighted graphs. | `auto es = G.edges();` |
 | `num_edges` | `()` | `std::size_t` | Returns the current edge count without materializing the edge list. | `auto m = G.num_edges();` |
-| `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Materializes edges without weights. Useful for wrappers that rebuild auxiliary graphs. | `auto ep = G.edge_pairs();` |
+| `edge_pairs` | `()` | `std::vector<std::pair<NodeID, NodeID>>` | Compatibility alias for `edges()`. | `auto ep = G.edge_pairs();` |
+| `weighted_edges` | `()` on weighted graphs | `std::vector<std::tuple<NodeID, NodeID, EdgeWeight>>` | Materializes weighted edges with built-in weights. | `auto wes = G.weighted_edges();` |
 | `edge_ids` | `()` | `std::vector<size_t>` | Returns every wrapper-tracked edge ID currently present in the graph. | `auto ids = G.edge_ids();` |
 | `edge_ids` | `(u, v)` | `std::vector<size_t>` | Returns the tracked edge IDs between two endpoints. In multigraphs, this is the main way to enumerate parallel edges precisely. | `auto ids = G.edge_ids("A","B");` |
 | `get_edge_endpoints` | `(edge_id)` | `std::pair<NodeID, NodeID>` | Returns the endpoints of one specific wrapper-tracked edge ID. | `auto [u, v] = G.get_edge_endpoints(eid);` |

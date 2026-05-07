@@ -1296,36 +1296,34 @@ public:
     /**
      * @brief Returns the public edge list.
      *
-     * Weighted graphs expose `(u, v, w)` tuples, while unweighted graphs expose
-     * `(u, v)` pairs. The return type follows the `Weighted` template flag.
+     * The return shape is uniform across weighted and unweighted graphs:
+     * `(u, v)` endpoint pairs. Use weighted_edges() when built-in weights
+     * should be materialized with the endpoints.
      */
-    [[nodiscard]] auto edges() const {
-        if constexpr (Weighted) {
-            std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
-            for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
-                NodeID source_id = node_id_of(boost::source(*e, g));
-                NodeID target_id = node_id_of(boost::target(*e, g));
-                res.emplace_back(source_id, target_id, weight_map[*e]);
-            }
-            return res;
-        } else {
-            std::vector<std::pair<NodeID, NodeID>> res;
-            for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
-                NodeID source_id = node_id_of(boost::source(*e, g));
-                NodeID target_id = node_id_of(boost::target(*e, g));
-                res.emplace_back(source_id, target_id);
-            }
-            return res;
-        }
-    }
-
-    /// Returns all edges as endpoint pairs, ignoring built-in weights.
-    [[nodiscard]] std::vector<std::pair<NodeID, NodeID>> edge_pairs() const {
+    [[nodiscard]] std::vector<std::pair<NodeID, NodeID>> edges() const {
         std::vector<std::pair<NodeID, NodeID>> res;
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
             NodeID source_id = node_id_of(boost::source(*e, g));
             NodeID target_id = node_id_of(boost::target(*e, g));
             res.emplace_back(source_id, target_id);
+        }
+        return res;
+    }
+
+    /// Compatibility alias for edges().
+    [[nodiscard]] std::vector<std::pair<NodeID, NodeID>> edge_pairs() const {
+        return edges();
+    }
+
+    /// Returns all weighted edges as `(u, v, w)` tuples.
+    template <bool W = Weighted>
+    requires(W)
+    [[nodiscard]] std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> weighted_edges() const {
+        std::vector<std::tuple<NodeID, NodeID, EdgeWeight>> res;
+        for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
+            NodeID source_id = node_id_of(boost::source(*e, g));
+            NodeID target_id = node_id_of(boost::target(*e, g));
+            res.emplace_back(source_id, target_id, weight_map[*e]);
         }
         return res;
     }

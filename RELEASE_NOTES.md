@@ -3,6 +3,21 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.4.0]
+
+### Highlights
+
+- Closed `#115` by making `Graph::edges()` return
+  `std::vector<std::pair<NodeID, NodeID>>` for both weighted and unweighted
+  graphs.
+- Added `Graph::weighted_edges()` on weighted graphs for callers that need
+  `(u, v, weight)` tuples.
+
+### Breaking Change
+
+- Weighted graph callers that currently destructure `graph.edges()` as
+  three-element tuples must switch to `graph.weighted_edges()`.
+
 ## [1.3.44]
 
 ### Highlights

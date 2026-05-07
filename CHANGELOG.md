@@ -4,6 +4,12 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.0] - 2026-05-07
+
+- Closed `#115` by making `Graph::edges()` return endpoint pairs for both weighted and unweighted graphs.
+- Added `Graph::weighted_edges()` for weighted graphs that need `(u, v, weight)` tuples.
+- Breaking change: weighted graph callers that destructure `edges()` as three-element tuples must switch to `weighted_edges()`.
+
 ## [1.3.44] - 2026-05-07
 
 - Closed `#122` by adding a deterministic reverse edge-ID index for descriptor lookups.

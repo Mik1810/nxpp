@@ -806,3 +806,11 @@
 - Decision: Added a deterministic `std::map` reverse edge-ID index for `O(log E)` worst-case descriptor lookups, avoiding hash-table expected-runtime behavior.
 - Verified: focused `test_multigraph` build/run in `build-issue122`.
 - Next: Run full test script and release metadata checks before commit.
+
+### 2026-05-07 - Issue #115
+
+- Branch/commit:
+- Files: `include/nxpp/graph.hpp`, `tests/test_core.cpp`, `tests/test_large_graph_compare.cpp`, `docs/API_REFERENCE.md`, release metadata.
+- Decision: Made `edges()` return endpoint pairs uniformly and added `weighted_edges()` for weighted tuple materialization. This is a deliberate breaking API change for weighted graph callers.
+- Verified: focused `test_core` and `test_large_graph_compare` build/run; `bash scripts/unix/run_tests.sh` (`92/92`); release metadata check at `1.4.0`; `git diff --check`.
+- Next: Commit, push, and close issue `#115`.
