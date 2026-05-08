@@ -3,10 +3,26 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## Next Release
+## [1.4.7]
 
 ### Highlights
 
+- Documented the current WASM TypeScript facade architecture and API policy,
+  including explicit runtime classes, generic facade interfaces, supported
+  attribute values, error normalization, multigraph edge-ID semantics, and the
+  Node/browser runtime boundary.
+- Fixed the WASM formal suite by excluding the native-only concurrent staged
+  min-cost-flow thread-safety test from Emscripten builds while keeping the
+  same test active in native C++ runs.
+- Added API compatibility snapshots for representative C++ aliases, public
+  method signatures, result shapes, exported CMake target coverage, and wasm
+  runtime exports.
+- Documented how intentional snapshot changes should be reviewed against the
+  repository versioning policy.
+- Audited post-`1.0.0` SemVer history and documented the accidental breaking
+  changes in `1.2.0` and `1.4.0`.
+- Added breaking-change criteria, a release compatibility review checklist, and
+  migration-note expectations for future major releases.
 - Added lazy traversal edge ranges:
   `Graph::bfs_edges_view(start)` and `Graph::dfs_edges_view(start)`.
 - The new APIs yield traversal tree edges on demand and compose with C++20

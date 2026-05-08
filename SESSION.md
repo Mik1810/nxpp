@@ -838,3 +838,11 @@
 - Decision: Defined Boost 1.86.0 as the minimum supported version while keeping latest Boost coverage in compatibility CI.
 - Verified: `git diff --check`; CMake configure found Boost 1.86.0 in `/usr/local/include`; `bash scripts/unix/run_tests.sh` (`95/95`).
 - Next: Commit, push, and close issue `#151`.
+
+### 2026-05-08 - WASM policy and CI fix
+
+- Branch/commit:
+- Files: `wasm/API_POLICY.md`, `wasm/ARCHITECTURE.md`, `tests/test_flow.cpp`, release metadata.
+- Decision: Documented the current WASM facade policy and architecture; kept nullable stored attributes out of scope; excluded the native-only concurrent staged min-cost-flow thread test from Emscripten builds.
+- Verified: `npm --prefix wasm run build:types`; WASM `test_flow.cpp` build/run; native `test_flow.cpp` build/run with `-pthread`.
+- Next: Commit `1.4.7` release metadata and continue with the remaining WASM issues.

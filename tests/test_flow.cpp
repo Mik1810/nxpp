@@ -6,8 +6,11 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <thread>
 #include <vector>
+
+#ifndef __EMSCRIPTEN__
+#include <thread>
+#endif
 
 #ifndef NXPP_HEADER_UNDER_TEST
 #define NXPP_HEADER_UNDER_TEST "include/nxpp/flow.hpp"
@@ -224,6 +227,7 @@ void test_staged_min_cost_flow_cache_clears_destroyed_graph_pointer() {
     std::destroy_at(second);
 }
 
+#ifndef __EMSCRIPTEN__
 void test_concurrent_staged_min_cost_flow_sequences_on_separate_graphs() {
     std::array<std::exception_ptr, 4> failures{};
     std::array<std::thread, 4> workers{};
@@ -255,6 +259,7 @@ void test_concurrent_staged_min_cost_flow_sequences_on_separate_graphs() {
         }
     }
 }
+#endif
 
 void test_staged_min_cost_flow_recovers_after_cycle_canceling_exception() {
     auto graph = make_min_cost_flow_graph();
@@ -393,7 +398,9 @@ int main() {
         {"move after staged flow leaves source empty and uncached", test_move_after_staged_flow_leaves_source_empty_and_uncached},
         {"staged min-cost-flow can be restaged after repeated mutations", test_staged_min_cost_flow_can_be_restaged_after_repeated_mutations},
         {"staged min-cost-flow cache clears destroyed graph pointer", test_staged_min_cost_flow_cache_clears_destroyed_graph_pointer},
+#ifndef __EMSCRIPTEN__
         {"concurrent staged min-cost-flow sequences on separate graphs", test_concurrent_staged_min_cost_flow_sequences_on_separate_graphs},
+#endif
         {"staged min-cost-flow recovers after cycle_canceling exception", test_staged_min_cost_flow_recovers_after_cycle_canceling_exception},
         {"maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case},
         {"minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition},

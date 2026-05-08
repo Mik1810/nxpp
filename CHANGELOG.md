@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.7] - 2026-05-08
+
+- Documented the current WASM TypeScript facade architecture and API policy, including runtime class construction, attribute value support, error mapping, multigraph edge-ID semantics, and the Node/browser support boundary.
+- Fixed the WASM formal suite by excluding the native-only concurrent staged min-cost-flow thread-safety test from Emscripten builds while keeping it active in native C++ tests.
+
 ## [1.4.6] - 2026-05-08
 
 - Closed `#160` by adding API compatibility snapshots for representative C++ aliases, public method signatures, result shapes, exported CMake target coverage, and wasm runtime exports.
