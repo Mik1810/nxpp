@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -79,9 +80,74 @@ void test_missing_node_operations_throw() {
         "Traversal failed: start node not found.",
         "bfs_edges() on a missing start node should report the standardized traversal error");
     expect_runtime_error_message(
+        [&] { (void)graph.bfs_edges_view("Milan"); },
+        "Traversal failed: start node not found.",
+        "bfs_edges_view() on a missing start node should report the standardized traversal error");
+    expect_runtime_error_message(
+        [&] { (void)graph.dfs_edges_view("Milan"); },
+        "Traversal failed: start node not found.",
+        "dfs_edges_view() on a missing start node should report the standardized traversal error");
+    expect_runtime_error_message(
         [&] { (void)graph.shortest_path("Rome", "Milan"); },
         "Shortest-path lookup failed: source or target node not found.",
         "shortest_path() with a missing target should report the standardized shortest-path lookup error");
+}
+
+void test_traversal_edge_views_match_eager_edges() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B");
+    graph.add_edge("A", "C");
+    graph.add_edge("B", "D");
+    graph.add_edge("C", "E");
+
+    auto bfs_view = graph.bfs_edges_view("A");
+    auto dfs_view = graph.dfs_edges_view("A");
+
+    static_assert(std::ranges::input_range<decltype(bfs_view)>);
+    static_assert(std::ranges::input_range<decltype(dfs_view)>);
+
+    std::vector<std::pair<std::string, std::string>> bfs_edges;
+    for (const auto& edge : bfs_view) {
+        bfs_edges.push_back(edge);
+    }
+
+    std::vector<std::pair<std::string, std::string>> dfs_edges;
+    for (const auto& edge : dfs_view) {
+        dfs_edges.push_back(edge);
+    }
+
+    expect(bfs_edges == graph.bfs_edges("A"), "bfs_edges_view should yield BFS tree edges in eager order");
+    expect(dfs_edges == graph.dfs_edges("A"), "dfs_edges_view should yield DFS tree edges in eager order");
+
+    std::vector<std::pair<std::string, std::string>> first_two_bfs;
+    for (const auto& edge : graph.bfs_edges_view("A") | std::views::take(2)) {
+        first_two_bfs.push_back(edge);
+    }
+
+    const auto eager_bfs = graph.bfs_edges("A");
+    expect(first_two_bfs.size() == 2, "bfs_edges_view should compose with std::views::take");
+    expect(first_two_bfs[0] == eager_bfs[0] && first_two_bfs[1] == eager_bfs[1],
+           "taken BFS view edges should match the eager prefix");
+
+    nxpp::Graph<> undirected_graph;
+    undirected_graph.add_edge("A", "B");
+    undirected_graph.add_edge("A", "C");
+    undirected_graph.add_edge("B", "D");
+
+    std::vector<std::pair<std::string, std::string>> undirected_bfs_edges;
+    for (const auto& edge : undirected_graph.bfs_edges_view("A")) {
+        undirected_bfs_edges.push_back(edge);
+    }
+
+    std::vector<std::pair<std::string, std::string>> undirected_dfs_edges;
+    for (const auto& edge : undirected_graph.dfs_edges_view("A")) {
+        undirected_dfs_edges.push_back(edge);
+    }
+
+    expect(undirected_bfs_edges == undirected_graph.bfs_edges("A"),
+           "undirected bfs_edges_view should yield tree edges in eager order");
+    expect(undirected_dfs_edges == undirected_graph.dfs_edges("A"),
+           "undirected dfs_edges_view should yield tree edges in eager order");
 }
 
 void test_disconnected_shortest_paths_preserve_unreachable_state() {
@@ -438,6 +504,7 @@ int main() {
         {"empty graph reports empty collections", test_empty_graph_reports_empty_collections},
         {"singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges},
         {"missing node operations throw", test_missing_node_operations_throw},
+        {"traversal edge views match eager edges", test_traversal_edge_views_match_eager_edges},
         {"disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state},
         {"shortest path WeightMode options", test_shortest_path_weight_mode_options},
         {"2-SAT satisfiable and unsatisfiable formulas", test_two_sat_satisfiable_and_unsatisfiable_formulas},

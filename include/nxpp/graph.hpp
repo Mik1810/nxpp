@@ -1547,6 +1547,14 @@ public:
      */
     [[nodiscard]] auto bfs_edges(const NodeID& start) const;
     /**
+     * @brief Returns a lazy input range over breadth-first-search tree edges.
+     *
+     * @param start Node ID used as the BFS root.
+     * @return A non-owning input range yielding `(parent, child)` tree-edge pairs.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
+    [[nodiscard]] auto bfs_edges_view(const NodeID& start) const;
+    /**
      * @brief Materializes the breadth-first-search tree rooted at @p start.
      *
      * The returned graph contains the root node and each tree edge reported by
@@ -1607,6 +1615,14 @@ public:
      * @throws std::runtime_error If @p start is not present in the graph.
      */
     [[nodiscard]] auto dfs_edges(const NodeID& start) const;
+    /**
+     * @brief Returns a lazy input range over depth-first-search tree edges.
+     *
+     * @param start Node ID used as the DFS root.
+     * @return A non-owning input range yielding `(parent, child)` tree-edge pairs.
+     * @throws std::runtime_error If @p start is not present in the graph.
+     */
+    [[nodiscard]] auto dfs_edges_view(const NodeID& start) const;
     /**
      * @brief Materializes the depth-first-search tree rooted at @p start.
      *

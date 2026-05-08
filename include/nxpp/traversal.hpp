@@ -11,11 +11,196 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <queue>
+#include <vector>
+
 #include "graph.hpp"
 
 namespace nxpp {
 
 namespace detail {
+
+enum class traversal_order {
+    bfs,
+    dfs
+};
+
+template <typename GraphWrapper, traversal_order Order>
+class traversal_edges_view {
+public:
+    using NodeID = typename GraphWrapper::NodeType;
+    using value_type = std::pair<NodeID, NodeID>;
+
+    traversal_edges_view(const GraphWrapper& graph, const NodeID& start) : graph(&graph), start(start) {}
+
+    class iterator {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = traversal_edges_view::value_type;
+        using difference_type = std::ptrdiff_t;
+        using reference = const value_type&;
+
+        iterator() = default;
+
+        iterator(const GraphWrapper& graph, const NodeID& start)
+            : state(std::make_shared<traversal_state>(graph, start)) {
+            advance();
+        }
+
+        reference operator*() const {
+            return *state->current;
+        }
+
+        const value_type* operator->() const {
+            return &*state->current;
+        }
+
+        iterator& operator++() {
+            advance();
+            return *this;
+        }
+
+        void operator++(int) {
+            ++(*this);
+        }
+
+        friend bool operator==(const iterator& it, std::default_sentinel_t) {
+            return !it.state || it.state->done;
+        }
+
+        friend bool operator==(std::default_sentinel_t sentinel, const iterator& it) {
+            return it == sentinel;
+        }
+
+    private:
+        using GraphType = typename GraphWrapper::GraphType;
+        using VertexDesc = typename GraphWrapper::VertexDesc;
+        using OutEdgeIterator = typename boost::graph_traits<GraphType>::out_edge_iterator;
+
+        struct edge_cursor {
+            VertexDesc vertex;
+            OutEdgeIterator current;
+            OutEdgeIterator end;
+        };
+
+        struct traversal_state {
+            traversal_state(const GraphWrapper& graph, const NodeID& start)
+                : graph(&graph),
+                  colors(boost::num_vertices(graph.get_impl()), boost::white_color),
+                  current(std::nullopt),
+                  done(false) {
+                const auto start_vertex = graph.get_id_to_bgl_map().at(start);
+                colors[graph.get_vertex_index(start_vertex)] = boost::gray_color;
+                if constexpr (Order == traversal_order::bfs) {
+                    bfs_queue.push(start_vertex);
+                } else {
+                    push_dfs_vertex(start_vertex);
+                }
+            }
+
+            void push_dfs_vertex(VertexDesc vertex) {
+                auto [edge_it, edge_end] = boost::out_edges(vertex, graph->get_impl());
+                dfs_stack.push_back(edge_cursor{vertex, edge_it, edge_end});
+            }
+
+            const GraphWrapper* graph;
+            std::vector<boost::default_color_type> colors;
+            std::queue<VertexDesc> bfs_queue;
+            std::optional<edge_cursor> bfs_cursor;
+            std::vector<edge_cursor> dfs_stack;
+            std::optional<value_type> current;
+            bool done;
+        };
+
+        void advance() {
+            if (!state || state->done) {
+                return;
+            }
+
+            state->current.reset();
+            if constexpr (Order == traversal_order::bfs) {
+                advance_bfs();
+            } else {
+                advance_dfs();
+            }
+        }
+
+        void advance_bfs() {
+            while (!state->bfs_queue.empty()) {
+                if (!state->bfs_cursor.has_value()) {
+                    const auto vertex = state->bfs_queue.front();
+                    auto [edge_it, edge_end] = boost::out_edges(vertex, state->graph->get_impl());
+                    state->bfs_cursor = edge_cursor{vertex, edge_it, edge_end};
+                }
+
+                while (state->bfs_cursor->current != state->bfs_cursor->end) {
+                    const auto edge = *state->bfs_cursor->current;
+                    ++state->bfs_cursor->current;
+                    const auto child = boost::target(edge, state->graph->get_impl());
+                    const auto child_index = state->graph->get_vertex_index(child);
+                    if (state->colors[child_index] == boost::white_color) {
+                        state->colors[child_index] = boost::gray_color;
+                        state->bfs_queue.push(child);
+                        state->current = value_type{
+                            state->graph->get_node_id(state->bfs_cursor->vertex),
+                            state->graph->get_node_id(child)
+                        };
+                        return;
+                    }
+                }
+
+                state->colors[state->graph->get_vertex_index(state->bfs_cursor->vertex)] = boost::black_color;
+                state->bfs_queue.pop();
+                state->bfs_cursor.reset();
+            }
+
+            state->done = true;
+        }
+
+        void advance_dfs() {
+            while (!state->dfs_stack.empty()) {
+                auto& cursor = state->dfs_stack.back();
+                while (cursor.current != cursor.end) {
+                    const auto edge = *cursor.current;
+                    ++cursor.current;
+                    const auto child = boost::target(edge, state->graph->get_impl());
+                    const auto child_index = state->graph->get_vertex_index(child);
+                    if (state->colors[child_index] == boost::white_color) {
+                        state->colors[child_index] = boost::gray_color;
+                        state->current = value_type{
+                            state->graph->get_node_id(cursor.vertex),
+                            state->graph->get_node_id(child)
+                        };
+                        state->push_dfs_vertex(child);
+                        return;
+                    }
+                }
+
+                state->colors[state->graph->get_vertex_index(cursor.vertex)] = boost::black_color;
+                state->dfs_stack.pop_back();
+            }
+
+            state->done = true;
+        }
+
+        std::shared_ptr<traversal_state> state;
+    };
+
+    iterator begin() const {
+        return iterator(*graph, start);
+    }
+
+    std::default_sentinel_t end() const {
+        return {};
+    }
+
+private:
+    const GraphWrapper* graph;
+    NodeID start;
+};
 
 template <typename NodeID, typename EdgeWeight, bool Directed, typename EdgeRange>
 Graph<NodeID, EdgeWeight, Directed> build_tree_from_edges(const NodeID& root, const EdgeRange& edges) {
@@ -382,6 +567,15 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bfs_edges_view(const NodeID& start) const {
+    if (!has_node(start)) {
+        throw std::runtime_error("Traversal failed: start node not found.");
+    }
+
+    return detail::traversal_edges_view<Graph, detail::traversal_order::bfs>(*this, start);
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::bfs_tree(const NodeID& start) const {
     if (!has_node(start)) {
         throw std::runtime_error("Traversal failed: start node not found.");
@@ -453,6 +647,15 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
             .color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
     );
     return edges;
+}
+
+template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
+auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::dfs_edges_view(const NodeID& start) const {
+    if (!has_node(start)) {
+        throw std::runtime_error("Traversal failed: start node not found.");
+    }
+
+    return detail::traversal_edges_view<Graph, detail::traversal_order::dfs>(*this, start);
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
