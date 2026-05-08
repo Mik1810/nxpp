@@ -1,6 +1,8 @@
 #include "../include/nxpp_wasm/graph.hpp"
 #include "../include/nxpp_wasm/attributes.hpp"
+#include "../include/nxpp_wasm/centrality.hpp"
 #include "../include/nxpp_wasm/components.hpp"
+#include "../include/nxpp_wasm/flow.hpp"
 #include "../include/nxpp_wasm/shortest_paths.hpp"
 #include "../include/nxpp_wasm/spanning_tree.hpp"
 #include "../include/nxpp_wasm/traversal.hpp"
@@ -18,6 +20,8 @@ void register_graph_bindings() {
     bind_shortest_paths_api(graph_int);
     bind_spanning_tree_api(graph_int);
     bind_connected_components_api(graph_int);
+    bind_centrality_api(graph_int);
+    bind_flow_api(graph_int);
 
     emscripten::class_<GraphStrBinding> graph_str("GraphStr");
     graph_str.constructor<>();
@@ -27,6 +31,8 @@ void register_graph_bindings() {
     bind_shortest_paths_api(graph_str);
     bind_spanning_tree_api(graph_str);
     bind_connected_components_api(graph_str);
+    bind_centrality_api(graph_str);
+    bind_flow_api(graph_str);
 
     emscripten::class_<DiGraphIntBinding> digraph_int("DiGraphInt");
     digraph_int.constructor<>();
@@ -36,6 +42,8 @@ void register_graph_bindings() {
     bind_shortest_paths_api(digraph_int);
     bind_spanning_tree_api(digraph_int);
     bind_strongly_connected_components_api(digraph_int);
+    bind_centrality_api(digraph_int);
+    bind_flow_api(digraph_int);
 
     emscripten::class_<DiGraphStrBinding> digraph_str("DiGraphStr");
     digraph_str.constructor<>();
@@ -45,6 +53,8 @@ void register_graph_bindings() {
     bind_shortest_paths_api(digraph_str);
     bind_spanning_tree_api(digraph_str);
     bind_strongly_connected_components_api(digraph_str);
+    bind_centrality_api(digraph_str);
+    bind_flow_api(digraph_str);
 }
 
 } // namespace nxpp_wasm

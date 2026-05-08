@@ -1,15 +1,22 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, ConnectedComponents, DiGraph, Graph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, ConnectedComponents, DiGraph, Graph, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawSimpleGraph } from "../internal/wasm_types.js";
 declare abstract class BaseSimpleGraph<T extends NodeId> {
     private rawObject;
     private readonly assertNode;
+    private mutationVersion;
+    private stagedFlowMutationVersion;
     constructor(factory: (() => RawSimpleGraph<T>) | RawSimpleGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
     protected get raw(): RawSimpleGraph<T>;
     protected abstract createFromRaw(raw: RawSimpleGraph<T>): this;
     private operationFailed;
+    private markGraphMutation;
+    private markStagedFlow;
+    private requireStagedFlow;
     private requireNodeExists;
     private requireEdgeExists;
     private requireWeightKey;
+    private requireAttributeKey;
+    private requirePagerankMaxIterations;
     private runPathLookup;
     addNode(id: T): void;
     addEdge(source: T, target: T, weight: number): void;
@@ -58,6 +65,15 @@ declare abstract class BaseSimpleGraph<T extends NodeId> {
     floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[];
     kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
     primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
+    degreeCentrality(): CentralityScoreEntry<T>[];
+    pagerank(tolerance?: number, maxIterations?: number): CentralityScoreEntry<T>[];
+    betweennessCentrality(): CentralityScoreEntry<T>[];
+    maximumFlow(source: T, target: T, capacityKey?: string): MaximumFlowResult<T>;
+    minimumCut(source: T, target: T, capacityKey?: string): MinimumCutResult<T>;
+    maxFlowMinCost(source: T, target: T, capacityKey?: string, weightKey?: string): MinCostMaxFlowResult<T>;
+    maxFlowMinCostSuccessiveShortestPath(source: T, target: T, capacityKey?: string, weightKey?: string): MinCostMaxFlowResult<T>;
+    pushRelabelMaximumFlow(source: T, target: T, capacityKey?: string, weightKey?: string): number;
+    cycleCanceling(weightKey?: string): number;
     clear(): void;
     dispose(): void;
 }

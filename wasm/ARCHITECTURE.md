@@ -137,11 +137,8 @@ Shared capability modules attach methods to those runtime classes:
 - `shortest_paths.cpp`
 - `spanning_tree.cpp`
 - `components.cpp`
-
-The current centrality and flow modules are structural placeholders for planned
-API slices. They should not be treated as complete public facade coverage until
-their binding implementations, TypeScript result models, and contract tests are
-added.
+- `centrality.cpp`
+- `flow.cpp`
 
 ## Error Boundary
 
@@ -168,6 +165,9 @@ Current result examples include:
 - shortest-path result wrappers
 - all-pairs shortest-path matrices and map entries
 - spanning-tree edge arrays
+- component group arrays
+- centrality score arrays
+- max-flow, min-cut, and min-cost-flow result objects
 
 Multigraph edge endpoint wrappers are still used for precise edge-ID lookup.
 Future APIs should choose serializable DTOs unless an Embind wrapper is needed

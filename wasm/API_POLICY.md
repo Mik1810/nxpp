@@ -108,10 +108,17 @@ examples include:
 - sparse predecessor entries as `{ node, predecessor }`
 - shortest-path tables as `{ node, distance }` and `{ node, predecessor }`
 - all-pairs shortest-path maps as `{ source, distances: [{ target, distance }] }`
+- centrality scores as `{ node, score }`
+- flow assignments as `{ source, target, flow }` and `{ edgeId, flow }`
+- max-flow/min-cut/min-cost-flow results as small DTO objects
 
 Weighted shortest-path wrappers currently accept only the built-in edge weight
 channel named `"weight"`. Additional weight channels require a documented
 attribute-to-weight policy and contract tests.
+
+Flow wrappers accept explicit non-empty capacity and weight attribute keys where
+the native algorithm supports them. Defaults are `"capacity"` for capacities
+and `"weight"` for costs.
 
 ## Error Policy
 
@@ -135,10 +142,8 @@ The C++/WASM binding layer should mirror the C++ library modules where
 reasonable. The TypeScript facade should expose a smaller, JavaScript-friendly
 surface over those modules.
 
-Core graph, attributes, traversal, shortest paths, spanning tree, and component
-APIs are part of the current active Node facade surface. Centrality and flow
-bindings are planned active modules but should be added in small slices with
-explicit result models and contract tests.
+Core graph, attributes, traversal, shortest paths, spanning tree, component,
+centrality, and flow APIs are part of the current active Node facade surface.
 
 Topological sort, generators, and SAT bindings exist structurally but are not
 part of the current active facade milestone unless explicitly promoted.

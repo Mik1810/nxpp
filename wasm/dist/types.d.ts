@@ -28,6 +28,37 @@ export interface ShortestPathDistanceEntry<T extends NodeId> {
     node: T;
     distance: number;
 }
+export interface CentralityScoreEntry<T extends NodeId> {
+    node: T;
+    score: number;
+}
+export interface FlowEdgeEntry<T extends NodeId> {
+    source: T;
+    target: T;
+    flow: number;
+}
+export interface FlowEdgeIdEntry {
+    edgeId: number;
+    flow: number;
+}
+export interface MaximumFlowResult<T extends NodeId> {
+    value: number;
+    edgeFlows: FlowEdgeEntry<T>[];
+    edgeFlowsById: FlowEdgeIdEntry[];
+}
+export interface MinimumCutResult<T extends NodeId> {
+    value: number;
+    reachable: T[];
+    nonReachable: T[];
+    cutEdges: TraversalEdge<T>[];
+    cutEdgeIds: number[];
+}
+export interface MinCostMaxFlowResult<T extends NodeId> {
+    flow: number;
+    cost: number;
+    edgeFlows: FlowEdgeEntry<T>[];
+    edgeFlowsById: FlowEdgeIdEntry[];
+}
 export interface ShortestPathPredecessorEntry<T extends NodeId> {
     node: T;
     predecessor: T;
@@ -100,6 +131,15 @@ export interface Graph<T extends NodeId> {
     floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[];
     kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
     primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
+    degreeCentrality(): CentralityScoreEntry<T>[];
+    pagerank(tolerance?: number, maxIterations?: number): CentralityScoreEntry<T>[];
+    betweennessCentrality(): CentralityScoreEntry<T>[];
+    maximumFlow(source: T, target: T, capacityKey?: string): MaximumFlowResult<T>;
+    minimumCut(source: T, target: T, capacityKey?: string): MinimumCutResult<T>;
+    maxFlowMinCost(source: T, target: T, capacityKey?: string, weightKey?: string): MinCostMaxFlowResult<T>;
+    maxFlowMinCostSuccessiveShortestPath(source: T, target: T, capacityKey?: string, weightKey?: string): MinCostMaxFlowResult<T>;
+    pushRelabelMaximumFlow(source: T, target: T, capacityKey?: string, weightKey?: string): number;
+    cycleCanceling(weightKey?: string): number;
     clear(): void;
     dispose(): void;
 }

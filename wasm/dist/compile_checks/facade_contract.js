@@ -41,6 +41,18 @@ function exerciseGraphNumber(graph) {
     const floydWarshallAllPairsShortestPathsMap = graph.floydWarshallAllPairsShortestPathsMap();
     const kruskalMinimumSpanningTree = graph.kruskalMinimumSpanningTree();
     const primMinimumSpanningTree = graph.primMinimumSpanningTree(1);
+    const degreeCentrality = graph.degreeCentrality();
+    const pagerank = graph.pagerank();
+    const pagerankConfigured = graph.pagerank(1e-5, 10);
+    const betweennessCentrality = graph.betweennessCentrality();
+    const maximumFlow = graph.maximumFlow(1, 2);
+    const maximumFlowCustom = graph.maximumFlow(1, 2, "cap");
+    const minimumCut = graph.minimumCut(1, 2);
+    const maxFlowMinCost = graph.maxFlowMinCost(1, 2);
+    const maxFlowMinCostCustom = graph.maxFlowMinCost(1, 2, "cap", "cost");
+    const sspMinCost = graph.maxFlowMinCostSuccessiveShortestPath(1, 2);
+    const stagedFlow = graph.pushRelabelMaximumFlow(1, 2);
+    const stagedCost = graph.cycleCanceling();
     graph.setNodeAttr(1, "label", "source");
     graph.setEdgeAttr(1, 2, "capacity", 3);
     graph.hasNodeAttr(1, "label");
@@ -84,6 +96,18 @@ function exerciseGraphNumber(graph) {
     void floydWarshallAllPairsShortestPathsMap;
     void kruskalMinimumSpanningTree;
     void primMinimumSpanningTree;
+    void degreeCentrality;
+    void pagerank;
+    void pagerankConfigured;
+    void betweennessCentrality;
+    void maximumFlow;
+    void maximumFlowCustom;
+    void minimumCut;
+    void maxFlowMinCost;
+    void maxFlowMinCostCustom;
+    void sspMinCost;
+    void stagedFlow;
+    void stagedCost;
 }
 function exerciseGraphString(graph) {
     graph.addNode("a");
@@ -127,6 +151,18 @@ function exerciseGraphString(graph) {
     const floydWarshallAllPairsShortestPathsMap = graph.floydWarshallAllPairsShortestPathsMap();
     const kruskalMinimumSpanningTree = graph.kruskalMinimumSpanningTree();
     const primMinimumSpanningTree = graph.primMinimumSpanningTree("a");
+    const degreeCentrality = graph.degreeCentrality();
+    const pagerank = graph.pagerank();
+    const pagerankConfigured = graph.pagerank(1e-5, 10);
+    const betweennessCentrality = graph.betweennessCentrality();
+    const maximumFlow = graph.maximumFlow("a", "b");
+    const maximumFlowCustom = graph.maximumFlow("a", "b", "cap");
+    const minimumCut = graph.minimumCut("a", "b");
+    const maxFlowMinCost = graph.maxFlowMinCost("a", "b");
+    const maxFlowMinCostCustom = graph.maxFlowMinCost("a", "b", "cap", "cost");
+    const sspMinCost = graph.maxFlowMinCostSuccessiveShortestPath("a", "b");
+    const stagedFlow = graph.pushRelabelMaximumFlow("a", "b");
+    const stagedCost = graph.cycleCanceling();
     graph.setNodeAttr("a", "label", "source");
     graph.setEdgeAttr("a", "b", "capacity", 3);
     graph.hasNodeAttr("a", "label");
@@ -170,6 +206,18 @@ function exerciseGraphString(graph) {
     void floydWarshallAllPairsShortestPathsMap;
     void kruskalMinimumSpanningTree;
     void primMinimumSpanningTree;
+    void degreeCentrality;
+    void pagerank;
+    void pagerankConfigured;
+    void betweennessCentrality;
+    void maximumFlow;
+    void maximumFlowCustom;
+    void minimumCut;
+    void maxFlowMinCost;
+    void maxFlowMinCostCustom;
+    void sspMinCost;
+    void stagedFlow;
+    void stagedCost;
 }
 function exerciseMultiGraphNumber(graph) {
     graph.addNode(1);

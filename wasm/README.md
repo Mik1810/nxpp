@@ -281,6 +281,9 @@ Current shortest-path result behavior is explicit and JS-oriented:
 - weighted wrappers currently accept only the built-in `"weight"` channel
 - minimum-spanning-tree wrappers return serializable `{ source, target }`
   edge entries
+- centrality wrappers return serializable `{ node, score }` entries
+- flow wrappers return serializable max-flow, min-cut, and min-cost-flow DTOs,
+  including `{ edgeId, flow }` entries for precise multigraph edge identity
 - facade graph instances expose explicit `dispose()` lifetime management
 - facade graph operations normalize common runtime failures into predictable
   JavaScript errors
@@ -342,8 +345,9 @@ So the current wasm direction is:
 2. preserve distinct concrete backends by class (no runtime switching)
 3. close semantic headers block by block, with `attributes.hpp`,
   `traversal.hpp`, `shortest_paths.hpp`, `spanning_tree.hpp`, and the first
-  `components.hpp` group-output slice now covered
-4. continue with centrality and flow semantic headers
+  `components.hpp` group-output slice plus `centrality.hpp` and `flow.hpp`
+  now covered
+4. continue with remaining semantic headers and runtime hardening
 
 ## API parity and stability matrix
 
@@ -365,8 +369,8 @@ Stability levels used here:
 | `shortest_paths.hpp` | Covered | Experimental | Single-pair, single-source, and Floyd-Warshall all-pairs wrappers |
 | `spanning_tree.hpp` | Covered | Experimental | Kruskal and rooted Prim edge-list wrappers |
 | `components.hpp` | In progress | Experimental | Connected-component groups on undirected graph families and SCC groups on directed graph families |
-| `centrality.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
-| `flow.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
+| `centrality.hpp` | Covered | Experimental | Degree centrality, PageRank, and betweenness score-entry wrappers |
+| `flow.hpp` | Covered | Experimental | Max-flow, min-cut, min-cost-flow, staged flow, and edge-id flow DTO wrappers |
 | `topological_sort.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
 | `generators.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
 | `sat.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |

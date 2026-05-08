@@ -134,6 +134,76 @@ emscripten::val to_js_distance_entries(const std::map<NodeT, DistanceT>& map) {
     return array;
 }
 
+template <typename NodeT, typename ScoreT>
+emscripten::val to_js_score_entries(const nxpp::indexed_lookup_map<NodeT, ScoreT>& map) {
+    emscripten::val array = emscripten::val::array();
+    std::size_t index = 0;
+    for (const auto& [node, score] : map) {
+        emscripten::val entry = emscripten::val::object();
+        entry.set("node", emscripten::val(node));
+        entry.set("score", emscripten::val(static_cast<double>(score)));
+        array.set(index++, entry);
+    }
+    return array;
+}
+
+template <typename NodeT, typename FlowT>
+emscripten::val to_js_endpoint_flow_entries(const std::map<std::pair<NodeT, NodeT>, FlowT>& map) {
+    emscripten::val array = emscripten::val::array();
+    std::size_t index = 0;
+    for (const auto& [endpoints, flow] : map) {
+        emscripten::val entry = emscripten::val::object();
+        entry.set("source", emscripten::val(endpoints.first));
+        entry.set("target", emscripten::val(endpoints.second));
+        entry.set("flow", emscripten::val(static_cast<double>(flow)));
+        array.set(index++, entry);
+    }
+    return array;
+}
+
+template <typename FlowT>
+emscripten::val to_js_edge_id_flow_entries(const std::map<std::size_t, FlowT>& map) {
+    emscripten::val array = emscripten::val::array();
+    std::size_t index = 0;
+    for (const auto& [edge_id, flow] : map) {
+        emscripten::val entry = emscripten::val::object();
+        entry.set("edgeId", emscripten::val(static_cast<double>(edge_id)));
+        entry.set("flow", emscripten::val(static_cast<double>(flow)));
+        array.set(index++, entry);
+    }
+    return array;
+}
+
+template <typename NodeT>
+emscripten::val to_js_maximum_flow_result(const nxpp::MaximumFlowResult<NodeT>& result) {
+    emscripten::val object = emscripten::val::object();
+    object.set("value", emscripten::val(static_cast<double>(result.value)));
+    object.set("edgeFlows", to_js_endpoint_flow_entries(result.flow));
+    object.set("edgeFlowsById", to_js_edge_id_flow_entries(result.edge_flows_by_id));
+    return object;
+}
+
+template <typename NodeT>
+emscripten::val to_js_minimum_cut_result(const nxpp::MinimumCutResult<NodeT>& result) {
+    emscripten::val object = emscripten::val::object();
+    object.set("value", emscripten::val(static_cast<double>(result.value)));
+    object.set("reachable", to_js_array(result.reachable));
+    object.set("nonReachable", to_js_array(result.non_reachable));
+    object.set("cutEdges", to_js_edge_list(result.cut_edges));
+    object.set("cutEdgeIds", to_js_array(result.cut_edge_ids));
+    return object;
+}
+
+template <typename NodeT>
+emscripten::val to_js_min_cost_max_flow_result(const nxpp::MinCostMaxFlowResult<NodeT>& result) {
+    emscripten::val object = emscripten::val::object();
+    object.set("flow", emscripten::val(static_cast<double>(result.flow)));
+    object.set("cost", emscripten::val(static_cast<double>(result.cost)));
+    object.set("edgeFlows", to_js_endpoint_flow_entries(result.edge_flows));
+    object.set("edgeFlowsById", to_js_edge_id_flow_entries(result.edge_flows_by_id));
+    return object;
+}
+
 template <typename NodeT>
 emscripten::val to_js_predecessor_entries(const std::map<NodeT, NodeT>& map) {
     emscripten::val array = emscripten::val::array();
@@ -523,6 +593,42 @@ public:
         return to_js_node_groups(graph_.strongly_connected_component_groups());
     }
 
+    emscripten::val degree_centrality() const {
+        return to_js_score_entries(graph_.degree_centrality());
+    }
+
+    emscripten::val pagerank(double tolerance, std::size_t max_iterations) const {
+        return to_js_score_entries(graph_.pagerank(tolerance, max_iterations));
+    }
+
+    emscripten::val betweenness_centrality() const {
+        return to_js_score_entries(graph_.betweenness_centrality());
+    }
+
+    emscripten::val maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
+        return to_js_maximum_flow_result(graph_.maximum_flow(as_node_id(source), as_node_id(target), capacity_attr));
+    }
+
+    emscripten::val minimum_cut(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
+        return to_js_minimum_cut_result(graph_.minimum_cut(as_node_id(source), as_node_id(target), capacity_attr));
+    }
+
+    emscripten::val max_flow_min_cost(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    emscripten::val max_flow_min_cost_successive_shortest_path(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost_successive_shortest_path(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    double push_relabel_maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return static_cast<double>(graph_.push_relabel_maximum_flow(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    double cycle_canceling(const std::string& weight_attr) const {
+        return static_cast<double>(graph_.cycle_canceling(weight_attr));
+    }
+
 protected:
     static NodeT as_node_id(const emscripten::val& value) {
         return NodeJsPolicy<NodeT>::to_node_id(value);
@@ -844,6 +950,42 @@ public:
 
     emscripten::val strongly_connected_components() const {
         return to_js_node_groups(graph_.strongly_connected_component_groups());
+    }
+
+    emscripten::val degree_centrality() const {
+        return to_js_score_entries(graph_.degree_centrality());
+    }
+
+    emscripten::val pagerank(double tolerance, std::size_t max_iterations) const {
+        return to_js_score_entries(graph_.pagerank(tolerance, max_iterations));
+    }
+
+    emscripten::val betweenness_centrality() const {
+        return to_js_score_entries(graph_.betweenness_centrality());
+    }
+
+    emscripten::val maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
+        return to_js_maximum_flow_result(graph_.maximum_flow(as_node_id(source), as_node_id(target), capacity_attr));
+    }
+
+    emscripten::val minimum_cut(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
+        return to_js_minimum_cut_result(graph_.minimum_cut(as_node_id(source), as_node_id(target), capacity_attr));
+    }
+
+    emscripten::val max_flow_min_cost(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    emscripten::val max_flow_min_cost_successive_shortest_path(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost_successive_shortest_path(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    double push_relabel_maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
+        return static_cast<double>(graph_.push_relabel_maximum_flow(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
+    }
+
+    double cycle_canceling(const std::string& weight_attr) const {
+        return static_cast<double>(graph_.cycle_canceling(weight_attr));
     }
 
 protected:

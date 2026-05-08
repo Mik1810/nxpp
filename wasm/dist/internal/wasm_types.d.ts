@@ -1,4 +1,4 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SpanningTreeEdge, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SpanningTreeEdge, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 export interface RawSingleSourceShortestPathResult<T extends NodeId> {
     distance: Iterable<ShortestPathDistanceEntry<T>> | ArrayLike<ShortestPathDistanceEntry<T>>;
     predecessor: Iterable<ShortestPathPredecessorEntry<T>> | ArrayLike<ShortestPathPredecessorEntry<T>>;
@@ -64,6 +64,15 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
     floydWarshallAllPairsShortestPathsMap(): Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>;
     kruskalMinimumSpanningTree(): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
     primMinimumSpanningTree(root: T): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
+    degreeCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+    pagerank(tolerance: number, maxIterations: number): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+    betweennessCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+    maximumFlow(source: T, target: T, capacityKey: string): MaximumFlowResult<T>;
+    minimumCut(source: T, target: T, capacityKey: string): MinimumCutResult<T>;
+    maxFlowMinCost(source: T, target: T, capacityKey: string, weightKey: string): MinCostMaxFlowResult<T>;
+    maxFlowMinCostSuccessiveShortestPath(source: T, target: T, capacityKey: string, weightKey: string): MinCostMaxFlowResult<T>;
+    pushRelabelMaximumFlow(source: T, target: T, capacityKey: string, weightKey: string): number;
+    cycleCanceling(weightKey: string): number;
     clear(): void;
 }
 export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {

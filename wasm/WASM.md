@@ -25,7 +25,9 @@ explicit runtime classes (`GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`,
 the completed `attributes.hpp` and `traversal.hpp` blocks plus the
 full `shortest_paths.hpp` block, including Floyd-Warshall all-pairs results,
 plus the current `spanning_tree.hpp` minimum-spanning-tree block and the first
-`components.hpp` connected/SCC block.
+`components.hpp` connected/SCC block plus the current `centrality.hpp` degree,
+PageRank, and betweenness block, plus the current `flow.hpp` max-flow,
+min-cut, and min-cost-flow block.
 This should still be read as an implementation stepping stone, not as the
 final public JavaScript API shape.
 
@@ -264,6 +266,27 @@ algorithm applies:
 - `stronglyConnectedComponents()` on `DiGraph*` and `MultiDiGraph*`, returning
   `T[][]`
 
+Centrality methods are exposed on all graph families:
+
+- `degreeCentrality()` returning `{ node, score }` entries
+- `pagerank(tolerance = 1e-6, maxIterations = 100)` returning `{ node, score }`
+  entries
+- `betweennessCentrality()` returning `{ node, score }` entries
+
+Flow methods are exposed on all graph families:
+
+- `maximumFlow(source, target, capacityKey = "capacity")` returning
+  `{ value, edgeFlows, edgeFlowsById }`
+- `minimumCut(source, target, capacityKey = "capacity")` returning
+  `{ value, reachable, nonReachable, cutEdges, cutEdgeIds }`
+- `maxFlowMinCost(source, target, capacityKey = "capacity", weightKey = "weight")`
+  returning `{ flow, cost, edgeFlows, edgeFlowsById }`
+- `maxFlowMinCostSuccessiveShortestPath(source, target, capacityKey = "capacity", weightKey = "weight")`
+  returning `{ flow, cost, edgeFlows, edgeFlowsById }`
+- `pushRelabelMaximumFlow(source, target, capacityKey = "capacity", weightKey = "weight")`
+  returning the staged max-flow value
+- `cycleCanceling(weightKey = "weight")` returning the staged min-cost value
+
 Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
 and additionally expose edge-ID-specific APIs:
 
@@ -430,10 +453,10 @@ The following are non-breaking for v0:
 | Query APIs | Partial | endpoint-based queries, materialized subgraphs, and edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
 | Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
 | Shortest paths | Covered | single-pair, single-source Dijkstra/Bellman-Ford/DAG, and Floyd-Warshall all-pairs wrappers | Keep contract tests aligned with future facade changes |
-| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Continue with centrality / flow blocks |
+| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Keep contract tests aligned with future facade changes |
 | Components/topology | In progress | Connected-component groups on undirected graph families and SCC groups on directed graph families | Add any additional component map/root DTOs only when needed |
-| Spanning/centrality | Not started | none | Add centrality subset after topology |
-| Flow/multigraph precision | Partial | `MultiGraph*` and `MultiDiGraph*` edge-id API with precise `removeEdgeById` and endpoint lookup wrappers | Add flow-oriented exports that preserve edge-id precision |
+| Spanning/centrality | Covered | Degree centrality, PageRank, and betweenness centrality score-entry wrappers | Keep contract tests aligned with future facade changes |
+| Flow/multigraph precision | Covered | Max-flow, min-cut, min-cost-flow, staged push-relabel/cycle-canceling, and multigraph edge-id flow DTOs | Keep contract tests aligned with native flow behavior |
 | TypeScript surface | Active | generic TS interfaces + explicit typed runtime class declarations (`wasm/dist/index.d.ts`) and facade source tree under `wasm/ts/` | Expand algorithm module typings and wrappers as new wasm exports land |
 | NPM packaging | Partial | installable package now exposes `dist/index.js` + `dist/index.d.ts` over prebuilt wasm artifacts | Keep release automation aligned with facade build/publish flow |
 
@@ -553,7 +576,7 @@ Recommended rollout order:
 2. Components + topological utilities
 3. Spanning tree + centrality
 4. Flow algorithms
-5. Multigraph precision APIs
+5. Remaining semantic modules and browser/runtime hardening
 
 For each family:
 

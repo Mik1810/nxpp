@@ -12,10 +12,14 @@ import {
 import type {
   AllPairsShortestPathSourceEntry,
   AttributeValue,
+  CentralityScoreEntry,
   ConnectedComponents,
   DiGraph,
   EdgeEndpoints,
   Graph,
+  MaximumFlowResult,
+  MinCostMaxFlowResult,
+  MinimumCutResult,
   MultiDiGraph,
   MultiGraph,
   ShortestPathDistanceEntry,
@@ -71,6 +75,18 @@ function exerciseGraphNumber(graph: Graph<number>): void {
     graph.floydWarshallAllPairsShortestPathsMap();
   const kruskalMinimumSpanningTree: SpanningTreeEdge<number>[] = graph.kruskalMinimumSpanningTree();
   const primMinimumSpanningTree: SpanningTreeEdge<number>[] = graph.primMinimumSpanningTree(1);
+  const degreeCentrality: CentralityScoreEntry<number>[] = graph.degreeCentrality();
+  const pagerank: CentralityScoreEntry<number>[] = graph.pagerank();
+  const pagerankConfigured: CentralityScoreEntry<number>[] = graph.pagerank(1e-5, 10);
+  const betweennessCentrality: CentralityScoreEntry<number>[] = graph.betweennessCentrality();
+  const maximumFlow: MaximumFlowResult<number> = graph.maximumFlow(1, 2);
+  const maximumFlowCustom: MaximumFlowResult<number> = graph.maximumFlow(1, 2, "cap");
+  const minimumCut: MinimumCutResult<number> = graph.minimumCut(1, 2);
+  const maxFlowMinCost: MinCostMaxFlowResult<number> = graph.maxFlowMinCost(1, 2);
+  const maxFlowMinCostCustom: MinCostMaxFlowResult<number> = graph.maxFlowMinCost(1, 2, "cap", "cost");
+  const sspMinCost: MinCostMaxFlowResult<number> = graph.maxFlowMinCostSuccessiveShortestPath(1, 2);
+  const stagedFlow: number = graph.pushRelabelMaximumFlow(1, 2);
+  const stagedCost: number = graph.cycleCanceling();
   graph.setNodeAttr(1, "label", "source");
   graph.setEdgeAttr(1, 2, "capacity", 3);
   graph.hasNodeAttr(1, "label");
@@ -114,6 +130,18 @@ function exerciseGraphNumber(graph: Graph<number>): void {
   void floydWarshallAllPairsShortestPathsMap;
   void kruskalMinimumSpanningTree;
   void primMinimumSpanningTree;
+  void degreeCentrality;
+  void pagerank;
+  void pagerankConfigured;
+  void betweennessCentrality;
+  void maximumFlow;
+  void maximumFlowCustom;
+  void minimumCut;
+  void maxFlowMinCost;
+  void maxFlowMinCostCustom;
+  void sspMinCost;
+  void stagedFlow;
+  void stagedCost;
 }
 
 function exerciseGraphString(graph: Graph<string>): void {
@@ -159,6 +187,18 @@ function exerciseGraphString(graph: Graph<string>): void {
     graph.floydWarshallAllPairsShortestPathsMap();
   const kruskalMinimumSpanningTree: SpanningTreeEdge<string>[] = graph.kruskalMinimumSpanningTree();
   const primMinimumSpanningTree: SpanningTreeEdge<string>[] = graph.primMinimumSpanningTree("a");
+  const degreeCentrality: CentralityScoreEntry<string>[] = graph.degreeCentrality();
+  const pagerank: CentralityScoreEntry<string>[] = graph.pagerank();
+  const pagerankConfigured: CentralityScoreEntry<string>[] = graph.pagerank(1e-5, 10);
+  const betweennessCentrality: CentralityScoreEntry<string>[] = graph.betweennessCentrality();
+  const maximumFlow: MaximumFlowResult<string> = graph.maximumFlow("a", "b");
+  const maximumFlowCustom: MaximumFlowResult<string> = graph.maximumFlow("a", "b", "cap");
+  const minimumCut: MinimumCutResult<string> = graph.minimumCut("a", "b");
+  const maxFlowMinCost: MinCostMaxFlowResult<string> = graph.maxFlowMinCost("a", "b");
+  const maxFlowMinCostCustom: MinCostMaxFlowResult<string> = graph.maxFlowMinCost("a", "b", "cap", "cost");
+  const sspMinCost: MinCostMaxFlowResult<string> = graph.maxFlowMinCostSuccessiveShortestPath("a", "b");
+  const stagedFlow: number = graph.pushRelabelMaximumFlow("a", "b");
+  const stagedCost: number = graph.cycleCanceling();
   graph.setNodeAttr("a", "label", "source");
   graph.setEdgeAttr("a", "b", "capacity", 3);
   graph.hasNodeAttr("a", "label");
@@ -202,6 +242,18 @@ function exerciseGraphString(graph: Graph<string>): void {
   void floydWarshallAllPairsShortestPathsMap;
   void kruskalMinimumSpanningTree;
   void primMinimumSpanningTree;
+  void degreeCentrality;
+  void pagerank;
+  void pagerankConfigured;
+  void betweennessCentrality;
+  void maximumFlow;
+  void maximumFlowCustom;
+  void minimumCut;
+  void maxFlowMinCost;
+  void maxFlowMinCostCustom;
+  void sspMinCost;
+  void stagedFlow;
+  void stagedCost;
 }
 
 function exerciseMultiGraphNumber(graph: MultiGraph<number>): void {

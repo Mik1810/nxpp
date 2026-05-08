@@ -22,6 +22,11 @@ export function assertStringNodeId(value, label) {
         throw new TypeError(`${label} must be a string for *Str graphs.`);
     }
 }
+export function assertStringValue(value, label) {
+    if (typeof value !== "string") {
+        throw new TypeError(`${label} must be a string.`);
+    }
+}
 export function assertEdgeId(value, label = "edgeId") {
     if (!Number.isInteger(value) || value < 0) {
         throw new TypeError(`${label} must be a non-negative integer.`);

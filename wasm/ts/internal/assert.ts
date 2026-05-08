@@ -31,6 +31,12 @@ export function assertStringNodeId(value: unknown, label: string): asserts value
   }
 }
 
+export function assertStringValue(value: unknown, label: string): asserts value is string {
+  if (typeof value !== "string") {
+    throw new TypeError(`${label} must be a string.`);
+  }
+}
+
 export function assertEdgeId(value: unknown, label = "edgeId"): asserts value is number {
   if (!Number.isInteger(value) || (value as number) < 0) {
     throw new TypeError(`${label} must be a non-negative integer.`);

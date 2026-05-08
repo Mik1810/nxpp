@@ -4,6 +4,7 @@ import {
   assertEdgeId,
   assertFiniteNumber,
   assertIntNodeId,
+  assertStringValue,
   assertStringNodeId,
 } from "../internal/assert.js";
 import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
@@ -12,7 +13,11 @@ import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
 import type {
   AllPairsShortestPathSourceEntry,
   AttributeValue,
+  CentralityScoreEntry,
   ConnectedComponents,
+  MaximumFlowResult,
+  MinCostMaxFlowResult,
+  MinimumCutResult,
   MultiDiGraph,
   MultiGraph,
   NodeId,
@@ -30,6 +35,7 @@ import type {
   RawMultiGraph,
   RawStronglyConnectedComponentsGraph,
 } from "../internal/wasm_types.js";
+import { toCentralityScores } from "../algorithms/centrality.js";
 import { toComponentGroups } from "../algorithms/components.js";
 import {
   toAllPairsShortestPathMap,
@@ -52,6 +58,8 @@ function stronglyConnectedComponents<T extends NodeId>(raw: RawMultiGraph<T>): T
 abstract class BaseMultiGraph<T extends NodeId> {
   private rawObject: RawMultiGraph<T> | null;
   private readonly assertNode: (value: unknown, label: string) => asserts value is T;
+  private mutationVersion = 0;
+  private stagedFlowMutationVersion: number | null = null;
 
   constructor(
     factory: (() => RawMultiGraph<T>) | RawMultiGraph<T>,
@@ -80,6 +88,25 @@ abstract class BaseMultiGraph<T extends NodeId> {
     throw new Error(`WASM graph operation failed: ${message}`);
   }
 
+  private markGraphMutation(): void {
+    this.mutationVersion += 1;
+  }
+
+  private markStagedFlow(): void {
+    this.stagedFlowMutationVersion = this.mutationVersion;
+  }
+
+  private requireStagedFlow(): void {
+    if (this.stagedFlowMutationVersion === null) {
+      this.operationFailed("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
+    }
+    if (this.stagedFlowMutationVersion !== this.mutationVersion) {
+      this.operationFailed(
+        "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
+      );
+    }
+  }
+
   private requireNodeExists(id: T): void {
     if (!this.raw.hasNode(id)) {
       this.operationFailed("Node lookup failed: node not found.");
@@ -106,6 +133,19 @@ abstract class BaseMultiGraph<T extends NodeId> {
     }
   }
 
+  private requireAttributeKey(key: string, label: string): void {
+    assertStringValue(key, label);
+    if (key.length === 0) {
+      throw new TypeError(`${label} must not be empty.`);
+    }
+  }
+
+  private requirePagerankMaxIterations(maxIterations: number): void {
+    if (!Number.isInteger(maxIterations) || maxIterations < 0) {
+      throw new TypeError("maxIterations must be a non-negative integer.");
+    }
+  }
+
   private runPathLookup<R>(fn: () => R): R {
     try {
       return fn();
@@ -120,6 +160,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
   addNode(id: T): void {
     this.assertNode(id, "id");
     this.raw.addNode(id);
+    this.markGraphMutation();
   }
 
   addEdge(source: T, target: T, weight: number): void {
@@ -127,6 +168,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     this.assertNode(target, "target");
     assertFiniteNumber(weight, "weight");
     this.raw.addEdge(source, target, weight);
+    this.markGraphMutation();
   }
 
   hasNode(id: T): boolean {
@@ -154,6 +196,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     this.assertNode(id, "id");
     this.requireNodeExists(id);
     this.raw.removeNode(id);
+    this.markGraphMutation();
   }
 
   removeEdge(source: T, target: T): void {
@@ -161,6 +204,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     this.assertNode(target, "target");
     this.requireEdgeExists(source, target);
     this.raw.removeEdge(source, target);
+    this.markGraphMutation();
   }
 
   getEdgeWeight(source: T, target: T): number {
@@ -176,6 +220,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     assertFiniteNumber(weight, "weight");
     this.requireEdgeExists(source, target);
     this.raw.setEdgeWeight(source, target, weight);
+    this.markGraphMutation();
   }
 
   subgraph(nodes: T[]): this {
@@ -212,6 +257,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     this.assertNode(id, "id");
     assertAttributeValue(value, "value");
     this.raw.setNodeAttr(id, key, value);
+    this.markGraphMutation();
   }
 
   hasEdgeAttr(source: T, target: T, key: string): boolean {
@@ -241,6 +287,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     this.assertNode(target, "target");
     assertAttributeValue(value, "value");
     this.raw.setEdgeAttr(source, target, key, value);
+    this.markGraphMutation();
   }
 
   getEdgeNumericAttr(source: T, target: T, key: string): number {
@@ -436,6 +483,81 @@ abstract class BaseMultiGraph<T extends NodeId> {
     return toArray(this.raw.primMinimumSpanningTree(root));
   }
 
+  degreeCentrality(): CentralityScoreEntry<T>[] {
+    return toCentralityScores(this.raw.degreeCentrality());
+  }
+
+  pagerank(tolerance = 1e-6, maxIterations = 100): CentralityScoreEntry<T>[] {
+    assertFiniteNumber(tolerance, "tolerance");
+    this.requirePagerankMaxIterations(maxIterations);
+    return toCentralityScores(this.raw.pagerank(tolerance, maxIterations));
+  }
+
+  betweennessCentrality(): CentralityScoreEntry<T>[] {
+    return toCentralityScores(this.raw.betweennessCentrality());
+  }
+
+  maximumFlow(source: T, target: T, capacityKey = "capacity"): MaximumFlowResult<T> {
+    this.assertNode(source, "source");
+    this.assertNode(target, "target");
+    this.requireAttributeKey(capacityKey, "capacityKey");
+    this.requireNodeExists(source);
+    this.requireNodeExists(target);
+    return this.raw.maximumFlow(source, target, capacityKey);
+  }
+
+  minimumCut(source: T, target: T, capacityKey = "capacity"): MinimumCutResult<T> {
+    this.assertNode(source, "source");
+    this.assertNode(target, "target");
+    this.requireAttributeKey(capacityKey, "capacityKey");
+    this.requireNodeExists(source);
+    this.requireNodeExists(target);
+    return this.raw.minimumCut(source, target, capacityKey);
+  }
+
+  maxFlowMinCost(source: T, target: T, capacityKey = "capacity", weightKey = "weight"): MinCostMaxFlowResult<T> {
+    this.assertNode(source, "source");
+    this.assertNode(target, "target");
+    this.requireAttributeKey(capacityKey, "capacityKey");
+    this.requireAttributeKey(weightKey, "weightKey");
+    this.requireNodeExists(source);
+    this.requireNodeExists(target);
+    return this.raw.maxFlowMinCost(source, target, capacityKey, weightKey);
+  }
+
+  maxFlowMinCostSuccessiveShortestPath(
+    source: T,
+    target: T,
+    capacityKey = "capacity",
+    weightKey = "weight",
+  ): MinCostMaxFlowResult<T> {
+    this.assertNode(source, "source");
+    this.assertNode(target, "target");
+    this.requireAttributeKey(capacityKey, "capacityKey");
+    this.requireAttributeKey(weightKey, "weightKey");
+    this.requireNodeExists(source);
+    this.requireNodeExists(target);
+    return this.raw.maxFlowMinCostSuccessiveShortestPath(source, target, capacityKey, weightKey);
+  }
+
+  pushRelabelMaximumFlow(source: T, target: T, capacityKey = "capacity", weightKey = "weight"): number {
+    this.assertNode(source, "source");
+    this.assertNode(target, "target");
+    this.requireAttributeKey(capacityKey, "capacityKey");
+    this.requireAttributeKey(weightKey, "weightKey");
+    this.requireNodeExists(source);
+    this.requireNodeExists(target);
+    const flow = this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
+    this.markStagedFlow();
+    return flow;
+  }
+
+  cycleCanceling(weightKey = "weight"): number {
+    this.requireAttributeKey(weightKey, "weightKey");
+    this.requireStagedFlow();
+    return this.raw.cycleCanceling(weightKey);
+  }
+
   hasEdgeId(edgeId: number): boolean {
     assertEdgeId(edgeId);
     return this.raw.hasEdgeId(edgeId);
@@ -468,6 +590,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     assertFiniteNumber(weight, "weight");
     this.requireEdgeIdExists(edgeId);
     this.raw.setEdgeWeightById(edgeId, weight);
+    this.markGraphMutation();
   }
 
   hasEdgeAttrById(edgeId: number, key: string): boolean {
@@ -494,6 +617,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
     assertAttributeValue(value, "value");
     this.requireEdgeIdExists(edgeId);
     this.raw.setEdgeAttrById(edgeId, key, value);
+    this.markGraphMutation();
   }
 
   getEdgeNumericAttrById(edgeId: number, key: string): number {
@@ -506,10 +630,12 @@ abstract class BaseMultiGraph<T extends NodeId> {
     assertEdgeId(edgeId);
     this.requireEdgeIdExists(edgeId);
     this.raw.removeEdgeById(edgeId);
+    this.markGraphMutation();
   }
 
   clear(): void {
     this.raw.clear();
+    this.markGraphMutation();
   }
 
   dispose(): void {

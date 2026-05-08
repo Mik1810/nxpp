@@ -1,6 +1,10 @@
 import type {
   AllPairsShortestPathSourceEntry,
   AttributeValue,
+  CentralityScoreEntry,
+  MaximumFlowResult,
+  MinCostMaxFlowResult,
+  MinimumCutResult,
   NodeId,
   ShortestPathDistanceEntry,
   ShortestPathPredecessorEntry,
@@ -81,6 +85,15 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
   floydWarshallAllPairsShortestPathsMap(): Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>;
   kruskalMinimumSpanningTree(): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
   primMinimumSpanningTree(root: T): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
+  degreeCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+  pagerank(tolerance: number, maxIterations: number): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+  betweennessCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+  maximumFlow(source: T, target: T, capacityKey: string): MaximumFlowResult<T>;
+  minimumCut(source: T, target: T, capacityKey: string): MinimumCutResult<T>;
+  maxFlowMinCost(source: T, target: T, capacityKey: string, weightKey: string): MinCostMaxFlowResult<T>;
+  maxFlowMinCostSuccessiveShortestPath(source: T, target: T, capacityKey: string, weightKey: string): MinCostMaxFlowResult<T>;
+  pushRelabelMaximumFlow(source: T, target: T, capacityKey: string, weightKey: string): number;
+  cycleCanceling(weightKey: string): number;
   clear(): void;
 }
 

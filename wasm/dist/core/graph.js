@@ -1,7 +1,8 @@
 import { runtime } from "../load.js";
-import { assertAttributeValue, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../internal/assert.js";
+import { assertAttributeValue, assertFiniteNumber, assertIntNodeId, assertStringValue, assertStringNodeId, } from "../internal/assert.js";
 import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
 import { toArray } from "../internal/wrap.js";
+import { toCentralityScores } from "../algorithms/centrality.js";
 import { toComponentGroups } from "../algorithms/components.js";
 import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
 const disposeSymbol = Symbol.dispose;
@@ -14,6 +15,8 @@ function stronglyConnectedComponents(raw) {
 class BaseSimpleGraph {
     rawObject;
     assertNode;
+    mutationVersion = 0;
+    stagedFlowMutationVersion = null;
     constructor(factory, assertNode) {
         this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
         this.assertNode = assertNode;
@@ -33,6 +36,20 @@ class BaseSimpleGraph {
     operationFailed(message) {
         throw new Error(`WASM graph operation failed: ${message}`);
     }
+    markGraphMutation() {
+        this.mutationVersion += 1;
+    }
+    markStagedFlow() {
+        this.stagedFlowMutationVersion = this.mutationVersion;
+    }
+    requireStagedFlow() {
+        if (this.stagedFlowMutationVersion === null) {
+            this.operationFailed("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
+        }
+        if (this.stagedFlowMutationVersion !== this.mutationVersion) {
+            this.operationFailed("Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().");
+        }
+    }
     requireNodeExists(id) {
         if (!this.raw.hasNode(id)) {
             this.operationFailed("Node lookup failed: node not found.");
@@ -50,6 +67,17 @@ class BaseSimpleGraph {
             this.operationFailed("Weight lookup failed: only the built-in edge weight property named 'weight' is supported.");
         }
     }
+    requireAttributeKey(key, label) {
+        assertStringValue(key, label);
+        if (key.length === 0) {
+            throw new TypeError(`${label} must not be empty.`);
+        }
+    }
+    requirePagerankMaxIterations(maxIterations) {
+        if (!Number.isInteger(maxIterations) || maxIterations < 0) {
+            throw new TypeError("maxIterations must be a non-negative integer.");
+        }
+    }
     runPathLookup(fn) {
         try {
             return fn();
@@ -64,12 +92,14 @@ class BaseSimpleGraph {
     addNode(id) {
         this.assertNode(id, "id");
         this.raw.addNode(id);
+        this.markGraphMutation();
     }
     addEdge(source, target, weight) {
         this.assertNode(source, "source");
         this.assertNode(target, "target");
         assertFiniteNumber(weight, "weight");
         this.raw.addEdge(source, target, weight);
+        this.markGraphMutation();
     }
     hasNode(id) {
         this.assertNode(id, "id");
@@ -92,12 +122,14 @@ class BaseSimpleGraph {
         this.assertNode(id, "id");
         this.requireNodeExists(id);
         this.raw.removeNode(id);
+        this.markGraphMutation();
     }
     removeEdge(source, target) {
         this.assertNode(source, "source");
         this.assertNode(target, "target");
         this.requireEdgeExists(source, target);
         this.raw.removeEdge(source, target);
+        this.markGraphMutation();
     }
     getEdgeWeight(source, target) {
         this.assertNode(source, "source");
@@ -111,6 +143,7 @@ class BaseSimpleGraph {
         assertFiniteNumber(weight, "weight");
         this.requireEdgeExists(source, target);
         this.raw.setEdgeWeight(source, target, weight);
+        this.markGraphMutation();
     }
     subgraph(nodes) {
         if (!Array.isArray(nodes)) {
@@ -142,6 +175,7 @@ class BaseSimpleGraph {
         this.assertNode(id, "id");
         assertAttributeValue(value, "value");
         this.raw.setNodeAttr(id, key, value);
+        this.markGraphMutation();
     }
     hasEdgeAttr(source, target, key) {
         this.assertNode(source, "source");
@@ -167,6 +201,7 @@ class BaseSimpleGraph {
         this.assertNode(target, "target");
         assertAttributeValue(value, "value");
         this.raw.setEdgeAttr(source, target, key, value);
+        this.markGraphMutation();
     }
     getEdgeNumericAttr(source, target, key) {
         this.assertNode(source, "source");
@@ -333,8 +368,70 @@ class BaseSimpleGraph {
         this.requireNodeExists(root);
         return toArray(this.raw.primMinimumSpanningTree(root));
     }
+    degreeCentrality() {
+        return toCentralityScores(this.raw.degreeCentrality());
+    }
+    pagerank(tolerance = 1e-6, maxIterations = 100) {
+        assertFiniteNumber(tolerance, "tolerance");
+        this.requirePagerankMaxIterations(maxIterations);
+        return toCentralityScores(this.raw.pagerank(tolerance, maxIterations));
+    }
+    betweennessCentrality() {
+        return toCentralityScores(this.raw.betweennessCentrality());
+    }
+    maximumFlow(source, target, capacityKey = "capacity") {
+        this.assertNode(source, "source");
+        this.assertNode(target, "target");
+        this.requireAttributeKey(capacityKey, "capacityKey");
+        this.requireNodeExists(source);
+        this.requireNodeExists(target);
+        return this.raw.maximumFlow(source, target, capacityKey);
+    }
+    minimumCut(source, target, capacityKey = "capacity") {
+        this.assertNode(source, "source");
+        this.assertNode(target, "target");
+        this.requireAttributeKey(capacityKey, "capacityKey");
+        this.requireNodeExists(source);
+        this.requireNodeExists(target);
+        return this.raw.minimumCut(source, target, capacityKey);
+    }
+    maxFlowMinCost(source, target, capacityKey = "capacity", weightKey = "weight") {
+        this.assertNode(source, "source");
+        this.assertNode(target, "target");
+        this.requireAttributeKey(capacityKey, "capacityKey");
+        this.requireAttributeKey(weightKey, "weightKey");
+        this.requireNodeExists(source);
+        this.requireNodeExists(target);
+        return this.raw.maxFlowMinCost(source, target, capacityKey, weightKey);
+    }
+    maxFlowMinCostSuccessiveShortestPath(source, target, capacityKey = "capacity", weightKey = "weight") {
+        this.assertNode(source, "source");
+        this.assertNode(target, "target");
+        this.requireAttributeKey(capacityKey, "capacityKey");
+        this.requireAttributeKey(weightKey, "weightKey");
+        this.requireNodeExists(source);
+        this.requireNodeExists(target);
+        return this.raw.maxFlowMinCostSuccessiveShortestPath(source, target, capacityKey, weightKey);
+    }
+    pushRelabelMaximumFlow(source, target, capacityKey = "capacity", weightKey = "weight") {
+        this.assertNode(source, "source");
+        this.assertNode(target, "target");
+        this.requireAttributeKey(capacityKey, "capacityKey");
+        this.requireAttributeKey(weightKey, "weightKey");
+        this.requireNodeExists(source);
+        this.requireNodeExists(target);
+        const flow = this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
+        this.markStagedFlow();
+        return flow;
+    }
+    cycleCanceling(weightKey = "weight") {
+        this.requireAttributeKey(weightKey, "weightKey");
+        this.requireStagedFlow();
+        return this.raw.cycleCanceling(weightKey);
+    }
     clear() {
         this.raw.clear();
+        this.markGraphMutation();
     }
     dispose() {
         if (this.rawObject === null) {
