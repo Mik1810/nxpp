@@ -3,27 +3,21 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
-## [1.4.3]
+## Next Release
 
 ### Highlights
 
-- Closed `#163` by documenting the lifecycle policy for deprecated
-  compatibility aliases.
-- Deprecated free-function aliases remain supported until the next major release
-  unless a specific deprecation notice says otherwise.
-- Removing a deprecated alias from the stable C++ public headers is treated as a
-  breaking public API change and requires migration notes.
-
-## [1.4.2]
-
-### Highlights
-
-- Closed `#87` by adding lazy traversal edge ranges:
+- Added lazy traversal edge ranges:
   `Graph::bfs_edges_view(start)` and `Graph::dfs_edges_view(start)`.
 - The new APIs yield traversal tree edges on demand and compose with C++20
   ranges such as `std::views::take(...)`.
 - Existing eager APIs, including `bfs_edges(start)` and `dfs_edges(start)`,
   remain unchanged.
+- Documented the lifecycle policy for deprecated compatibility aliases.
+- Deprecated free-function aliases remain supported until the next major release
+  unless a specific deprecation notice says otherwise.
+- Removing a deprecated alias from the stable C++ public headers is treated as a
+  breaking public API change and requires migration notes.
 
 ## [1.4.1]
 

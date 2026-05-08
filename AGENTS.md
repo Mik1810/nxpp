@@ -126,7 +126,9 @@ bash wasm/scripts/run_wasm_node_contract_tests.sh
 - Update README or relevant docs when public behavior changes.
 - When an issue is completed, discuss whether version/release notes are needed.
 - `CHANGELOG.md`: concise versioned technical history, SemVer `x.y.z`.
-- `RELEASE_NOTES.md`: richer release-facing notes.
+- `RELEASE_NOTES.md`: richer release-facing notes accumulated since the
+  previous published release; do not mirror every changelog version unless the
+  user explicitly starts release preparation.
 - `SESSION.md`: append-only, compact, no logs/diffs/bodies.
 
 Preferred `SESSION.md` entry:
@@ -146,7 +148,7 @@ Do not modify unrelated docs automatically.
 ## Project Notes
 
 - Releases are driven by `.github/workflows/release.yml`; normal push to `main` must not publish a GitHub release.
-- Top versions in `CHANGELOG.md` and `RELEASE_NOTES.md` must match before release.
+- `CHANGELOG.md` remains versioned history for each completed change; `RELEASE_NOTES.md` remains an unreleased aggregate until the user declares the next release version.
 - WASM package lives in `wasm/`; publish flow is `npm run publish:all` from `wasm/`.
 - Keep registry credentials in user-level `~/.npmrc` only.
 - `include/nxpp.hpp` is the canonical umbrella include.
