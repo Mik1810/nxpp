@@ -36,10 +36,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install Boost Graph
+      - name: Download Boost headers
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev
+          set -euo pipefail
+          boost_version="1.86.0"
+          boost_tag="${boost_version//./_}"
+          boost_archive="boost_${boost_tag}.tar.gz"
+          boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+
+          if [ ! -d "$boost_root/boost" ]; then
+            curl -fsSL "$boost_url" -o "$RUNNER_TEMP/$boost_archive"
+            tar -xzf "$RUNNER_TEMP/$boost_archive" -C "$RUNNER_TEMP"
+          fi
+
+          echo "BOOST_ROOT=$boost_root" >> "$GITHUB_ENV"
+          echo "Boost_ROOT=$boost_root" >> "$GITHUB_ENV"
 
       - name: Configure with ASan and UBSan
         run: |
@@ -47,6 +59,7 @@ jobs:
             -DNXPP_BUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_CXX_COMPILER=g++ \
+            -DBoost_ROOT="$Boost_ROOT" \
             -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" \
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
 
