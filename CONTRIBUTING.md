@@ -59,6 +59,11 @@ keep the versioned project history in sync:
 The top versions in `CHANGELOG.md` and `RELEASE_NOTES.md` should match the
 project metadata version.
 
+Before changing public API, classify the change with `VERSIONING.md` and apply
+the release compatibility review there. Stable API removals, semantic changes,
+dependency-floor increases, and CMake consumption breaks require a major
+release and migration notes.
+
 ## Pull Requests
 
 Before opening a PR:

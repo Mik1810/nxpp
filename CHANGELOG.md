@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.5] - 2026-05-08
+
+- Closed `#150` by auditing post-`1.0.0` SemVer history and documenting the accidental breaking changes in `1.2.0` and `1.4.0`.
+- Added explicit breaking-change criteria, a release compatibility review checklist, and migration-note expectations for future major releases.
+
 ## [1.4.4] - 2026-05-08
 
 - Closed `#151` by defining Boost 1.86.0 as the minimum supported Boost version.
