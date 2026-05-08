@@ -830,3 +830,11 @@
 - Decision: Added a public roadmap covering C++ core, WASM, packaging, CI, performance, browser support, experimental areas, and stabilization targets.
 - Verified: `git diff --check`; manual Markdown review.
 - Next: Commit and close issue `#161`.
+
+### 2026-05-08 - Issue #151
+
+- Branch/commit:
+- Files: `CMakeLists.txt`, `.github/workflows/compatibility.yml`, `CONTRIBUTING.md`, `docs/EXTERNAL_USAGE.md`, `docs/STABILITY.md`.
+- Decision: Defined Boost 1.86.0 as the minimum supported version while keeping latest Boost coverage in compatibility CI.
+- Verified: `git diff --check`; CMake configure found Boost 1.86.0 in `/usr/local/include`; `bash scripts/unix/run_tests.sh` (`95/95`).
+- Next: Commit, push, and close issue `#151`.

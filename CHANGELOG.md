@@ -4,6 +4,12 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.4] - 2026-05-08
+
+- Closed `#151` by defining Boost 1.86.0 as the minimum supported Boost version.
+- Compatibility CI now tests the minimum Boost version on Linux while preserving latest Boost coverage across the normal compatibility matrix.
+- CMake discovery now requires Boost 1.86 or newer, matching the documented support matrix and Conan metadata.
+
 ## [1.4.3] - 2026-05-08
 
 - Closed `#163` by documenting the deprecated alias lifecycle policy.

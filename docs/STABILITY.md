@@ -41,6 +41,10 @@ default story.
 | TypeScript facade (`wasm/dist/`, re-exported types) | **Experimental** | Versioned and released **with** the experimental wasm package. |
 | Browser WebAssembly | **Not supported** | Future or investigation only; see [`../wasm/WASM.md`](../wasm/WASM.md). |
 
+The stable C++ and CMake paths require Boost 1.86.0 or newer. Compatibility CI
+tests that minimum on Linux and also tests the latest Boost release available
+from `archives.boost.io`.
+
 ## How to read "experimental"
 
 - **Experimental** does **not** mean unsupported documentation. It means the

@@ -18,6 +18,11 @@ version entries in `CHANGELOG.md`.
   unless a specific deprecation notice says otherwise.
 - Removing a deprecated alias from the stable C++ public headers is treated as a
   breaking public API change and requires migration notes.
+- Defined Boost 1.86.0 as the minimum supported Boost version.
+- Compatibility CI now keeps latest Boost coverage while also testing the
+  minimum supported Boost version on Linux.
+- CMake discovery now requires Boost 1.86 or newer, matching the documented
+  support matrix and Conan metadata.
 
 ## [1.4.1]
 

@@ -4,10 +4,14 @@
 
 - CMake 3.16 or newer
 - A C++20-capable compiler
-- Boost Graph Library headers (>=1.86.0)
+- Boost Graph Library headers 1.86.0 or newer
 
 The repository is header-only, but the formal checks build small test binaries
 through CMake.
+
+The official Boost support matrix starts at Boost 1.86.0. Compatibility CI
+tests that minimum version on Linux and also tests the latest Boost release
+available from `archives.boost.io`.
 
 ## Build and Test
 

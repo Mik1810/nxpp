@@ -143,7 +143,12 @@ g++ -std=c++20 -I/path/to/vendor/include app.cpp -o app
 
 ## Boost dependency
 
-`nxpp` depends on Boost Graph headers.
+`nxpp` depends on Boost Graph headers. The minimum supported Boost version is
+1.86.0.
+
+The repository compatibility workflow tests Boost 1.86.0 as the minimum
+supported version and the latest Boost release available from
+`archives.boost.io`.
 
 On Ubuntu / Debian the repository CI installs:
 
@@ -311,7 +316,7 @@ If you vendor the repository, you can also consume it through CMake:
 cmake_minimum_required(VERSION 3.16)
 project(my_app LANGUAGES CXX)
 
-find_package(Boost REQUIRED)
+find_package(Boost 1.86 REQUIRED)
 add_subdirectory(external/nxpp)
 
 add_executable(my_app app.cpp)

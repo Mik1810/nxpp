@@ -9,7 +9,7 @@ project(nxpp VERSION 1.4.1 LANGUAGES CXX)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-find_package(Boost REQUIRED)
+find_package(Boost 1.86 REQUIRED)
 
 add_library(nxpp INTERFACE)
 add_library(nxpp::nxpp ALIAS nxpp)

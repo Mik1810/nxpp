@@ -64,24 +64,35 @@ jobs:
             label: ubuntu-gcc
             compiler: g++
             platform_family: unix
+            boost_version: latest
+            install_deps: sudo apt-get update
+            cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
+          - os: ubuntu-latest
+            label: ubuntu-gcc-boost-min
+            compiler: g++
+            platform_family: unix
+            boost_version: 1.86.0
             install_deps: sudo apt-get update
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: ubuntu-latest
             label: ubuntu-clang
             compiler: clang++
             platform_family: unix
+            boost_version: latest
             install_deps: sudo apt-get update && sudo apt-get install -y clang
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -O0
           - os: macos-latest
             label: macos-clang
             compiler: clang++
             platform_family: unix
+            boost_version: latest
             install_deps: true
             cxxflags: -std=c++20 -Wall -Wextra -pedantic -Wno-unused-parameter -O0
           - os: windows-latest
             label: windows-msvc
             compiler: cl
             platform_family: windows
+            boost_version: latest
 
     runs-on: ${{ matrix.os }}
 
@@ -101,7 +112,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          boost_version="${{ needs.detect-boost-version.outputs.boost_version }}"
+          boost_version="${{ matrix.boost_version }}"
+          if [ "$boost_version" = "latest" ]; then
+            boost_version="${{ needs.detect-boost-version.outputs.boost_version }}"
+          fi
           boost_tag="${boost_version//./_}"
           boost_archive="boost_${boost_tag}.tar.gz"
           boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
@@ -120,7 +134,10 @@ jobs:
         if: matrix.platform_family == 'windows'
         shell: pwsh
         run: |
-          $latestVersion = "${{ needs.detect-boost-version.outputs.boost_version }}"
+          $latestVersion = "${{ matrix.boost_version }}"
+          if ($latestVersion -eq "latest") {
+            $latestVersion = "${{ needs.detect-boost-version.outputs.boost_version }}"
+          }
           $boostTag = $latestVersion.Replace('.', '_')
           $boostZip = Join-Path $env:RUNNER_TEMP "boost_$boostTag.zip"
           $boostRoot = Join-Path $env:RUNNER_TEMP "boost_$boostTag"
