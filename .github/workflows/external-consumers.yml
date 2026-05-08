@@ -49,14 +49,41 @@ jobs:
           boost_archive="boost_${boost_tag}.tar.gz"
           boost_url="https://archives.boost.io/release/${boost_version}/source/${boost_archive}"
           boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+          boost_cmake_dir="$RUNNER_TEMP/boost-cmake/lib/cmake/Boost-${boost_version}"
 
           if [ ! -d "$boost_root/boost" ]; then
             curl -fsSL "$boost_url" -o "$RUNNER_TEMP/$boost_archive"
             tar -xzf "$RUNNER_TEMP/$boost_archive" -C "$RUNNER_TEMP"
           fi
 
+          mkdir -p "$boost_cmake_dir"
+          cat > "$boost_cmake_dir/BoostConfig.cmake" <<EOF
+          if(NOT TARGET Boost::headers)
+            add_library(Boost::headers INTERFACE IMPORTED)
+            set_target_properties(Boost::headers PROPERTIES
+              INTERFACE_INCLUDE_DIRECTORIES "$boost_root"
+            )
+          endif()
+          if(NOT TARGET Boost::boost)
+            add_library(Boost::boost INTERFACE IMPORTED)
+            target_link_libraries(Boost::boost INTERFACE Boost::headers)
+          endif()
+          set(Boost_FOUND TRUE)
+          set(Boost_INCLUDE_DIRS "$boost_root")
+          EOF
+          cat > "$boost_cmake_dir/BoostConfigVersion.cmake" <<EOF
+          set(PACKAGE_VERSION "$boost_version")
+          if(PACKAGE_FIND_VERSION VERSION_LESS_EQUAL PACKAGE_VERSION)
+            set(PACKAGE_VERSION_COMPATIBLE TRUE)
+            if(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)
+              set(PACKAGE_VERSION_EXACT TRUE)
+            endif()
+          endif()
+          EOF
+
           echo "BOOST_ROOT=$boost_root" >> "$GITHUB_ENV"
           echo "Boost_ROOT=$boost_root" >> "$GITHUB_ENV"
+          echo "CMAKE_PREFIX_PATH=$RUNNER_TEMP/boost-cmake${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
 
       - name: Run external-consumer integration modes
         id: external
