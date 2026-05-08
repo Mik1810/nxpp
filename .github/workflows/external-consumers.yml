@@ -83,6 +83,7 @@ jobs:
 
           echo "BOOST_ROOT=$boost_root" >> "$GITHUB_ENV"
           echo "Boost_ROOT=$boost_root" >> "$GITHUB_ENV"
+          echo "CXXFLAGS=-I$boost_root" >> "$GITHUB_ENV"
           echo "CMAKE_PREFIX_PATH=$RUNNER_TEMP/boost-cmake${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
 
       - name: Run external-consumer integration modes
