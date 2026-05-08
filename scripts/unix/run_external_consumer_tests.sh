@@ -66,6 +66,7 @@ run_single_header_mode() {
     echo "Mode: standalone-single-header-consumer"
     bash "$ROOT_DIR/scripts/unix/build_single_header.sh"
     "$cxx" -std=c++20 -Wall -Wextra -pedantic -O0 \
+        ${CXXFLAGS:-} \
         "$ROOT_DIR/tests/external_consumers/single_header/main.cpp" \
         -I"$ROOT_DIR/dist" \
         -o "$out_bin"
