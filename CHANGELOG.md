@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.3] - 2026-05-08
+
+- Closed `#163` by documenting the deprecated alias lifecycle policy.
+- Deprecated compatibility aliases remain supported until the next major release, and alias removal is treated as a breaking change requiring migration notes.
+
 ## [1.4.2] - 2026-05-08
 
 - Closed `#87` by adding lazy `Graph::bfs_edges_view(start)` and `Graph::dfs_edges_view(start)` traversal ranges.

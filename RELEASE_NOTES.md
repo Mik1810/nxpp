@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.4.3]
+
+### Highlights
+
+- Closed `#163` by documenting the lifecycle policy for deprecated
+  compatibility aliases.
+- Deprecated free-function aliases remain supported until the next major release
+  unless a specific deprecation notice says otherwise.
+- Removing a deprecated alias from the stable C++ public headers is treated as a
+  breaking public API change and requires migration notes.
+
 ## [1.4.2]
 
 ### Highlights

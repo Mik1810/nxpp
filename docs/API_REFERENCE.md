@@ -152,6 +152,19 @@ The repository still exposes deprecated namespace-scope wrappers such as:
 Those exist as migration-friendly compatibility aliases for the method-based API.
 For existing-graph operations, the canonical public form remains `G.foo(...)`.
 
+Lifecycle policy:
+
+- deprecated free-function aliases remain supported until the next major release
+- removing one of these aliases is a breaking change and must be documented as
+  part of a major-version migration
+- new graph operations should prefer method-based entry points and should not add
+  new deprecated compatibility aliases unless there is a specific migration need
+
+Current deprecated alias families include traversal, shortest paths, components,
+spanning trees, topological sort, centrality, flow, and graph count helpers. The
+replacement for each alias is named in its deprecation message and generated API
+documentation.
+
 ### `NodeID` requirements
 
 `nxpp::Graph<NodeID, ...>` currently expects `NodeID` to be:
