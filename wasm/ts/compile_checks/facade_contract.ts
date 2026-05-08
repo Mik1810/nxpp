@@ -12,6 +12,7 @@ import {
 import type {
   AllPairsShortestPathSourceEntry,
   AttributeValue,
+  ConnectedComponents,
   DiGraph,
   EdgeEndpoints,
   Graph,
@@ -20,6 +21,7 @@ import type {
   ShortestPathDistanceEntry,
   SpanningTreeEdge,
   SingleSourceShortestPathResult,
+  StronglyConnectedComponents,
   TraversalEdge,
   TraversalPredecessorEntry,
   TraversalSuccessorEntry,
@@ -269,6 +271,24 @@ const multigraphString: MultiGraph<string> = new MultiGraphStr();
 const multidigraphNumber: MultiDiGraph<number> = new MultiDiGraphInt();
 const multidigraphString: MultiDiGraph<string> = new MultiDiGraphStr();
 
+const connectedGraphNumber: ConnectedComponents<number> = new GraphInt();
+const connectedGraphString: ConnectedComponents<string> = new GraphStr();
+const connectedMultiGraphNumber: ConnectedComponents<number> = new MultiGraphInt();
+const connectedMultiGraphString: ConnectedComponents<string> = new MultiGraphStr();
+const stronglyConnectedGraphNumber: StronglyConnectedComponents<number> = new DiGraphInt();
+const stronglyConnectedGraphString: StronglyConnectedComponents<string> = new DiGraphStr();
+const stronglyConnectedMultiGraphNumber: StronglyConnectedComponents<number> = new MultiDiGraphInt();
+const stronglyConnectedMultiGraphString: StronglyConnectedComponents<string> = new MultiDiGraphStr();
+
+const graphNumberComponents: number[][] = connectedGraphNumber.connectedComponents();
+const graphStringComponents: string[][] = connectedGraphString.connectedComponents();
+const multiGraphNumberComponents: number[][] = connectedMultiGraphNumber.connectedComponents();
+const multiGraphStringComponents: string[][] = connectedMultiGraphString.connectedComponents();
+const diGraphNumberComponents: number[][] = stronglyConnectedGraphNumber.stronglyConnectedComponents();
+const diGraphStringComponents: string[][] = stronglyConnectedGraphString.stronglyConnectedComponents();
+const multiDiGraphNumberComponents: number[][] = stronglyConnectedMultiGraphNumber.stronglyConnectedComponents();
+const multiDiGraphStringComponents: string[][] = stronglyConnectedMultiGraphString.stronglyConnectedComponents();
+
 exerciseGraphNumber(graphNumber);
 exerciseGraphString(graphString);
 exerciseGraphNumber(digraphNumber);
@@ -277,3 +297,11 @@ exerciseMultiGraphNumber(multigraphNumber);
 exerciseMultiGraphString(multigraphString);
 exerciseMultiGraphNumber(multidigraphNumber);
 exerciseMultiGraphString(multidigraphString);
+void graphNumberComponents;
+void graphStringComponents;
+void multiGraphNumberComponents;
+void multiGraphStringComponents;
+void diGraphNumberComponents;
+void diGraphStringComponents;
+void multiDiGraphNumberComponents;
+void multiDiGraphStringComponents;

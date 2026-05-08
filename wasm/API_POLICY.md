@@ -135,8 +135,8 @@ The C++/WASM binding layer should mirror the C++ library modules where
 reasonable. The TypeScript facade should expose a smaller, JavaScript-friendly
 surface over those modules.
 
-Core graph, attributes, traversal, shortest paths, and spanning tree APIs are
-part of the current active Node facade surface. Components, centrality, and flow
+Core graph, attributes, traversal, shortest paths, spanning tree, and component
+APIs are part of the current active Node facade surface. Centrality and flow
 bindings are planned active modules but should be added in small slices with
 explicit result models and contract tests.
 

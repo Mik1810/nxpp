@@ -5,7 +5,7 @@ import os
 
 class NxppConan(ConanFile):
     name = "nxpp"
-    version = "1.4.1"
+    version = "1.4.7"
     package_type = "header-library"
     default_options = {"boost/*:header_only": True}
 

@@ -24,7 +24,8 @@ explicit runtime classes (`GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`,
 `MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, `MultiDiGraphStr`) plus
 the completed `attributes.hpp` and `traversal.hpp` blocks plus the
 full `shortest_paths.hpp` block, including Floyd-Warshall all-pairs results,
-plus the current `spanning_tree.hpp` minimum-spanning-tree block.
+plus the current `spanning_tree.hpp` minimum-spanning-tree block and the first
+`components.hpp` connected/SCC block.
 This should still be read as an implementation stepping stone, not as the
 final public JavaScript API shape.
 
@@ -256,6 +257,13 @@ Simple graph endpoint-oriented methods (`Graph*`, `DiGraph*`):
 - `clear()`
 - `dispose()` for explicit facade-side lifetime management
 
+Components methods are exposed only on graph families where the native
+algorithm applies:
+
+- `connectedComponents()` on `Graph*` and `MultiGraph*`, returning `T[][]`
+- `stronglyConnectedComponents()` on `DiGraph*` and `MultiDiGraph*`, returning
+  `T[][]`
+
 Multigraph methods (`MultiGraph*`, `MultiDiGraph*`) include all simple methods
 and additionally expose edge-ID-specific APIs:
 
@@ -422,8 +430,8 @@ The following are non-breaking for v0:
 | Query APIs | Partial | endpoint-based queries, materialized subgraphs, and edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
 | Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
 | Shortest paths | Covered | single-pair, single-source Dijkstra/Bellman-Ford/DAG, and Floyd-Warshall all-pairs wrappers | Keep contract tests aligned with future facade changes |
-| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Continue with components / centrality / flow blocks |
-| Components/topology | Not started | none | Add first exported component/topology slice |
+| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Continue with centrality / flow blocks |
+| Components/topology | In progress | Connected-component groups on undirected graph families and SCC groups on directed graph families | Add any additional component map/root DTOs only when needed |
 | Spanning/centrality | Not started | none | Add centrality subset after topology |
 | Flow/multigraph precision | Partial | `MultiGraph*` and `MultiDiGraph*` edge-id API with precise `removeEdgeById` and endpoint lookup wrappers | Add flow-oriented exports that preserve edge-id precision |
 | TypeScript surface | Active | generic TS interfaces + explicit typed runtime class declarations (`wasm/dist/index.d.ts`) and facade source tree under `wasm/ts/` | Expand algorithm module typings and wrappers as new wasm exports land |

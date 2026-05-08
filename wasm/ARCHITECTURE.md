@@ -136,11 +136,12 @@ Shared capability modules attach methods to those runtime classes:
 - `traversal.cpp`
 - `shortest_paths.cpp`
 - `spanning_tree.cpp`
+- `components.cpp`
 
-The current components, centrality, and flow modules are structural placeholders
-for planned API slices. They should not be treated as complete public facade
-coverage until their binding implementations, TypeScript result models, and
-contract tests are added.
+The current centrality and flow modules are structural placeholders for planned
+API slices. They should not be treated as complete public facade coverage until
+their binding implementations, TypeScript result models, and contract tests are
+added.
 
 ## Error Boundary
 

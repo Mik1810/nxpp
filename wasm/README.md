@@ -341,8 +341,9 @@ So the current wasm direction is:
   `MultiDiGraph*`) aligned with the base C++ modules
 2. preserve distinct concrete backends by class (no runtime switching)
 3. close semantic headers block by block, with `attributes.hpp`,
-  `traversal.hpp`, `shortest_paths.hpp`, and `spanning_tree.hpp` now covered
-4. continue with the next semantic headers after `spanning_tree.hpp`
+  `traversal.hpp`, `shortest_paths.hpp`, `spanning_tree.hpp`, and the first
+  `components.hpp` group-output slice now covered
+4. continue with centrality and flow semantic headers
 
 ## API parity and stability matrix
 
@@ -363,7 +364,7 @@ Stability levels used here:
 | `traversal.hpp` | Covered | Experimental | BFS/DFS edges, trees, successors/predecessors DTO shapes |
 | `shortest_paths.hpp` | Covered | Experimental | Single-pair, single-source, and Floyd-Warshall all-pairs wrappers |
 | `spanning_tree.hpp` | Covered | Experimental | Kruskal and rooted Prim edge-list wrappers |
-| `components.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
+| `components.hpp` | In progress | Experimental | Connected-component groups on undirected graph families and SCC groups on directed graph families |
 | `centrality.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
 | `flow.hpp` | Planned | Planned | Not yet exported in the wasm public facade |
 | `topological_sort.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |

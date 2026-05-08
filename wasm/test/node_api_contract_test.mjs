@@ -1,5 +1,6 @@
 import "./node_api_contract/exports.test.mjs";
 import "./node_api_contract/attributes.test.mjs";
+import "./node_api_contract/components.test.mjs";
 import "./node_api_contract/simple_graph.test.mjs";
 import "./node_api_contract/multigraph.test.mjs";
 import "./node_api_contract/traversal.test.mjs";

@@ -2,8 +2,15 @@ import { runtime } from "../load.js";
 import { assertAttributeValue, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../internal/assert.js";
 import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
 import { toArray } from "../internal/wrap.js";
+import { toComponentGroups } from "../algorithms/components.js";
 import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
 const disposeSymbol = Symbol.dispose;
+function connectedComponents(raw) {
+    return toComponentGroups(raw.connectedComponents());
+}
+function stronglyConnectedComponents(raw) {
+    return toComponentGroups(raw.stronglyConnectedComponents());
+}
 class BaseSimpleGraph {
     rawObject;
     assertNode;
@@ -344,6 +351,9 @@ export class GraphInt extends BaseSimpleGraph {
     createFromRaw(raw) {
         return new GraphInt(raw);
     }
+    connectedComponents() {
+        return connectedComponents(this.raw);
+    }
 }
 export class GraphStr extends BaseSimpleGraph {
     constructor(raw) {
@@ -351,6 +361,9 @@ export class GraphStr extends BaseSimpleGraph {
     }
     createFromRaw(raw) {
         return new GraphStr(raw);
+    }
+    connectedComponents() {
+        return connectedComponents(this.raw);
     }
 }
 export class DiGraphInt extends BaseSimpleGraph {
@@ -360,6 +373,9 @@ export class DiGraphInt extends BaseSimpleGraph {
     createFromRaw(raw) {
         return new DiGraphInt(raw);
     }
+    stronglyConnectedComponents() {
+        return stronglyConnectedComponents(this.raw);
+    }
 }
 export class DiGraphStr extends BaseSimpleGraph {
     constructor(raw) {
@@ -367,5 +383,8 @@ export class DiGraphStr extends BaseSimpleGraph {
     }
     createFromRaw(raw) {
         return new DiGraphStr(raw);
+    }
+    stronglyConnectedComponents() {
+        return stronglyConnectedComponents(this.raw);
     }
 }

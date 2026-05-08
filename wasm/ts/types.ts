@@ -58,6 +58,14 @@ export interface SingleSourceShortestPathResult<T extends NodeId> {
   pathTo(target: T): T[];
 }
 
+export interface ConnectedComponents<T extends NodeId> {
+  connectedComponents(): T[][];
+}
+
+export interface StronglyConnectedComponents<T extends NodeId> {
+  stronglyConnectedComponents(): T[][];
+}
+
 export interface Graph<T extends NodeId> {
   addNode(id: T): void;
   addEdge(source: T, target: T, weight: number): void;

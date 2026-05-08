@@ -3,6 +3,12 @@ export interface RawSingleSourceShortestPathResult<T extends NodeId> {
     distance: Iterable<ShortestPathDistanceEntry<T>> | ArrayLike<ShortestPathDistanceEntry<T>>;
     predecessor: Iterable<ShortestPathPredecessorEntry<T>> | ArrayLike<ShortestPathPredecessorEntry<T>>;
 }
+export interface RawConnectedComponentsGraph<T extends NodeId> {
+    connectedComponents(): Iterable<Iterable<T> | ArrayLike<T>> | ArrayLike<Iterable<T> | ArrayLike<T>>;
+}
+export interface RawStronglyConnectedComponentsGraph<T extends NodeId> {
+    stronglyConnectedComponents(): Iterable<Iterable<T> | ArrayLike<T>> | ArrayLike<Iterable<T> | ArrayLike<T>>;
+}
 export interface RawEdgeEndpoints<T extends NodeId> {
     source(): T;
     target(): T;

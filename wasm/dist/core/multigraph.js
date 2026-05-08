@@ -2,8 +2,15 @@ import { runtime } from "../load.js";
 import { assertAttributeValue, assertEdgeId, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../internal/assert.js";
 import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
 import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
+import { toComponentGroups } from "../algorithms/components.js";
 import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
 const disposeSymbol = Symbol.dispose;
+function connectedComponents(raw) {
+    return toComponentGroups(raw.connectedComponents());
+}
+function stronglyConnectedComponents(raw) {
+    return toComponentGroups(raw.stronglyConnectedComponents());
+}
 class BaseMultiGraph {
     rawObject;
     assertNode;
@@ -409,6 +416,9 @@ export class MultiGraphInt extends BaseMultiGraph {
     createFromRaw(raw) {
         return new MultiGraphInt(raw);
     }
+    connectedComponents() {
+        return connectedComponents(this.raw);
+    }
 }
 export class MultiGraphStr extends BaseMultiGraph {
     constructor(raw) {
@@ -416,6 +426,9 @@ export class MultiGraphStr extends BaseMultiGraph {
     }
     createFromRaw(raw) {
         return new MultiGraphStr(raw);
+    }
+    connectedComponents() {
+        return connectedComponents(this.raw);
     }
 }
 export class MultiDiGraphInt extends BaseMultiGraph {
@@ -425,6 +438,9 @@ export class MultiDiGraphInt extends BaseMultiGraph {
     createFromRaw(raw) {
         return new MultiDiGraphInt(raw);
     }
+    stronglyConnectedComponents() {
+        return stronglyConnectedComponents(this.raw);
+    }
 }
 export class MultiDiGraphStr extends BaseMultiGraph {
     constructor(raw) {
@@ -432,5 +448,8 @@ export class MultiDiGraphStr extends BaseMultiGraph {
     }
     createFromRaw(raw) {
         return new MultiDiGraphStr(raw);
+    }
+    stronglyConnectedComponents() {
+        return stronglyConnectedComponents(this.raw);
     }
 }

@@ -1,4 +1,4 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, ConnectedComponents, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawMultiGraph } from "../internal/wasm_types.js";
 declare abstract class BaseMultiGraph<T extends NodeId> {
     private rawObject;
@@ -74,20 +74,24 @@ declare abstract class BaseMultiGraph<T extends NodeId> {
     clear(): void;
     dispose(): void;
 }
-export declare class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number> {
+export declare class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number>, ConnectedComponents<number> {
     constructor(raw?: RawMultiGraph<number>);
     protected createFromRaw(raw: RawMultiGraph<number>): this;
+    connectedComponents(): number[][];
 }
-export declare class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string> {
+export declare class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string>, ConnectedComponents<string> {
     constructor(raw?: RawMultiGraph<string>);
     protected createFromRaw(raw: RawMultiGraph<string>): this;
+    connectedComponents(): string[][];
 }
-export declare class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number> {
+export declare class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number>, StronglyConnectedComponents<number> {
     constructor(raw?: RawMultiGraph<number>);
     protected createFromRaw(raw: RawMultiGraph<number>): this;
+    stronglyConnectedComponents(): number[][];
 }
-export declare class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string> {
+export declare class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string>, StronglyConnectedComponents<string> {
     constructor(raw?: RawMultiGraph<string>);
     protected createFromRaw(raw: RawMultiGraph<string>): this;
+    stronglyConnectedComponents(): string[][];
 }
 export {};

@@ -12,18 +12,25 @@ import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
 import type {
   AllPairsShortestPathSourceEntry,
   AttributeValue,
+  ConnectedComponents,
   MultiDiGraph,
   MultiGraph,
   NodeId,
   ShortestPathDistanceEntry,
   SpanningTreeEdge,
   SingleSourceShortestPathResult,
+  StronglyConnectedComponents,
   TraversalEdge,
   TraversalPredecessorEntry,
   TraversalSuccessorEntry,
   TraversalTree,
 } from "../types.js";
-import type { RawMultiGraph } from "../internal/wasm_types.js";
+import type {
+  RawConnectedComponentsGraph,
+  RawMultiGraph,
+  RawStronglyConnectedComponentsGraph,
+} from "../internal/wasm_types.js";
+import { toComponentGroups } from "../algorithms/components.js";
 import {
   toAllPairsShortestPathMap,
   toAllPairsShortestPathMatrix,
@@ -31,6 +38,16 @@ import {
 } from "../algorithms/shortest_paths.js";
 
 const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
+
+function connectedComponents<T extends NodeId>(raw: RawMultiGraph<T>): T[][] {
+  return toComponentGroups((raw as RawMultiGraph<T> & RawConnectedComponentsGraph<T>).connectedComponents());
+}
+
+function stronglyConnectedComponents<T extends NodeId>(raw: RawMultiGraph<T>): T[][] {
+  return toComponentGroups(
+    (raw as RawMultiGraph<T> & RawStronglyConnectedComponentsGraph<T>).stronglyConnectedComponents(),
+  );
+}
 
 abstract class BaseMultiGraph<T extends NodeId> {
   private rawObject: RawMultiGraph<T> | null;
@@ -504,7 +521,7 @@ abstract class BaseMultiGraph<T extends NodeId> {
   }
 }
 
-export class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number> {
+export class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number>, ConnectedComponents<number> {
   constructor(raw?: RawMultiGraph<number>) {
     super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId);
   }
@@ -512,9 +529,13 @@ export class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<
   protected createFromRaw(raw: RawMultiGraph<number>): this {
     return new MultiGraphInt(raw) as this;
   }
+
+  connectedComponents(): number[][] {
+    return connectedComponents(this.raw);
+  }
 }
 
-export class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string> {
+export class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string>, ConnectedComponents<string> {
   constructor(raw?: RawMultiGraph<string>) {
     super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId);
   }
@@ -522,9 +543,13 @@ export class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<
   protected createFromRaw(raw: RawMultiGraph<string>): this {
     return new MultiGraphStr(raw) as this;
   }
+
+  connectedComponents(): string[][] {
+    return connectedComponents(this.raw);
+  }
 }
 
-export class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number> {
+export class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number>, StronglyConnectedComponents<number> {
   constructor(raw?: RawMultiGraph<number>) {
     super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId);
   }
@@ -532,14 +557,22 @@ export class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGr
   protected createFromRaw(raw: RawMultiGraph<number>): this {
     return new MultiDiGraphInt(raw) as this;
   }
+
+  stronglyConnectedComponents(): number[][] {
+    return stronglyConnectedComponents(this.raw);
+  }
 }
 
-export class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string> {
+export class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string>, StronglyConnectedComponents<string> {
   constructor(raw?: RawMultiGraph<string>) {
     super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId);
   }
 
   protected createFromRaw(raw: RawMultiGraph<string>): this {
     return new MultiDiGraphStr(raw) as this;
+  }
+
+  stronglyConnectedComponents(): string[][] {
+    return stronglyConnectedComponents(this.raw);
   }
 }

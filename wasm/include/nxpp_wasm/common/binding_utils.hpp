@@ -75,6 +75,15 @@ emscripten::val to_js_edge_list(const std::vector<std::pair<NodeT, NodeT>>& edge
 }
 
 template <typename NodeT>
+emscripten::val to_js_node_groups(const std::vector<std::vector<NodeT>>& groups) {
+    emscripten::val array = emscripten::val::array();
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        array.set(i, to_js_array(groups[i]));
+    }
+    return array;
+}
+
+template <typename NodeT>
 std::vector<std::pair<NodeT, NodeT>> parent_map_to_edge_list(const std::map<NodeT, NodeT>& parent_map) {
     std::vector<std::pair<NodeT, NodeT>> edges;
     edges.reserve(parent_map.size());
@@ -506,6 +515,14 @@ public:
         return to_js_edge_list(parent_map_to_edge_list(graph_.prim_minimum_spanning_tree(as_node_id(root))));
     }
 
+    emscripten::val connected_components() const {
+        return to_js_node_groups(graph_.connected_component_groups());
+    }
+
+    emscripten::val strongly_connected_components() const {
+        return to_js_node_groups(graph_.strongly_connected_component_groups());
+    }
+
 protected:
     static NodeT as_node_id(const emscripten::val& value) {
         return NodeJsPolicy<NodeT>::to_node_id(value);
@@ -819,6 +836,14 @@ public:
 
     emscripten::val prim_minimum_spanning_tree(const emscripten::val& root) const {
         return to_js_edge_list(parent_map_to_edge_list(graph_.prim_minimum_spanning_tree(as_node_id(root))));
+    }
+
+    emscripten::val connected_components() const {
+        return to_js_node_groups(graph_.connected_component_groups());
+    }
+
+    emscripten::val strongly_connected_components() const {
+        return to_js_node_groups(graph_.strongly_connected_component_groups());
     }
 
 protected:
