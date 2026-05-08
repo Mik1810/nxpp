@@ -1,8 +1,12 @@
+#include <array>
+#include <exception>
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #ifndef NXPP_HEADER_UNDER_TEST
@@ -175,6 +179,98 @@ void test_move_after_staged_flow_leaves_source_empty_and_uncached() {
     expect(moved.cycle_canceling() == 22, "moved graph should compute min-cost flow after restaging");
 }
 
+void test_staged_min_cost_flow_can_be_restaged_after_repeated_mutations() {
+    auto graph = make_min_cost_flow_graph();
+
+    for (int i = 0; i < 8; ++i) {
+        expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+               "push_relabel_maximum_flow should keep restaging after cache invalidation");
+        graph.add_node(100 + i);
+
+        expect_runtime_error_message(
+            [&] { (void)graph.cycle_canceling(); },
+            "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
+            "cycle_canceling should reject each repeatedly invalidated staged state");
+    }
+
+    expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+           "push_relabel_maximum_flow should restage after repeated invalidations");
+    expect(graph.cycle_canceling() == 22, "cycle_canceling should work after repeated restaging");
+}
+
+void test_staged_min_cost_flow_cache_clears_destroyed_graph_pointer() {
+    using Graph = nxpp::WeightedDiGraphInt;
+
+    alignas(Graph) unsigned char storage[sizeof(Graph)];
+    auto* first = std::construct_at(reinterpret_cast<Graph*>(storage), make_min_cost_flow_graph());
+
+    (void)first->push_relabel_maximum_flow(0, 5);
+    first->add_node(100);
+    expect_runtime_error_message(
+        [&] { (void)first->cycle_canceling(); },
+        "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
+        "cycle_canceling should mark the first graph's staged state invalid");
+    std::destroy_at(first);
+
+    auto* second = std::construct_at(reinterpret_cast<Graph*>(storage), make_min_cost_flow_graph());
+    expect_runtime_error_message(
+        [&] { (void)second->cycle_canceling(); },
+        "Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.",
+        "a new graph at a reused address should not inherit invalidated cache state");
+    expect(second->push_relabel_maximum_flow(0, 5) == 3,
+           "graph at reused address should be able to stage fresh flow state");
+    expect(second->cycle_canceling() == 22,
+           "graph at reused address should compute min-cost flow from fresh state");
+    std::destroy_at(second);
+}
+
+void test_concurrent_staged_min_cost_flow_sequences_on_separate_graphs() {
+    std::array<std::exception_ptr, 4> failures{};
+    std::array<std::thread, 4> workers{};
+
+    for (std::size_t i = 0; i < workers.size(); ++i) {
+        workers[i] = std::thread([i, &failures] {
+            try {
+                auto graph = make_min_cost_flow_graph();
+                for (int run = 0; run < 12; ++run) {
+                    expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+                           "concurrent staged push-relabel should match the reference flow");
+                    expect(graph.cycle_canceling() == 22,
+                           "concurrent cycle_canceling should match the reference cost");
+                    graph.add_node(static_cast<int>(1000 + (i * 100) + run));
+                }
+            } catch (...) {
+                failures[i] = std::current_exception();
+            }
+        });
+    }
+
+    for (auto& worker : workers) {
+        worker.join();
+    }
+
+    for (const auto& failure : failures) {
+        if (failure) {
+            std::rethrow_exception(failure);
+        }
+    }
+}
+
+void test_staged_min_cost_flow_recovers_after_cycle_canceling_exception() {
+    auto graph = make_min_cost_flow_graph();
+
+    expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+           "push_relabel_maximum_flow should stage state before exception test");
+    expect_throws(
+        [&] { (void)graph.cycle_canceling("missing_weight"); },
+        "cycle_canceling should surface missing weight attributes");
+
+    expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+           "push_relabel_maximum_flow should restage after cycle_canceling throws");
+    expect(graph.cycle_canceling() == 22,
+           "cycle_canceling should work after restaging following an exception");
+}
+
 void test_successive_shortest_path_matches_reference_flow_and_cost() {
     auto graph = make_min_cost_flow_graph();
 
@@ -295,6 +391,10 @@ int main() {
         {"staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances},
         {"copy after staged flow has no cached flow state", test_copy_after_staged_flow_has_no_cached_flow_state},
         {"move after staged flow leaves source empty and uncached", test_move_after_staged_flow_leaves_source_empty_and_uncached},
+        {"staged min-cost-flow can be restaged after repeated mutations", test_staged_min_cost_flow_can_be_restaged_after_repeated_mutations},
+        {"staged min-cost-flow cache clears destroyed graph pointer", test_staged_min_cost_flow_cache_clears_destroyed_graph_pointer},
+        {"concurrent staged min-cost-flow sequences on separate graphs", test_concurrent_staged_min_cost_flow_sequences_on_separate_graphs},
+        {"staged min-cost-flow recovers after cycle_canceling exception", test_staged_min_cost_flow_recovers_after_cycle_canceling_exception},
         {"maximum_flow matches snippet case", test_maximum_flow_matches_snippet_case},
         {"minimum_cut matches flow value and partition", test_minimum_cut_matches_flow_value_and_partition},
         {"push_relabel and cycle_canceling match reference cost", test_push_relabel_and_cycle_canceling_match_reference_cost},
