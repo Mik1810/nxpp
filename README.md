@@ -87,6 +87,7 @@ C++ public API and first-class consumption paths.
 ## Documentation Map
 
 - Docs index: [docs/README.md](docs/README.md)
+- Public roadmap: [ROADMAP.md](ROADMAP.md)
 - Versioning policy: [VERSIONING.md](VERSIONING.md)
 - Public support and API stability: [docs/STABILITY.md](docs/STABILITY.md)
 - Curated API guide and caveats: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)

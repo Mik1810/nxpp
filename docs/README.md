@@ -39,6 +39,9 @@ What currently lives here:
 - [`API_REFERENCE.md`](API_REFERENCE.md): curated API companion guide for aliases,
   result-wrapper shapes, proxy syntax, high-value reference tables, and the
   write-creates / read-does-not-create implicit-creation policy
+- [`../ROADMAP.md`](../ROADMAP.md): public roadmap for core C++, WASM,
+  packaging, CI, performance, browser support, experimental areas, and
+  stabilization targets
 - [`../VERSIONING.md`](../VERSIONING.md): repository SemVer policy for stable
   release tags and public API compatibility
 - [`API_ARCHITECTURE.md`](API_ARCHITECTURE.md): the public API placement policy for graph methods and namespace-scope helpers

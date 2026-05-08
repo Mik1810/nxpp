@@ -793,7 +793,7 @@
 
 ### 2026-05-07 - Issue #88
 
-- Branch/commit:
+- Branch/commit: `main`
 - Files: `include/nxpp/storage.hpp`, `include/nxpp.hpp`, `docs/GRAPH_CONFIGURATION.md`, `tests/test_core.cpp`, release metadata.
 - Decision: Added `nxpp::storage::{Vec,List,Set}` as public aliases for advanced `Graph<...>` selector configuration while preserving raw Boost selector compatibility.
 - Verified: focused `test_core` build/run; `bash scripts/unix/run_tests.sh` (`88/88`).
@@ -822,3 +822,11 @@
 - Decision: Added CI tracking for compile benchmark CSVs rather than treating the large-graph comparison path as a benchmark.
 - Verified: synthetic pass/fail CSV comparisons through `scripts/compare_bench.py`; release metadata check at `1.4.1`; `git diff --check`.
 - Next: Commit, push, and close issue `#97`. Local full benchmark smoke exceeded the 30s command limit before completing all snippets.
+
+### 2026-05-08 - Issue #161
+
+- Branch/commit:
+- Files: `ROADMAP.md`, `README.md`, `docs/README.md`.
+- Decision: Added a public roadmap covering C++ core, WASM, packaging, CI, performance, browser support, experimental areas, and stabilization targets.
+- Verified: `git diff --check`; manual Markdown review.
+- Next: Commit and close issue `#161`.
