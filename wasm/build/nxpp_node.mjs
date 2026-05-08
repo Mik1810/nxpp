@@ -2699,8 +2699,8 @@ var _malloc,
   __emscripten_stack_restore,
   __emscripten_stack_alloc,
   _emscripten_stack_get_current,
-  ___cxa_increment_exception_refcount,
   ___cxa_decrement_exception_refcount,
+  ___cxa_increment_exception_refcount,
   ___cxa_can_catch,
   ___cxa_get_exception_ptr,
   memory,
@@ -2720,8 +2720,8 @@ function assignWasmExports(wasmExports) {
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
   __emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'];
   _emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'];
-  ___cxa_increment_exception_refcount = wasmExports['__cxa_increment_exception_refcount'];
   ___cxa_decrement_exception_refcount = wasmExports['__cxa_decrement_exception_refcount'];
+  ___cxa_increment_exception_refcount = wasmExports['__cxa_increment_exception_refcount'];
   ___cxa_can_catch = wasmExports['__cxa_can_catch'];
   ___cxa_get_exception_ptr = wasmExports['__cxa_get_exception_ptr'];
   memory = wasmMemory = wasmExports['memory'];
@@ -2933,6 +2933,17 @@ function invoke_viii(index,a1,a2,a3) {
   }
 }
 
+function invoke_vii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_di(index,a1) {
   var sp = stackSave();
   try {
@@ -2970,17 +2981,6 @@ function invoke_viiiii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
     getWasmTableEntry(index)(a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vii(index,a1,a2) {
-  var sp = stackSave();
-  try {
-    getWasmTableEntry(index)(a1,a2);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
