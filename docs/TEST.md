@@ -43,6 +43,19 @@ The clearest mental model is:
 | Experimental wasm path | `wasm/`, `wasm/scripts/build_wasm_node_module.sh`, `wasm/scripts/run_wasm_tests.sh`, `wasm-experimental.yml` | Verify Emscripten + Node.js portability for Node-facing API compilation and formal assertions | Not full JS bindings or official full-support guarantee |
 | Experimental wasm npm-pack consumer path | `wasm/scripts/run_npm_pack_consumer_test.sh`, `wasm/test/npm_pack_consumer/`, `wasm-experimental.yml` | Validate that `npm pack` output installs and runs as a real external Node consumer | Not a replacement for wasm contract/formal suite checks |
 
+### API compatibility snapshots
+
+`tests/test_api_compat.cpp` is a compile-time snapshot of representative stable
+C++ API aliases, method signatures, algorithm result types, and result field
+shapes. The installed external-consumer fixture also asserts that
+`find_package(nxpp CONFIG REQUIRED)` exports `nxpp::nxpp`, and the wasm Node
+contract suite snapshots the default runtime exports.
+
+When an intentional API change updates one of these snapshots, review the change
+against `VERSIONING.md` in the same PR. Backwards-compatible additions should
+update the relevant snapshot and changelog entry. Breaking changes need a major
+version and migration notes.
+
 ### 1. Showcase programs
 
 Files:

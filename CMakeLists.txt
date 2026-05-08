@@ -81,6 +81,7 @@ if(NXPP_BUILD_TESTS OR NXPP_BUILD_SMOKE_TESTS)
         set(NXPP_FORMAL_TEST_SOURCES
             tests/test_core.cpp
             tests/test_attributes.cpp
+            tests/test_api_compat.cpp
             tests/test_centrality.cpp
             tests/test_edge_cases.cpp
             tests/test_flow.cpp

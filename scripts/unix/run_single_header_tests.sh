@@ -48,6 +48,7 @@ run_test_binary() {
 
 run_test_binary "tests/test_core.cpp"
 run_test_binary "tests/test_attributes.cpp"
+run_test_binary "tests/test_api_compat.cpp"
 run_test_binary "tests/test_edge_cases.cpp"
 run_test_binary "tests/test_flow.cpp"
 run_test_binary "tests/test_remove_node.cpp"

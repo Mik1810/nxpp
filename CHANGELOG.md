@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.6] - 2026-05-08
+
+- Closed `#160` by adding API compatibility snapshots for representative C++ aliases, public method signatures, result shapes, exported CMake target coverage, and wasm runtime exports.
+- Documented how snapshot changes should be reviewed against the repository versioning policy when intentional public API changes occur.
+
 ## [1.4.5] - 2026-05-08
 
 - Closed `#150` by auditing post-`1.0.0` SemVer history and documenting the accidental breaking changes in `1.2.0` and `1.4.0`.

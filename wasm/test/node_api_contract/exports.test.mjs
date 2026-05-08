@@ -1,5 +1,20 @@
 import { assert, nxpp } from "./helpers.mjs";
 
+const expectedRuntimeExports = [
+    "DiGraphInt",
+    "DiGraphStr",
+    "GraphInt",
+    "GraphStr",
+    "MultiDiGraphInt",
+    "MultiDiGraphStr",
+    "MultiGraphInt",
+    "MultiGraphStr",
+    "createNxpp",
+    "loadNxppRuntime",
+];
+
+assert.deepEqual(Object.keys(nxpp).sort(), expectedRuntimeExports, "runtime export snapshot changed");
+
 assert.equal(typeof nxpp.DiGraphInt, "function", "DiGraphInt export is missing");
 assert.equal(typeof nxpp.DiGraphStr, "function", "DiGraphStr export is missing");
 assert.equal(typeof nxpp.GraphInt, "function", "GraphInt export is missing");
