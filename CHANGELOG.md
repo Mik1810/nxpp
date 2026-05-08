@@ -4,6 +4,11 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [1.4.2] - 2026-05-08
+
+- Closed `#87` by adding lazy `Graph::bfs_edges_view(start)` and `Graph::dfs_edges_view(start)` traversal ranges.
+- The new view APIs compose with C++20 ranges while preserving the existing eager `bfs_edges(start)` and `dfs_edges(start)` behavior.
+
 ## [1.4.1] - 2026-05-07
 
 - Closed `#97` by adding a dedicated performance workflow for compile benchmark CSV tracking.

@@ -3,6 +3,17 @@
 These notes are written for GitHub releases and can be more narrative than the
 version entries in `CHANGELOG.md`.
 
+## [1.4.2]
+
+### Highlights
+
+- Closed `#87` by adding lazy traversal edge ranges:
+  `Graph::bfs_edges_view(start)` and `Graph::dfs_edges_view(start)`.
+- The new APIs yield traversal tree edges on demand and compose with C++20
+  ranges such as `std::views::take(...)`.
+- Existing eager APIs, including `bfs_edges(start)` and `dfs_edges(start)`,
+  remain unchanged.
+
 ## [1.4.1]
 
 ### Highlights
