@@ -62,6 +62,34 @@ Runtime boundary for the current scope:
 - browser-oriented examples/demos remain investigation items until promoted
   explicitly into supported scope
 
+## Browser investigation path
+
+Browser usage is tracked as an experimental investigation path, separate from
+the Node package. The browser demo under `wasm/examples/browser-demo/` is a
+manual smoke target for checking whether a browser-oriented Emscripten build can
+load the module, create a small graph, run one algorithm, and display the
+result.
+That smoke target does not by itself establish Node-to-browser behavioral
+parity for the raw runtime or for the higher-level TypeScript facade.
+
+This path is intentionally not part of the published package contract:
+
+- it should use a browser-specific build artifact, not `build/nxpp_node.mjs`
+- the current package entrypoint and TypeScript facade remain Node-oriented
+- browser loader behavior, bundler expectations, MIME serving, and asset paths
+  are investigation details until CI starts covering them
+- any browser demo should stay small and should not require redesigning the C++
+  API
+
+The expected investigation build direction is an Emscripten module with
+browser-compatible settings such as `-sENVIRONMENT=web`, `-sMODULARIZE=1`, and
+`-sEXPORT_ES6=1`. Keep the output separate from the Node build, for example as
+`wasm/examples/browser-demo/nxpp_browser.mjs` plus its matching `.wasm` file.
+The repository now includes a dedicated experimental build helper:
+`bash wasm/scripts/build_wasm_browser_demo.sh`.
+Serve the demo directory over HTTP; opening the HTML file directly is not a
+valid browser module-loading test.
+
 ## Prerequisites
 
 - Emscripten toolchain (`em++` on `PATH`)
