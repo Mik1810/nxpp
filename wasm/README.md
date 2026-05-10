@@ -95,6 +95,37 @@ This command builds the wasm module (unless skipped), packs the current
 package, installs that tarball in an isolated fixture consumer, and runs a
 smoke test through the published package entrypoint.
 
+## Local overhead benchmarks
+
+The repository includes a small local benchmark suite for comparing native C++,
+raw WASM runtime calls, and the TypeScript facade on the same machine:
+
+```bash
+cd wasm
+npm run bench:overhead
+```
+
+The runner rebuilds the Node-compatible WASM module, builds a native C++
+benchmark binary, and prints CSV rows for:
+
+- graph construction
+- BFS from one source
+- Dijkstra from one source
+- Floyd-Warshall on a small graph
+- attribute round-trips
+- multigraph edge-ID operations
+
+You can tune the local smoke size with environment variables:
+
+```bash
+NXPP_WASM_BENCH_ITERATIONS=10 NXPP_WASM_BENCH_NODES=500 npm run bench:overhead
+```
+
+These numbers are local diagnostics, not release claims. Small repeated
+operations can be dominated by JS/WASM boundary cost, while larger algorithmic
+calls may amortize that overhead. Publish benchmark results only with the
+exact command, machine context, package version, and reproducible inputs.
+
 ## Publish order (npm first)
 
 Use the package scripts to publish in a deterministic order:

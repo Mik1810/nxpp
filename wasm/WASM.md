@@ -104,6 +104,18 @@ Run Node API contract tests:
 bash wasm/scripts/run_wasm_node_contract_tests.sh
 ```
 
+Run local native-vs-WASM overhead benchmarks:
+
+```bash
+bash wasm/scripts/run_overhead_benchmarks.sh
+```
+
+This benchmark path is intentionally local and experimental. It compares native
+C++, raw WASM runtime calls, and the TypeScript facade for representative graph
+construction, traversal, shortest-path, all-pairs, attribute, and multigraph
+edge-ID workloads. Treat its output as reproducible diagnostics only; do not use
+ad hoc local numbers as marketing or release claims.
+
 ## CI behavior
 
 The experimental wasm workflow runs:

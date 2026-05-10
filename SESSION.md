@@ -862,3 +862,11 @@
 - Decision: Added explicit WASM contract coverage for reachable negative-cycle rejection in Bellman-Ford wrappers.
 - Verified: `bash wasm/scripts/run_wasm_node_contract_tests.sh`; `git diff --check`.
 - Next: Commit, push, and close issue `#157`.
+
+### 2026-05-10 - Issue #80
+
+- Branch/commit:
+- Files: `wasm/benchmarks/native_overhead_bench.cpp`, `wasm/benchmarks/node_overhead_bench.mjs`, `wasm/scripts/run_overhead_benchmarks.sh`, `wasm/package.json`, `wasm/README.md`, `wasm/WASM.md`.
+- Decision: Added a local experimental overhead benchmark path comparing native C++, raw WASM runtime calls, and TypeScript facade calls without storing local results as release claims.
+- Verified: `npm --prefix wasm run build:types`; small `npm --prefix wasm run bench:overhead` smoke; `git diff --check`.
+- Next: Commit, push, and close issue `#80`.
