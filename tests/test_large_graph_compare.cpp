@@ -1193,11 +1193,11 @@ void test_large_dfs_tree_matches_raw_boost() {
     std::vector<std::pair<int, int>> raw_tree_edges;
     std::vector<boost::default_color_type> color(static_cast<std::size_t>(input.num_nodes));
     RawDfsTreeEdgeCollector visitor(raw_graph, raw_tree_edges);
-    boost::depth_first_search(
+    boost::depth_first_visit(
         raw_graph,
-        boost::root_vertex(boost::vertex(start_node, raw_graph))
-            .visitor(visitor)
-            .color_map(boost::make_iterator_property_map(color.begin(), boost::get(boost::vertex_index, raw_graph)))
+        boost::vertex(start_node, raw_graph),
+        visitor,
+        boost::make_iterator_property_map(color.begin(), boost::get(boost::vertex_index, raw_graph))
     );
 
     expect(nxpp_tree_edges == raw_tree_edges, "large-graph DFS tree edges should match raw Boost");

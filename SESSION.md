@@ -846,3 +846,11 @@
 - Decision: Documented the current WASM facade policy and architecture; kept nullable stored attributes out of scope; excluded the native-only concurrent staged min-cost-flow thread test from Emscripten builds.
 - Verified: `npm --prefix wasm run build:types`; WASM `test_flow.cpp` build/run; native `test_flow.cpp` build/run with `-pthread`.
 - Next: Commit `1.4.7` release metadata and continue with the remaining WASM issues.
+
+### 2026-05-10 - Issue #156
+
+- Branch/commit:
+- Files: `include/nxpp/traversal.hpp`, `tests/test_edge_cases.cpp`, `tests/test_large_graph_compare.cpp`, `wasm/test/node_api_contract/traversal.test.mjs`, `docs/COMPLEXITY.md`, `wasm/build/nxpp_node.wasm`.
+- Decision: Made eager DFS traversal root-limited with `boost::depth_first_visit`, matching the existing lazy DFS view and the WASM facade's start-node semantics.
+- Verified: `bash scripts/unix/run_tests.sh`; `bash wasm/scripts/run_wasm_node_contract_tests.sh`; `git diff --check`.
+- Next: Commit, push, and close issue `#156`.

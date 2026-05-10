@@ -67,6 +67,24 @@ void test_singleton_graph_has_no_neighbors_or_traversal_edges() {
     expect(graph.dfs_edges("solo").empty(), "singleton graph should have no DFS tree edges");
 }
 
+void test_dfs_edges_stay_with_start_component() {
+    nxpp::DiGraph graph;
+    graph.add_edge("A", "B");
+    graph.add_edge("B", "C");
+    graph.add_edge("X", "Y");
+
+    const auto dfs_edges = graph.dfs_edges("A");
+    std::vector<std::pair<std::string, std::string>> dfs_view_edges;
+    for (const auto& edge : graph.dfs_edges_view("A")) {
+        dfs_view_edges.push_back(edge);
+    }
+
+    expect(dfs_edges == std::vector<std::pair<std::string, std::string>>{{"A", "B"}, {"B", "C"}},
+           "dfs_edges should stay within the start node's reachable component");
+    expect(dfs_view_edges == dfs_edges,
+           "dfs_edges_view should match eager root-limited DFS edges");
+}
+
 void test_missing_node_operations_throw() {
     nxpp::DiGraph graph;
     graph.add_node("Rome");
@@ -503,6 +521,7 @@ int main() {
     return run_tests({
         {"empty graph reports empty collections", test_empty_graph_reports_empty_collections},
         {"singleton graph has no neighbors or traversal edges", test_singleton_graph_has_no_neighbors_or_traversal_edges},
+        {"dfs edges stay with start component", test_dfs_edges_stay_with_start_component},
         {"missing node operations throw", test_missing_node_operations_throw},
         {"traversal edge views match eager edges", test_traversal_edge_views_match_eager_edges},
         {"disconnected shortest paths preserve unreachable state", test_disconnected_shortest_paths_preserve_unreachable_state},

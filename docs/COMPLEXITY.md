@@ -214,12 +214,12 @@ The final column classifies the comparison like this:
 | `bfs_edges(start)` | `boost::breadth_first_search` with tree-edge collection | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` materializes the final vector of discovered tree edges. |
 | `bfs_tree(start)` | `boost::breadth_first_search` + tree construction | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` builds a new wrapper graph for the BFS tree. |
 | `bfs_successors(start)` | `boost::breadth_first_search` with tree-edge discovery | `O(n + m)` | `O(n + m)` | `yes` | The result is indexed: linear construction, `O(log n)` key lookup. |
-| `dfs_edges(start)` | `boost::depth_first_search` with tree-edge collection | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` materializes the final vector of discovered tree edges. |
-| `dfs_tree(start)` | `boost::depth_first_search` + tree construction | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` builds a new wrapper graph for the DFS tree. |
-| `dfs_predecessors(start)` | `boost::depth_first_search` with predecessor discovery | `O(n + m)` | `O(n + m)` | `yes` | The result is indexed: linear construction, `O(log n)` key lookup. |
-| `dfs_successors(start)` | `boost::depth_first_search` with tree-edge discovery | `O(n + m)` | `O(n + m)` | `yes` | The result is indexed: linear construction, `O(log n)` key lookup. |
+| `dfs_edges(start)` | `boost::depth_first_visit` with tree-edge collection | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` materializes the final vector of discovered tree edges reachable from `start`. |
+| `dfs_tree(start)` | `boost::depth_first_visit` + tree construction | `O(n + m)` | `O(n + m)` | `yes` | `nxpp` builds a new wrapper graph for the DFS tree reachable from `start`. |
+| `dfs_predecessors(start)` | `boost::depth_first_visit` with predecessor discovery | `O(n + m)` | `O(n + m)` | `yes` | The result is indexed: linear construction, `O(log n)` key lookup. |
+| `dfs_successors(start)` | `boost::depth_first_visit` with tree-edge discovery | `O(n + m)` | `O(n + m)` | `yes` | The result is indexed: linear construction, `O(log n)` key lookup. |
 | `breadth_first_search(start, visitor)` | `boost::breadth_first_search` | `O(n + m)` | `O(n + m)` | `yes` | The wrapper only adds the initial `NodeID -> descriptor` translation. |
-| `depth_first_search(start, visitor)` | `boost::depth_first_search` | `O(n + m)` | `O(n + m)` | `yes` | The wrapper only adds the initial `NodeID -> descriptor` translation. |
+| `depth_first_search(start, visitor)` | `boost::depth_first_visit` | `O(n + m)` | `O(n + m)` | `yes` | The wrapper only adds the initial `NodeID -> descriptor` translation. |
 
 ### Shortest paths
 

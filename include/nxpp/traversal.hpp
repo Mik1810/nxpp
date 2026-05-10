@@ -640,11 +640,11 @@ auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const auto start_bgl = get_id_to_bgl_map().at(start);
     GenericDfsEdgeVisitor<Graph, EdgeType> vis(edges, *this);
     std::vector<boost::default_color_type> color(boost::num_vertices(g));
-    boost::depth_first_search(
+    boost::depth_first_visit(
         get_impl(),
-        boost::root_vertex(start_bgl)
-            .visitor(vis)
-            .color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
+        start_bgl,
+        vis,
+        boost::make_iterator_property_map(color.begin(), vertex_index_map)
     );
     return edges;
 }
@@ -699,11 +699,11 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     const auto start_bgl = get_id_to_bgl_map().at(start);
     std::vector<boost::default_color_type> color(boost::num_vertices(g));
     GenericDfsObjectVisitor<NodeID, EdgeType, Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>, Visitor> vis(*this, visitor);
-    boost::depth_first_search(
+    boost::depth_first_visit(
         get_impl(),
-        boost::root_vertex(start_bgl)
-            .visitor(vis)
-            .color_map(boost::make_iterator_property_map(color.begin(), vertex_index_map))
+        start_bgl,
+        vis,
+        boost::make_iterator_property_map(color.begin(), vertex_index_map)
     );
 }
 

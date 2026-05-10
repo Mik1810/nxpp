@@ -125,3 +125,27 @@ assert.deepEqual(
 
 assertThrows(() => singleton.bfsEdges("missing"), "bfsEdges() must throw on missing start nodes");
 assertThrows(() => singleton.dfsEdges("missing"), "dfsEdges() must throw on missing start nodes");
+
+const larger = new nxpp.DiGraphInt();
+for (let node = 0; node < 128; node += 1) {
+    larger.addEdge(node, node + 1, 1);
+}
+larger.addEdge(1000, 1001, 1);
+
+const largerBfsEdges = larger.bfsEdges(0);
+assert.equal(largerBfsEdges.length, 128, "DiGraphInt bfsEdges() must scale past tiny fixture graphs");
+assert.deepEqual(largerBfsEdges[0], { source: 0, target: 1 }, "DiGraphInt large BFS must start at the requested root");
+assert.deepEqual(
+    largerBfsEdges.at(-1),
+    { source: 127, target: 128 },
+    "DiGraphInt large BFS must not cross into disconnected components",
+);
+
+const largerDfsTree = larger.dfsTree(0);
+assert.equal(largerDfsTree.nodes.length, 129, "DiGraphInt dfsTree() must materialize larger reachable node sets");
+assert.equal(largerDfsTree.edges.length, 128, "DiGraphInt dfsTree() must materialize larger reachable edge sets");
+assert.equal(
+    largerDfsTree.nodes.includes(1000),
+    false,
+    "DiGraphInt dfsTree() must exclude disconnected components",
+);
