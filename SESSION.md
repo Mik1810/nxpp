@@ -854,3 +854,11 @@
 - Decision: Made eager DFS traversal root-limited with `boost::depth_first_visit`, matching the existing lazy DFS view and the WASM facade's start-node semantics.
 - Verified: `bash scripts/unix/run_tests.sh`; `bash wasm/scripts/run_wasm_node_contract_tests.sh`; `git diff --check`.
 - Next: Commit, push, and close issue `#156`.
+
+### 2026-05-10 - Issue #157
+
+- Branch/commit:
+- Files: `wasm/test/node_api_contract/shortest_paths.test.mjs`.
+- Decision: Added explicit WASM contract coverage for reachable negative-cycle rejection in Bellman-Ford wrappers.
+- Verified: `bash wasm/scripts/run_wasm_node_contract_tests.sh`; `git diff --check`.
+- Next: Commit, push, and close issue `#157`.

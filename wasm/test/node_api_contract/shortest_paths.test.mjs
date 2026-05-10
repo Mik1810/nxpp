@@ -121,6 +121,19 @@ assert.deepEqual(
     "bellmanFordShortestPaths().pathTo() must reconstruct the Bellman-Ford path",
 );
 
+const negativeCycle = new nxpp.DiGraphInt();
+negativeCycle.addEdge(1, 2, 1);
+negativeCycle.addEdge(2, 3, -3);
+negativeCycle.addEdge(3, 1, 1);
+assertThrows(
+    () => negativeCycle.bellmanFordShortestPaths(1),
+    "bellmanFordShortestPaths() must reject reachable negative cycles",
+);
+assertThrows(
+    () => negativeCycle.bellmanFordPath(1, 3),
+    "bellmanFordPath() must reject reachable negative cycles",
+);
+
 const dag = new nxpp.MultiDiGraphInt();
 assertMethods(dag, expectedMultiMethods, "MultiDiGraphInt");
 dag.addEdge(1, 2, 1);
