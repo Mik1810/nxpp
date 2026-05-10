@@ -1,10 +1,21 @@
 # Nuova sessione token-efficient per lavorare sulle issue
 
-Lavora in modo token-efficient e segui `AGENTS.md`.
-
+Segui `AGENTS.md`.
 Non usare `/resume`.
-Non ricostruire vecchie sessioni.
-Usa solo lo stato attuale della repository e il contesto minimo necessario.
+Non leggere `SESSION.md` salvo mia richiesta.
+Non guardare altre issue.
+
+Task:
+Issue #<numero>: <titolo>
+
+Prima di editare:
+1. leggi solo `git status --short`, `git diff --stat`, e `gh issue view #<numero> --json number,title,body,labels`;
+2. riassumi requisiti;
+3. indica massimo 3-5 file da ispezionare;
+4. proponi piano minimo e verifica;
+5. aspetta il mio `OK`.
+
+Non eseguire build/test lunghi. Se serve, dammi il comando e lo lancio io.
 
 ## Lettura iniziale consentita
 
@@ -21,7 +32,6 @@ Comandi consigliati:
 ```bash
 timeout 30s git status --short
 timeout 30s git diff --stat
-timeout 30s tail -30 SESSION.md
 timeout 30s gh issue list --limit 20 --json number,title,state,labels
 ```
 
