@@ -1,15 +1,15 @@
 import type { AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, ConnectedComponents, DiGraph, Graph, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
 import type { RawSimpleGraph } from "../internal/wasm_types.js";
-declare abstract class BaseSimpleGraph<T extends NodeId> {
+export declare abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGraph<T>> {
     private rawObject;
-    private readonly assertNode;
+    protected readonly assertNode: (value: unknown, label: string) => asserts value is T;
     private mutationVersion;
     private stagedFlowMutationVersion;
-    constructor(factory: (() => RawSimpleGraph<T>) | RawSimpleGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
-    protected get raw(): RawSimpleGraph<T>;
-    protected abstract createFromRaw(raw: RawSimpleGraph<T>): this;
-    private operationFailed;
-    private markGraphMutation;
+    constructor(factory: (() => RawGraph) | RawGraph, assertNode: (value: unknown, label: string) => asserts value is T);
+    protected get raw(): RawGraph;
+    protected abstract createFromRaw(raw: RawGraph): this;
+    protected operationFailed(message: string): never;
+    protected markGraphMutation(): void;
     private markStagedFlow;
     private requireStagedFlow;
     private requireNodeExists;
@@ -18,6 +18,8 @@ declare abstract class BaseSimpleGraph<T extends NodeId> {
     private requireAttributeKey;
     private requirePagerankMaxIterations;
     private runPathLookup;
+    protected readConnectedComponents(): T[][];
+    protected readStronglyConnectedComponents(): T[][];
     addNode(id: T): void;
     addEdge(source: T, target: T, weight: number): void;
     hasNode(id: T): boolean;
@@ -77,24 +79,23 @@ declare abstract class BaseSimpleGraph<T extends NodeId> {
     clear(): void;
     dispose(): void;
 }
-export declare class GraphInt extends BaseSimpleGraph<number> implements Graph<number>, ConnectedComponents<number> {
+export declare class GraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements Graph<number>, ConnectedComponents<number> {
     constructor(raw?: RawSimpleGraph<number>);
     protected createFromRaw(raw: RawSimpleGraph<number>): this;
     connectedComponents(): number[][];
 }
-export declare class GraphStr extends BaseSimpleGraph<string> implements Graph<string>, ConnectedComponents<string> {
+export declare class GraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements Graph<string>, ConnectedComponents<string> {
     constructor(raw?: RawSimpleGraph<string>);
     protected createFromRaw(raw: RawSimpleGraph<string>): this;
     connectedComponents(): string[][];
 }
-export declare class DiGraphInt extends BaseSimpleGraph<number> implements DiGraph<number>, StronglyConnectedComponents<number> {
+export declare class DiGraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements DiGraph<number>, StronglyConnectedComponents<number> {
     constructor(raw?: RawSimpleGraph<number>);
     protected createFromRaw(raw: RawSimpleGraph<number>): this;
     stronglyConnectedComponents(): number[][];
 }
-export declare class DiGraphStr extends BaseSimpleGraph<string> implements DiGraph<string>, StronglyConnectedComponents<string> {
+export declare class DiGraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements DiGraph<string>, StronglyConnectedComponents<string> {
     constructor(raw?: RawSimpleGraph<string>);
     protected createFromRaw(raw: RawSimpleGraph<string>): this;
     stronglyConnectedComponents(): string[][];
 }
-export {};

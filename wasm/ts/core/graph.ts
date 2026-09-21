@@ -44,24 +44,14 @@ import {
 
 const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
 
-function connectedComponents<T extends NodeId>(raw: RawSimpleGraph<T>): T[][] {
-  return toComponentGroups((raw as RawSimpleGraph<T> & RawConnectedComponentsGraph<T>).connectedComponents());
-}
-
-function stronglyConnectedComponents<T extends NodeId>(raw: RawSimpleGraph<T>): T[][] {
-  return toComponentGroups(
-    (raw as RawSimpleGraph<T> & RawStronglyConnectedComponentsGraph<T>).stronglyConnectedComponents(),
-  );
-}
-
-abstract class BaseSimpleGraph<T extends NodeId> {
-  private rawObject: RawSimpleGraph<T> | null;
-  private readonly assertNode: (value: unknown, label: string) => asserts value is T;
+export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGraph<T>> {
+  private rawObject: RawGraph | null;
+  protected readonly assertNode: (value: unknown, label: string) => asserts value is T;
   private mutationVersion = 0;
   private stagedFlowMutationVersion: number | null = null;
 
   constructor(
-    factory: (() => RawSimpleGraph<T>) | RawSimpleGraph<T>,
+    factory: (() => RawGraph) | RawGraph,
     assertNode: (value: unknown, label: string) => asserts value is T,
   ) {
     this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
@@ -74,20 +64,20 @@ abstract class BaseSimpleGraph<T extends NodeId> {
     }
   }
 
-  protected get raw(): RawSimpleGraph<T> {
+  protected get raw(): RawGraph {
     if (this.rawObject === null) {
       throw new Error(disposedGraphMessage);
     }
     return this.rawObject;
   }
 
-  protected abstract createFromRaw(raw: RawSimpleGraph<T>): this;
+  protected abstract createFromRaw(raw: RawGraph): this;
 
-  private operationFailed(message: string): never {
+  protected operationFailed(message: string): never {
     throw new Error(`WASM graph operation failed: ${message}`);
   }
 
-  private markGraphMutation(): void {
+  protected markGraphMutation(): void {
     this.mutationVersion += 1;
   }
 
@@ -148,6 +138,18 @@ abstract class BaseSimpleGraph<T extends NodeId> {
       }
       throw error;
     }
+  }
+
+  protected readConnectedComponents(): T[][] {
+    return toComponentGroups(
+      (this.raw as RawGraph & RawConnectedComponentsGraph<T>).connectedComponents(),
+    );
+  }
+
+  protected readStronglyConnectedComponents(): T[][] {
+    return toComponentGroups(
+      (this.raw as RawGraph & RawStronglyConnectedComponentsGraph<T>).stronglyConnectedComponents(),
+    );
   }
 
   addNode(id: T): void {
@@ -224,7 +226,7 @@ abstract class BaseSimpleGraph<T extends NodeId> {
       this.assertNode(node, `nodes[${index}]`);
       this.requireNodeExists(node);
     }
-    return this.createFromRaw(this.raw.subgraph(nodes));
+    return this.createFromRaw(this.raw.subgraph(nodes) as RawGraph);
   }
 
   hasNodeAttr(id: T, key: string): boolean {
@@ -565,7 +567,7 @@ abstract class BaseSimpleGraph<T extends NodeId> {
   }
 }
 
-export class GraphInt extends BaseSimpleGraph<number> implements Graph<number>, ConnectedComponents<number> {
+export class GraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements Graph<number>, ConnectedComponents<number> {
   constructor(raw?: RawSimpleGraph<number>) {
     super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
   }
@@ -575,11 +577,11 @@ export class GraphInt extends BaseSimpleGraph<number> implements Graph<number>, 
   }
 
   connectedComponents(): number[][] {
-    return connectedComponents(this.raw);
+    return this.readConnectedComponents();
   }
 }
 
-export class GraphStr extends BaseSimpleGraph<string> implements Graph<string>, ConnectedComponents<string> {
+export class GraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements Graph<string>, ConnectedComponents<string> {
   constructor(raw?: RawSimpleGraph<string>) {
     super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
   }
@@ -589,11 +591,11 @@ export class GraphStr extends BaseSimpleGraph<string> implements Graph<string>, 
   }
 
   connectedComponents(): string[][] {
-    return connectedComponents(this.raw);
+    return this.readConnectedComponents();
   }
 }
 
-export class DiGraphInt extends BaseSimpleGraph<number> implements DiGraph<number>, StronglyConnectedComponents<number> {
+export class DiGraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements DiGraph<number>, StronglyConnectedComponents<number> {
   constructor(raw?: RawSimpleGraph<number>) {
     super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
   }
@@ -603,11 +605,11 @@ export class DiGraphInt extends BaseSimpleGraph<number> implements DiGraph<numbe
   }
 
   stronglyConnectedComponents(): number[][] {
-    return stronglyConnectedComponents(this.raw);
+    return this.readStronglyConnectedComponents();
   }
 }
 
-export class DiGraphStr extends BaseSimpleGraph<string> implements DiGraph<string>, StronglyConnectedComponents<string> {
+export class DiGraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements DiGraph<string>, StronglyConnectedComponents<string> {
   constructor(raw?: RawSimpleGraph<string>) {
     super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
   }
@@ -617,6 +619,6 @@ export class DiGraphStr extends BaseSimpleGraph<string> implements DiGraph<strin
   }
 
   stronglyConnectedComponents(): string[][] {
-    return stronglyConnectedComponents(this.raw);
+    return this.readStronglyConnectedComponents();
   }
 }

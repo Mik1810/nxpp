@@ -6,13 +6,7 @@ import { toCentralityScores } from "../algorithms/centrality.js";
 import { toComponentGroups } from "../algorithms/components.js";
 import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
 const disposeSymbol = Symbol.dispose;
-function connectedComponents(raw) {
-    return toComponentGroups(raw.connectedComponents());
-}
-function stronglyConnectedComponents(raw) {
-    return toComponentGroups(raw.stronglyConnectedComponents());
-}
-class BaseSimpleGraph {
+export class BaseGraph {
     rawObject;
     assertNode;
     mutationVersion = 0;
@@ -88,6 +82,12 @@ class BaseSimpleGraph {
             }
             throw error;
         }
+    }
+    readConnectedComponents() {
+        return toComponentGroups(this.raw.connectedComponents());
+    }
+    readStronglyConnectedComponents() {
+        return toComponentGroups(this.raw.stronglyConnectedComponents());
     }
     addNode(id) {
         this.assertNode(id, "id");
@@ -441,7 +441,7 @@ class BaseSimpleGraph {
         this.rawObject = null;
     }
 }
-export class GraphInt extends BaseSimpleGraph {
+export class GraphInt extends BaseGraph {
     constructor(raw) {
         super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
     }
@@ -449,10 +449,10 @@ export class GraphInt extends BaseSimpleGraph {
         return new GraphInt(raw);
     }
     connectedComponents() {
-        return connectedComponents(this.raw);
+        return this.readConnectedComponents();
     }
 }
-export class GraphStr extends BaseSimpleGraph {
+export class GraphStr extends BaseGraph {
     constructor(raw) {
         super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
     }
@@ -460,10 +460,10 @@ export class GraphStr extends BaseSimpleGraph {
         return new GraphStr(raw);
     }
     connectedComponents() {
-        return connectedComponents(this.raw);
+        return this.readConnectedComponents();
     }
 }
-export class DiGraphInt extends BaseSimpleGraph {
+export class DiGraphInt extends BaseGraph {
     constructor(raw) {
         super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
     }
@@ -471,10 +471,10 @@ export class DiGraphInt extends BaseSimpleGraph {
         return new DiGraphInt(raw);
     }
     stronglyConnectedComponents() {
-        return stronglyConnectedComponents(this.raw);
+        return this.readStronglyConnectedComponents();
     }
 }
-export class DiGraphStr extends BaseSimpleGraph {
+export class DiGraphStr extends BaseGraph {
     constructor(raw) {
         super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
     }
@@ -482,6 +482,6 @@ export class DiGraphStr extends BaseSimpleGraph {
         return new DiGraphStr(raw);
     }
     stronglyConnectedComponents() {
-        return stronglyConnectedComponents(this.raw);
+        return this.readStronglyConnectedComponents();
     }
 }

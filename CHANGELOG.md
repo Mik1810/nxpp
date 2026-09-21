@@ -35,6 +35,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
   a single internal registry.
 - Consolidated the duplicated simple-graph and multigraph Embind adapters into
   one capability-constrained internal binding template.
+- Consolidated the duplicated simple-graph and multigraph TypeScript facade
+  logic into one typed base while retaining multigraph edge-ID operations.
 
 ## [1.4.7] - 2026-05-08
 
