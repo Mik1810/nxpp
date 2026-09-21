@@ -27,13 +27,11 @@
 #include <type_traits>
 #include <string>
 #include <algorithm>
-#include <cmath>
 #include <concepts>
 #include <utility>
 #include <any>
 #include <map>
 #include <optional>
-#include <limits>
 #include <set>
 #include <initializer_list>
 
@@ -364,74 +362,7 @@ private:
         }
     }
 
-    static std::runtime_error invalid_flow_capacity_error() {
-        return std::runtime_error("Flow capacity setup failed: capacity must be a non-negative integral value representable as long.");
-    }
-
-    template <typename T>
-    static long checked_flow_capacity_value(T value) {
-        if constexpr (std::is_same_v<T, bool>) {
-            throw invalid_flow_capacity_error();
-        } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
-            if (value < 0 || static_cast<long double>(value) > static_cast<long double>(std::numeric_limits<long>::max())) {
-                throw invalid_flow_capacity_error();
-            }
-            return static_cast<long>(value);
-        } else if constexpr (std::is_integral_v<T> && std::is_unsigned_v<T>) {
-            if (static_cast<long double>(value) > static_cast<long double>(std::numeric_limits<long>::max())) {
-                throw invalid_flow_capacity_error();
-            }
-            return static_cast<long>(value);
-        } else if constexpr (std::is_floating_point_v<T>) {
-            if (!std::isfinite(value) || value < 0 || value > static_cast<T>(std::numeric_limits<long>::max()) ||
-                std::trunc(value) != value) {
-                throw invalid_flow_capacity_error();
-            }
-            return static_cast<long>(value);
-        } else {
-            throw invalid_flow_capacity_error();
-        }
-    }
-
-    template <typename T>
-    static std::optional<long> try_flow_capacity_any_cast(const std::any& value) {
-        if (const auto* typed_value = std::any_cast<T>(&value)) {
-            return checked_flow_capacity_value(*typed_value);
-        }
-        return std::nullopt;
-    }
-
-    long get_edge_flow_capacity(std::size_t edge_id, const std::string& key) const {
-        if (key == "weight") {
-            if constexpr (Weighted) {
-                return checked_flow_capacity_value(get_edge_weight(edge_id));
-            } else {
-                throw std::runtime_error("Edge attribute lookup failed: graph has no built-in edge weight.");
-            }
-        }
-
-        auto edge_it = edge_properties.find(edge_id);
-        if (edge_it == edge_properties.end()) {
-            throw std::runtime_error("Edge attribute lookup failed: edge has no attributes.");
-        }
-        auto attr_it = edge_it->second.find(key);
-        if (attr_it == edge_it->second.end()) {
-            throw std::runtime_error("Edge attribute lookup failed: key not found.");
-        }
-
-        const auto& value = attr_it->second;
-        if (auto capacity = try_flow_capacity_any_cast<int>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<long>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<long long>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<unsigned int>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<unsigned long>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<unsigned long long>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<float>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<double>(value)) return *capacity;
-        if (auto capacity = try_flow_capacity_any_cast<long double>(value)) return *capacity;
-
-        throw std::runtime_error("Flow capacity setup failed: capacity attribute is not numeric.");
-    }
+    long get_edge_flow_capacity(std::size_t edge_id, const std::string& key) const;
 
     std::size_t vertex_index_of(VertexDesc v) const {
         return boost::get(vertex_index_map, v);
