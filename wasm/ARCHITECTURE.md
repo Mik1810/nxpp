@@ -77,11 +77,13 @@ wasm/
     nxpp_wasm.cpp
   ts/
     algorithms/
+    core/
     internal/
     legacy/
       core/
       index.ts
       load.ts
+    runtime/
     index.ts
     types.ts
   dist/
@@ -122,10 +124,21 @@ The current compatibility loading path is:
 
 1. `wasm/nxpp.mjs` loads the generated Emscripten module.
 2. `wasm/ts/legacy/load.ts` creates or exposes the raw runtime module.
-3. `wasm/ts/legacy/core/*.ts` wraps raw graph instances.
-4. `wasm/ts/legacy/index.ts` assembles the current facade.
-5. `wasm/ts/index.ts` preserves the public package entrypoint while the 1.0
+3. `wasm/ts/core/*.ts` creates facade classes bound to that module.
+4. `wasm/ts/legacy/core/*.ts` adapts those factories to the singleton contract.
+5. `wasm/ts/legacy/index.ts` assembles the current facade.
+6. `wasm/ts/index.ts` preserves the public package entrypoint while the 1.0
    implementation is developed outside the legacy boundary.
+
+The target loading path now also exists internally:
+
+1. `wasm/ts/runtime/node.ts` initializes one raw Node module per call.
+2. `wasm/ts/runtime/context.ts` validates it and returns a frozen
+   `NxppRuntime` containing module-bound constructors.
+3. Graphs and subgraphs created by one context remain bound to that context.
+
+This path is compiled and contract-tested but is not yet a supported package
+export. The package-root cutover is deferred to the 1.0 export-layout phase.
 
 The published package entrypoint is the compiled facade in `dist/index.js`.
 The raw runtime remains available as the package runtime artifact, but the

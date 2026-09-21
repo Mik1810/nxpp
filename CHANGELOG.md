@@ -30,6 +30,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Added an internal explicit WASM runtime context with module-bound graph
+  constructors and isolated multi-context lifecycle, while retaining the 0.6
+  singleton facade at the package root.
 - Isolated the current WASM TypeScript facade and singleton loader under an
   internal `legacy` boundary while preserving the package root contract.
 - Reorganized repository agent guidance, task records, and reusable workflows.

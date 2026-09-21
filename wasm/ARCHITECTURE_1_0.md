@@ -195,6 +195,12 @@ The current facade and loader live under `wasm/ts/legacy/` during this period,
 while the root TypeScript entrypoint preserves the existing package exports.
 This internal path is not exposed through the package export map.
 
+The explicit `NxppRuntime` implementation now lives under `wasm/ts/runtime/`,
+with runtime-neutral facade factories under `wasm/ts/core/`. It supports
+multiple independent Node contexts internally. Making this the package-root
+API and removing the legacy singleton remain part of the declared 1.0 export
+transition.
+
 The `1.0.0` transition may intentionally remove or change:
 
 - direct constructors bound to an implicit global runtime
@@ -214,7 +220,7 @@ declared transition, not opportunistically during an intermediate task.
 - [#178](https://github.com/Mik1810/nxpp/issues/178): isolate the current
   facade behind the internal legacy compatibility boundary.
 - [#171](https://github.com/Mik1810/nxpp/issues/171): introduce the explicit
-  runtime context.
+  runtime context internally before the package-root cutover.
 - [#172](https://github.com/Mik1810/nxpp/issues/172): remove semantic state
   duplication from the facade.
 - [#173](https://github.com/Mik1810/nxpp/issues/173): standardize bridge DTO and
