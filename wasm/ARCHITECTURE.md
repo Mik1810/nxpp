@@ -1,5 +1,10 @@
 # nxpp-wasm Architecture
 
+This document describes the current `0.6.0` implementation. The approved
+target and migration contract for `1.0.0` are defined separately in
+[`ARCHITECTURE_1_0.md`](ARCHITECTURE_1_0.md). Until that roadmap is complete,
+the current behavior remains the package contract.
+
 `@mik1810/nxpp-wasm` is a single npm package with two internal layers:
 
 1. C++/WASM binding layer
