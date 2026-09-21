@@ -1,6 +1,6 @@
 import { runtime } from "../load.js";
-import { assertAttributeValue, assertEdgeId, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../internal/assert.js";
-import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
+import { assertAttributeValue, assertEdgeId, assertFiniteNumber, assertIntNodeId, assertStringNodeId, } from "../../internal/assert.js";
+import { toArray, toEdgeEndpoints } from "../../internal/wrap.js";
 import { BaseGraph } from "./graph.js";
 class BaseMultiGraph extends BaseGraph {
     constructor(factory, assertNode) {

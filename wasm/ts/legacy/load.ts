@@ -1,4 +1,4 @@
-import type { RawRuntimeModule } from "./internal/wasm_types.js";
+import type { RawRuntimeModule } from "../internal/wasm_types.js";
 
 const REQUIRED_RUNTIME_CLASSES = [
   "GraphInt",
@@ -27,7 +27,7 @@ function assertRuntimeShape(runtime: unknown): asserts runtime is RawRuntimeModu
 let runtimePromise: Promise<RawRuntimeModule> | undefined;
 
 async function loadCreateModule(): Promise<(options?: Record<string, unknown>) => Promise<unknown>> {
-  const module = await import("../build/nxpp_node.mjs");
+  const module = await import("../../build/nxpp_node.mjs");
   return module.default as (options?: Record<string, unknown>) => Promise<unknown>;
 }
 

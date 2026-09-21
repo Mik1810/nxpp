@@ -5,8 +5,8 @@ import {
   assertFiniteNumber,
   assertIntNodeId,
   assertStringNodeId,
-} from "../internal/assert.js";
-import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
+} from "../../internal/assert.js";
+import { toArray, toEdgeEndpoints } from "../../internal/wrap.js";
 
 import type {
   AttributeValue,
@@ -15,8 +15,8 @@ import type {
   MultiGraph,
   NodeId,
   StronglyConnectedComponents,
-} from "../types.js";
-import type { RawMultiGraph } from "../internal/wasm_types.js";
+} from "../../types.js";
+import type { RawMultiGraph } from "../../internal/wasm_types.js";
 import { BaseGraph } from "./graph.js";
 
 abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGraph<T>> {

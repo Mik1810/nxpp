@@ -1,5 +1,5 @@
-import type { AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, ConnectedComponents, DiGraph, Graph, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../types.js";
-import type { RawSimpleGraph } from "../internal/wasm_types.js";
+import type { AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, ConnectedComponents, DiGraph, Graph, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, NodeId, ShortestPathDistanceEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree } from "../../types.js";
+import type { RawSimpleGraph } from "../../internal/wasm_types.js";
 export declare abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGraph<T>> {
     private rawObject;
     protected readonly assertNode: (value: unknown, label: string) => asserts value is T;

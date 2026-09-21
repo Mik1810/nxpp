@@ -5,9 +5,9 @@ import {
   assertIntNodeId,
   assertStringValue,
   assertStringNodeId,
-} from "../internal/assert.js";
-import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
-import { toArray } from "../internal/wrap.js";
+} from "../../internal/assert.js";
+import { disposedGraphMessage, wrapRawGraph } from "../../internal/errors.js";
+import { toArray } from "../../internal/wrap.js";
 
 import type {
   AllPairsShortestPathSourceEntry,
@@ -28,19 +28,19 @@ import type {
   TraversalPredecessorEntry,
   TraversalSuccessorEntry,
   TraversalTree,
-} from "../types.js";
+} from "../../types.js";
 import type {
   RawConnectedComponentsGraph,
   RawSimpleGraph,
   RawStronglyConnectedComponentsGraph,
-} from "../internal/wasm_types.js";
-import { toCentralityScores } from "../algorithms/centrality.js";
-import { toComponentGroups } from "../algorithms/components.js";
+} from "../../internal/wasm_types.js";
+import { toCentralityScores } from "../../algorithms/centrality.js";
+import { toComponentGroups } from "../../algorithms/components.js";
 import {
   toAllPairsShortestPathMap,
   toAllPairsShortestPathMatrix,
   toSingleSourceShortestPathResult,
-} from "../algorithms/shortest_paths.js";
+} from "../../algorithms/shortest_paths.js";
 
 const disposeSymbol = (Symbol as unknown as { dispose?: symbol }).dispose;
 

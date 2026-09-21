@@ -30,6 +30,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Isolated the current WASM TypeScript facade and singleton loader under an
+  internal `legacy` boundary while preserving the package root contract.
 - Reorganized repository agent guidance, task records, and reusable workflows.
 - Added a tag-gated WASM release workflow using npm Trusted Publishing for a
   staged npmjs release and `GITHUB_TOKEN` for GitHub Packages.

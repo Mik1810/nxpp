@@ -1,20 +1,2 @@
-export type { AllPairsShortestPathDistanceEntry, AllPairsShortestPathSourceEntry, AttributeValue, CentralityScoreEntry, ConnectedComponents, DiGraph, EdgeEndpoints, FlowEdgeEntry, FlowEdgeIdEntry, Graph, MaximumFlowResult, MinCostMaxFlowResult, MinimumCutResult, MultiDiGraph, MultiGraph, NodeId, ShortestPathDistanceEntry, ShortestPathPredecessorEntry, SpanningTreeEdge, SingleSourceShortestPathResult, StronglyConnectedComponents, TraversalEdge, TraversalPredecessorEntry, TraversalSuccessorEntry, TraversalTree, } from "./types.js";
-export { createNxpp, loadNxppRuntime } from "./load.js";
-export { DiGraphInt, DiGraphStr, GraphInt, GraphStr, } from "./core/graph.js";
-export { MultiDiGraphInt, MultiDiGraphStr, MultiGraphInt, MultiGraphStr, } from "./core/multigraph.js";
-import { DiGraphInt, DiGraphStr, GraphInt, GraphStr } from "./core/graph.js";
-import { MultiDiGraphInt, MultiDiGraphStr, MultiGraphInt, MultiGraphStr } from "./core/multigraph.js";
-import { createNxpp, loadNxppRuntime } from "./load.js";
-declare const nxpp: {
-    createNxpp: typeof createNxpp;
-    loadNxppRuntime: typeof loadNxppRuntime;
-    GraphInt: typeof GraphInt;
-    GraphStr: typeof GraphStr;
-    DiGraphInt: typeof DiGraphInt;
-    DiGraphStr: typeof DiGraphStr;
-    MultiGraphInt: typeof MultiGraphInt;
-    MultiGraphStr: typeof MultiGraphStr;
-    MultiDiGraphInt: typeof MultiDiGraphInt;
-    MultiDiGraphStr: typeof MultiDiGraphStr;
-};
-export default nxpp;
+export * from "./legacy/index.js";
+export { default } from "./legacy/index.js";

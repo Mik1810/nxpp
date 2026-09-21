@@ -191,6 +191,9 @@ migration.
 The `0.x` implementation phases may introduce the explicit context alongside
 the current singleton-bound facade. Compatibility shims must be isolated,
 documented, and tested; new implementation code must target the context model.
+The current facade and loader live under `wasm/ts/legacy/` during this period,
+while the root TypeScript entrypoint preserves the existing package exports.
+This internal path is not exposed through the package export map.
 
 The `1.0.0` transition may intentionally remove or change:
 
@@ -208,6 +211,8 @@ declared transition, not opportunistically during an intermediate task.
 
 - [#166](https://github.com/Mik1810/nxpp/issues/166): define native flow-state
   invalidation semantics.
+- [#178](https://github.com/Mik1810/nxpp/issues/178): isolate the current
+  facade behind the internal legacy compatibility boundary.
 - [#171](https://github.com/Mik1810/nxpp/issues/171): introduce the explicit
   runtime context.
 - [#172](https://github.com/Mik1810/nxpp/issues/172): remove semantic state

@@ -1,10 +1,10 @@
 import { runtime } from "../load.js";
-import { assertAttributeValue, assertFiniteNumber, assertIntNodeId, assertStringValue, assertStringNodeId, } from "../internal/assert.js";
-import { disposedGraphMessage, wrapRawGraph } from "../internal/errors.js";
-import { toArray } from "../internal/wrap.js";
-import { toCentralityScores } from "../algorithms/centrality.js";
-import { toComponentGroups } from "../algorithms/components.js";
-import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../algorithms/shortest_paths.js";
+import { assertAttributeValue, assertFiniteNumber, assertIntNodeId, assertStringValue, assertStringNodeId, } from "../../internal/assert.js";
+import { disposedGraphMessage, wrapRawGraph } from "../../internal/errors.js";
+import { toArray } from "../../internal/wrap.js";
+import { toCentralityScores } from "../../algorithms/centrality.js";
+import { toComponentGroups } from "../../algorithms/components.js";
+import { toAllPairsShortestPathMap, toAllPairsShortestPathMatrix, toSingleSourceShortestPathResult, } from "../../algorithms/shortest_paths.js";
 const disposeSymbol = Symbol.dispose;
 export class BaseGraph {
     rawObject;

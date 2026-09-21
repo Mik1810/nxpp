@@ -1,5 +1,5 @@
-import type { AttributeValue, ConnectedComponents, MultiDiGraph, MultiGraph, NodeId, StronglyConnectedComponents } from "../types.js";
-import type { RawMultiGraph } from "../internal/wasm_types.js";
+import type { AttributeValue, ConnectedComponents, MultiDiGraph, MultiGraph, NodeId, StronglyConnectedComponents } from "../../types.js";
+import type { RawMultiGraph } from "../../internal/wasm_types.js";
 import { BaseGraph } from "./graph.js";
 declare abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGraph<T>> {
     constructor(factory: (() => RawMultiGraph<T>) | RawMultiGraph<T>, assertNode: (value: unknown, label: string) => asserts value is T);
@@ -7,7 +7,7 @@ declare abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, Raw
     hasEdgeId(edgeId: number): boolean;
     edgeIds(): number[];
     edgeIdsBetween(source: T, target: T): number[];
-    getEdgeEndpoints(edgeId: number): import("../types.js").EdgeEndpoints<T>;
+    getEdgeEndpoints(edgeId: number): import("../../types.js").EdgeEndpoints<T>;
     getEdgeWeightById(edgeId: number): number;
     setEdgeWeightById(edgeId: number, weight: number): void;
     hasEdgeAttrById(edgeId: number, key: string): boolean;

@@ -76,11 +76,13 @@ wasm/
     topological_sort.cpp
     nxpp_wasm.cpp
   ts/
-    core/
     algorithms/
     internal/
+    legacy/
+      core/
+      index.ts
+      load.ts
     index.ts
-    load.ts
     types.ts
   dist/
   build/
@@ -116,16 +118,23 @@ generic interfaces provide static TypeScript typing.
 
 ## Loading Flow
 
-The runtime loading path is:
+The current compatibility loading path is:
 
 1. `wasm/nxpp.mjs` loads the generated Emscripten module.
-2. `wasm/ts/load.ts` creates or exposes the raw runtime module.
-3. `wasm/ts/core/*.ts` wraps raw graph instances.
-4. `wasm/ts/index.ts` exports the public package facade.
+2. `wasm/ts/legacy/load.ts` creates or exposes the raw runtime module.
+3. `wasm/ts/legacy/core/*.ts` wraps raw graph instances.
+4. `wasm/ts/legacy/index.ts` assembles the current facade.
+5. `wasm/ts/index.ts` preserves the public package entrypoint while the 1.0
+   implementation is developed outside the legacy boundary.
 
 The published package entrypoint is the compiled facade in `dist/index.js`.
 The raw runtime remains available as the package runtime artifact, but the
 facade is the public API boundary for normal consumers.
+
+The `legacy` directory is an internal migration boundary, not a supported
+package subpath. Shared public types, raw declarations, conversion helpers,
+bindings, generated runtime assets, and tests remain outside it so the current
+and target architectures do not fork the native bridge.
 
 ## Binding Modules
 
