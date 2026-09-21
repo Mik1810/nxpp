@@ -340,313 +340,15 @@ private:
     std::pair<NodeT, NodeT> endpoints_;
 };
 
-template <typename NodeT, bool Directed>
-class SimpleGraphBindingBase {
+template <typename NodeT, bool Directed, bool Multi>
+class GraphBindingBase {
 public:
-    using GraphType = nxpp::Graph<NodeT, double, Directed, false>;
-
-    SimpleGraphBindingBase() = default;
-
-    explicit SimpleGraphBindingBase(GraphType graph)
-        : graph_(std::move(graph)) {}
-
-    void add_node(const emscripten::val& id) {
-        graph_.add_node(as_node_id(id));
-    }
-
-    void add_edge(const emscripten::val& source, const emscripten::val& target, const emscripten::val& weight) {
-        graph_.add_edge(as_node_id(source), as_node_id(target), as_weight(weight));
-    }
-
-    bool has_node(const emscripten::val& id) const {
-        return graph_.has_node(as_node_id(id));
-    }
-
-    bool has_edge(const emscripten::val& source, const emscripten::val& target) const {
-        return graph_.has_edge(as_node_id(source), as_node_id(target));
-    }
-
-    emscripten::val nodes() const {
-        return to_js_array(graph_.nodes());
-    }
-
-    emscripten::val neighbors(const emscripten::val& id) const {
-        return to_js_array(graph_.neighbors(as_node_id(id)));
-    }
-
-    void remove_node(const emscripten::val& id) {
-        graph_.remove_node(as_node_id(id));
-    }
-
-    void remove_edge(const emscripten::val& source, const emscripten::val& target) {
-        graph_.remove_edge(as_node_id(source), as_node_id(target));
-    }
-
-    double get_edge_weight(const emscripten::val& source, const emscripten::val& target) const {
-        return graph_.get_edge_weight(as_node_id(source), as_node_id(target));
-    }
-
-    void set_edge_weight(const emscripten::val& source, const emscripten::val& target, const emscripten::val& weight) {
-        const NodeT u = as_node_id(source);
-        const NodeT v = as_node_id(target);
-        const auto ids = graph_.edge_ids(u, v);
-        if (ids.empty()) {
-            throw_missing_edge();
-        }
-        graph_.set_edge_weight(ids.front(), as_weight(weight));
-    }
-
-    void clear() {
-        graph_.clear();
-    }
-
-    SimpleGraphBindingBase subgraph(const emscripten::val& nodes) const {
-        return SimpleGraphBindingBase(graph_.subgraph(to_node_vector<NodeT>(nodes)));
-    }
-
-    bool has_node_attr(const emscripten::val& id, const std::string& key) const {
-        return graph_.has_node_attr(as_node_id(id), key);
-    }
-
-    emscripten::val get_node_attr(const emscripten::val& id, const std::string& key) const {
-        const NodeT node_id = as_node_id(id);
-        return read_attribute_value(
-            [&]<typename T>() { return graph_.template try_get_node_attr<T>(node_id, key); },
-            graph_.has_node_attr(node_id, key),
-            [&]() -> emscripten::val {
-                return emscripten::val(graph_.template get_node_attr<std::string>(node_id, key));
-            }
-        );
-    }
-
-    emscripten::val try_get_node_attr(const emscripten::val& id, const std::string& key) const {
-        const NodeT node_id = as_node_id(id);
-        return read_attribute_value(
-            [&]<typename T>() { return graph_.template try_get_node_attr<T>(node_id, key); },
-            graph_.has_node_attr(node_id, key),
-            []() -> emscripten::val { return emscripten::val::null(); }
-        );
-    }
-
-    void set_node_attr(const emscripten::val& id, const std::string& key, const emscripten::val& value) {
-        const NodeT node_id = as_node_id(id);
-        write_attribute_value(value, [&](const auto& converted_value) {
-            graph_.node(node_id)[key] = converted_value;
-        });
-    }
-
-    bool has_edge_attr(const emscripten::val& source, const emscripten::val& target, const std::string& key) const {
-        return graph_.has_edge_attr(as_node_id(source), as_node_id(target), key);
-    }
-
-    emscripten::val get_edge_attr(const emscripten::val& source, const emscripten::val& target, const std::string& key) const {
-        const NodeT u = as_node_id(source);
-        const NodeT v = as_node_id(target);
-        return read_attribute_value(
-            [&]<typename T>() { return graph_.template try_get_edge_attr<T>(u, v, key); },
-            graph_.has_edge_attr(u, v, key),
-            [&]() -> emscripten::val {
-                return emscripten::val(graph_.template get_edge_attr<std::string>(u, v, key));
-            }
-        );
-    }
-
-    emscripten::val try_get_edge_attr(const emscripten::val& source, const emscripten::val& target, const std::string& key) const {
-        const NodeT u = as_node_id(source);
-        const NodeT v = as_node_id(target);
-        return read_attribute_value(
-            [&]<typename T>() { return graph_.template try_get_edge_attr<T>(u, v, key); },
-            graph_.has_edge_attr(u, v, key),
-            []() -> emscripten::val { return emscripten::val::null(); }
-        );
-    }
-
-    void set_edge_attr(const emscripten::val& source, const emscripten::val& target, const std::string& key, const emscripten::val& value) {
-        const NodeT u = as_node_id(source);
-        const NodeT v = as_node_id(target);
-        write_attribute_value(value, [&](const auto& converted_value) {
-            graph_[u][v][key] = converted_value;
-        });
-    }
-
-    double get_edge_numeric_attr(const emscripten::val& source, const emscripten::val& target, const std::string& key) const {
-        return graph_.get_edge_numeric_attr(as_node_id(source), as_node_id(target), key);
-    }
-
-    emscripten::val bfs_edges(const emscripten::val& start) const {
-        return to_js_edge_list(graph_.bfs_edges(as_node_id(start)));
-    }
-
-    emscripten::val bfs_tree(const emscripten::val& start) const {
-        const NodeT start_id = as_node_id(start);
-        const auto edges = graph_.bfs_edges(start_id);
-        return build_js_traversal_tree(start_id, edges);
-    }
-
-    emscripten::val bfs_successors(const emscripten::val& start) const {
-        return to_js_successor_entries(graph_.bfs_successors(as_node_id(start)));
-    }
-
-    emscripten::val dfs_edges(const emscripten::val& start) const {
-        return to_js_edge_list(graph_.dfs_edges(as_node_id(start)));
-    }
-
-    emscripten::val dfs_tree(const emscripten::val& start) const {
-        const NodeT start_id = as_node_id(start);
-        const auto edges = graph_.dfs_edges(start_id);
-        return build_js_traversal_tree(start_id, edges);
-    }
-
-    emscripten::val dfs_predecessors(const emscripten::val& start) const {
-        return to_js_predecessor_entries(graph_.dfs_predecessors(as_node_id(start)));
-    }
-
-    emscripten::val dfs_successors(const emscripten::val& start) const {
-        return to_js_successor_entries(graph_.dfs_successors(as_node_id(start)));
-    }
-
-    emscripten::val shortest_path(const emscripten::val& source, const emscripten::val& target) const {
-        return to_js_array(graph_.shortest_path(as_node_id(source), as_node_id(target)));
-    }
-
-    emscripten::val shortest_path_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return to_js_array(graph_.shortest_path(as_node_id(source), as_node_id(target), weight_key));
-    }
-
-    double shortest_path_length(const emscripten::val& source, const emscripten::val& target) const {
-        return graph_.shortest_path_length(as_node_id(source), as_node_id(target));
-    }
-
-    double shortest_path_length_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return graph_.shortest_path_length(as_node_id(source), as_node_id(target), weight_key);
-    }
-
-    emscripten::val dijkstra_path(const emscripten::val& source, const emscripten::val& target) const {
-        return to_js_array(graph_.dijkstra_path(as_node_id(source), as_node_id(target)));
-    }
-
-    emscripten::val dijkstra_path_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return to_js_array(graph_.dijkstra_path(as_node_id(source), as_node_id(target), weight_key));
-    }
-
-    emscripten::val dijkstra_shortest_paths(const emscripten::val& source) const {
-        return to_js_single_source_shortest_path_result(graph_.dijkstra_shortest_paths(as_node_id(source)));
-    }
-
-    emscripten::val dijkstra_path_lengths(const emscripten::val& source) const {
-        return to_js_distance_entries(graph_.dijkstra_path_length(as_node_id(source)));
-    }
-
-    double dijkstra_path_length(const emscripten::val& source, const emscripten::val& target) const {
-        return static_cast<double>(graph_.dijkstra_path_length(as_node_id(source), as_node_id(target)));
-    }
-
-    double dijkstra_path_length_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return static_cast<double>(graph_.dijkstra_path_length(as_node_id(source), as_node_id(target), weight_key));
-    }
-
-    emscripten::val bellman_ford_path(const emscripten::val& source, const emscripten::val& target) const {
-        return to_js_array(graph_.bellman_ford_path(as_node_id(source), as_node_id(target)));
-    }
-
-    emscripten::val bellman_ford_path_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return to_js_array(graph_.bellman_ford_path(as_node_id(source), as_node_id(target), weight_key));
-    }
-
-    emscripten::val bellman_ford_shortest_paths(const emscripten::val& source) const {
-        return to_js_single_source_shortest_path_result(graph_.bellman_ford_shortest_paths(as_node_id(source)));
-    }
-
-    double bellman_ford_path_length(const emscripten::val& source, const emscripten::val& target) const {
-        return static_cast<double>(graph_.bellman_ford_path_length(as_node_id(source), as_node_id(target)));
-    }
-
-    double bellman_ford_path_length_weighted(const emscripten::val& source, const emscripten::val& target, const std::string& weight_key) const {
-        return static_cast<double>(graph_.bellman_ford_path_length(as_node_id(source), as_node_id(target), weight_key));
-    }
-
-    emscripten::val dag_shortest_paths(const emscripten::val& source) const {
-        return to_js_single_source_shortest_path_result(graph_.dag_shortest_paths(as_node_id(source)));
-    }
-
-    emscripten::val floyd_warshall_all_pairs_shortest_paths() const {
-        return to_js_distance_matrix(graph_.floyd_warshall_all_pairs_shortest_paths());
-    }
-
-    emscripten::val floyd_warshall_all_pairs_shortest_paths_map() const {
-        return to_js_all_pairs_distance_entries(graph_.floyd_warshall_all_pairs_shortest_paths_map());
-    }
-
-    emscripten::val kruskal_minimum_spanning_tree() const {
-        return to_js_edge_list(graph_.kruskal_minimum_spanning_tree());
-    }
-
-    emscripten::val prim_minimum_spanning_tree(const emscripten::val& root) const {
-        return to_js_edge_list(parent_map_to_edge_list(graph_.prim_minimum_spanning_tree(as_node_id(root))));
-    }
-
-    emscripten::val connected_components() const {
-        return to_js_node_groups(graph_.connected_component_groups());
-    }
-
-    emscripten::val strongly_connected_components() const {
-        return to_js_node_groups(graph_.strongly_connected_component_groups());
-    }
-
-    emscripten::val degree_centrality() const {
-        return to_js_score_entries(graph_.degree_centrality());
-    }
-
-    emscripten::val pagerank(double tolerance, std::size_t max_iterations) const {
-        return to_js_score_entries(graph_.pagerank(tolerance, max_iterations));
-    }
-
-    emscripten::val betweenness_centrality() const {
-        return to_js_score_entries(graph_.betweenness_centrality());
-    }
-
-    emscripten::val maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
-        return to_js_maximum_flow_result(graph_.maximum_flow(as_node_id(source), as_node_id(target), capacity_attr));
-    }
-
-    emscripten::val minimum_cut(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr) const {
-        return to_js_minimum_cut_result(graph_.minimum_cut(as_node_id(source), as_node_id(target), capacity_attr));
-    }
-
-    emscripten::val max_flow_min_cost(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
-        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
-    }
-
-    emscripten::val max_flow_min_cost_successive_shortest_path(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
-        return to_js_min_cost_max_flow_result(graph_.max_flow_min_cost_successive_shortest_path(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
-    }
-
-    double push_relabel_maximum_flow(const emscripten::val& source, const emscripten::val& target, const std::string& capacity_attr, const std::string& weight_attr) const {
-        return static_cast<double>(graph_.push_relabel_maximum_flow(as_node_id(source), as_node_id(target), capacity_attr, weight_attr));
-    }
-
-    double cycle_canceling(const std::string& weight_attr) const {
-        return static_cast<double>(graph_.cycle_canceling(weight_attr));
-    }
-
-protected:
-    static NodeT as_node_id(const emscripten::val& value) {
-        return NodeJsPolicy<NodeT>::to_node_id(value);
-    }
-
-private:
-    GraphType graph_;
-};
-
-template <typename NodeT, bool Directed>
-class MultiGraphBindingBase {
-public:
-    using GraphType = nxpp::Graph<NodeT, double, Directed, true>;
+    using GraphType = nxpp::Graph<NodeT, double, Directed, Multi>;
     using EndpointsBindingType = EdgeEndpointsBindingT<NodeT>;
 
-    MultiGraphBindingBase() = default;
+    GraphBindingBase() = default;
 
-    explicit MultiGraphBindingBase(GraphType graph)
+    explicit GraphBindingBase(GraphType graph)
         : graph_(std::move(graph)) {}
 
     void add_node(const emscripten::val& id) {
@@ -695,31 +397,31 @@ public:
         graph_.set_edge_weight(ids.front(), as_weight(weight));
     }
 
-    bool has_edge_id(std::size_t edge_id) const {
+    bool has_edge_id(std::size_t edge_id) const requires Multi {
         return graph_.has_edge_id(edge_id);
     }
 
-    emscripten::val edge_ids() const {
+    emscripten::val edge_ids() const requires Multi {
         return to_js_array(graph_.edge_ids());
     }
 
-    emscripten::val edge_ids_between(const emscripten::val& source, const emscripten::val& target) const {
+    emscripten::val edge_ids_between(const emscripten::val& source, const emscripten::val& target) const requires Multi {
         return to_js_array(graph_.edge_ids(as_node_id(source), as_node_id(target)));
     }
 
-    EndpointsBindingType get_edge_endpoints(std::size_t edge_id) const {
+    EndpointsBindingType get_edge_endpoints(std::size_t edge_id) const requires Multi {
         return EndpointsBindingType(graph_.get_edge_endpoints(edge_id));
     }
 
-    double get_edge_weight_by_id(std::size_t edge_id) const {
+    double get_edge_weight_by_id(std::size_t edge_id) const requires Multi {
         return graph_.get_edge_weight(edge_id);
     }
 
-    void set_edge_weight_by_id(std::size_t edge_id, const emscripten::val& weight) {
+    void set_edge_weight_by_id(std::size_t edge_id, const emscripten::val& weight) requires Multi {
         graph_.set_edge_weight(edge_id, as_weight(weight));
     }
 
-    void remove_edge_by_id(std::size_t edge_id) {
+    void remove_edge_by_id(std::size_t edge_id) requires Multi {
         graph_.remove_edge(edge_id);
     }
 
@@ -727,8 +429,8 @@ public:
         graph_.clear();
     }
 
-    MultiGraphBindingBase subgraph(const emscripten::val& nodes) const {
-        return MultiGraphBindingBase(graph_.subgraph(to_node_vector<NodeT>(nodes)));
+    GraphBindingBase subgraph(const emscripten::val& nodes) const {
+        return GraphBindingBase(graph_.subgraph(to_node_vector<NodeT>(nodes)));
     }
 
     bool has_node_attr(const emscripten::val& id, const std::string& key) const {
@@ -800,11 +502,11 @@ public:
         return graph_.get_edge_numeric_attr(as_node_id(source), as_node_id(target), key);
     }
 
-    bool has_edge_attr_by_id(std::size_t edge_id, const std::string& key) const {
+    bool has_edge_attr_by_id(std::size_t edge_id, const std::string& key) const requires Multi {
         return graph_.has_edge_attr(edge_id, key);
     }
 
-    emscripten::val get_edge_attr_by_id(std::size_t edge_id, const std::string& key) const {
+    emscripten::val get_edge_attr_by_id(std::size_t edge_id, const std::string& key) const requires Multi {
         return read_attribute_value(
             [&]<typename T>() { return graph_.template try_get_edge_attr<T>(edge_id, key); },
             graph_.has_edge_attr(edge_id, key),
@@ -814,7 +516,7 @@ public:
         );
     }
 
-    emscripten::val try_get_edge_attr_by_id(std::size_t edge_id, const std::string& key) const {
+    emscripten::val try_get_edge_attr_by_id(std::size_t edge_id, const std::string& key) const requires Multi {
         return read_attribute_value(
             [&]<typename T>() { return graph_.template try_get_edge_attr<T>(edge_id, key); },
             graph_.has_edge_attr(edge_id, key),
@@ -822,13 +524,13 @@ public:
         );
     }
 
-    void set_edge_attr_by_id(std::size_t edge_id, const std::string& key, const emscripten::val& value) {
+    void set_edge_attr_by_id(std::size_t edge_id, const std::string& key, const emscripten::val& value) requires Multi {
         write_attribute_value(value, [&](const auto& converted_value) {
             graph_.set_edge_attr(edge_id, key, converted_value);
         });
     }
 
-    double get_edge_numeric_attr_by_id(std::size_t edge_id, const std::string& key) const {
+    double get_edge_numeric_attr_by_id(std::size_t edge_id, const std::string& key) const requires Multi {
         return graph_.get_edge_numeric_attr(edge_id, key);
     }
 
@@ -996,6 +698,12 @@ protected:
 private:
     GraphType graph_;
 };
+
+template <typename NodeT, bool Directed>
+using SimpleGraphBindingBase = GraphBindingBase<NodeT, Directed, false>;
+
+template <typename NodeT, bool Directed>
+using MultiGraphBindingBase = GraphBindingBase<NodeT, Directed, true>;
 
 template <typename BindingT>
 void bind_simple_graph_api(emscripten::class_<BindingT>& binding) {

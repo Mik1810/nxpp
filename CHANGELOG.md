@@ -33,6 +33,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
   the existing flow API and validation behavior.
 - Centralized staged min-cost-flow cache lifecycle and synchronization behind
   a single internal registry.
+- Consolidated the duplicated simple-graph and multigraph Embind adapters into
+  one capability-constrained internal binding template.
 
 ## [1.4.7] - 2026-05-08
 
