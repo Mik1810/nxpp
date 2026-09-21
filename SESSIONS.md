@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-21 - WASM trusted publishing](sessions/2026-09-21-wasm-trusted-publishing.md)
 - [2026-09-21 - Agent infrastructure refactor](sessions/2026-09-21-agent-infrastructure-refactor.md)
 
 ## Historical Archive

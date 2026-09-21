@@ -126,23 +126,23 @@ operations can be dominated by JS/WASM boundary cost, while larger algorithmic
 calls may amortize that overhead. Publish benchmark results only with the
 exact command, machine context, package version, and reproducible inputs.
 
-## Publish order (npm first)
+## Publication model
 
-Use the package scripts to publish in a deterministic order:
+WASM releases are published only by
+[`wasm-release.yml`](../.github/workflows/wasm-release.yml) from a tag matching
+`wasm-vX.Y.Z`. The tag version must equal `wasm/package.json` exactly.
 
-```bash
-cd wasm
-npm run publish:all
-```
+The workflow uses separate credential boundaries:
 
-This always performs:
+1. npmjs receives a staged publication through Trusted Publishing and GitHub
+   OIDC. A maintainer must review and approve the staged package before it
+   becomes public.
+2. GitHub Packages receives the same verified package through the workflow's
+   short-lived `GITHUB_TOKEN`.
 
-1. `npm run publish:npm` against `https://registry.npmjs.org/`
-2. `npm run publish:github` against `https://npm.pkg.github.com/`
-
-The split avoids lifecycle chaining issues (for example `postpublish` inheriting
-unexpected registry context) and keeps the first publish on npmjs. Credentials
-are expected to live in the user's npm configuration, not in repository files.
+No long-lived npm or GitHub Packages token belongs in the repository, a local
+`.npmrc`, or GitHub Actions secrets. Local `npm publish` scripts are
+intentionally not provided.
 
 ## WASM package release checklist
 
@@ -189,14 +189,18 @@ node wasm/nxpp_example.js
   - `CHANGELOG.md`
   - `RELEASE_NOTES.md`
   - `SESSIONS.md` and the current record under `sessions/`
-- [ ] Publish in deterministic order from `wasm/`:
+- [ ] Commit and push the prepared release, then create and push the matching
+  WASM tag:
 
 ```bash
-npm run publish:all
+git tag wasm-vX.Y.Z
+git push origin wasm-vX.Y.Z
 ```
 
+- [ ] Confirm the `WASM Release` workflow passes.
+- [ ] Review and approve the staged release on npmjs with 2FA.
 - [ ] Confirm both registries show the new version:
-  - npmjs
+  - npmjs after staged-release approval
   - GitHub Packages
 
 ## Current experimental surface

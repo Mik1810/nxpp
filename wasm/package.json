@@ -36,10 +36,7 @@
     "build:types": "tsc -p tsconfig.json",
     "bench:overhead": "bash scripts/run_overhead_benchmarks.sh",
     "check:node-contract": "bash scripts/run_wasm_node_contract_tests.sh",
-    "check:npm-pack-consumer": "bash scripts/run_npm_pack_consumer_test.sh",
-    "publish:npm": "npm publish --registry=https://registry.npmjs.org/",
-    "publish:github": "npm publish --registry=https://npm.pkg.github.com/",
-    "publish:all": "npm run publish:npm && npm run publish:github"
+    "check:npm-pack-consumer": "bash scripts/run_npm_pack_consumer_test.sh"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

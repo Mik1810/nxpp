@@ -24,6 +24,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 ### Changed
 
 - Reorganized repository agent guidance, task records, and reusable workflows.
+- Added a tag-gated WASM release workflow using npm Trusted Publishing for a
+  staged npmjs release and `GITHUB_TOKEN` for GitHub Packages.
 
 ## [1.4.7] - 2026-05-08
 

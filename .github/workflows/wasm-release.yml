@@ -1,0 +1,134 @@
+name: WASM Release
+
+on:
+  push:
+    tags:
+      - "wasm-v*"
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  publish:
+    name: verify and publish wasm package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js for npmjs
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: "6.0.9"
+          actions-cache-folder: emsdk-cache
+
+      - name: Install Boost Graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-graph-dev
+
+      - name: Install package dependencies
+        working-directory: wasm
+        run: npm ci
+
+      - name: Validate npm Trusted Publishing support
+        shell: bash
+        run: |
+          npm_version="$(npm --version)"
+          npm_major="${npm_version%%.*}"
+          npm_minor="${npm_version#*.}"
+          npm_minor="${npm_minor%%.*}"
+
+          if [ "$npm_major" -lt 11 ] || { [ "$npm_major" -eq 11 ] && [ "$npm_minor" -lt 5 ]; }; then
+            echo "npm 11.5.1 or newer is required for Trusted Publishing; found ${npm_version}." >&2
+            exit 1
+          fi
+
+      - name: Validate release tag and package version
+        id: version
+        shell: bash
+        run: |
+          package_version="$(node -p "require('./wasm/package.json').version")"
+          expected_tag="wasm-v${package_version}"
+
+          if [ "${GITHUB_REF_NAME}" != "$expected_tag" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version ${package_version}; expected ${expected_tag}." >&2
+            exit 1
+          fi
+
+          if npm view "@mik1810/nxpp-wasm@${package_version}" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "@mik1810/nxpp-wasm@${package_version} already exists on npmjs." >&2
+            exit 1
+          fi
+
+          echo "version=${package_version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${expected_tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Build Node-compatible WASM module
+        run: bash wasm/scripts/build_wasm_node_module.sh
+
+      - name: Build TypeScript facade
+        run: npm --prefix wasm run build:types
+
+      - name: Run Node API contract tests
+        env:
+          NXPP_WASM_NODE_CONTRACT_SKIP_BUILD: "1"
+        run: bash wasm/scripts/run_wasm_node_contract_tests.sh
+
+      - name: Run Emscripten formal suite
+        env:
+          NXPP_WASM_INCLUDE_LARGE: "1"
+          NXPP_WASM_INCLUDE_NODE_CONTRACT: "0"
+        run: bash wasm/scripts/run_wasm_tests.sh
+
+      - name: Run npm package consumer test
+        env:
+          NXPP_WASM_NPM_PACK_SKIP_BUILD: "1"
+        run: bash wasm/scripts/run_npm_pack_consumer_test.sh
+
+      - name: Run package smoke example
+        run: node wasm/nxpp_example.js
+
+      - name: Stage package on npmjs
+        id: npm_stage
+        working-directory: wasm
+        run: npm stage publish . --access public --registry=https://registry.npmjs.org/
+
+      - name: Set up Node.js for GitHub Packages
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@mik1810"
+          package-manager-cache: false
+
+      - name: Publish package to GitHub Packages
+        id: github_publish
+        working-directory: wasm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --registry=https://npm.pkg.github.com/
+
+      - name: Publish release summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## WASM Release"
+            echo
+            echo "- Version: \`${{ steps.version.outputs.version }}\`"
+            echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
+            echo "- Emscripten: \`6.0.9\`"
+            echo "- npmjs staging outcome: \`${{ steps.npm_stage.outcome }}\`"
+            echo "- GitHub Packages outcome: \`${{ steps.github_publish.outcome }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
