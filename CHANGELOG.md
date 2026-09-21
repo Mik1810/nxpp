@@ -19,6 +19,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Fixed
 
+- Made WASM CI and release verification fail when the tracked TypeScript facade
+  artifacts differ from a clean `build:types` result.
 - Made eager DFS traversal honor the requested start node instead of traversing
   disconnected components.
 - Added WASM contract coverage for reachable Bellman-Ford negative cycles.

@@ -77,8 +77,10 @@ jobs:
       - name: Build Node-compatible WASM module
         run: bash wasm/scripts/build_wasm_node_module.sh
 
-      - name: Build TypeScript facade
-        run: npm --prefix wasm run build:types
+      - name: Verify TypeScript facade artifacts
+        run: |
+          npm --prefix wasm run build:types
+          git diff --exit-code -- wasm/dist
 
       - name: Run Node API contract tests
         env:

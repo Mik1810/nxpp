@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-21 - Issue #165](sessions/2026-09-21-issue-165.md)
 - [2026-09-21 - WASM facade base consolidation](sessions/2026-09-21-wasm-facade-base-consolidation.md)
 - [2026-09-21 - WASM binding base consolidation](sessions/2026-09-21-wasm-binding-base-consolidation.md)
 - [2026-09-21 - WASM runtime class parity](sessions/2026-09-21-wasm-runtime-class-parity.md)

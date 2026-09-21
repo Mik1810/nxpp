@@ -22,6 +22,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install package dependencies
+        working-directory: wasm
+        run: npm ci
+
+      - name: Verify TypeScript facade artifacts
+        run: |
+          npm --prefix wasm run build:types
+          git diff --exit-code -- wasm/dist
+
       - name: Install Boost Graph
         run: |
           sudo apt-get update
@@ -103,6 +118,8 @@ jobs:
             echo "- Suite exit code: ${WASM_TESTS_EXIT_CODE:-unknown}"
             echo "- npm pack consumer exit code: ${WASM_NPM_PACK_CONSUMER_EXIT_CODE:-unknown}"
             echo "- Commands:"
+            echo "  - \`npm --prefix wasm run build:types\`"
+            echo "  - \`git diff --exit-code -- wasm/dist\`"
             echo "  - \`bash wasm/scripts/build_wasm_node_module.sh\`"
             echo "  - \`NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh\`"
             echo "  - \`NXPP_WASM_INCLUDE_NODE_CONTRACT=0 NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh\`"
