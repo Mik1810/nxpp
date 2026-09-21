@@ -49,7 +49,6 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::add_edge_with_id(const NodeID& u, const NodeID& v, EdgeWeight w) {
-    invalidate_min_cost_flow_state();
     VertexDesc bu = get_or_create_vertex(u);
     VertexDesc bv = get_or_create_vertex(v);
 
@@ -57,6 +56,7 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
         auto [e, exists] = boost::edge(bu, bv, g);
         if (exists) {
             weight_map[e] = w;
+            invalidate_min_cost_flow_state();
             return get_edge_id(e);
         }
     }
@@ -65,6 +65,7 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
     (void)added;
     weight_map[e] = w;
     assign_next_edge_id(e);
+    invalidate_min_cost_flow_state();
     return get_edge_id(e);
 }
 
@@ -72,7 +73,6 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(!W)
 std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::add_edge_with_id(const NodeID& u, const NodeID& v) {
-    invalidate_min_cost_flow_state();
     VertexDesc bu = get_or_create_vertex(u);
     VertexDesc bv = get_or_create_vertex(v);
 
@@ -86,12 +86,12 @@ std::size_t Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector
     auto [e, added] = boost::add_edge(bu, bv, g);
     (void)added;
     assign_next_edge_id(e);
+    invalidate_min_cost_flow_state();
     return get_edge_id(e);
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::remove_edge(std::size_t edge_id) {
-    invalidate_min_cost_flow_state();
     auto edge_desc = try_find_edge_desc_by_id(edge_id);
     if (!edge_desc.has_value()) {
         throw std::runtime_error("Edge lookup failed: edge not found.");
@@ -99,6 +99,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     edge_properties.erase(edge_id);
     erase_edge_id_index(edge_id);
     boost::remove_edge(*edge_desc, g);
+    invalidate_min_cost_flow_state();
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -174,17 +175,17 @@ template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool 
 template <bool W>
 requires(W)
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::set_edge_weight(std::size_t edge_id, EdgeWeight w) {
-    invalidate_min_cost_flow_state();
     auto e = get_edge_desc_by_id(edge_id);
     weight_map[e] = w;
+    invalidate_min_cost_flow_state();
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 template <typename T>
 void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::set_edge_attr(std::size_t edge_id, const std::string& key, const T& value) {
-    invalidate_min_cost_flow_state();
     (void)get_edge_desc_by_id(edge_id);
     edge_properties[edge_id][key] = make_attr_any(value);
+    invalidate_min_cost_flow_state();
 }
 
 } // namespace nxpp

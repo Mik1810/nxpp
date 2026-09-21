@@ -35,6 +35,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attrs(get_edge_desc(u, v), attrs);
+    invalidate_min_cost_flow_state();
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -49,6 +50,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     } else {
         add_edge(u, v);
         assign_edge_attrs(get_edge_desc(u, v), attrs);
+        invalidate_min_cost_flow_state();
     }
 }
 
@@ -64,6 +66,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attr(get_edge_desc(u, v), attr);
+    invalidate_min_cost_flow_state();
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -78,6 +81,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     } else {
         add_edge(u, v);
         assign_edge_attr(get_edge_desc(u, v), attr);
+        invalidate_min_cost_flow_state();
     }
 }
 
@@ -93,6 +97,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     throw_if_multigraph_attr_add_is_ambiguous<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>();
     add_edge(u, v, w);
     assign_edge_attrs(get_edge_desc(u, v), attrs);
+    invalidate_min_cost_flow_state();
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
@@ -107,6 +112,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     } else {
         add_edge(u, v);
         assign_edge_attrs(get_edge_desc(u, v), attrs);
+        invalidate_min_cost_flow_state();
     }
 }
 

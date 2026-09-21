@@ -669,8 +669,11 @@ public:
      * explicitly instead of relying on edge insertion to create them.
      */
     void add_node(const NodeID& id) {
-        invalidate_min_cost_flow_state();
+        if (has_node(id)) {
+            return;
+        }
         get_or_create_vertex(id);
+        invalidate_min_cost_flow_state();
     }
 
     /**
@@ -738,7 +741,6 @@ public:
      * @param w Edge weight to store.
      */
     void add_edge(const NodeID& u, const NodeID& v, EdgeWeight w = 1.0) {
-        invalidate_min_cost_flow_state();
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
         
@@ -746,6 +748,7 @@ public:
             auto [e, exists] = boost::edge(bu, bv, g);
             if (exists) {
                 weight_map[e] = w;
+                invalidate_min_cost_flow_state();
                 return;
             }
         }
@@ -754,6 +757,7 @@ public:
         (void)added;
         weight_map[e] = w;
         assign_next_edge_id(e);
+        invalidate_min_cost_flow_state();
     }
 
     template <bool W = Weighted>
@@ -778,7 +782,6 @@ public:
      * @param v Target node ID.
      */
     void add_edge(const NodeID& u, const NodeID& v) {
-        invalidate_min_cost_flow_state();
         VertexDesc bu = get_or_create_vertex(u);
         VertexDesc bv = get_or_create_vertex(v);
 
@@ -792,6 +795,7 @@ public:
         auto [e, added] = boost::add_edge(bu, bv, g);
         (void)added;
         assign_next_edge_id(e);
+        invalidate_min_cost_flow_state();
     }
 
     template <bool W = Weighted>
@@ -879,7 +883,6 @@ public:
      * default-constructed graph.
      */
     void clear() {
-        invalidate_min_cost_flow_state();
         g = GraphType();
         id_to_bgl.clear();
         bgl_to_id.clear();
@@ -890,6 +893,7 @@ public:
         vertex_index_map = boost::get(boost::vertex_wrapper_index, g);
         edge_id_map = boost::get(boost::edge_index, g);
         next_edge_id = 0;
+        invalidate_min_cost_flow_state();
     }
 
     /**
@@ -926,7 +930,6 @@ public:
      * @throws std::runtime_error If either node is missing or no such edge exists.
      */
     void remove_edge(const NodeID& u, const NodeID& v) {
-        invalidate_min_cost_flow_state();
         auto it_u = id_to_bgl.find(u);
         auto it_v = id_to_bgl.find(v);
         if (it_u == id_to_bgl.end() || it_v == id_to_bgl.end()) {
@@ -954,6 +957,7 @@ public:
         } else {
             boost::remove_edge(it_u->second, it_v->second, g);
         }
+        invalidate_min_cost_flow_state();
     }
 
     /**
@@ -980,7 +984,6 @@ public:
      * @throws std::runtime_error If the node is not present.
      */
     void remove_node(const NodeID& u) {
-        invalidate_min_cost_flow_state();
         auto it = id_to_bgl.find(u);
         if (it == id_to_bgl.end()) {
             throw std::runtime_error("Node lookup failed: node not found.");
@@ -994,6 +997,7 @@ public:
         node_properties.erase(u);
         rebuild_vertex_maps();
         rebuild_edge_id_index();
+        invalidate_min_cost_flow_state();
     }
 
     /**
@@ -1026,7 +1030,6 @@ public:
             return;
         }
 
-        invalidate_min_cost_flow_state();
         for (const auto& node : unique_nodes) {
             auto vertex = find_vertex_by_id(node);
             if (!vertex.has_value()) {
@@ -1041,6 +1044,7 @@ public:
 
         rebuild_vertex_maps();
         rebuild_edge_id_index();
+        invalidate_min_cost_flow_state();
     }
 
     /**
@@ -1296,6 +1300,7 @@ public:
             }
             auto e = graph->get_edge_desc(u, v);
             graph->edge_properties[graph->get_edge_id(e)][key] = Graph::make_attr_any(val);
+            graph->invalidate_min_cost_flow_state();
             return *this;
         }
 
@@ -1347,6 +1352,7 @@ public:
         NodeAttrProxy& operator=(const T& val) {
             if (!graph->has_node(u)) graph->add_node(u);
             graph->node_properties[u][key] = Graph::make_attr_any(val);
+            graph->invalidate_min_cost_flow_state();
             return *this;
         }
 

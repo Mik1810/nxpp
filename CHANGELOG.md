@@ -21,6 +21,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Fixed
 
+- Preserved staged min-cost-flow state after rejected and documented no-op
+  graph mutations, while invalidating it after successful structural, weight,
+  and attribute changes.
 - Made WASM CI and release verification fail when the tracked TypeScript facade
   artifacts differ from a clean `build:types` result.
 - Made eager DFS traversal honor the requested start node instead of traversing

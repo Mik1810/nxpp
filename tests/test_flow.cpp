@@ -136,6 +136,63 @@ void test_cycle_canceling_invalidated_by_graph_mutation() {
         "cycle_canceling should reject stale staged state after graph mutation");
 }
 
+void test_rejected_and_noop_mutations_preserve_staged_flow_state() {
+    auto graph = make_min_cost_flow_graph();
+    const auto missing_edge_id = std::numeric_limits<std::size_t>::max();
+
+    expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+           "push_relabel_maximum_flow should stage state before rejected mutations");
+
+    graph.add_node(0);
+    expect_runtime_error_message(
+        [&] { graph.remove_node(99); },
+        "Node lookup failed: node not found.",
+        "rejected node removal should keep staged flow state");
+    expect_runtime_error_message(
+        [&] { graph.remove_edge(0, 5); },
+        "Edge lookup failed: edge not found.",
+        "rejected endpoint edge removal should keep staged flow state");
+    expect_runtime_error_message(
+        [&] { graph.set_edge_weight(missing_edge_id, 7); },
+        "Edge lookup failed: edge not found.",
+        "rejected weight mutation should keep staged flow state");
+    expect_runtime_error_message(
+        [&] { graph.set_edge_attr(missing_edge_id, "capacity", 7L); },
+        "Edge lookup failed: edge not found.",
+        "rejected attribute mutation should keep staged flow state");
+
+    expect(graph.cycle_canceling() == 22,
+           "no-op and rejected mutations should preserve staged flow state");
+}
+
+void test_successful_weight_and_proxy_attribute_mutations_invalidate_staged_flow_state() {
+    const auto expect_invalidation = [](auto mutate, const std::string& description) {
+        auto graph = make_min_cost_flow_graph();
+        expect(graph.push_relabel_maximum_flow(0, 5) == 3,
+               "push_relabel_maximum_flow should stage state before a successful mutation");
+
+        mutate(graph);
+
+        expect_runtime_error_message(
+            [&] { (void)graph.cycle_canceling(); },
+            "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
+            description);
+    };
+
+    expect_invalidation(
+        [](auto& graph) {
+            const auto edge_id = graph.edge_ids(0, 1).front();
+            graph.set_edge_weight(edge_id, 7);
+        },
+        "successful edge-weight mutation should invalidate staged flow state");
+    expect_invalidation(
+        [](auto& graph) { graph.node(0)["label"] = "source"; },
+        "successful node-attribute mutation should invalidate staged flow state");
+    expect_invalidation(
+        [](auto& graph) { graph[0][1]["capacity"] = 2L; },
+        "successful endpoint edge-attribute mutation should invalidate staged flow state");
+}
+
 void test_staged_min_cost_flow_states_are_isolated_between_graph_instances() {
     auto first = make_min_cost_flow_graph();
     auto second = make_min_cost_flow_graph();
@@ -393,6 +450,8 @@ int main() {
     return run_tests({
         {"cycle_canceling requires cached flow state", test_cycle_canceling_requires_cached_flow_state},
         {"cycle_canceling invalidated by graph mutation", test_cycle_canceling_invalidated_by_graph_mutation},
+        {"rejected and no-op mutations preserve staged flow state", test_rejected_and_noop_mutations_preserve_staged_flow_state},
+        {"successful weight and proxy attribute mutations invalidate staged flow state", test_successful_weight_and_proxy_attribute_mutations_invalidate_staged_flow_state},
         {"staged min-cost-flow states are isolated between graph instances", test_staged_min_cost_flow_states_are_isolated_between_graph_instances},
         {"copy after staged flow has no cached flow state", test_copy_after_staged_flow_has_no_cached_flow_state},
         {"move after staged flow leaves source empty and uncached", test_move_after_staged_flow_leaves_source_empty_and_uncached},
