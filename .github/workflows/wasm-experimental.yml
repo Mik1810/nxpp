@@ -3,10 +3,12 @@ name: Wasm Experimental
 on:
   push:
     paths:
+      - "include/**"
       - "wasm/**"
       - ".github/workflows/wasm-experimental.yml"
   pull_request:
     paths:
+      - "include/**"
       - "wasm/**"
       - ".github/workflows/wasm-experimental.yml"
   workflow_dispatch:
