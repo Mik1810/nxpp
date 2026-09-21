@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-21 - WASM runtime class parity](sessions/2026-09-21-wasm-runtime-class-parity.md)
 - [2026-09-21 - WASM core CI trigger](sessions/2026-09-21-wasm-core-ci-trigger.md)
 - [2026-09-21 - Min-cost-flow state registry](sessions/2026-09-21-min-cost-flow-state-registry.md)
 - [2026-09-21 - Flow-capacity refactor](sessions/2026-09-21-flow-capacity-refactor.md)

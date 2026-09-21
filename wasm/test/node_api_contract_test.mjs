@@ -1,4 +1,5 @@
 import "./node_api_contract/exports.test.mjs";
+import "./node_api_contract/class_parity.test.mjs";
 import "./node_api_contract/attributes.test.mjs";
 import "./node_api_contract/centrality.test.mjs";
 import "./node_api_contract/components.test.mjs";

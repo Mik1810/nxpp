@@ -8,6 +8,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Added
 
+- Added a parity contract covering all eight Node/WASM graph classes before
+  binding and facade consolidation.
 - Added flow and centrality coverage to the experimental WASM runtime and
   TypeScript facade.
 - Added local overhead benchmarks comparing native C++, the raw WASM runtime,
