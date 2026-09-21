@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "attributes.hpp"
 #include "multigraph.hpp"
@@ -304,23 +305,59 @@ struct MinCostFlowState : WeightedFlowGraphState<NodeID> {
 };
 
 template <typename GraphWrapper>
-auto& min_cost_flow_cache() {
+class MinCostFlowStateRegistry {
     using NodeID = typename GraphWrapper::NodeType;
-    static std::map<const void*, std::unique_ptr<MinCostFlowState<NodeID>>> cache;
-    return cache;
-}
+    using State = MinCostFlowState<NodeID>;
+    using Cache = std::map<const void*, std::unique_ptr<State>>;
 
-template <typename GraphWrapper>
-auto& invalidated_min_cost_flow_graphs() {
-    static std::set<const void*> invalidated;
-    return invalidated;
-}
+    static Cache& cache() {
+        static Cache states;
+        return states;
+    }
 
-template <typename GraphWrapper>
-auto& min_cost_flow_cache_mutex() {
-    static std::mutex mutex;
-    return mutex;
-}
+    static std::set<const void*>& invalidated_graphs() {
+        static std::set<const void*> graphs;
+        return graphs;
+    }
+
+    static std::mutex& mutex() {
+        static std::mutex cache_mutex;
+        return cache_mutex;
+    }
+
+public:
+    static void stage(const void* graph_ptr, std::unique_ptr<State> state) {
+        std::lock_guard lock(mutex());
+        cache()[graph_ptr] = std::move(state);
+        invalidated_graphs().erase(graph_ptr);
+    }
+
+    static void invalidate(const void* graph_ptr) {
+        std::lock_guard lock(mutex());
+        if (cache().erase(graph_ptr) > 0) {
+            invalidated_graphs().insert(graph_ptr);
+        }
+    }
+
+    static void clear(const void* graph_ptr) {
+        std::lock_guard lock(mutex());
+        cache().erase(graph_ptr);
+        invalidated_graphs().erase(graph_ptr);
+    }
+
+    template <typename Operation>
+    static decltype(auto) with_state(const void* graph_ptr, Operation&& operation) {
+        std::lock_guard lock(mutex());
+        auto state_it = cache().find(graph_ptr);
+        if (state_it == cache().end()) {
+            if (invalidated_graphs().contains(graph_ptr)) {
+                throw std::runtime_error("Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().");
+            }
+            throw std::runtime_error("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
+        }
+        return std::forward<Operation>(operation)(*state_it->second);
+    }
+};
 
 } // namespace detail
 
@@ -361,20 +398,14 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 struct detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>> {
+    using GraphType = Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>;
+
     static void invalidate(const void* graph_ptr) {
-        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
-        auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-        if (cache.erase(graph_ptr) > 0) {
-            detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>().insert(graph_ptr);
-        }
+        detail::MinCostFlowStateRegistry<GraphType>::invalidate(graph_ptr);
     }
 
     static void clear(const void* graph_ptr) {
-        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
-        auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-        auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-        cache.erase(graph_ptr);
-        invalidated.erase(graph_ptr);
+        detail::MinCostFlowStateRegistry<GraphType>::clear(graph_ptr);
     }
 };
 
@@ -714,37 +745,27 @@ long Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
         get_vertex_index(get_id_to_bgl_map().at(target_id))
     );
     const long flow_value = state->value;
-    {
-        std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
-        auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-        auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-        cache[static_cast<const void*>(this)] = std::move(state);
-        invalidated.erase(static_cast<const void*>(this));
-    }
+    using GraphType = Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>;
+    detail::MinCostFlowStateRegistry<GraphType>::stage(static_cast<const void*>(this), std::move(state));
     return flow_value;
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>
 auto Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>::cycle_canceling(const std::string& weight_attr) const {
-    std::lock_guard lock(detail::min_cost_flow_cache_mutex<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>());
-    auto& cache = detail::min_cost_flow_cache<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-    auto& invalidated = detail::invalidated_min_cost_flow_graphs<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>();
-    auto it = cache.find(static_cast<const void*>(this));
-    if (it == cache.end()) {
-        if (invalidated.contains(static_cast<const void*>(this))) {
-            throw std::runtime_error("Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().");
+    using GraphType = Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>;
+    return detail::MinCostFlowStateRegistry<GraphType>::with_state(
+        static_cast<const void*>(this),
+        [this, &weight_attr](auto& state) {
+            for (const auto& edge : state.original_edges) {
+                state.weight[edge.edge_desc] = static_cast<long>(this->get_edge_numeric_attr(edge.edge_id, weight_attr));
+                const auto rev = state.reverse[edge.edge_desc];
+                state.weight[rev] = -state.weight[edge.edge_desc];
+            }
+            boost::cycle_canceling(state.flow_graph);
+            state.cost = boost::find_flow_cost(state.flow_graph);
+            return state.cost;
         }
-        throw std::runtime_error("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
-    }
-    auto& state = *it->second;
-    for (const auto& edge : state.original_edges) {
-        state.weight[edge.edge_desc] = static_cast<long>(get_edge_numeric_attr(edge.edge_id, weight_attr));
-        const auto rev = state.reverse[edge.edge_desc];
-        state.weight[rev] = -state.weight[edge.edge_desc];
-    }
-    boost::cycle_canceling(state.flow_graph);
-    state.cost = boost::find_flow_cost(state.flow_graph);
-    return state.cost;
+    );
 }
 
 template <typename NodeID, typename EdgeWeight, bool Directed, bool Multi, bool Weighted, typename OutEdgeSelector, typename VertexSelector>

@@ -28,6 +28,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
   staged npmjs release and `GITHUB_TOKEN` for GitHub Packages.
 - Moved flow-capacity parsing out of the core graph header while preserving
   the existing flow API and validation behavior.
+- Centralized staged min-cost-flow cache lifecycle and synchronization behind
+  a single internal registry.
 
 ## [1.4.7] - 2026-05-08
 

@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-21 - Min-cost-flow state registry](sessions/2026-09-21-min-cost-flow-state-registry.md)
 - [2026-09-21 - Flow-capacity refactor](sessions/2026-09-21-flow-capacity-refactor.md)
 - [2026-09-21 - WASM trusted publishing](sessions/2026-09-21-wasm-trusted-publishing.md)
 - [2026-09-21 - Agent infrastructure refactor](sessions/2026-09-21-agent-infrastructure-refactor.md)
