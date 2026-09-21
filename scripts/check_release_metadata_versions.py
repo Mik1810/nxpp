@@ -8,11 +8,11 @@ import sys
 from pathlib import Path
 
 
-def top_version(path: Path) -> str:
+def top_released_version(path: Path) -> str:
     content = path.read_text(encoding="utf-8")
-    match = re.search(r"^## \[([^\]]+)\]", content, re.MULTILINE)
+    match = re.search(r"^## \[(\d+\.\d+\.\d+)\]", content, re.MULTILINE)
     if not match:
-        raise ValueError(f"could not find a top version header in {path}")
+        raise ValueError(f"could not find a released version header in {path}")
     return match.group(1)
 
 
@@ -41,7 +41,7 @@ def vcpkg_version(path: Path) -> str:
 
 
 def main() -> int:
-    expected = top_version(Path("CHANGELOG.md"))
+    expected = top_released_version(Path("CHANGELOG.md"))
     versions = {
         "CMakeLists.txt": cmake_version(Path("CMakeLists.txt")),
         "conanfile.py": conan_version(Path("conanfile.py")),

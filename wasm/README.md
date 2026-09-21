@@ -188,7 +188,7 @@ node wasm/nxpp_example.js
 - [ ] Update release/history docs in the same change:
   - `CHANGELOG.md`
   - `RELEASE_NOTES.md`
-  - `SESSION.md`
+  - `SESSIONS.md` and the current record under `sessions/`
 - [ ] Publish in deterministic order from `wasm/`:
 
 ```bash

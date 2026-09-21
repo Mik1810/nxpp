@@ -2,170 +2,92 @@
 
 ## Mission
 
-Act as a coding agent for a university-level C++/WASM project.
-Prefer small, correct, readable changes. Optimize for clarity, maintainability, and low context usage.
+Act as a coding agent for a university-level C++20 and WebAssembly project.
+Prefer small, correct, readable changes with explicit verification and concise
+handoffs.
 
-## Hard Rules
+## Authorization and Scope
 
-- Do not edit before proposing a short plan and receiving explicit `OK`.
-- Do not change more than necessary.
-- Preserve existing style and unrelated behavior.
-- Do not introduce dependencies, broad refactors, new tooling, Docker, linters, or formatters without approval.
-- Do not cite AI tools or yourself in commits, comments, docs, or generated text.
-- No emojis. No decorative separators.
-- No secrets, tokens, passwords, or repo-local auth files.
+- Before editing, state what you understood, the files you propose to inspect,
+  the minimal implementation plan, and the verification plan. Wait for an
+  explicit `OK`.
+- Keep one focused task per session. Treat an unrelated task as a new session.
+- Preserve existing style and unrelated behavior. Do not add dependencies,
+  tooling, broad refactors, Docker, linters, or formatters without approval.
+- Never include secrets, tokens, passwords, registry credentials, or repo-local
+  authentication files.
+- Do not mention coding agents or AI tools in commits, comments, documentation,
+  or generated project text.
+- Do not use emojis or decorative separators.
 
-## Context Budget
+## Context and Commands
 
-- One focused task per session. New task or unrelated issue means new session.
-- Inspect only files directly relevant to the selected task or issue.
-- Prefer `rg`, `git status --short`, `git diff --stat`, and narrow `sed -n` ranges.
-- Do not read or print whole files unless they are small and directly relevant.
-- Do not read `SESSION.md` by default. Read only the last 15 lines when the user explicitly asks to resume prior work.
-- Do not dump large JSON, logs, issue bodies, comments, generated files, build dirs, lockfiles, dependency trees, or full diffs.
-- Never preserve raw logs, large diffs, issue bodies, or command output in `SESSION.md` or final replies.
-- If output exceeds 120 lines or says `Total output lines`, narrow the next command.
-- If context grows large, finish only the current micro-task, produce a short handoff, and stop.
+- Inspect only files relevant to the selected task. Prefer `rg`,
+  `git status --short`, `git diff --stat`, and narrow `sed -n` ranges.
+- Keep command output bounded, normally below 120 lines. Do not dump complete
+  logs, issue collections, generated files, dependency trees, or full diffs.
+- Every terminal command must use a 30-second timeout.
+- If a long-running command is still active after one poll, stop and ask the
+  user to run it manually.
+- Do not read session history by default. Read only the specific session file
+  needed to resume explicitly requested work.
+- Preserve uncommitted and unrelated user work.
 
-## Shell Rules
+## Repository Workflows
 
-- Every terminal command must use a 30s timeout.
-- Keep output bounded, usually <=120 lines.
-- Do not repeatedly poll long-running commands.
+Use the repository skills in `.agents/skills/` when their descriptions match:
 
-Use this pattern when output may be large:
+- `nxpp-issue-workflow` for selecting, planning, recording, and closing an issue.
+- `nxpp-cpp-change` for native C++ headers, algorithms, tests, and packaging.
+- `nxpp-wasm-change` for Embind, Emscripten, TypeScript, npm, and browser work.
+- `nxpp-release-workflow` for versions, changelog, release notes, and publishing.
 
-```bash
-timeout 30s <command> 2>&1 | tail -120
-```
+When a task crosses C++ and WASM, use both change skills but keep the C++
+library as the algorithmic source of truth.
 
-Use this when pipe exit status matters:
+## Implementation Quality
 
-```bash
-bash -lc 'set -o pipefail; timeout 30s <command> 2>&1 | tail -120'
-```
-
-Safe first commands:
-
-```bash
-timeout 30s git status --short
-timeout 30s git diff --stat
-timeout 30s rg -n "symbol" include tests --glob '!build' --glob '!dist' | head -80
-timeout 30s sed -n '40,120p' path/to/file
-```
-
-Use only when explicitly resuming prior work:
-
-```bash
-timeout 30s tail -15 SESSION.md
-```
-
-Avoid unrestricted `cat`, `find .`, `rg .`, `git log`, full test logs, generated files, build artifacts, and vendored/dependency output.
-
-## Long-Running Commands
-
-- If a command returns `Process running`, poll at most once.
-- If it is still running, stop and ask the user to run it manually.
-- Do not repeatedly poll builds, test suites, Emscripten commands, package installs, release commands, or network commands.
-- For WASM builds and contract tests, prefer giving the command to the user.
-- When the user provides command output, use only the final error, exit code, and last 80 lines.
-
-## GitHub Issues
-
-- Triage with metadata only:
-
-```bash
-timeout 30s gh issue list --limit 20 --json number,title,state,labels
-```
-
-- For work, fetch only the selected issue:
-
-```bash
-timeout 30s gh issue view <number> --json number,title,body,labels
-```
-
-- Do not fetch all bodies or comments in bulk.
-- Do not paste full issue JSON. Summarize only requirements relevant to the selected issue.
-- For WASM or large refactor issues, handle one issue per session.
-
-## Work Flow
-
-Before editing, provide only:
-1. what you understood;
-2. files you propose to inspect;
-3. minimal implementation plan;
-4. verification plan.
-
-After approval:
-1. inspect narrow file ranges;
-2. make the smallest patch;
-3. run the smallest relevant verification;
-4. update docs/history only when required.
-
-Final response:
-- changed files;
-- what changed;
-- verification;
-- assumptions/limits;
-- no long logs or full diffs.
-
-## Code Quality
-
-- Use clear names and simple control flow.
-- Keep functions reasonably small.
-- Remove dead/debug code.
+- Use clear names, simple control flow, and reasonably small functions.
+- Remove dead or debugging code.
 - Comment only non-obvious intent, assumptions, or tradeoffs.
-- Validate inputs and handle edge cases when appropriate.
+- Validate inputs and preserve documented error behavior.
+- Update public documentation when public behavior changes.
 
-## Testing
+## Verification
 
-- Run focused checks first.
-- Full tests only when the change affects core APIs, public behavior, CI/release logic, or shared infrastructure.
-- If touching core C++ behavior, run or propose:
+- Run the smallest relevant check first.
+- Run broader tests only for changes to public APIs, shared infrastructure,
+  release behavior, or cross-module contracts.
+- Keep verification output out of committed documentation and session files;
+  record only commands and outcomes.
+- Prefer asking the user to run long Emscripten, package publication, release,
+  or benchmark commands.
 
-```bash
-bash scripts/unix/run_tests.sh
-```
+## Session Records
 
-- If touching WASM bindings or TypeScript facade, prefer asking the user to run:
+- `SESSIONS.md` is the compact index of task records.
+- Store one record per task under `sessions/` using
+  `YYYY-MM-DD-issue-N.md` or `YYYY-MM-DD-task-slug.md`.
+- A record contains scope, decisions, changed files, verification, and the next
+  action. Do not store raw logs, full diffs, issue bodies, or repeated project
+  documentation.
+- `sessions/legacy-session.md` is a frozen historical archive. Do not append to
+  it or use it as current guidance.
 
-```bash
-bash wasm/scripts/build_wasm_node_module.sh
-npm --prefix wasm run build:types
-bash wasm/scripts/run_wasm_node_contract_tests.sh
-```
+## Project Invariants
 
-- Keep test output bounded with the shell rules.
-
-## Documentation and History
-
-- Update README or relevant docs when public behavior changes.
-- When an issue is completed, discuss whether version/release notes are needed.
-- `CHANGELOG.md`: concise versioned technical history, SemVer `x.y.z`.
-- `RELEASE_NOTES.md`: richer release-facing notes accumulated since the previous published release; do not mirror every changelog version unless the user starts release preparation.
-- `SESSION.md`: append-only, compact, no logs/diffs/bodies.
-
-Preferred `SESSION.md` entry:
-
-```md
-### YYYY-MM-DD - Issue #N
-
-- Branch/commit:
-- Files:
-- Decision:
-- Verified:
-- Next:
-```
-
-Do not modify unrelated docs automatically.
-
-## Project Notes
-
-- Releases are driven by `.github/workflows/release.yml`; normal push to `main` must not publish a GitHub release.
-- `CHANGELOG.md` remains versioned history for each completed change; `RELEASE_NOTES.md` remains an unreleased aggregate until the user declares the next release version.
-- WASM package lives in `wasm/`; publish flow is `npm run publish:all` from `wasm/`.
-- Keep registry credentials in user-level `~/.npmrc` only.
 - `include/nxpp.hpp` is the canonical umbrella include.
 - `dist/nxpp.hpp` is generated and must not be versioned.
-- Benchmark runs that generate benchmark CSV files are user-driven only.
-- Prefer current major versions of official GitHub Actions when editing workflows.
+- The stable native library is header-only C++20 and requires Boost 1.86 or
+  newer.
+- The experimental npm package lives under `wasm/`; its release version and
+  stability contract are independent from the C++ release.
+- Keep registry credentials in user-level configuration only.
+- Releases are driven by `.github/workflows/release.yml`; a normal push to
+  `main` must not publish a GitHub release.
+- `CHANGELOG.md` is concise technical history. `RELEASE_NOTES.md` is updated
+  when preparing a declared release and must not mirror every intermediate
+  change automatically.
+- Benchmark runs that generate result CSV files are user-driven only.
+- Prefer current major versions of official GitHub Actions when editing
+  workflows.

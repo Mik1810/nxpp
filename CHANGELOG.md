@@ -4,6 +4,27 @@ This project starts explicit release versioning with `0.4.1`. Older entries belo
 
 Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSIONING.md).
 
+## [Unreleased]
+
+### Added
+
+- Added flow and centrality coverage to the experimental WASM runtime and
+  TypeScript facade.
+- Added local overhead benchmarks comparing native C++, the raw WASM runtime,
+  and the TypeScript facade.
+- Added a separate experimental browser build and Dijkstra smoke demo without
+  changing the supported Node.js package contract.
+
+### Fixed
+
+- Made eager DFS traversal honor the requested start node instead of traversing
+  disconnected components.
+- Added WASM contract coverage for reachable Bellman-Ford negative cycles.
+
+### Changed
+
+- Reorganized repository agent guidance, task records, and reusable workflows.
+
 ## [1.4.7] - 2026-05-08
 
 - Documented the current WASM TypeScript facade architecture and API policy, including runtime class construction, attribute value support, error mapping, multigraph edge-ID semantics, and the Node/browser support boundary.

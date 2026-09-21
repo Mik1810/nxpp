@@ -54,10 +54,11 @@ keep the versioned project history in sync:
 
 - `CHANGELOG.md` for concise technical history
 - `RELEASE_NOTES.md` for release-facing notes
-- `SESSION.md` for a compact chronological work log
+- `SESSIONS.md` and one file under `sessions/` for the compact task record
 
-The top versions in `CHANGELOG.md` and `RELEASE_NOTES.md` should match the
-project metadata version.
+During release preparation, the selected versions in `CHANGELOG.md` and
+`RELEASE_NOTES.md` should match the project metadata version. Between releases,
+new work remains under `CHANGELOG.md` `Unreleased`.
 
 Before changing public API, classify the change with `VERSIONING.md` and apply
 the release compatibility review there. Stable API removals, semantic changes,

@@ -1,70 +1,20 @@
-# Nuova sessione token-efficient per lavorare sulle issue
+# Issue session template
 
-Segui `AGENTS.md`.
-Non usare `/resume`.
-Non leggere `SESSION.md` salvo mia richiesta.
-Non guardare altre issue.
+Use this prompt to start focused work on one GitHub issue.
 
-Task:
-Issue #<numero>: <titolo>
+```text
+Issue #<number>: <title>
 
-Prima di editare:
-1. leggi solo `git status --short`, `git diff --stat`, e `gh issue view #<numero> --json number,title,body,labels`;
-2. riassumi requisiti;
-3. indica massimo 3-5 file da ispezionare;
-4. proponi piano minimo e verifica;
-5. aspetta il mio `OK`.
+Follow AGENTS.md and the nxpp-issue-workflow skill.
 
-Non eseguire build/test lunghi. Se serve, dammi il comando e lo lancio io.
-
-## Lettura iniziale consentita
-
-Prima di proporre modifiche, leggi solo:
-
-1. `AGENTS.md`
-2. `git status --short`
-3. `git diff --stat`
-4. `tail -30 SESSION.md`, se esiste
-5. lista compatta delle issue aperte, senza body e senza commenti
-
-Comandi consigliati:
-
-```bash
-timeout 30s git status --short
-timeout 30s git diff --stat
-timeout 30s gh issue list --limit 20 --json number,title,state,labels
+Before editing:
+1. report the concise Git status;
+2. fetch only this issue's metadata and body;
+3. summarize the requirements;
+4. name no more than five files to inspect;
+5. propose the smallest implementation and verification plan;
+6. wait for my explicit OK.
 ```
 
-## Regole di contesto
-
-* Non leggere tutta la repository.
-* Non stampare file interi.
-* Non usare `cat` su file grandi.
-* Non eseguire `rg .`, `find .`, `git log` o comandi ampi senza limiti.
-* Non scaricare issue GitHub in blocco con body o commenti.
-* Non eseguire test completi finché non abbiamo deciso il perimetro.
-* Non usare output superiori a 120 righe.
-* Non modificare file prima del mio `OK`.
-
-## Task corrente
-
-Stiamo lavorando sulle issue GitHub di questa repository.
-
-Obiettivo iniziale:
-
-1. mostrare una lista compatta delle issue aperte;
-2. raggrupparle in piccoli batch coerenti;
-3. consigliare quale issue o batch affrontare per primo;
-4. aspettare la mia scelta prima di leggere body, commenti o file specifici.
-
-## Output richiesto ora
-
-Rispondi solo con:
-
-1. stato Git sintetico;
-2. lista compatta delle issue aperte: numero, titolo, labels;
-3. proposta di batch piccoli e coerenti;
-4. quale batch/issue consiglieresti di affrontare per primo e perché;
-5. quali file leggeresti solo dopo la mia approvazione.
-
-Aspetta il mio `OK` prima di aprire altri file o modificare codice.
+Do not include unrelated issues in the session. Use a separate session for a
+different task.
