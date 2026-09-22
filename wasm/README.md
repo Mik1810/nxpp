@@ -168,7 +168,9 @@ const graph = new nxpp.GraphInt();
 ```
 
 The raw Embind module has no public replacement. See the
+[1.0 release notes](https://github.com/Mik1810/nxpp/blob/main/wasm/RELEASE_NOTES.md)
+for the breaking-change summary and the
 [WASM build and release guide](https://github.com/Mik1810/nxpp/blob/main/wasm/WASM.md)
-for maintainer commands and the
-[issue roadmap](https://github.com/Mik1810/nxpp/issues/177) for remaining
-release-readiness decisions.
+for maintainer commands. The
+[issue roadmap](https://github.com/Mik1810/nxpp/issues/177) records the
+completed architecture audit.

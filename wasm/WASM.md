@@ -102,7 +102,7 @@ explicitly approved.
 1. Confirm the Node/browser support statements in this guide, the package
    README, and the root README match the tested surfaces.
 2. Align `wasm/package.json` and `wasm/package-lock.json` versions; prepare
-   `CHANGELOG.md` and `RELEASE_NOTES.md` for the declared release.
+   `CHANGELOG.md` and `wasm/RELEASE_NOTES.md` for the declared release.
 3. Rebuild the Node module and run TypeScript, Node contract, formal, raw
    contract, reproducibility, and packed-consumer checks above. Confirm the
    package contents and public exports are intentional.

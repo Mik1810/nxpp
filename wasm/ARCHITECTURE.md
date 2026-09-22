@@ -1,8 +1,8 @@
 # nxpp WASM architecture
 
 This document describes the current implementation and the decisions for the
-WASM package's `1.0.0` architecture. The package remains on its experimental
-`0.x` version until the completion gates below are checked. The
+WASM package's `1.0.0` architecture. The completion gates below have been
+audited for the `1.0.0` release candidate; publication remains separate. The
 [package README](README.md) covers usage, the [build guide](WASM.md) covers
 verification and release procedure, and the [API policy](API_POLICY.md)
 defines the public boundary. The [issue-backed roadmap](https://github.com/Mik1810/nxpp/issues/177)
@@ -159,7 +159,7 @@ short migration example.
 
 ## 1.0.0 completion gates
 
-The version advances to `1.0.0` only after a final audit confirms:
+The `1.0.0` candidate follows a final audit of these conditions:
 
 - required roadmap issues are closed or explicitly rejected with rationale;
 - all eight graph families pass public parity and behavior contracts;
