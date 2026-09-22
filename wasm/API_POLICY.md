@@ -10,8 +10,9 @@ error normalization. It must not reimplement graph algorithms.
 
 ## Stability Scope
 
-The current compatibility target is Node.js. Browser support is an
-investigation item and is not part of the supported runtime contract.
+Node.js is the supported experimental runtime target. The browser adapter and
+headless demo smoke check are investigation tools; browser behavior is not part
+of the published package contract or the Node API test guarantees.
 
 The package stays as a single npm package named `@mik1810/nxpp-wasm`. The
 package should contain the compiled wasm runtime, Emscripten JS glue, compiled
@@ -42,8 +43,11 @@ choose the concrete class at runtime and may type it through the generic
 interface:
 
 ```ts
-const g: DiGraph<number> = new DiGraphInt();
-const h: DiGraph<string> = new DiGraphStr();
+import { createNxpp, type DiGraph } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const g: DiGraph<number> = new nxpp.DiGraphInt();
+const h: DiGraph<string> = new nxpp.DiGraphStr();
 ```
 
 TypeScript generics are compile-time only. The public API must not depend on

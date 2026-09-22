@@ -1,8 +1,8 @@
 # nxpp-wasm 1.0 Architecture
 
-This document is the decision record for the target `1.0.0` architecture of
-`@mik1810/nxpp-wasm`. It defines the destination and migration rules; it does
-not describe the package as already implemented.
+This document is the decision record for the `1.0.0` architecture of
+`@mik1810/nxpp-wasm`. The package-root context API and artifact layout are
+implemented; the remaining release gates are tracked below.
 
 The package remains on the current `0.x` version while the migration is in
 progress. The version advances to `1.0.0` only after the completion gates in
@@ -12,7 +12,7 @@ this document are satisfied.
 
 - Native C++ remains the only source of graph algorithms and semantic state.
 - Embind remains an internal implementation detail of the WASM bridge.
-- `createNxpp()` becomes the asynchronous public initialization boundary and
+- `createNxpp()` is the asynchronous public initialization boundary and
   returns an explicit runtime context.
 - Public graph constructors are bound to that context rather than to a global
   module singleton.
@@ -212,9 +212,9 @@ The package-layout cutover removes direct constructors bound to an implicit
 global runtime, `loadNxppRuntime()`, the raw return meaning of `createNxpp()`,
 the `./runtime` shim, and development files previously shipped in the tarball.
 
-Before the version is changed to `1.0.0`, migration notes must show the old and
-new initialization forms. The compatibility layer is removed only in that
-declared transition, not opportunistically during an intermediate task.
+The old and new initialization forms are documented in `wasm/README.md`.
+The unpublished legacy source and generated output will be removed in #180
+before the version changes to `1.0.0`.
 
 ## Implementation Roadmap
 
@@ -236,6 +236,10 @@ declared transition, not opportunistically during an intermediate task.
   and supported exports.
 - [#168](https://github.com/Mik1810/nxpp/issues/168): retire the stale local
   checklist after the issue-backed roadmap is authoritative.
+- [#179](https://github.com/Mik1810/nxpp/issues/179): verify the Node versions
+  declared by the npm package before the `1.0.0` release.
+- [#180](https://github.com/Mik1810/nxpp/issues/180): remove the unused
+  singleton implementation and its generated output.
 
 The ordered umbrella roadmap is
 [#177](https://github.com/Mik1810/nxpp/issues/177).
@@ -250,6 +254,7 @@ The package version changes to `1.0.0` only when:
 - native C++ remains the algorithmic and semantic source of truth
 - multiple runtime contexts are isolated and correctly dispose graph handles
 - Node contract, TypeScript compile, and npm-pack consumer checks pass
+- tested Node versions match the range declared in `wasm/package.json`
 - raw declarations and generated facade artifacts are reproducible in CI
 - the final tarball contains only intentional consumer files and exports
 - migration notes cover every intentional breaking change from `0.6.0`

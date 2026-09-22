@@ -37,6 +37,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Retired the stale WASM task checklist in favor of the issue-backed roadmap
+  and aligned Node/browser support documentation with the current package and
+  CI contracts.
 - Replaced the experimental WASM singleton package surface with asynchronous
   `createNxpp()` contexts and reduced the npm tarball to an exact allowlist of
   facade dependencies and internal Node runtime assets.

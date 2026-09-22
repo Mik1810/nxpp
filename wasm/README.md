@@ -13,10 +13,11 @@ What this means in practice today:
 
 - CI and contract verification are Node-oriented
 - published artifacts and examples are validated on Node
-- browser usage is still future work and should be treated as investigation,
-  not as a compatibility guarantee
+- CI runs one browser demo smoke check; browser API parity and package support
+  are not guaranteed
 
-For internal architecture and roadmap details, see `wasm/WASM.md`.
+For implementation details, see [WASM.md](WASM.md). Actionable work is tracked
+in the [WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177).
 
 ## Usage
 
@@ -183,7 +184,7 @@ intentionally not provided.
 
 Use this checklist for every wasm package release.
 
-- [ ] Confirm runtime scope docs are still accurate (Node supported experimental target, browser still future work):
+- [ ] Confirm runtime scope docs are still accurate (Node supported experimental target; browser demo smoke only):
   - `README.md` (wasm section)
   - `wasm/README.md`
   - `wasm/WASM.md`
@@ -408,34 +409,9 @@ Important design choices for that direction:
 - the built-in `weight` channel remains part of graph behavior, but not part of
   the public type names, which stays closer to the NetworkX model
 
-## Direction for the next wasm steps
-
-The current wasm lane is intentionally still below full `nxpp.hpp` parity.
-
-The graph-core-plus-attributes-plus-traversal base is now in place for the
-explicit typed graph family. The next implementation goal is to continue by
-semantic module, starting with `shortest_paths.hpp`.
-
-Important design direction:
-
-- parity does not require literal C++ operator syntax in JavaScript
-- the target is behavioral parity through explicit JS-facing methods, not a
-  forced `Proxy`-heavy imitation of every `operator[]` chain
-- the wasm layer should therefore stabilize:
-  - correct graph primitives first
-  - then the NetworkX-like public graph family
-  - then later semantic headers on top of that base
-
-So the current wasm direction is:
-
-1. keep the explicit typed family (`Graph*`, `DiGraph*`, `MultiGraph*`,
-  `MultiDiGraph*`) aligned with the base C++ modules
-2. preserve distinct concrete backends by class (no runtime switching)
-3. close semantic headers block by block, with `attributes.hpp`,
-  `traversal.hpp`, `shortest_paths.hpp`, `spanning_tree.hpp`, and the first
-  `components.hpp` group-output slice plus `centrality.hpp` and `flow.hpp`
-  now covered
-4. continue with remaining semantic headers and runtime hardening
+Further implementation work is tracked in the
+[WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177) and the
+[WASM issue list](https://github.com/Mik1810/nxpp/issues?q=is%3Aissue+label%3Awasm).
 
 ## API parity and stability matrix
 
@@ -463,5 +439,5 @@ Stability levels used here:
 | `generators.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
 | `sat.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
 
-When a new wasm API family is merged, update this table together with
-`wasm/WASM.md`, `CHANGELOG.md`, and `RELEASE_NOTES.md`.
+When a public WASM API family changes, update this matrix and `CHANGELOG.md`.
+Prepare `RELEASE_NOTES.md` only for a declared release.

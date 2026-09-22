@@ -1,21 +1,16 @@
 # WebAssembly and Node Integration (Emscripten)
 
-This document is the single source of truth for the `nxpp` wasm path.
-
-It combines:
-
-- current experimental scope
-- architecture direction
-- build and CI behavior
-- troubleshooting notes
-- phased development plan to reach broad library coverage
+This document records the current WASM implementation, build, and CI behavior.
+The [issue-backed roadmap](https://github.com/Mik1810/nxpp/issues/177) tracks
+actionable work; [ARCHITECTURE.md](ARCHITECTURE.md) and
+[API_POLICY.md](API_POLICY.md) define the current design and public policy.
 
 ## Status
 
 - experimental portability/build target
-- focused on Node runtime first
+- focused on Node.js
 - Node runtime is the only currently supported experimental runtime target
-- browser runtimes are planned/future work and are not yet supported
+- browser runtimes are not supported by the npm package
 - not yet a full JavaScript/TypeScript API parity layer
 - now shipped as the experimental npm package `@mik1810/nxpp-wasm`
 
@@ -58,26 +53,22 @@ Current wasm lane includes:
 Runtime boundary for the current scope:
 
 - Node.js runtime behavior is actively tested and maintained
-- browser runtime behavior is not part of current CI guarantees
-- browser-oriented examples/demos remain investigation items until promoted
-  explicitly into supported scope
+- CI runs a browser facade smoke check, but this does not establish browser API
+  parity or package support
 
 ## Browser investigation path
 
-Browser usage is tracked as an experimental investigation path, separate from
-the Node package. The browser demo under `wasm/examples/browser-demo/` is a
-manual smoke target for checking whether a browser-oriented Emscripten build can
-load the module, create a small graph, run one algorithm, and display the
-result.
-That smoke target does not by itself establish Node-to-browser behavioral
-parity for the raw runtime or for the higher-level TypeScript facade.
+Browser usage is an experimental investigation path separate from the Node
+package. CI builds the demo under `wasm/examples/browser-demo/` and checks in a
+headless browser that the shared facade can load a browser-specific module,
+create a graph, and run one algorithm. This narrow check does not establish
+browser API parity or a browser package contract.
 
 This path is intentionally not part of the published package contract:
 
 - it should use a browser-specific build artifact, not `runtime/node.mjs`
 - the current package entrypoint and TypeScript facade remain Node-oriented
-- browser loader behavior, bundler expectations, MIME serving, and asset paths
-  are investigation details until CI starts covering them
+- browser bundler integration and general asset serving remain unverified
 - any browser demo should stay small and should not require redesigning the C++
   API
 
@@ -85,8 +76,9 @@ The expected investigation build direction is an Emscripten module with
 browser-compatible settings such as `-sENVIRONMENT=web`, `-sMODULARIZE=1`, and
 `-sEXPORT_ES6=1`. Keep the output separate from the Node build, for example as
 `wasm/examples/browser-demo/nxpp_browser.mjs` plus its matching `.wasm` file.
-The repository now includes a dedicated experimental build helper:
-`bash wasm/scripts/build_wasm_browser_demo.sh`.
+The repository includes an experimental build helper and smoke check:
+`bash wasm/scripts/build_wasm_browser_demo.sh` and
+`bash wasm/scripts/run_wasm_browser_smoke_test.sh`.
 Serve the demo directory over HTTP; opening the HTML file directly is not a
 valid browser module-loading test.
 
@@ -148,9 +140,14 @@ ad hoc local numbers as marketing or release claims.
 
 The experimental wasm workflow runs:
 
+- `npm --prefix wasm run build:types`
 - `bash wasm/scripts/build_wasm_node_module.sh`
 - `NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh`
 - `NXPP_WASM_INCLUDE_NODE_CONTRACT=0 NXPP_WASM_INCLUDE_LARGE=1 bash wasm/scripts/run_wasm_tests.sh`
+- `NXPP_WASM_NPM_PACK_SKIP_BUILD=1 bash wasm/scripts/run_npm_pack_consumer_test.sh`
+- `npm --prefix wasm run check:raw-contract`
+- `bash wasm/scripts/verify_wasm_runtime_reproducibility.sh`
+- the browser demo build and headless smoke check
 
 The workflow publishes a summary with:
 
@@ -159,9 +156,8 @@ The workflow publishes a summary with:
 - suite exit code
 - cleaned command outputs
 
-This CI lane is intentionally Node-only. Passing `wasm-experimental.yml` should
-be interpreted as a Node-runtime guarantee for the current experimental scope,
-not as a browser-runtime guarantee.
+Passing `wasm-experimental.yml` verifies the experimental Node package contract
+and one browser demo path. It does not guarantee browser package support.
 
 ## Dependency model
 
@@ -183,8 +179,8 @@ Runtime dependencies (consumer side target model):
 - Algorithms and data structures stay in native `nxpp` code.
 
 2. Export layer
-- Current path uses Embind for rapid iteration and validation.
-- Mid-term target is a narrower stable ABI-oriented bridge.
+- The current bridge uses Embind and returns JavaScript-native values where
+  practical; long-lived graph handles retain explicit ownership.
 
 3. Node SDK wrapper
 - JS/TS wrapper should expose idiomatic APIs and consistent errors.
@@ -197,39 +193,9 @@ Runtime dependencies (consumer side target model):
 - Publish prebuilt runtime artifacts.
 - Avoid install-time compilation for users.
 
-## Current implementation direction
-
-Near-term implementation order is now explicit:
-
-1. finish `graph.hpp` coverage first
-2. reshape the public graph API toward:
-   - `Graph`
-   - `DiGraph`
-   - `MultiGraph`
-   - `MultiDiGraph`
-3. keep internal numeric and string graph backends distinct instead of
-   normalizing all node IDs to one representation
-4. only after that move to later semantic headers such as:
-   - `components.hpp`
-   - `flow.hpp`
-5. treat any later JS convenience layer as behavior-focused and explicit,
-   rather than trying to reproduce every native `operator[]` form literally
-
-Why this direction:
-
-- `graph.hpp` is the core public surface that the other semantic headers build
-  on top of
-- the C++ alias list is too detailed and partly redundant for a good JS API
-- JavaScript users benefit more from a small graph-type family, similar to the
-  NetworkX model
-- supporting both numeric and string node IDs should not force the project to
-  give up the faster integer-backed algorithms internally
-- so the wasm plan should not jump to later headers before the graph core and
-  the public graph-type model are nailed down
-
 ## Node-compatible API surface (experimental)
 
-Current exported classes:
+The `NxppRuntime` returned by `createNxpp()` provides these constructors:
 
 - `GraphInt`
 - `GraphStr`
@@ -378,133 +344,14 @@ Current runtime behavior:
   than as nested graph wrapper instances, which keeps the wasm bridge stable
   while preserving the traversal result content
 
-## Planned public graph taxonomy
+## Public contract and coverage
 
-The intended public API uses a split model:
-
-- explicit runtime classes:
-  - `GraphInt` / `GraphStr`
-  - `DiGraphInt` / `DiGraphStr`
-  - `MultiGraphInt` / `MultiGraphStr`
-  - `MultiDiGraphInt` / `MultiDiGraphStr`
-- generic TypeScript interfaces:
-  - `Graph<T>`
-  - `DiGraph<T>`
-  - `MultiGraph<T>`
-  - `MultiDiGraph<T>`
-
-Design rules for that family:
-
-- runtime class names stay explicit and honest about node-ID kind
-- TypeScript generics remain static typing only (no runtime generic dispatch)
-- weighted behavior remains available, but not encoded into type names
-- the full C++ alias list from `graph.hpp` remains an internal binding concern
-- node IDs support both `number` and `string` through explicit class choice
-
-This means the current experimental typed graph family is already aligned with
-the `graph.hpp` node-type and multigraph distinctions.
-
-## API contract v0 (Node)
-
-The following contract is the current stability baseline for the exported
-experimental `Graph`, `DiGraph`, `MultiGraph`, and `MultiDiGraph` surface.
-
-### Method signatures
-
-- Simple graph methods (`Graph*`, `DiGraph*`):
-  - `addNode(id)`
-  - `addEdge(source, target, weight)`
-  - `hasNode(id)`
-  - `hasEdge(source, target)`
-  - `nodes()`
-  - `neighbors(id)`
-  - `removeNode(id)`
-  - `removeEdge(source, target)`
-  - `getEdgeWeight(source, target)`
-  - `setEdgeWeight(source, target, weight)`
-  - `subgraph(nodes)`
-  - `clear()`
-
-- Multigraph-only additions (`MultiGraph*`, `MultiDiGraph*`):
-  - `hasEdgeId(edgeId)`
-  - `edgeIds()`
-  - `edgeIdsBetween(source, target)`
-  - `getEdgeEndpoints(edgeId)`
-  - `getEdgeWeightById(edgeId)`
-  - `setEdgeWeightById(edgeId, weight)`
-  - `removeEdgeById(edgeId)`
-
-`EdgeEndpoints` contract:
-
-- `source(): number | string`
-- `target(): number | string`
-
-### Return-shape guarantees (v0)
-
-- `nodes()` returns an array-like list of node IDs using the graph class node-ID kind
-- `edgeIds()` returns an array-like list of numeric wrapper-managed edge IDs
-- `edgeIdsBetween()` returns an array-like list of numeric edge IDs matching
-  the endpoint pair
-- `neighbors()` returns an array-like list of node IDs using the graph class node-ID kind
-- `getEdgeWeight()` returns a numeric scalar weight
-- `getEdgeEndpoints()` returns an `EdgeEndpoints` object
-- `getEdgeWeightById()` returns a numeric scalar weight
-- mutation methods return no value
-
-### Error contract (v0)
-
-- methods throw JS exceptions when the wrapped C++ operation fails
-- at minimum, the following invalid operations must throw:
-  - adding or querying with unsupported node ID shapes
-  - `neighbors()` on a missing node
-  - `removeNode()` on a missing node
-  - `removeEdge()` on a missing edge or missing endpoint
-  - `getEdgeWeight()` on a missing edge
-  - `getEdgeWeightById()` on a missing edge ID
-  - `setEdgeWeightById()` on a missing edge ID
-  - `getEdgeEndpoints()` on a missing edge ID
-  - `removeEdgeById()` on a missing edge ID
-- exact message text is not yet guaranteed in v0; exception presence is
-  guaranteed by contract tests
-
-### Compatibility rules (v0)
-
-The following are breaking changes and require versioned migration notes:
-
-- method rename/removal
-- parameter list or parameter-type changes
-- return-type/shape changes
-- removing currently-thrown failure behavior for invalid graph-core queries
-
-The following are non-breaking for v0:
-
-- adding new methods
-- adding stricter validation that still throws on invalid input without
-  changing existing method signatures
-- improving exception message text without removing exception behavior
-
-## Feature matrix (tracking)
-
-| Area | Status | Current coverage | Next step |
-|---|---|---|---|
-| Toolchain and build | Active | Emscripten + Node module build script | Keep CI stable on Node LTS matrix |
-| Core graph lifecycle | Active | explicit typed runtime constructors for `Graph*`, `DiGraph*`, `MultiGraph*`, `MultiDiGraph*` plus `clear()` | Expand lifecycle-oriented helpers only when they map cleanly to `graph.hpp` |
-| Graph mutation APIs | Partial | endpoint-based mutation on simple/multi graphs plus precise `removeEdgeById` on multigraphs | Add next `graph.hpp` mutation slices while preserving simple-vs-multigraph API policy |
-| Query APIs | Partial | endpoint-based queries, materialized subgraphs, and edge-id queries on multigraphs | Expand query coverage module-by-module without exposing unstable aliases |
-| Graph parity layer | In design | explicit methods only | Keep behavior close to native `graph.hpp` while avoiding a misleading one-to-one operator-syntax imitation |
-| Shortest paths | Covered | single-pair, single-source Dijkstra/Bellman-Ford/DAG, and Floyd-Warshall all-pairs wrappers | Keep contract tests aligned with future facade changes |
-| Spanning tree | Covered | Kruskal and rooted Prim MST edge-list wrappers | Keep contract tests aligned with future facade changes |
-| Components/topology | In progress | Connected-component groups on undirected graph families and SCC groups on directed graph families | Add any additional component map/root DTOs only when needed |
-| Spanning/centrality | Covered | Degree centrality, PageRank, and betweenness centrality score-entry wrappers | Keep contract tests aligned with future facade changes |
-| Flow/multigraph precision | Covered | Max-flow, min-cut, min-cost-flow, staged push-relabel/cycle-canceling, and multigraph edge-id flow DTOs | Keep contract tests aligned with native flow behavior |
-| TypeScript surface | Active | generic TS interfaces + explicit typed runtime class declarations (`wasm/dist/index.d.ts`) and facade source tree under `wasm/ts/` | Expand algorithm module typings and wrappers as new wasm exports land |
-| NPM packaging | Covered | root-only facade export, exact tarball allowlist, and internal Node assets under `runtime/` | Keep release automation aligned with facade build/publish flow |
-
-Keep this table updated whenever a new exported API family is merged.
-
-For the consumer-facing parity/stability snapshot used in package docs, keep
-the companion matrix in `wasm/README.md` aligned with this internal tracking
-table.
+The package root exposes `createNxpp()` and TypeScript contracts. Its runtime
+context provides eight concrete graph constructors; the raw Embind module is
+an internal asset. [API_POLICY.md](API_POLICY.md) defines validation, result,
+and lifetime rules. [README.md](README.md) contains the current feature matrix
+and migration example. Node behavior is verified by the contract and packed
+consumer tests. Work beyond the current surface is tracked in GitHub issues.
 
 ## Strategy note: Emscripten in include headers vs adapter layer
 
@@ -565,106 +412,10 @@ Fix:
 BOOST_INCLUDE=/path/to/boost/include bash wasm/scripts/build_wasm_node_module.sh
 ```
 
-## Development plan
+## Roadmap
 
-## Phase A: Toolchain and baseline stability
-
-- keep Emscripten setup reliable in local and CI contexts
-- keep include-path configurability (`BOOST_INCLUDE`)
-- keep module build + wasm suite green
-
-Exit criteria:
-
-- baseline commands pass in CI and clean dev container
-
-## Phase B: Stable minimal Node contract
-
-Scope:
-
-- graph creation/reset
-- node/edge insertion and existence checks
-- Dijkstra distance/path
-
-Tasks:
-
-- harden input validation and deterministic errors
-- define explicit return-shape contracts
-- add TypeScript declarations
-- introduce functional Node contract tests
-
-Exit criteria:
-
-- Node contract is documented and verified on Node LTS matrix
-
-## Phase C: ABI hardening
-
-Tasks:
-
-- introduce a stable ABI-oriented bridge layer
-- route wrapper calls through that bridge
-- add ownership/lifetime regression tests
-
-Exit criteria:
-
-- public wrapper no longer depends on fragile binding details
-
-## Phase D: Coverage expansion toward full library
-
-Recommended rollout order:
-
-1. Traversal + shortest paths
-2. Components + topological utilities
-3. Spanning tree + centrality
-4. Flow algorithms
-5. Remaining semantic modules and browser/runtime hardening
-
-For each family:
-
-- implement export wiring
-- implement wrapper + typing
-- add parity tests against native suite behavior
-- add edge-case and error-path tests
-
-Exit criteria:
-
-- documented feature matrix reaches agreed full-coverage target
-
-## Phase E: Packaging and release readiness
-
-Tasks:
-
-- define package layout for wasm/node artifacts
-- configure exports map for ESM (and optional CJS strategy)
-- include version metadata and release notes linkage
-- run clean-environment install/use validation in CI
-
-Exit criteria:
-
-- consumers can install and use Node wasm package without native toolchain
-
-## Testing strategy
-
-- keep C++ suite as correctness backbone
-- add wasm/node tests in layers:
-  - module build verification
-  - API contract tests
-  - parity tests against selected native scenarios
-  - negative/error-path tests
-- enforce CI gates for API-shape regressions
-
-## Risks and mitigations
-
-- API drift between C++ and wrapper
-  - mitigation: centralized API-contract mapping and contract tests
-- lifetime/memory bugs at JS/wasm boundary
-  - mitigation: explicit ownership rules + lifecycle tests
-- artifact-size growth
-  - mitigation: track artifact sizes and add budget checks
-
-## Definition of done (final layer)
-
-- Node consumers use the wasm layer without local Boost/Emscripten
-- core algorithm families are exposed through stable Node APIs
-- CI validates build, runtime behavior, and installability
-- docs clearly define scope, guarantees, and versioning policy
-- package published on npm with clear usage instructions and release notes
+The [issue-backed WASM roadmap](https://github.com/Mik1810/nxpp/issues/177)
+records the remaining `1.0.0` work and completion gates. The
+[WASM issue list](https://github.com/Mik1810/nxpp/issues?q=is%3Aissue+label%3Awasm)
+tracks later feature proposals. Release preparation and publication are
+separate from the implementation roadmap.

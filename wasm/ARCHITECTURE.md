@@ -1,14 +1,16 @@
 # nxpp-wasm Architecture
 
-This document describes the current `0.6.0` implementation. The approved
-target and migration contract for `1.0.0` are defined separately in
-[`ARCHITECTURE_1_0.md`](ARCHITECTURE_1_0.md). Until that roadmap is complete,
-the current behavior remains the package contract.
+This document describes the current implementation of the experimental WASM
+package. The `1.0.0` completion gates are recorded in
+[`ARCHITECTURE_1_0.md`](ARCHITECTURE_1_0.md). The package version remains
+`0.6.0` until those gates are met; its root API already uses explicit runtime
+contexts.
 
-`@mik1810/nxpp-wasm` is a single npm package with two internal layers:
+`@mik1810/nxpp-wasm` is a single npm package with three internal layers:
 
 1. C++/WASM binding layer
-2. TypeScript facade layer
+2. Node runtime loader
+3. TypeScript facade layer
 
 The C++ library remains the source of truth. The WASM package exposes selected
 C++ graph behavior to Node.js through Emscripten/Embind and wraps that runtime
@@ -88,6 +90,9 @@ wasm/
     index.ts
     types.ts
   dist/
+  runtime/
+    node.mjs
+    node.wasm
   build/
 ```
 

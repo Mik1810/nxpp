@@ -103,7 +103,7 @@ For coverage, runtime boundaries, release checklist, and usage:
 
 - [wasm/README.md](wasm/README.md)
 - [wasm/WASM.md](wasm/WASM.md)
-- [wasm/TODO.md](wasm/TODO.md)
+- [WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177)
 
 ## License
 
