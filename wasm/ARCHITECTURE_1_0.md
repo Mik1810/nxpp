@@ -178,10 +178,16 @@ facade-side implementation of the failed semantic check.
 The public facade remains deliberately written and reviewed TypeScript. It is
 not generated from the C++ API.
 
-The raw runtime contract must have one machine-verifiable source. The pinned
-Emscripten declaration output should be evaluated first. If it is not stable
-enough, the project may use a minimal language-neutral manifest. Either choice
-must verify raw declarations and the eight-class capability matrix in CI.
+The pinned Emscripten declaration output is the machine-verifiable source for
+raw constructors, method names, arity, and the eight-class capability matrix.
+It is tracked at `wasm/generated/nxpp_node.raw.d.ts`, regenerated with
+`NXPP_WASM_EMIT_TSD=1`, and checked for drift in CI.
+
+Emscripten emits `any` for values crossing through `emscripten::val`, so this
+declaration is not the source for DTO field types. `wasm_types.ts` remains the
+reviewed refinement of the JavaScript-native shapes defined by the bridge
+contract. A mechanical check requires its constructor assignments, methods,
+and arities to match the generated declaration.
 
 ## Migration and Compatibility
 

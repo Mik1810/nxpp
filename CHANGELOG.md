@@ -8,6 +8,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Added
 
+- Added a generated Embind declaration and mechanical raw-contract check for
+  WASM constructors, method arity, refined TypeScript types, and class parity.
 - Defined the target `@mik1810/nxpp-wasm` `1.0.0` architecture, compatibility
   boundary, migration phases, and release completion gates.
 - Added a parity contract covering all eight Node/WASM graph classes before

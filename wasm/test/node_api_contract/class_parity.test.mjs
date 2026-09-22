@@ -1,5 +1,6 @@
 import {
     assert,
+    assertGeneratedCapabilities,
     assertMethods,
     expectedMultiMethods,
     expectedSimpleMethods,
@@ -51,6 +52,7 @@ for (const graphClass of graphClasses) {
     const graph = new graphClass.constructor();
     const expectedMethods = graphClass.multi ? expectedMultiMethods : expectedSimpleMethods;
     assertMethods(graph, expectedMethods, graphClass.name);
+    assertGeneratedCapabilities(graph, graphClass.name);
 
     const componentMethod = graphClass.directed ? "stronglyConnectedComponents" : "connectedComponents";
     const excludedComponentMethod = graphClass.directed ? "connectedComponents" : "stronglyConnectedComponents";

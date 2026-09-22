@@ -308,6 +308,17 @@ plain DTOs. Only graph and subgraph handles require explicit disposal. The
 `0.6` facade keeps the existing `source()` / `target()` endpoint methods through
 an unowned compatibility adapter over the raw `{ source, target }` DTO.
 
+The raw binding structure is generated from Embind and verified with:
+
+```bash
+NXPP_WASM_EMIT_TSD=1 bash scripts/build_wasm_node_module.sh
+npm run check:raw-contract
+```
+
+The generated declaration is authoritative for constructors, methods, arities,
+and class capabilities. Reviewed TypeScript continues to refine DTOs that
+Emscripten can only describe as `any`.
+
 Current shortest-path result behavior is explicit and JS-oriented:
 
 - single-pair methods return node arrays or numeric distances directly

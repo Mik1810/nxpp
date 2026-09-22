@@ -35,6 +35,7 @@
   "scripts": {
     "build:types": "tsc -p tsconfig.json",
     "bench:overhead": "bash scripts/run_overhead_benchmarks.sh",
+    "check:raw-contract": "node scripts/check_wasm_raw_contract.mjs",
     "check:node-contract": "bash scripts/run_wasm_node_contract_tests.sh",
     "check:npm-pack-consumer": "bash scripts/run_npm_pack_consumer_test.sh"
   },

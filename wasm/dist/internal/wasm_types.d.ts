@@ -90,16 +90,28 @@ export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {
     getEdgeNumericAttrById(edgeId: number, key: string): number;
     removeEdgeById(edgeId: number): void;
 }
+export interface RawUndirectedGraph<T extends NodeId> extends RawSimpleGraph<T>, RawConnectedComponentsGraph<T> {
+    subgraph(nodes: T[]): RawUndirectedGraph<T>;
+}
+export interface RawDirectedGraph<T extends NodeId> extends RawSimpleGraph<T>, RawStronglyConnectedComponentsGraph<T> {
+    subgraph(nodes: T[]): RawDirectedGraph<T>;
+}
+export interface RawUndirectedMultiGraph<T extends NodeId> extends RawMultiGraph<T>, RawConnectedComponentsGraph<T> {
+    subgraph(nodes: T[]): RawUndirectedMultiGraph<T>;
+}
+export interface RawDirectedMultiGraph<T extends NodeId> extends RawMultiGraph<T>, RawStronglyConnectedComponentsGraph<T> {
+    subgraph(nodes: T[]): RawDirectedMultiGraph<T>;
+}
 export type Constructor<T> = new () => T;
 export interface RawRuntimeModule {
     getExceptionMessage(error: unknown): [string, string];
     decrementExceptionRefcount(error: unknown): void;
-    GraphInt: Constructor<RawSimpleGraph<number>>;
-    GraphStr: Constructor<RawSimpleGraph<string>>;
-    DiGraphInt: Constructor<RawSimpleGraph<number>>;
-    DiGraphStr: Constructor<RawSimpleGraph<string>>;
-    MultiGraphInt: Constructor<RawMultiGraph<number>>;
-    MultiGraphStr: Constructor<RawMultiGraph<string>>;
-    MultiDiGraphInt: Constructor<RawMultiGraph<number>>;
-    MultiDiGraphStr: Constructor<RawMultiGraph<string>>;
+    GraphInt: Constructor<RawUndirectedGraph<number>>;
+    GraphStr: Constructor<RawUndirectedGraph<string>>;
+    DiGraphInt: Constructor<RawDirectedGraph<number>>;
+    DiGraphStr: Constructor<RawDirectedGraph<string>>;
+    MultiGraphInt: Constructor<RawUndirectedMultiGraph<number>>;
+    MultiGraphStr: Constructor<RawUndirectedMultiGraph<string>>;
+    MultiDiGraphInt: Constructor<RawDirectedMultiGraph<number>>;
+    MultiDiGraphStr: Constructor<RawDirectedMultiGraph<string>>;
 }

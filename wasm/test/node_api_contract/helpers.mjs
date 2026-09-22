@@ -1,82 +1,32 @@
 import assert from "node:assert/strict";
 import nxpp from "@mik1810/nxpp-wasm";
+import {
+    graphClassNames,
+    intersectMethodNames,
+    readRawContract,
+} from "../../scripts/raw_contract.mjs";
+
+const rawContract = readRawContract();
+const multiGraphClassNames = graphClassNames.filter((className) => className.startsWith("Multi"));
+const allGeneratedMethodNames = new Set(
+    [...rawContract.classes.values()].flatMap((methods) => methods.map((method) => method.name)),
+);
 
 export const expectedSimpleMethods = [
-    "addNode",
-    "addEdge",
-    "hasNode",
-    "hasEdge",
-    "nodes",
-    "neighbors",
-    "removeNode",
-    "removeEdge",
-    "getEdgeWeight",
-    "setEdgeWeight",
-    "subgraph",
-    "hasNodeAttr",
-    "getNodeAttr",
-    "tryGetNodeAttr",
-    "setNodeAttr",
-    "hasEdgeAttr",
-    "getEdgeAttr",
-    "tryGetEdgeAttr",
-    "setEdgeAttr",
-    "getEdgeNumericAttr",
-    "bfsEdges",
-    "bfsTree",
-    "bfsSuccessors",
-    "dfsEdges",
-    "dfsTree",
-    "dfsPredecessors",
-    "dfsSuccessors",
-    "shortestPath",
-    "shortestPathWeighted",
-    "shortestPathLength",
-    "shortestPathLengthWeighted",
-    "dijkstraPath",
-    "dijkstraPathWeighted",
-    "dijkstraShortestPaths",
-    "dijkstraPathLengths",
-    "dijkstraPathLength",
-    "dijkstraPathLengthWeighted",
-    "bellmanFordPath",
-    "bellmanFordPathWeighted",
-    "bellmanFordShortestPaths",
-    "bellmanFordPathLength",
-    "bellmanFordPathLengthWeighted",
-    "dagShortestPaths",
-    "floydWarshallAllPairsShortestPaths",
-    "floydWarshallAllPairsShortestPathsMap",
-    "kruskalMinimumSpanningTree",
-    "primMinimumSpanningTree",
-    "degreeCentrality",
-    "pagerank",
-    "betweennessCentrality",
-    "maximumFlow",
-    "minimumCut",
-    "maxFlowMinCost",
-    "maxFlowMinCostSuccessiveShortestPath",
-    "pushRelabelMaximumFlow",
-    "cycleCanceling",
-    "clear",
+    ...intersectMethodNames(rawContract, graphClassNames),
     "dispose",
 ];
 
 export const expectedMultiMethods = [
-    ...expectedSimpleMethods,
-    "hasEdgeId",
-    "edgeIds",
-    "edgeIdsBetween",
-    "getEdgeEndpoints",
-    "getEdgeWeightById",
-    "setEdgeWeightById",
-    "hasEdgeAttrById",
-    "getEdgeAttrById",
-    "tryGetEdgeAttrById",
-    "setEdgeAttrById",
-    "getEdgeNumericAttrById",
-    "removeEdgeById",
+    ...intersectMethodNames(rawContract, multiGraphClassNames),
+    "dispose",
 ];
+
+export function expectedFacadeMethods(className) {
+    const methods = rawContract.classes.get(className);
+    assert.notEqual(methods, undefined, `Missing generated raw contract for ${className}`);
+    return [...methods.map((method) => method.name), "dispose"];
+}
 
 export function assertMethods(target, methods, graphName) {
     for (const methodName of methods) {
@@ -84,6 +34,17 @@ export function assertMethods(target, methods, graphName) {
             typeof target[methodName],
             "function",
             `Expected method ${methodName} to exist on ${graphName}`,
+        );
+    }
+}
+
+export function assertGeneratedCapabilities(target, className) {
+    const expected = new Set(expectedFacadeMethods(className));
+    for (const methodName of allGeneratedMethodNames) {
+        assert.equal(
+            typeof target[methodName],
+            expected.has(methodName) ? "function" : "undefined",
+            `${className} capability mismatch for ${methodName}()`,
         );
     }
 }
