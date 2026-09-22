@@ -1,446 +1,174 @@
-# nxpp (npm wasm package)
+# nxpp WASM package
 
-Experimental Node.js wasm package for `nxpp`.
+`@mik1810/nxpp-wasm` exposes selected native nxpp graph operations through a
+TypeScript facade over WebAssembly. The package is experimental. This README
+describes the current repository revision; a published npm version may differ
+until the next package release.
 
-## Runtime support status
+## Runtime support
 
-Current runtime support is intentionally split as follows:
+- Node.js 22, 24, and 26 are tested with an installed npm tarball in CI.
+- Browsers have a separate smoke-tested demo, not a supported package API.
+- Consumers use prebuilt JavaScript and WASM assets; Boost and Emscripten are
+  needed only to build the package.
 
-- Node.js 22, 24, and 26: supported experimental targets, verified against an
-  installed npm tarball in CI
-- Browser runtimes: not yet a supported target
+The package exports only its root entrypoint. `runtime/`, `dist/`, the raw
+Embind module, and the browser adapter are internal, not importable subpaths.
 
-What this means in practice today:
+Install a published version with `npm install @mik1810/nxpp-wasm`. To validate
+the current repository revision before its next npm release, build and test a
+local tarball as described in the
+[build guide](https://github.com/Mik1810/nxpp/blob/main/wasm/WASM.md).
 
-- CI and contract verification are Node-oriented
-- published artifacts and examples are validated on Node
-- CI runs one browser demo smoke check; browser API parity and package support
-  are not guaranteed
+## Start with a graph
 
-For implementation details, see [WASM.md](WASM.md). Actionable work is tracked
-in the [WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177).
-
-## Usage
-
-```js
-import { createNxpp } from "@mik1810/nxpp-wasm";
-
-const nxpp = await createNxpp();
-const g = new nxpp.DiGraphInt();
-g.addEdge(1, 2, 1);
-g.addEdge(2, 3, 2);
-g.addEdge(1, 3, 5);
-
-console.log(g.neighbors(1));
-console.log(g.getEdgeWeight(1, 3));
-```
-
-The package export map intentionally supports only the root import above.
-Runtime assets under `runtime/` and compiled implementation files under
-`dist/` are private package contents.
-
-## Migration from `0.6`
-
-The `0.6` default singleton and its global constructors are removed. Replace:
-
-```js
-import nxpp from "@mik1810/nxpp-wasm";
-
-const graph = new nxpp.GraphInt();
-```
-
-with explicit asynchronous initialization:
+Initialize a context before constructing graphs. Each `createNxpp()` call
+creates an independent runtime context.
 
 ```js
 import { createNxpp } from "@mik1810/nxpp-wasm";
 
 const nxpp = await createNxpp();
-const graph = new nxpp.GraphInt();
+const graph = new nxpp.DiGraphInt();
+
+try {
+  graph.addEdge(1, 2, 1);
+  graph.addEdge(2, 3, 2);
+  graph.addEdge(1, 3, 5);
+
+  console.log(graph.dijkstraPath(1, 3)); // [1, 2, 3]
+  console.log(graph.dijkstraPathLength(1, 3)); // 3
+} finally {
+  graph.dispose();
+}
 ```
 
-`loadNxppRuntime()` and the `@mik1810/nxpp-wasm/runtime` shim have no public
-replacement. Raw Embind access is an internal implementation detail.
+The eight concrete constructors are `GraphInt`, `GraphStr`, `DiGraphInt`,
+`DiGraphStr`, `MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, and
+`MultiDiGraphStr`. `*Int` node IDs are integer-valued JavaScript numbers;
+`*Str` node IDs are strings. Constructors are properties of the returned
+context, not global package exports.
 
-## TypeScript facade
+## Other common operations
 
-The package now ships a TypeScript-facing facade on top of the wasm runtime.
+Attributes, traversal, and components use ordinary JavaScript values:
+
+```js
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const graph = new nxpp.GraphStr();
+try {
+  graph.addEdge("a", "b", 1);
+  graph.addEdge("b", "c", 1);
+  graph.setNodeAttr("a", "label", "start");
+
+  console.log(graph.getNodeAttr("a", "label")); // "start"
+  console.log(graph.bfsTree("a")); // { nodes: [...], edges: [...] }
+  console.log(graph.connectedComponents()); // [["a", "b", "c"]]
+} finally {
+  graph.dispose();
+}
+```
+
+For parallel edges, use an edge ID when changing one particular edge:
+
+```js
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const graph = new nxpp.MultiDiGraphInt();
+try {
+  graph.addEdge(1, 2, 4);
+  graph.addEdge(1, 2, 7);
+
+  const [edgeId] = graph.edgeIdsBetween(1, 2);
+  graph.setEdgeAttrById(edgeId, "capacity", 10);
+  console.log(graph.getEdgeAttrById(edgeId, "capacity")); // 10
+  console.log(graph.getEdgeEndpoints(edgeId).source()); // 1
+} finally {
+  graph.dispose();
+}
+```
+
+Flow results are plain data; only graph handles need disposal:
+
+```js
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const graph = new nxpp.DiGraphInt();
+try {
+  graph.addEdge(0, 1, 1);
+  graph.setEdgeAttr(0, 1, "capacity", 3);
+  const result = graph.maximumFlow(0, 1);
+  console.log(result.value); // 3
+  console.log(result.edgeFlows); // [{ source: 0, target: 1, flow: 3 }]
+} finally {
+  graph.dispose();
+}
+```
+
+Attribute values are limited to strings, finite numbers, and booleans.
+`tryGet...` methods return `null` for missing or unsupported values. Weighted
+shortest-path wrappers currently use the built-in `"weight"` channel.
+
+## TypeScript and lifetime
+
+Generic interfaces are for static typing; the runtime constructors stay
+explicit:
 
 ```ts
 import { createNxpp, type DiGraph } from "@mik1810/nxpp-wasm";
 
 const nxpp = await createNxpp();
-const g: DiGraph<number> = new nxpp.DiGraphInt();
-g.addNode(1);
-g.addEdge(1, 2, 3);
-
-const h: DiGraph<string> = new nxpp.DiGraphStr();
-h.addNode("a");
-h.addEdge("a", "b", 2);
-```
-
-Facade instances own Embind-backed WASM objects. Release them explicitly when a
-graph is no longer needed:
-
-```ts
-import { createNxpp } from "@mik1810/nxpp-wasm";
-
-const nxpp = await createNxpp();
-const g = new nxpp.GraphInt();
+const graph: DiGraph<number> = new nxpp.DiGraphInt();
 try {
-  g.addEdge(1, 2, 1);
-  console.log(g.neighbors(1));
+  graph.addEdge(1, 2, 3);
+  console.log(graph.neighbors(1));
 } finally {
-  g.dispose();
+  graph.dispose();
 }
 ```
 
-`dispose()` is safe to call more than once. Any graph operation after disposal
-throws a clear error. In runtimes that expose `Symbol.dispose`, facade
-instances also attach that symbol to the same disposal path.
+`dispose()` is idempotent. Operations after disposal throw a JavaScript error.
+In runtimes with `Symbol.dispose`, facade instances expose the same disposal
+path. Raw C++/WASM failures are normalized with a
+`WASM graph operation failed: ...` prefix.
 
-Runtime failures from the C++/WASM layer are normalized at the TypeScript
-facade boundary. Common invalid operations throw JavaScript `Error` instances
-with a stable `WASM graph operation failed: ...` prefix instead of exposing raw
-Embind exception objects.
+## API coverage
 
-Design rules for the facade:
+| Area | Current package surface |
+|---|---|
+| Graphs and attributes | Eight typed graph families, node/edge attributes, multigraph edge IDs |
+| Traversal and paths | BFS/DFS, single-pair and single-source shortest paths, Floyd-Warshall |
+| Other algorithms | Spanning trees, components, centrality, and flow |
+| Not exposed | Topological sort, generators, and SAT |
 
-- runtime classes stay explicit (`*Int` and `*Str`)
-- TypeScript generics are static only (no generic runtime dispatch tricks)
-- simple graph APIs stay endpoint-based
-- multigraph APIs expose edge-id methods where needed
+For exact method signatures and result types, consult the public declarations
+in the installed package or the [TypeScript source](https://github.com/Mik1810/nxpp/blob/main/wasm/ts/types.ts).
+The [API policy](https://github.com/Mik1810/nxpp/blob/main/wasm/API_POLICY.md)
+defines validation and support boundaries; the
+[architecture](https://github.com/Mik1810/nxpp/blob/main/wasm/ARCHITECTURE.md)
+explains layer ownership and the 1.0 criteria.
 
-The package intentionally exports only the public facade initializer and its
-TypeScript contracts. The raw Embind module, legacy singleton entrypoint,
-browser adapter, and internal implementation modules are not package exports.
+## Migration from the former 0.6 singleton
 
-## Local publish dry-run
+The default singleton export, global graph constructors,
+`loadNxppRuntime()`, and the `@mik1810/nxpp-wasm/runtime` shim have been
+removed from this repository revision. Replace `new nxpp.GraphInt()` on a
+default import with asynchronous context creation:
 
-```bash
-cd wasm
-npm pack
+```js
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const graph = new nxpp.GraphInt();
+// Use the graph, then call graph.dispose().
 ```
 
-To validate the packed tarball as a real external Node consumer:
-
-```bash
-cd wasm
-npm run check:npm-pack-consumer
-```
-
-This command builds the wasm module (unless skipped), packs the current
-package, installs that tarball in an isolated fixture consumer, checks the
-public TypeScript declarations, and runs a graph-operation smoke test through
-the published package entrypoint. CI reuses one packed tarball across the
-declared Node major versions.
-
-## Local overhead benchmarks
-
-The repository includes a small local benchmark suite for comparing native C++,
-raw WASM runtime calls, and the TypeScript facade on the same machine:
-
-```bash
-cd wasm
-npm run bench:overhead
-```
-
-The runner rebuilds the Node-compatible WASM module, builds a native C++
-benchmark binary, and prints CSV rows for:
-
-- graph construction
-- BFS from one source
-- Dijkstra from one source
-- Floyd-Warshall on a small graph
-- attribute round-trips
-- multigraph edge-ID operations
-
-You can tune the local smoke size with environment variables:
-
-```bash
-NXPP_WASM_BENCH_ITERATIONS=10 NXPP_WASM_BENCH_NODES=500 npm run bench:overhead
-```
-
-These numbers are local diagnostics, not release claims. Small repeated
-operations can be dominated by JS/WASM boundary cost, while larger algorithmic
-calls may amortize that overhead. Publish benchmark results only with the
-exact command, machine context, package version, and reproducible inputs.
-
-## Publication model
-
-WASM releases are published only by
-[`wasm-release.yml`](../.github/workflows/wasm-release.yml) from a tag matching
-`wasm-vX.Y.Z`. The tag version must equal `wasm/package.json` exactly.
-
-The workflow uses separate credential boundaries:
-
-1. npmjs receives a staged publication through Trusted Publishing and GitHub
-   OIDC. A maintainer must review and approve the staged package before it
-   becomes public.
-2. GitHub Packages receives the same verified package through the workflow's
-   short-lived `GITHUB_TOKEN`.
-
-No long-lived npm or GitHub Packages token belongs in the repository, a local
-`.npmrc`, or GitHub Actions secrets. Local `npm publish` scripts are
-intentionally not provided.
-
-## WASM package release checklist
-
-Use this checklist for every wasm package release.
-
-- [ ] Confirm runtime scope docs are still accurate (Node supported experimental target; browser demo smoke only):
-  - `README.md` (wasm section)
-  - `wasm/README.md`
-  - `wasm/WASM.md`
-- [ ] Ensure package metadata is consistent:
-  - `wasm/package.json` version
-  - `wasm/package-lock.json` version
-- [ ] Rebuild the Node-compatible wasm module:
-
-```bash
-bash wasm/scripts/build_wasm_node_module.sh
-```
-
-- [ ] Verify TypeScript facade build:
-
-```bash
-npm --prefix wasm run build:types
-```
-
-- [ ] Verify Node API contract tests:
-
-```bash
-env NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=1 bash wasm/scripts/run_wasm_node_contract_tests.sh
-```
-
-- [ ] Verify npm-pack consumer lane:
-
-```bash
-env NXPP_WASM_NPM_PACK_SKIP_BUILD=1 bash wasm/scripts/run_npm_pack_consumer_test.sh
-```
-
-- [ ] Verify smoke example still runs:
-
-```bash
-node wasm/nxpp_example.js
-```
-
-- [ ] Update release/history docs in the same change:
-  - `CHANGELOG.md`
-  - `RELEASE_NOTES.md`
-  - `SESSIONS.md` and the current record under `sessions/`
-- [ ] Commit and push the prepared release, then create and push the matching
-  WASM tag:
-
-```bash
-git tag wasm-vX.Y.Z
-git push origin wasm-vX.Y.Z
-```
-
-- [ ] Confirm the `WASM Release` workflow passes.
-- [ ] Review and approve the staged release on npmjs with 2FA.
-- [ ] Confirm both registries show the new version:
-  - npmjs after staged-release approval
-  - GitHub Packages
-
-## Current experimental surface
-
-Today the Node-facing wasm lane exposes an experimental first graph
-slice around explicit typed graph classes:
-
-- `GraphInt`
-- `GraphStr`
-- `DiGraphInt`
-- `DiGraphStr`
-- `MultiGraphInt`
-- `MultiGraphStr`
-- `MultiDiGraphInt`
-- `MultiDiGraphStr`
-
-Current simple graph methods (`Graph*`, `DiGraph*`) are:
-
-Core endpoint-oriented methods:
-
-- `addNode(id)`
-- `addEdge(source, target, weight)`
-- `hasNode(id)`
-- `hasEdge(source, target)`
-- `nodes()`
-- `neighbors(id)`
-- `removeNode(id)`
-- `removeEdge(source, target)`
-- `getEdgeWeight(source, target)`
-- `setEdgeWeight(source, target, weight)`
-- `subgraph(nodes)`
-- `hasNodeAttr(id, key)`
-- `getNodeAttr(id, key)`
-- `tryGetNodeAttr(id, key)`
-- `setNodeAttr(id, key, value)`
-- `hasEdgeAttr(source, target, key)`
-- `getEdgeAttr(source, target, key)`
-- `tryGetEdgeAttr(source, target, key)`
-- `setEdgeAttr(source, target, key, value)`
-- `getEdgeNumericAttr(source, target, key)`
-- `bfsEdges(start)`
-- `bfsTree(start)`
-- `bfsSuccessors(start)`
-- `dfsEdges(start)`
-- `dfsTree(start)`
-- `dfsPredecessors(start)`
-- `dfsSuccessors(start)`
-- `shortestPath(source, target)`
-- `shortestPathWeighted(source, target, weightKey = "weight")`
-- `shortestPathLength(source, target)`
-- `shortestPathLengthWeighted(source, target, weightKey = "weight")`
-- `dijkstraPath(source, target)`
-- `dijkstraPathWeighted(source, target, weightKey = "weight")`
-- `dijkstraShortestPaths(source)`
-- `dijkstraPathLengths(source)`
-- `dijkstraPathLength(source, target)`
-- `dijkstraPathLengthWeighted(source, target, weightKey = "weight")`
-- `bellmanFordPath(source, target)`
-- `bellmanFordPathWeighted(source, target, weightKey = "weight")`
-- `bellmanFordShortestPaths(source)`
-- `bellmanFordPathLength(source, target)`
-- `bellmanFordPathLengthWeighted(source, target, weightKey = "weight")`
-- `dagShortestPaths(source)`
-- `floydWarshallAllPairsShortestPaths()`
-- `floydWarshallAllPairsShortestPathsMap()`
-- `kruskalMinimumSpanningTree()`
-- `primMinimumSpanningTree(root)`
-- `clear()`
-
-Multigraph classes (`MultiGraph*`, `MultiDiGraph*`) additionally expose
-edge-ID-specific methods:
-
-- `hasEdgeId(edgeId)`
-- `edgeIds()`
-- `edgeIdsBetween(source, target)`
-- `getEdgeEndpoints(edgeId)`
-- `getEdgeWeightById(edgeId)`
-- `setEdgeWeightById(edgeId, weight)`
-- `hasEdgeAttrById(edgeId, key)`
-- `getEdgeAttrById(edgeId, key)`
-- `tryGetEdgeAttrById(edgeId, key)`
-- `setEdgeAttrById(edgeId, key, value)`
-- `getEdgeNumericAttrById(edgeId, key)`
-- `removeEdgeById(edgeId)`
-
-Current attribute-value contract is intentionally narrow and explicit:
-
-- supported attribute values are `string`, finite `number`, and `boolean`
-- `tryGet...` methods return `null` when the attribute is missing or the stored
-  value does not match the wasm contract
-- `null` is not accepted as an attribute value in writes
-- endpoint-based edge-attribute access on multigraphs remains convenience-only;
-  use `*ById` methods when one concrete parallel edge matters
-
-Current runtime type behavior is explicit by class:
-
-- `*Int` classes accept only integer-valued JS numbers as node IDs
-- `*Str` classes accept only JS strings as node IDs
-- wrong node-ID types throw explicit `std::runtime_error`
-
-The internal bridge value and lifetime rules are documented in
-[`BRIDGE_CONTRACT.md`](BRIDGE_CONTRACT.md). In particular, algorithm results
-and endpoint values cross the bridge as JavaScript arrays, primitives, and
-plain DTOs. Only graph and subgraph handles require explicit disposal. The
-`0.6` facade keeps the existing `source()` / `target()` endpoint methods through
-an unowned compatibility adapter over the raw `{ source, target }` DTO.
-
-The raw binding structure is generated from Embind and verified with:
-
-```bash
-NXPP_WASM_EMIT_TSD=1 bash scripts/build_wasm_node_module.sh
-npm run check:raw-contract
-```
-
-The generated declaration is authoritative for constructors, methods, arities,
-and class capabilities. Reviewed TypeScript continues to refine DTOs that
-Emscripten can only describe as `any`.
-
-Current shortest-path result behavior is explicit and JS-oriented:
-
-- single-pair methods return node arrays or numeric distances directly
-- `dijkstraShortestPaths(source)`, `bellmanFordShortestPaths(source)`, and
-  `dagShortestPaths(source)` return a result object with:
-  - `distance`
-  - `predecessor`
-  - `hasPathTo(target)`
-  - `pathTo(target)`
-- `floydWarshallAllPairsShortestPaths()` returns a dense `number[][]` matrix
-- `floydWarshallAllPairsShortestPathsMap()` returns serializable source/target
-  DTO entries instead of a JS `Map`
-- weighted wrappers currently accept only the built-in `"weight"` channel
-- minimum-spanning-tree wrappers return serializable `{ source, target }`
-  edge entries
-- centrality wrappers return serializable `{ node, score }` entries
-- flow wrappers return serializable max-flow, min-cut, and min-cost-flow DTOs,
-  including `{ edgeId, flow }` entries for precise multigraph edge identity
-- facade graph instances expose explicit `dispose()` lifetime management
-- facade graph operations normalize common runtime failures into predictable
-  JavaScript errors
-
-This surface is useful for iteration and contract testing, but it is not yet
-the long-term public API shape.
-
-The binding implementation is now modular and mirrors the core library modules
-under `wasm/include/nxpp_wasm/` and `wasm/src/`, with a single final
-`EMSCRIPTEN_BINDINGS(...)` entrypoint in `wasm/src/nxpp_wasm.cpp`.
-
-The TypeScript facade source is organized under `wasm/ts/`, and the published
-entrypoint and declarations are under `wasm/dist/`.
-
-## Public API direction
-
-The public JavaScript-facing API is now intended to stay aligned with explicit
-typed graph classes from the core `graph.hpp` model:
-
-- `GraphInt` / `GraphStr`
-- `DiGraphInt` / `DiGraphStr`
-- `MultiGraphInt` / `MultiGraphStr`
-- `MultiDiGraphInt` / `MultiDiGraphStr`
-
-Important design choices for that direction:
-
-- JavaScript consumers should not need to care about the full C++ alias matrix
-  from `graph.hpp`
-- node IDs should support both `number` and `string`
-- each exported wasm class should bind one concrete backend directly (no lazy
-  backend selection from first use)
-- mixing numeric and string node IDs is prevented by class design (`*Int` vs
-  `*Str`) and explicit runtime validation at JS boundary conversion points
-- the built-in `weight` channel remains part of graph behavior, but not part of
-  the public type names, which stays closer to the NetworkX model
-
-Further implementation work is tracked in the
-[WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177) and the
-[WASM issue list](https://github.com/Mik1810/nxpp/issues?q=is%3Aissue+label%3Awasm).
-
-## API parity and stability matrix
-
-This matrix tracks wasm API parity against the native semantic modules and the
-current stability expectations for consumers.
-
-Stability levels used here:
-
-- `Experimental`: available now, but shape/details can still change in the
-  current experimental package lane
-- `In progress`: partially exposed; more API families are expected
-- `Planned`: not yet exported in the public wasm surface
-
-| Native semantic area | Wasm parity status | Stability | Notes |
-|---|---|---|---|
-| `graph.hpp` | Covered (explicit typed runtime family) | Experimental | `Graph*`, `DiGraph*`, `MultiGraph*`, `MultiDiGraph*` core methods |
-| `attributes.hpp` | Covered | Experimental | Node and edge attributes, including `*ById` multigraph paths |
-| `traversal.hpp` | Covered | Experimental | BFS/DFS edges, trees, successors/predecessors DTO shapes |
-| `shortest_paths.hpp` | Covered | Experimental | Single-pair, single-source, and Floyd-Warshall all-pairs wrappers |
-| `spanning_tree.hpp` | Covered | Experimental | Kruskal and rooted Prim edge-list wrappers |
-| `components.hpp` | In progress | Experimental | Connected-component groups on undirected graph families and SCC groups on directed graph families |
-| `centrality.hpp` | Covered | Experimental | Degree centrality, PageRank, and betweenness score-entry wrappers |
-| `flow.hpp` | Covered | Experimental | Max-flow, min-cut, min-cost-flow, staged flow, and edge-id flow DTO wrappers |
-| `topological_sort.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
-| `generators.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
-| `sat.hpp` | Out of near-term scope | Planned | Explicitly excluded from the current wasm near-term plan |
-
-When a public WASM API family changes, update this matrix and `CHANGELOG.md`.
-Prepare `RELEASE_NOTES.md` only for a declared release.
+The raw Embind module has no public replacement. See the
+[WASM build and release guide](https://github.com/Mik1810/nxpp/blob/main/wasm/WASM.md)
+for maintainer commands and the
+[issue roadmap](https://github.com/Mik1810/nxpp/issues/177) for remaining
+release-readiness decisions.

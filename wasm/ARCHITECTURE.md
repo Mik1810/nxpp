@@ -1,218 +1,178 @@
-# nxpp-wasm Architecture
+# nxpp WASM architecture
 
-This document describes the current implementation of the experimental WASM
-package. The `1.0.0` completion gates are recorded in
-[`ARCHITECTURE_1_0.md`](ARCHITECTURE_1_0.md). The package version remains
-`0.6.0` until those gates are met; its root API already uses explicit runtime
-contexts.
+This document describes the current implementation and the decisions for the
+WASM package's `1.0.0` architecture. The package remains on its experimental
+`0.x` version until the completion gates below are checked. The
+[package README](README.md) covers usage, the [build guide](WASM.md) covers
+verification and release procedure, and the [API policy](API_POLICY.md)
+defines the public boundary. The [issue-backed roadmap](https://github.com/Mik1810/nxpp/issues/177)
+tracks implementation work.
 
-`@mik1810/nxpp-wasm` is a single npm package with three internal layers:
+## Contract and dependency direction
 
-1. C++/WASM binding layer
-2. Node runtime loader
-3. TypeScript facade layer
+The native C++ library is the only source of graph algorithms and semantic
+state. The package exports an asynchronous `createNxpp()` initializer from
+its root entrypoint. It returns an `NxppRuntime` context with eight concrete
+graph constructors. There are no global graph constructors or supported deep
+imports into the runtime and facade implementation.
 
-The C++ library remains the source of truth. The WASM package exposes selected
-C++ graph behavior to Node.js through Emscripten/Embind and wraps that runtime
-with a TypeScript-facing API.
+```text
+public TypeScript facade
+          |
+          v
+explicit NxppRuntime context
+          |
+          v
+environment loader (Node; browser experimental)
+          |
+          v
+internal Embind bridge
+          |
+          v
+native nxpp C++ library
+```
 
-## Layer Responsibilities
+The arrows show dependencies, not separate npm packages. The package remains
+one distribution of prebuilt JavaScript, declarations, and WASM assets.
 
-The C++/WASM binding layer is responsible for:
+## Layer ownership
 
-- compiling the native `nxpp` implementation to WebAssembly
-- exposing concrete runtime graph classes through Embind
-- keeping bindings close to the native module structure
-- converting native graph values into bridge-safe runtime values
+### Native C++ and Embind
 
-The TypeScript facade layer is responsible for:
+The header-only C++ library owns graph storage, algorithms, semantic
+validation, and staged algorithm lifecycles. `wasm/include/nxpp_wasm/` and
+`wasm/src/` instantiate selected graph templates, register their methods,
+and convert boundary values. They must not duplicate algorithmic logic.
 
-- exporting the public npm entrypoint
-- exposing generic TypeScript interfaces
-- wrapping concrete WASM runtime classes
-- validating JavaScript inputs where practical
-- normalizing raw runtime errors
-- adapting raw Embind values into stable JavaScript result shapes
-- owning explicit graph lifetime management through `dispose()`
+`wasm/src/nxpp_wasm.cpp` supplies the single `EMSCRIPTEN_BINDINGS` entrypoint
+through `nxpp_wasm::register_all_bindings()`. Registration is split into graph
+and multigraph families, with shared capability modules for attributes,
+traversal, shortest paths, spanning trees, components, centrality, and flow.
+Topological sort, generators, and SAT are not currently exported.
 
-The TypeScript facade must not reimplement graph algorithms or mirror native
-semantic state. Algorithmic work and staged algorithm lifecycles belong in the
-C++ library and the WASM binding layer.
+Embind is internal and versioned with the package, not a stable public ABI.
+Moving to a C ABI would require separate measured evidence; it is not a
+condition of the 1.0 refactor. Emscripten directives stay out of the native
+public `include/` headers.
 
-## Current Layout
+### Environment loaders and runtime context
 
-The current implementation is organized around module-level bindings and a
-separate TypeScript facade:
+`wasm/ts/runtime/node.ts` creates a raw Node module per call. The runtime-
+neutral factory in `wasm/ts/runtime/context.ts` validates that module and
+returns a frozen `NxppRuntime` with constructors bound to it. Multiple
+contexts can coexist without shared graph or staged-algorithm state.
+
+The browser adapter receives a separate browser module factory and asset URL.
+It uses the same facade construction but remains outside the supported package
+export map. A headless demo smoke test proves only a narrow loading path, not
+browser API parity or general bundler support.
+
+### Public TypeScript facade
+
+`wasm/ts/` owns input-type checks, reviewed public declarations, error
+normalization, result adaptation, and graph-handle disposal. It does not
+reimplement graph algorithms or mirror native semantic state such as staged
+min-cost-flow availability or mutation versions.
+
+The package root exports `createNxpp()` and public TypeScript types. The
+returned context provides `GraphInt`, `GraphStr`, `DiGraphInt`, `DiGraphStr`,
+`MultiGraphInt`, `MultiGraphStr`, `MultiDiGraphInt`, and `MultiDiGraphStr`.
+Generic `Graph<T>`, `DiGraph<T>`, `MultiGraph<T>`, and `MultiDiGraph<T>`
+interfaces are compile-time contracts; generic parameters cannot select a
+runtime class.
+
+## Layout and package surface
 
 ```text
 wasm/
-  include/
-    nxpp_wasm.hpp
-    nxpp_wasm/
-      common/
-      graph.hpp
-      multigraph.hpp
-      attributes.hpp
-      traversal.hpp
-      shortest_paths.hpp
-      spanning_tree.hpp
-      components.hpp
-      centrality.hpp
-      flow.hpp
-      generators.hpp
-      sat.hpp
-      topological_sort.hpp
-      register_all.hpp
-  src/
-    common/
-    graph.cpp
-    multigraph.cpp
-    attributes.cpp
-    traversal.cpp
-    shortest_paths.cpp
-    spanning_tree.cpp
-    components.cpp
-    centrality.cpp
-    flow.cpp
-    generators.cpp
-    sat.cpp
-    topological_sort.cpp
-    nxpp_wasm.cpp
-  ts/
-    algorithms/
-    core/
-    internal/
-    runtime/
-    index.ts
-    types.ts
-  dist/
-  runtime/
-    node.mjs
-    node.wasm
-  build/
+  include/nxpp_wasm/       Embind declarations and conversion helpers
+  src/                     binding registrations and bridge implementation
+  ts/core/                 runtime-neutral facade graph classes
+  ts/runtime/              context, Node loader, experimental browser loader
+  ts/internal/             validation, errors, and raw type refinements
+  ts/index.ts, ts/types.ts  package root and public types
+  dist/                    generated facade JavaScript and declarations
+  generated/               pinned raw Embind declaration
+  runtime/node.mjs         packaged Emscripten Node glue
+  runtime/node.wasm        packaged WASM binary
+  test/                    contract and consumer fixtures
 ```
 
-`wasm/src/nxpp_wasm.cpp` defines the Embind module and calls
-`nxpp_wasm::register_all_bindings()`. `register_all_bindings()` is the single
-registration entrypoint for module binding registration.
+The published tarball contains only the files allowlisted in
+`wasm/package.json`. `dist/index.js` is the supported import target. The raw
+module, generated declarations, internal facade files, and browser artifacts
+are not supported subpaths. The former singleton source and generated legacy
+output have been removed.
 
-## Runtime Classes and Facade Types
+## Values, lifetime, and errors
 
-The raw runtime exposes explicit classes for concrete node-ID families:
+The bridge returns JavaScript primitives, arrays, and plain DTOs for ordinary
+results, including traversal edges, shortest-path distances, component groups,
+centrality scores, and flow assignments. Only graph and subgraph handles
+require explicit Embind lifetime management. The facade owns each handle;
+`dispose()` is idempotent and operations after disposal fail clearly.
 
-- `GraphInt`
-- `GraphStr`
-- `DiGraphInt`
-- `DiGraphStr`
-- `MultiGraphInt`
-- `MultiGraphStr`
-- `MultiDiGraphInt`
-- `MultiDiGraphStr`
+The raw multigraph edge-endpoint lookup crosses the bridge as a plain
+`{ source, target }` DTO. The facade retains the documented `source()` and
+`target()` methods through an unowned adapter; it is not a second native
+object requiring deletion. Use edge-ID methods when one specific parallel
+edge matters.
 
-The TypeScript facade exports those concrete classes and also exports generic
-interfaces:
+The facade validates invalid JavaScript value types before crossing into WASM
+where practical. Native graph failures cross the bridge and are normalized to
+JavaScript `Error` objects with the `WASM graph operation failed: ...` prefix.
+Optimized builds preserve `std::exception::what()` and release caught native
+exceptions. Error mapping must not reproduce the failed semantic check in
+TypeScript. See [BRIDGE_CONTRACT.md](BRIDGE_CONTRACT.md) for the detailed value
+and ownership rules.
 
-- `Graph<T extends number | string>`
-- `DiGraph<T extends number | string>`
-- `MultiGraph<T extends number | string>`
-- `MultiDiGraph<T extends number | string>`
+## Contract ownership and verification
 
-This is intentionally a split model. Runtime construction is explicit, while
-generic interfaces provide static TypeScript typing.
+The public facade is deliberately reviewed TypeScript; it is not generated
+from the C++ API. Emscripten emits the pinned declaration at
+`wasm/generated/nxpp_node.raw.d.ts`. That declaration is the mechanical source
+for raw constructor, method, arity, and class-capability checks. Since values
+crossing `emscripten::val` may be declared as `any`, the reviewed
+`wasm_types.ts` refines DTO fields against the bridge contract.
 
-## Loading Flow
+CI checks TypeScript output against its source, the raw declaration against
+the bindings, and packaged Node runtime reproducibility. It runs the Node API
+contract and installs one tarball on Node 22, 24, and 26 for a consumer smoke
+test and public declaration check. The browser demo receives a separate,
+narrow smoke check. These checks do not promote browser support.
 
-1. `wasm/ts/runtime/node.ts` initializes one raw Node module per call.
-2. `wasm/ts/runtime/context.ts` validates it and returns a frozen
-   `NxppRuntime` containing module-bound constructors.
-3. Graphs and subgraphs created by one context remain bound to that context.
+## Migration decisions
 
-The compiled facade in `dist/index.js` is the only supported package
-entrypoint. It exports `createNxpp()` and public TypeScript contracts. The raw
-runtime under `runtime/` is an internal package asset used by the Node loader,
-not a public export.
+The starting `0.6.0` root exported a default singleton, global graph
+constructors, `loadNxppRuntime()`, and a `./runtime` shim. The singleton
+loader cached one raw module promise and initialized it with top-level
+`await`. The former tarball also contained development sources and generated
+assets under `build/`.
 
-The former singleton implementation has been removed from the source tree and
-generated facade output. It is not a supported package subpath.
+The migration deliberately removed those exports and the internal legacy
+implementation. Callers now initialize a context with `createNxpp()` and
+construct graphs from that context. The Node loader owns packaged asset
+resolution; the browser loader is an experimental separate path. This is an
+intentional breaking change within the experimental line, not a compatibility
+layer to be maintained in parallel. The [package README](README.md) gives a
+short migration example.
 
-## Binding Modules
+## 1.0.0 completion gates
 
-Graph class registration is split across graph families:
+The version advances to `1.0.0` only after a final audit confirms:
 
-- `graph.cpp` registers simple graph and directed graph runtime classes.
-- `multigraph.cpp` registers multigraph runtime classes and edge endpoint
-  wrappers.
+- required roadmap issues are closed or explicitly rejected with rationale;
+- all eight graph families pass public parity and behavior contracts;
+- native C++ remains the sole owner of algorithms and semantic state;
+- independent contexts and graph-handle disposal behave correctly;
+- Node contract, TypeScript build, and packed external consumer tests pass;
+- tested Node majors match the package engine range;
+- raw declarations, facade output, and packaged runtime assets are reproducible;
+- the tarball contains only intentional files and supported exports;
+- migration notes cover intentional breaking changes from the old 0.6 API;
+- Node and browser support claims match their actual verification coverage.
 
-Shared capability modules attach methods to those runtime classes:
-
-- `attributes.cpp`
-- `traversal.cpp`
-- `shortest_paths.cpp`
-- `spanning_tree.cpp`
-- `components.cpp`
-- `centrality.cpp`
-- `flow.cpp`
-
-## Error Boundary
-
-The raw C++/Embind layer may throw native or Embind-specific errors. The facade
-wraps raw graph objects and normalizes runtime failures to JavaScript `Error`
-instances with the prefix:
-
-```text
-WASM graph operation failed:
-```
-
-Optimized Emscripten builds export the runtime exception-message and reference-
-count helpers. The facade uses them to preserve `std::exception::what()` and
-release caught native exceptions without reproducing the failed semantic check.
-
-Facade-side validation errors may use `TypeError` when the caller passed an
-invalid JavaScript type before crossing into WASM.
-
-## Data Boundary
-
-Public methods should prefer JavaScript arrays and small object shapes over
-leaking low-level Embind implementation details.
-
-Current result examples include:
-
-- traversal edge arrays
-- traversal tree objects
-- shortest-path result wrappers
-- all-pairs shortest-path matrices and map entries
-- spanning-tree edge arrays
-- component group arrays
-- centrality score arrays
-- max-flow, min-cut, and min-cost-flow result objects
-
-Multigraph edge endpoint wrappers are still used for precise edge-ID lookup.
-Future APIs should choose serializable DTOs unless an Embind wrapper is needed
-for lifetime or identity reasons.
-
-## Runtime Support Boundary
-
-Node.js is the current supported experimental runtime target. The contract
-tests and package validation are Node-oriented.
-
-Browser support is intentionally separate from Node stabilization. Browser
-loading strategy, bundler assumptions, and demo scope should be investigated in
-a separate path before any browser compatibility promise is made.
-
-## Verification
-
-TypeScript facade and declaration changes should pass:
-
-```bash
-npm --prefix wasm run build:types
-```
-
-C++ binding, runtime behavior, serialization, and error mapping changes should
-also pass:
-
-```bash
-bash wasm/scripts/run_wasm_node_contract_tests.sh
-```
-
-The contract suite is the current behavioral baseline for the Node-facing WASM
-facade.
+The roadmap and this audit are separate from release preparation. Bumping the
+version, tagging, staging npm publication, and registry approval require
+their own explicit decisions. No C ABI rewrite or broad browser support
+promise is implied by these gates.

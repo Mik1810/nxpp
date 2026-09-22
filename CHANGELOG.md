@@ -37,6 +37,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Consolidated the WASM 1.0 architecture decisions into the current
+  architecture guide, retired the obsolete refactor prompt, and reorganized
+  package usage and maintainer documentation with verified API examples.
 - Aligned the experimental WASM package's Node engine range with packed
   consumer checks on Node 22, 24, and 26 in CI and the release gate.
 - Removed the unused WASM singleton implementation and its generated output;

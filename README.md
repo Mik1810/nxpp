@@ -99,10 +99,11 @@ C++ public API and first-class consumption paths.
 ## WASM (Concise Status)
 
 The experimental npm package lives under `wasm/` and currently targets Node.js.
-For coverage, runtime boundaries, release checklist, and usage:
+For usage, build and release checks, and architecture:
 
 - [wasm/README.md](wasm/README.md)
 - [wasm/WASM.md](wasm/WASM.md)
+- [wasm/ARCHITECTURE.md](wasm/ARCHITECTURE.md)
 - [WASM issue roadmap](https://github.com/Mik1810/nxpp/issues/177)
 
 ## License
