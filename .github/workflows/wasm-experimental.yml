@@ -37,10 +37,14 @@ jobs:
           npm --prefix wasm run build:types
           git diff --exit-code -- wasm/dist
 
-      - name: Install Boost Graph
+      - name: Install supported Boost headers
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev
+          boost_version="1.86.0"
+          boost_tag="${boost_version//./_}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+          curl -fsSL "https://archives.boost.io/release/${boost_version}/source/boost_${boost_tag}.tar.gz" -o "$RUNNER_TEMP/boost_${boost_tag}.tar.gz"
+          tar -xzf "$RUNNER_TEMP/boost_${boost_tag}.tar.gz" -C "$RUNNER_TEMP"
+          echo "BOOST_INCLUDE=$boost_root" >> "$GITHUB_ENV"
 
       - name: Set up Emscripten
         uses: emscripten-core/setup-emsdk@v16
@@ -86,8 +90,8 @@ jobs:
           npm --prefix wasm run check:raw-contract
           git diff --exit-code -- wasm/generated
 
-      - name: Verify packaged runtime artifacts
-        run: git diff --exit-code -- wasm/runtime
+      - name: Verify reproducible packaged runtime artifacts
+        run: bash wasm/scripts/verify_wasm_runtime_reproducibility.sh
 
       - name: Run browser facade smoke test
         run: |

@@ -32,10 +32,14 @@ jobs:
           version: "6.0.9"
           actions-cache-folder: emsdk-cache
 
-      - name: Install Boost Graph
+      - name: Install supported Boost headers
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libboost-graph-dev
+          boost_version="1.86.0"
+          boost_tag="${boost_version//./_}"
+          boost_root="$RUNNER_TEMP/boost_${boost_tag}"
+          curl -fsSL "https://archives.boost.io/release/${boost_version}/source/boost_${boost_tag}.tar.gz" -o "$RUNNER_TEMP/boost_${boost_tag}.tar.gz"
+          tar -xzf "$RUNNER_TEMP/boost_${boost_tag}.tar.gz" -C "$RUNNER_TEMP"
+          echo "BOOST_INCLUDE=$boost_root" >> "$GITHUB_ENV"
 
       - name: Install package dependencies
         working-directory: wasm
@@ -79,8 +83,8 @@ jobs:
           NXPP_WASM_EMIT_TSD: "1"
         run: bash wasm/scripts/build_wasm_node_module.sh
 
-      - name: Verify packaged runtime artifacts
-        run: git diff --exit-code -- wasm/runtime
+      - name: Verify reproducible packaged runtime artifacts
+        run: bash wasm/scripts/verify_wasm_runtime_reproducibility.sh
 
       - name: Verify raw WASM contract
         run: |
