@@ -1,9 +1,9 @@
 export function toArray(value) {
-    return Array.from(value);
+    return [...value];
 }
 export function toEdgeEndpoints(value) {
     return {
-        source: () => value.source(),
-        target: () => value.target(),
+        source: () => value.source,
+        target: () => value.target,
     };
 }

@@ -126,6 +126,12 @@ export function assertThrowsMessageIncludes(fn, expectedText, message) {
     );
 }
 
+export function assertUnownedValue(value, message) {
+    assert.notEqual(value, null, message);
+    assert.equal(typeof value, "object", message);
+    assert.equal(typeof value.delete, "undefined", `${message}: value must not expose delete()`);
+}
+
 export function toSortedNumbers(values) {
     return Array.from(values).sort((a, b) => a - b);
 }

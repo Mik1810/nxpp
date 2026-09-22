@@ -1,0 +1,67 @@
+# WASM Bridge Value and Ownership Contract
+
+This document defines the internal values returned by the active Embind graph
+surface. The bridge is not a public ABI, but its shapes are the source of truth
+for the runtime-neutral TypeScript facade.
+
+## Ownership categories
+
+| Category | JavaScript shape | Owner | Disposal |
+| --- | --- | --- | --- |
+| Primitive | `boolean`, `number`, `string`, or `null` | JavaScript | None |
+| Collection | JavaScript `Array` containing primitives or DTOs | JavaScript | None |
+| DTO | Plain JavaScript object containing primitives, arrays, or DTOs | JavaScript | None |
+| Graph handle | Embind graph instance | Facade instance | `dispose()` calls raw `delete()` once |
+
+Only graph handles cross the boundary as owned Embind objects. A graph returned
+by `subgraph()` is a new handle with an independent facade lifetime. Algorithm
+results, edge endpoints, attributes, and collections never expose `delete()`.
+
+## Core graph results
+
+| Raw methods | Canonical result | Category |
+| --- | --- | --- |
+| mutators and `clear()` | `void` | Primitive |
+| `has*()` predicates | `boolean` | Primitive |
+| weight and numeric-attribute accessors | `number` | Primitive |
+| attribute accessors | `string \| number \| boolean`, or `null` for `tryGet*()` | Primitive |
+| `nodes()`, `neighbors()` | `NodeId[]` | Collection |
+| `edgeIds()`, `edgeIdsBetween()` | `number[]` | Collection |
+| `getEdgeEndpoints()` | `{ source: NodeId, target: NodeId }` | DTO |
+| `subgraph()` | raw graph instance | Graph handle |
+
+The `0.6` facade preserves its method-based endpoint view by mechanically
+adapting the raw endpoint DTO to `{ source(): NodeId, target(): NodeId }`. The
+adapter is a normal JavaScript object and is not disposable.
+
+## Algorithm results
+
+| Family | Canonical raw result shapes | Category |
+| --- | --- | --- |
+| Traversal | edge DTO arrays; traversal tree `{ nodes, edges }`; successor and predecessor DTO arrays | Collection / DTO |
+| Components | `NodeId[][]` | Collection |
+| Single-pair shortest paths | `NodeId[]` or `number` | Collection / Primitive |
+| Single-source shortest paths | `{ distance: { node, distance }[], predecessor: { node, predecessor }[] }` | DTO |
+| All-pairs shortest paths | `number[][]` or `{ source, distances: { target, distance }[] }[]` | Collection |
+| Spanning trees | `{ source, target }[]` | Collection |
+| Centrality | `{ node, score }[]` | Collection |
+| Maximum flow | `{ value, edgeFlows, edgeFlowsById }` | DTO |
+| Minimum cut | `{ value, reachable, nonReachable, cutEdges, cutEdgeIds }` | DTO |
+| Min-cost maximum flow | `{ flow, cost, edgeFlows, edgeFlowsById }` | DTO |
+| Staged flow operations | `number` | Primitive |
+
+The facade may add compatibility behavior, such as the `0.6` single-source
+path helpers, after receiving a DTO. Conversion of bridge collections and DTO
+fields remains shape-only and does not rerun a native graph algorithm.
+
+## Boundary rules
+
+- Native C++ owns graph storage, graph semantics, algorithms, and staged state.
+- Bridge helpers materialize JavaScript-native values directly; they do not
+  return temporary Embind result classes or registered STL containers.
+- TypeScript raw declarations describe concrete arrays and DTOs, not a union of
+  possible iterable representations.
+- The facade validates JavaScript inputs, normalizes errors, copies result
+  values when useful, and owns graph-handle disposal.
+- Adding a bridge method requires a canonical shape, an ownership category,
+  and Node contract coverage for normal, empty, and error behavior.

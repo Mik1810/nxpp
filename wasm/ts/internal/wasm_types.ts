@@ -16,21 +16,21 @@ import type {
 } from "../types.js";
 
 export interface RawSingleSourceShortestPathResult<T extends NodeId> {
-  distance: Iterable<ShortestPathDistanceEntry<T>> | ArrayLike<ShortestPathDistanceEntry<T>>;
-  predecessor: Iterable<ShortestPathPredecessorEntry<T>> | ArrayLike<ShortestPathPredecessorEntry<T>>;
+  distance: ShortestPathDistanceEntry<T>[];
+  predecessor: ShortestPathPredecessorEntry<T>[];
 }
 
 export interface RawConnectedComponentsGraph<T extends NodeId> {
-  connectedComponents(): Iterable<Iterable<T> | ArrayLike<T>> | ArrayLike<Iterable<T> | ArrayLike<T>>;
+  connectedComponents(): T[][];
 }
 
 export interface RawStronglyConnectedComponentsGraph<T extends NodeId> {
-  stronglyConnectedComponents(): Iterable<Iterable<T> | ArrayLike<T>> | ArrayLike<Iterable<T> | ArrayLike<T>>;
+  stronglyConnectedComponents(): T[][];
 }
 
 export interface RawEdgeEndpoints<T extends NodeId> {
-  source(): T;
-  target(): T;
+  source: T;
+  target: T;
 }
 
 export interface RawDisposable {
@@ -42,8 +42,8 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
   addEdge(source: T, target: T, weight: number): void;
   hasNode(id: T): boolean;
   hasEdge(source: T, target: T): boolean;
-  nodes(): Iterable<T> | ArrayLike<T>;
-  neighbors(id: T): Iterable<T> | ArrayLike<T>;
+  nodes(): T[];
+  neighbors(id: T): T[];
   removeNode(id: T): void;
   removeEdge(source: T, target: T): void;
   getEdgeWeight(source: T, target: T): number;
@@ -58,36 +58,36 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
   tryGetEdgeAttr(source: T, target: T, key: string): AttributeValue | null;
   setEdgeAttr(source: T, target: T, key: string, value: AttributeValue): void;
   getEdgeNumericAttr(source: T, target: T, key: string): number;
-  bfsEdges(start: T): Iterable<TraversalEdge<T>> | ArrayLike<TraversalEdge<T>>;
+  bfsEdges(start: T): TraversalEdge<T>[];
   bfsTree(start: T): TraversalTree<T>;
-  bfsSuccessors(start: T): Iterable<TraversalSuccessorEntry<T>> | ArrayLike<TraversalSuccessorEntry<T>>;
-  dfsEdges(start: T): Iterable<TraversalEdge<T>> | ArrayLike<TraversalEdge<T>>;
+  bfsSuccessors(start: T): TraversalSuccessorEntry<T>[];
+  dfsEdges(start: T): TraversalEdge<T>[];
   dfsTree(start: T): TraversalTree<T>;
-  dfsPredecessors(start: T): Iterable<TraversalPredecessorEntry<T>> | ArrayLike<TraversalPredecessorEntry<T>>;
-  dfsSuccessors(start: T): Iterable<TraversalSuccessorEntry<T>> | ArrayLike<TraversalSuccessorEntry<T>>;
-  shortestPath(source: T, target: T): Iterable<T> | ArrayLike<T>;
-  shortestPathWeighted(source: T, target: T, weightKey: string): Iterable<T> | ArrayLike<T>;
+  dfsPredecessors(start: T): TraversalPredecessorEntry<T>[];
+  dfsSuccessors(start: T): TraversalSuccessorEntry<T>[];
+  shortestPath(source: T, target: T): T[];
+  shortestPathWeighted(source: T, target: T, weightKey: string): T[];
   shortestPathLength(source: T, target: T): number;
   shortestPathLengthWeighted(source: T, target: T, weightKey: string): number;
-  dijkstraPath(source: T, target: T): Iterable<T> | ArrayLike<T>;
-  dijkstraPathWeighted(source: T, target: T, weightKey: string): Iterable<T> | ArrayLike<T>;
+  dijkstraPath(source: T, target: T): T[];
+  dijkstraPathWeighted(source: T, target: T, weightKey: string): T[];
   dijkstraShortestPaths(source: T): RawSingleSourceShortestPathResult<T>;
-  dijkstraPathLengths(source: T): Iterable<ShortestPathDistanceEntry<T>> | ArrayLike<ShortestPathDistanceEntry<T>>;
+  dijkstraPathLengths(source: T): ShortestPathDistanceEntry<T>[];
   dijkstraPathLength(source: T, target: T): number;
   dijkstraPathLengthWeighted(source: T, target: T, weightKey: string): number;
-  bellmanFordPath(source: T, target: T): Iterable<T> | ArrayLike<T>;
-  bellmanFordPathWeighted(source: T, target: T, weightKey: string): Iterable<T> | ArrayLike<T>;
+  bellmanFordPath(source: T, target: T): T[];
+  bellmanFordPathWeighted(source: T, target: T, weightKey: string): T[];
   bellmanFordShortestPaths(source: T): RawSingleSourceShortestPathResult<T>;
   bellmanFordPathLength(source: T, target: T): number;
   bellmanFordPathLengthWeighted(source: T, target: T, weightKey: string): number;
   dagShortestPaths(source: T): RawSingleSourceShortestPathResult<T>;
-  floydWarshallAllPairsShortestPaths(): Iterable<Iterable<number> | ArrayLike<number>> | ArrayLike<Iterable<number> | ArrayLike<number>>;
-  floydWarshallAllPairsShortestPathsMap(): Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>;
-  kruskalMinimumSpanningTree(): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
-  primMinimumSpanningTree(root: T): Iterable<SpanningTreeEdge<T>> | ArrayLike<SpanningTreeEdge<T>>;
-  degreeCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
-  pagerank(tolerance: number, maxIterations: number): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
-  betweennessCentrality(): Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>;
+  floydWarshallAllPairsShortestPaths(): number[][];
+  floydWarshallAllPairsShortestPathsMap(): AllPairsShortestPathSourceEntry<T>[];
+  kruskalMinimumSpanningTree(): SpanningTreeEdge<T>[];
+  primMinimumSpanningTree(root: T): SpanningTreeEdge<T>[];
+  degreeCentrality(): CentralityScoreEntry<T>[];
+  pagerank(tolerance: number, maxIterations: number): CentralityScoreEntry<T>[];
+  betweennessCentrality(): CentralityScoreEntry<T>[];
   maximumFlow(source: T, target: T, capacityKey: string): MaximumFlowResult<T>;
   minimumCut(source: T, target: T, capacityKey: string): MinimumCutResult<T>;
   maxFlowMinCost(source: T, target: T, capacityKey: string, weightKey: string): MinCostMaxFlowResult<T>;
@@ -100,8 +100,8 @@ export interface RawSimpleGraph<T extends NodeId> extends RawDisposable {
 export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {
   subgraph(nodes: T[]): RawMultiGraph<T>;
   hasEdgeId(edgeId: number): boolean;
-  edgeIds(): Iterable<number> | ArrayLike<number>;
-  edgeIdsBetween(source: T, target: T): Iterable<number> | ArrayLike<number>;
+  edgeIds(): number[];
+  edgeIdsBetween(source: T, target: T): number[];
   getEdgeEndpoints(edgeId: number): RawEdgeEndpoints<T>;
   getEdgeWeightById(edgeId: number): number;
   setEdgeWeightById(edgeId: number, weight: number): void;

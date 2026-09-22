@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-22 - Issue #173](sessions/2026-09-22-issue-173.md)
 - [2026-09-21 - Issue #172](sessions/2026-09-21-issue-172.md)
 - [2026-09-21 - Issue #166](sessions/2026-09-21-issue-166.md)
 - [2026-09-21 - Issue #171](sessions/2026-09-21-issue-171.md)

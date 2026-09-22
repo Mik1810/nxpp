@@ -6,7 +6,7 @@ import type {
 } from "../types.js";
 
 export function toCentralityScores<T extends NodeId>(
-  raw: Iterable<CentralityScoreEntry<T>> | ArrayLike<CentralityScoreEntry<T>>,
+  raw: readonly CentralityScoreEntry<T>[],
 ): CentralityScoreEntry<T>[] {
   return toArray(raw);
 }

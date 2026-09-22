@@ -66,13 +66,13 @@ export function toSingleSourceShortestPathResult<T extends NodeId>(
 }
 
 export function toAllPairsShortestPathMatrix(
-  raw: Iterable<Iterable<number> | ArrayLike<number>> | ArrayLike<Iterable<number> | ArrayLike<number>>,
+  raw: readonly (readonly number[])[],
 ): number[][] {
   return toArray(raw).map((row) => toArray(row));
 }
 
 export function toAllPairsShortestPathMap<T extends NodeId>(
-  raw: Iterable<AllPairsShortestPathSourceEntry<T>> | ArrayLike<AllPairsShortestPathSourceEntry<T>>,
+  raw: readonly AllPairsShortestPathSourceEntry<T>[],
 ): AllPairsShortestPathSourceEntry<T>[] {
   return toArray(raw).map((entry) => ({
     source: entry.source,

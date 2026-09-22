@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrowsMessageIncludes,
+    assertUnownedValue,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -58,6 +59,8 @@ setCapacity(flowGraph, 3, 2, 2);
 setCapacity(flowGraph, 4, 5, 2);
 
 const maximumFlow = flowGraph.maximumFlow(0, 5);
+assertUnownedValue(maximumFlow, "maximum-flow DTOs must not require disposal");
+assertUnownedValue(maximumFlow.edgeFlows, "maximum-flow edge arrays must not require disposal");
 assert.equal(maximumFlow.value, 3, "DiGraphInt maximumFlow() must return the reference flow value");
 assert.equal(
     endpointFlowMap(maximumFlow.edgeFlows).get("0->1") + endpointFlowMap(maximumFlow.edgeFlows).get("0->3"),

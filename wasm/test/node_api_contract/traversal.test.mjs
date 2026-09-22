@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrows,
+    assertUnownedValue,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -133,6 +134,7 @@ for (let node = 0; node < 128; node += 1) {
 larger.addEdge(1000, 1001, 1);
 
 const largerBfsEdges = larger.bfsEdges(0);
+assertUnownedValue(largerBfsEdges, "traversal edge arrays must not require disposal");
 assert.equal(largerBfsEdges.length, 128, "DiGraphInt bfsEdges() must scale past tiny fixture graphs");
 assert.deepEqual(largerBfsEdges[0], { source: 0, target: 1 }, "DiGraphInt large BFS must start at the requested root");
 assert.deepEqual(
@@ -142,6 +144,7 @@ assert.deepEqual(
 );
 
 const largerDfsTree = larger.dfsTree(0);
+assertUnownedValue(largerDfsTree, "traversal tree DTOs must not require disposal");
 assert.equal(largerDfsTree.nodes.length, 129, "DiGraphInt dfsTree() must materialize larger reachable node sets");
 assert.equal(largerDfsTree.edges.length, 128, "DiGraphInt dfsTree() must materialize larger reachable edge sets");
 assert.equal(

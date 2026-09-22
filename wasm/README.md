@@ -301,6 +301,13 @@ Current runtime type behavior is explicit by class:
 - `*Str` classes accept only JS strings as node IDs
 - wrong node-ID types throw explicit `std::runtime_error`
 
+The internal bridge value and lifetime rules are documented in
+[`BRIDGE_CONTRACT.md`](BRIDGE_CONTRACT.md). In particular, algorithm results
+and endpoint values cross the bridge as JavaScript arrays, primitives, and
+plain DTOs. Only graph and subgraph handles require explicit disposal. The
+`0.6` facade keeps the existing `source()` / `target()` endpoint methods through
+an unowned compatibility adapter over the raw `{ source, target }` DTO.
+
 Current shortest-path result behavior is explicit and JS-oriented:
 
 - single-pair methods return node arrays or numeric distances directly

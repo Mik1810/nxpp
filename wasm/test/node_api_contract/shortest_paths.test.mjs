@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrows,
+    assertUnownedValue,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -47,6 +48,8 @@ assert.equal(
 );
 
 const dijkstraResult = digraph.dijkstraShortestPaths(1);
+assertUnownedValue(dijkstraResult, "single-source shortest-path results must not require disposal");
+assertUnownedValue(dijkstraResult.distance, "shortest-path distance arrays must not require disposal");
 assert.equal(dijkstraResult.hasPathTo(4), true, "dijkstraShortestPaths() must mark reachable nodes");
 assert.deepEqual(
     dijkstraResult.pathTo(4),

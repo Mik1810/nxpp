@@ -75,6 +75,14 @@ emscripten::val to_js_edge_list(const std::vector<std::pair<NodeT, NodeT>>& edge
 }
 
 template <typename NodeT>
+emscripten::val to_js_edge_endpoints(const std::pair<NodeT, NodeT>& endpoints) {
+    emscripten::val result = emscripten::val::object();
+    result.set("source", emscripten::val(endpoints.first));
+    result.set("target", emscripten::val(endpoints.second));
+    return result;
+}
+
+template <typename NodeT>
 emscripten::val to_js_node_groups(const std::vector<std::vector<NodeT>>& groups) {
     emscripten::val array = emscripten::val::array();
     for (std::size_t i = 0; i < groups.size(); ++i) {
@@ -322,29 +330,10 @@ std::vector<NodeT> to_node_vector(const emscripten::val& values) {
     return nodes;
 }
 
-template <typename NodeT>
-class EdgeEndpointsBindingT {
-public:
-    explicit EdgeEndpointsBindingT(std::pair<NodeT, NodeT> endpoints)
-        : endpoints_(std::move(endpoints)) {}
-
-    emscripten::val source() const {
-        return emscripten::val(endpoints_.first);
-    }
-
-    emscripten::val target() const {
-        return emscripten::val(endpoints_.second);
-    }
-
-private:
-    std::pair<NodeT, NodeT> endpoints_;
-};
-
 template <typename NodeT, bool Directed, bool Multi>
 class GraphBindingBase {
 public:
     using GraphType = nxpp::Graph<NodeT, double, Directed, Multi>;
-    using EndpointsBindingType = EdgeEndpointsBindingT<NodeT>;
 
     GraphBindingBase() = default;
 
@@ -409,8 +398,8 @@ public:
         return to_js_array(graph_.edge_ids(as_node_id(source), as_node_id(target)));
     }
 
-    EndpointsBindingType get_edge_endpoints(std::size_t edge_id) const requires Multi {
-        return EndpointsBindingType(graph_.get_edge_endpoints(edge_id));
+    emscripten::val get_edge_endpoints(std::size_t edge_id) const requires Multi {
+        return to_js_edge_endpoints(graph_.get_edge_endpoints(edge_id));
     }
 
     double get_edge_weight_by_id(std::size_t edge_id) const requires Multi {

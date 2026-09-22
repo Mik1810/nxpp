@@ -1,6 +1,7 @@
 import {
     assert,
     assertMethods,
+    assertUnownedValue,
     expectedMultiMethods,
     nxpp,
     toSortedNumbers,
@@ -52,6 +53,7 @@ const multiIntIds = toSortedNumbers(multiInt.edgeIdsBetween(1, 2));
 assert.equal(multiIntIds.length, 2, "MultiDiGraphInt edgeIdsBetween() must return all parallel edge IDs");
 assert.equal(multiInt.hasEdgeId(multiIntIds[0]), true, "MultiDiGraphInt hasEdgeId() must report existing IDs");
 const intEndpoints = multiInt.getEdgeEndpoints(multiIntIds[0]);
+assertUnownedValue(intEndpoints, "MultiDiGraphInt endpoints must be an unowned facade value");
 assert.equal(typeof intEndpoints.source, "function", "MultiDiGraphInt getEdgeEndpoints() must return endpoint wrapper");
 assert.equal(typeof intEndpoints.target, "function", "MultiDiGraphInt getEdgeEndpoints() must return endpoint wrapper");
 assert.equal(intEndpoints.source(), 1, "MultiDiGraphInt edge endpoint source must match inserted edge");
@@ -86,6 +88,7 @@ assert.equal(
     "MultiDiGraphStr subgraph() must copy edge-id attributes",
 );
 const strEndpoints = multiStr.getEdgeEndpoints(multiStrIds[0]);
+assertUnownedValue(strEndpoints, "MultiDiGraphStr endpoints must be an unowned facade value");
 assert.equal(strEndpoints.source(), "S", "MultiDiGraphStr edge endpoint source must match inserted edge");
 assert.equal(strEndpoints.target(), "T", "MultiDiGraphStr edge endpoint target must match inserted edge");
 multiStr.setEdgeWeightById(multiStrIds[0], 9.5);

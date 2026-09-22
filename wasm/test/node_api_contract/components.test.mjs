@@ -1,4 +1,4 @@
-import { assert, nxpp } from "./helpers.mjs";
+import { assert, assertUnownedValue, nxpp } from "./helpers.mjs";
 
 function normalizeGroups(groups) {
     return Array.from(groups, (group) => Array.from(group).sort()).sort((left, right) => {
@@ -12,9 +12,11 @@ const graphInt = new nxpp.GraphInt();
 graphInt.addEdge(1, 2, 1);
 graphInt.addNode(3);
 graphInt.addEdge(4, 5, 1);
+const graphIntComponents = graphInt.connectedComponents();
+assertUnownedValue(graphIntComponents, "component arrays must not require disposal");
 assert.equal(typeof graphInt.connectedComponents, "function", "GraphInt must expose connectedComponents()");
 assert.deepEqual(
-    normalizeGroups(graphInt.connectedComponents()),
+    normalizeGroups(graphIntComponents),
     [[1, 2], [3], [4, 5]],
     "GraphInt connectedComponents() must group undirected components",
 );

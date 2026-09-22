@@ -35,6 +35,10 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Standardized active WASM bridge results as JavaScript primitives, arrays,
+  and plain DTOs; only graph handles retain explicit Embind ownership.
+- Replaced temporary Embind edge-endpoint wrappers with plain raw DTOs while
+  preserving the experimental `0.6` facade endpoint methods.
 - Removed facade-side staged-flow mutation tracking so the native graph is the
   sole owner of min-cost-flow availability and invalidation semantics.
 - Added an internal explicit WASM runtime context with module-bound graph

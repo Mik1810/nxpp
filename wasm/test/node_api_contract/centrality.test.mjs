@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrows,
+    assertUnownedValue,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -24,7 +25,9 @@ assertMethods(graphInt, expectedSimpleMethods, "GraphInt");
 graphInt.addEdge(0, 1, 1);
 graphInt.addEdge(1, 2, 1);
 graphInt.addEdge(2, 3, 1);
-const degree = scoreMap(graphInt.degreeCentrality());
+const degreeEntries = graphInt.degreeCentrality();
+assertUnownedValue(degreeEntries, "centrality result arrays must not require disposal");
+const degree = scoreMap(degreeEntries);
 assertNear(degree.get(0), 1 / 3, 1e-9, "GraphInt degreeCentrality() must score leaf nodes");
 assertNear(degree.get(1), 2 / 3, 1e-9, "GraphInt degreeCentrality() must score interior nodes");
 const betweenness = scoreMap(graphInt.betweennessCentrality());

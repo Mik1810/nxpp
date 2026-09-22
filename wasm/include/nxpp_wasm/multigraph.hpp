@@ -4,9 +4,6 @@
 
 namespace nxpp_wasm {
 
-using EdgeEndpointsIntBinding = common::EdgeEndpointsBindingT<int>;
-using EdgeEndpointsStrBinding = common::EdgeEndpointsBindingT<std::string>;
-
 using MultiGraphIntBinding = common::MultiGraphBindingBase<int, false>;
 using MultiGraphStrBinding = common::MultiGraphBindingBase<std::string, false>;
 using MultiDiGraphIntBinding = common::MultiGraphBindingBase<int, true>;

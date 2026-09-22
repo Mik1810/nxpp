@@ -2,6 +2,7 @@ import {
     assert,
     assertMethods,
     assertThrows,
+    assertUnownedValue,
     expectedMultiMethods,
     expectedSimpleMethods,
     nxpp,
@@ -14,6 +15,8 @@ graph.addEdge(1, 3, 1);
 graph.addEdge(2, 3, 2);
 graph.addEdge(2, 4, 3);
 graph.addEdge(3, 4, 5);
+
+assertUnownedValue(graph.kruskalMinimumSpanningTree(), "spanning-tree edge arrays must not require disposal");
 
 assert.deepEqual(
     graph.kruskalMinimumSpanningTree(),
