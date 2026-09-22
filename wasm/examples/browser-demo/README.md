@@ -15,7 +15,7 @@ This produces:
 - `wasm/examples/browser-demo/nxpp_browser.mjs`
 - `wasm/examples/browser-demo/nxpp_browser.wasm`
 
-The build is separate from `wasm/build/nxpp_node.mjs`. The Node package uses
+The build is separate from `wasm/runtime/node.mjs`. The Node package uses
 Node-specific Emscripten settings and remains the only currently supported
 experimental runtime target.
 

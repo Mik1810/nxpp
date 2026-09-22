@@ -21,8 +21,9 @@ For internal architecture and roadmap details, see `wasm/WASM.md`.
 ## Usage
 
 ```js
-import nxpp from "@mik1810/nxpp-wasm";
+import { createNxpp } from "@mik1810/nxpp-wasm";
 
+const nxpp = await createNxpp();
 const g = new nxpp.DiGraphInt();
 g.addEdge(1, 2, 1);
 g.addEdge(2, 3, 2);
@@ -32,13 +33,40 @@ console.log(g.neighbors(1));
 console.log(g.getEdgeWeight(1, 3));
 ```
 
+The package export map intentionally supports only the root import above.
+Runtime assets under `runtime/` and compiled implementation files under
+`dist/` are private package contents.
+
+## Migration from `0.6`
+
+The `0.6` default singleton and its global constructors are removed. Replace:
+
+```js
+import nxpp from "@mik1810/nxpp-wasm";
+
+const graph = new nxpp.GraphInt();
+```
+
+with explicit asynchronous initialization:
+
+```js
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
+const graph = new nxpp.GraphInt();
+```
+
+`loadNxppRuntime()` and the `@mik1810/nxpp-wasm/runtime` shim have no public
+replacement. Raw Embind access is an internal implementation detail.
+
 ## TypeScript facade
 
 The package now ships a TypeScript-facing facade on top of the wasm runtime.
 
 ```ts
-import nxpp, { type DiGraph } from "@mik1810/nxpp-wasm";
+import { createNxpp, type DiGraph } from "@mik1810/nxpp-wasm";
 
+const nxpp = await createNxpp();
 const g: DiGraph<number> = new nxpp.DiGraphInt();
 g.addNode(1);
 g.addEdge(1, 2, 3);
@@ -52,6 +80,9 @@ Facade instances own Embind-backed WASM objects. Release them explicitly when a
 graph is no longer needed:
 
 ```ts
+import { createNxpp } from "@mik1810/nxpp-wasm";
+
+const nxpp = await createNxpp();
 const g = new nxpp.GraphInt();
 try {
   g.addEdge(1, 2, 1);
@@ -76,6 +107,10 @@ Design rules for the facade:
 - TypeScript generics are static only (no generic runtime dispatch tricks)
 - simple graph APIs stay endpoint-based
 - multigraph APIs expose edge-id methods where needed
+
+The package intentionally exports only the public facade initializer and its
+TypeScript contracts. The raw Embind module, legacy singleton entrypoint,
+browser adapter, and internal implementation modules are not package exports.
 
 ## Local publish dry-run
 

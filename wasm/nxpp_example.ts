@@ -1,10 +1,11 @@
-import { DiGraphInt } from "@mik1810/nxpp-wasm";
+import { createNxpp } from "@mik1810/nxpp-wasm";
 import type {
   DiGraph,
   SingleSourceShortestPathResult,
 } from "@mik1810/nxpp-wasm";
 
-const graph: DiGraph<number> = new DiGraphInt();
+const nxpp = await createNxpp();
+const graph: DiGraph<number> = new nxpp.DiGraphInt();
 graph.addEdge(1, 2, 2);
 graph.addEdge(1, 3, 6);
 graph.addEdge(2, 3, 1);
@@ -20,3 +21,4 @@ const dijkstra: SingleSourceShortestPathResult<number> = graph.dijkstraShortestP
 
 console.log("dijkstra path 1 -> 5:", dijkstra.pathTo(5));
 console.log("dijkstra distances from 1:", dijkstra.distance);
+graph.dispose();

@@ -37,6 +37,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Replaced the experimental WASM singleton package surface with asynchronous
+  `createNxpp()` contexts and reduced the npm tarball to an exact allowlist of
+  facade dependencies and internal Node runtime assets.
 - Separated runtime-neutral WASM facade construction from Node and browser
   loaders, with a bounded browser facade smoke check that does not promote the
   browser target to the supported npm surface.

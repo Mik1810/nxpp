@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import nxpp from "@mik1810/nxpp-wasm";
+import { createNxpp } from "@mik1810/nxpp-wasm";
 import {
     graphClassNames,
     intersectMethodNames,
@@ -7,6 +7,7 @@ import {
 } from "../../scripts/raw_contract.mjs";
 
 const rawContract = readRawContract();
+const nxpp = await createNxpp();
 const multiGraphClassNames = graphClassNames.filter((className) => className.startsWith("Multi"));
 const allGeneratedMethodNames = new Set(
     [...rawContract.classes.values()].flatMap((methods) => methods.map((method) => method.name)),

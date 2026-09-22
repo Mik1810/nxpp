@@ -23,9 +23,9 @@ this document are satisfied.
 - The root facade is the supported package surface. Raw runtime access is
   internal in `1.0.0` unless a later decision assigns it a supported contract.
 
-## Current `0.6.0` Baseline
+## Starting `0.6.0` Baseline
 
-The current root entrypoint exports generic TypeScript interfaces, eight
+The migration started from a root entrypoint that exported generic TypeScript interfaces, eight
 concrete facade classes, `createNxpp()`, and `loadNxppRuntime()`.
 
 The eight concrete graph families are:
@@ -35,17 +35,17 @@ The eight concrete graph families are:
 - `MultiGraphInt` and `MultiGraphStr`
 - `MultiDiGraphInt` and `MultiDiGraphStr`
 
-`wasm/ts/load.ts` imports the Node-specific generated module, caches one global
+The legacy loader imported the Node-specific generated module, cached one global
 runtime promise, and initializes that singleton through top-level `await`.
 `createNxpp()` can also create a separate raw module, but the directly exported
 facade constructors remain bound to the singleton.
 
-The package root resolves to `dist/index.js`. The current `./runtime` export is
+The package root resolved to `dist/index.js`. The former `./runtime` export was
 a re-export shim over the same facade. Raw runtime values are reachable through
 the loading functions rather than through a separately defined and supported
 raw API.
 
-The published tarball currently includes compiled facade output, TypeScript
+The baseline tarball included compiled facade output, TypeScript
 sources and configuration, the facade shim, and generated Node runtime files
 under `build/`. These facts form the migration baseline, not the `1.0.0`
 target layout.
@@ -191,21 +191,16 @@ and arities to match the generated declaration.
 
 ## Migration and Compatibility
 
-The current `0.6.0` Node contract remains the behavioral baseline during the
-migration.
-
-The `0.x` implementation phases may introduce the explicit context alongside
-the current singleton-bound facade. Compatibility shims must be isolated,
-documented, and tested; new implementation code must target the context model.
-The current facade and loader live under `wasm/ts/legacy/` during this period,
-while the root TypeScript entrypoint preserves the existing package exports.
-This internal path is not exposed through the package export map.
+The package is still experimental and the `0.6` singleton surface is not a
+compatibility constraint for the `1.0` refactor. The approved package-layout
+cutover intentionally removes the default singleton export,
+`loadNxppRuntime()`, global constructors, and the `./runtime` shim rather than
+shipping parallel compatibility layers.
 
 The explicit `NxppRuntime` implementation now lives under `wasm/ts/runtime/`,
 with runtime-neutral facade factories under `wasm/ts/core/`. It supports
-multiple independent Node contexts internally. Making this the package-root
-API and removing the legacy singleton remain part of the declared 1.0 export
-transition.
+multiple independent Node contexts and is now the package-root API. Legacy
+source remains outside the published tarball and is not a supported subpath.
 
 Runtime initialization now crosses the shared `NxppRuntimeLoader` contract.
 The Node adapter owns the packaged Emscripten module import, while the separate
@@ -213,13 +208,9 @@ browser adapter owns browser WASM URL resolution and receives the experimental
 browser module factory. Both construct the same facade context. The browser
 adapter and demo remain outside the supported package export map.
 
-The `1.0.0` transition may intentionally remove or change:
-
-- direct constructors bound to an implicit global runtime
-- `loadNxppRuntime()` as a public raw-module loader
-- the current raw return meaning of `createNxpp()`
-- the `./runtime` re-export shim
-- unsupported deep imports and development files shipped in the tarball
+The package-layout cutover removes direct constructors bound to an implicit
+global runtime, `loadNxppRuntime()`, the raw return meaning of `createNxpp()`,
+the `./runtime` shim, and development files previously shipped in the tarball.
 
 Before the version is changed to `1.0.0`, migration notes must show the old and
 new initialization forms. The compatibility layer is removed only in that

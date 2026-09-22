@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 NODE_BIN=${NODE_BIN:-node}
 NXPP_WASM_NODE_CONTRACT_SKIP_BUILD=${NXPP_WASM_NODE_CONTRACT_SKIP_BUILD:-0}
-MODULE_PATH="$ROOT_DIR/wasm/build/nxpp_node.mjs"
+MODULE_PATH="$ROOT_DIR/wasm/runtime/node.mjs"
 OUTPUT_FILE="$ROOT_DIR/wasm/build/node_api_contract_test.out"
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"

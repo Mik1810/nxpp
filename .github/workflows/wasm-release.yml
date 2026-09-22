@@ -79,6 +79,9 @@ jobs:
           NXPP_WASM_EMIT_TSD: "1"
         run: bash wasm/scripts/build_wasm_node_module.sh
 
+      - name: Verify packaged runtime artifacts
+        run: git diff --exit-code -- wasm/runtime
+
       - name: Verify raw WASM contract
         run: |
           npm --prefix wasm run check:raw-contract

@@ -1,2 +1,3 @@
-export * from "./legacy/index.js";
-export { default } from "./legacy/index.js";
+export { createNxpp } from "./runtime/node.js";
+export type { NxppModuleOptions, NxppRuntime } from "./runtime/context.js";
+export type * from "./types.js";

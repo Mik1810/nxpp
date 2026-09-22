@@ -8,18 +8,36 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./runtime": "./nxpp.mjs"
+      "import": "./dist/index.js"
+    }
   },
   "files": [
-    "dist/",
-    "ts/",
-    "tsconfig.json",
-    "nxpp.mjs",
-    "build/nxpp_node.mjs",
-    "build/nxpp_node.wasm",
+    "dist/index.js",
+    "dist/index.d.ts",
+    "dist/types.d.ts",
+    "dist/algorithms/centrality.js",
+    "dist/algorithms/centrality.d.ts",
+    "dist/algorithms/components.js",
+    "dist/algorithms/components.d.ts",
+    "dist/algorithms/shortest_paths.js",
+    "dist/algorithms/shortest_paths.d.ts",
+    "dist/core/graph.js",
+    "dist/core/graph.d.ts",
+    "dist/core/multigraph.js",
+    "dist/core/multigraph.d.ts",
+    "dist/internal/assert.js",
+    "dist/internal/assert.d.ts",
+    "dist/internal/errors.js",
+    "dist/internal/errors.d.ts",
+    "dist/internal/wasm_types.d.ts",
+    "dist/internal/wrap.js",
+    "dist/internal/wrap.d.ts",
+    "dist/runtime/context.js",
+    "dist/runtime/context.d.ts",
+    "dist/runtime/node.js",
+    "dist/runtime/node.d.ts",
+    "runtime/node.mjs",
+    "runtime/node.wasm",
     "README.md"
   ],
   "keywords": [

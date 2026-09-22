@@ -22,12 +22,8 @@ dist/
 build/
 node_modules/
 
-# Track npm publish artifacts for wasm package
+# Track generated TypeScript publish artifacts for the wasm package
 !wasm/dist/
 !wasm/dist/**
-!wasm/build/
-wasm/build/*
-!wasm/build/nxpp_node.mjs
-!wasm/build/nxpp_node.wasm
 wasm/examples/browser-demo/nxpp_browser.mjs
 wasm/examples/browser-demo/nxpp_browser.wasm

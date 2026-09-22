@@ -1,4 +1,7 @@
 import { assert, nxpp } from "./helpers.mjs";
+import * as packageExports from "@mik1810/nxpp-wasm";
+
+assert.deepEqual(Object.keys(packageExports), ["createNxpp"], "package export snapshot changed");
 
 const expectedRuntimeExports = [
     "DiGraphInt",
@@ -9,8 +12,6 @@ const expectedRuntimeExports = [
     "MultiDiGraphStr",
     "MultiGraphInt",
     "MultiGraphStr",
-    "createNxpp",
-    "loadNxppRuntime",
 ];
 
 assert.deepEqual(Object.keys(nxpp).sort(), expectedRuntimeExports, "runtime export snapshot changed");

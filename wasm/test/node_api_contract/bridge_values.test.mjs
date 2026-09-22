@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import createRawModule from "../../build/nxpp_node.mjs";
+import createRawModule from "../../runtime/node.mjs";
 
 const runtime = await createRawModule();
 

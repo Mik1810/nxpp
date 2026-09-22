@@ -121,34 +121,18 @@ generic interfaces provide static TypeScript typing.
 
 ## Loading Flow
 
-The current compatibility loading path is:
-
-1. `wasm/nxpp.mjs` loads the generated Emscripten module.
-2. `wasm/ts/legacy/load.ts` creates or exposes the raw runtime module.
-3. `wasm/ts/core/*.ts` creates facade classes bound to that module.
-4. `wasm/ts/legacy/core/*.ts` adapts those factories to the singleton contract.
-5. `wasm/ts/legacy/index.ts` assembles the current facade.
-6. `wasm/ts/index.ts` preserves the public package entrypoint while the 1.0
-   implementation is developed outside the legacy boundary.
-
-The target loading path now also exists internally:
-
 1. `wasm/ts/runtime/node.ts` initializes one raw Node module per call.
 2. `wasm/ts/runtime/context.ts` validates it and returns a frozen
    `NxppRuntime` containing module-bound constructors.
 3. Graphs and subgraphs created by one context remain bound to that context.
 
-This path is compiled and contract-tested but is not yet a supported package
-export. The package-root cutover is deferred to the 1.0 export-layout phase.
+The compiled facade in `dist/index.js` is the only supported package
+entrypoint. It exports `createNxpp()` and public TypeScript contracts. The raw
+runtime under `runtime/` is an internal package asset used by the Node loader,
+not a public export.
 
-The published package entrypoint is the compiled facade in `dist/index.js`.
-The raw runtime remains available as the package runtime artifact, but the
-facade is the public API boundary for normal consumers.
-
-The `legacy` directory is an internal migration boundary, not a supported
-package subpath. Shared public types, raw declarations, conversion helpers,
-bindings, generated runtime assets, and tests remain outside it so the current
-and target architectures do not fork the native bridge.
+The `legacy` source directory is retained only as an internal migration
+reference and is excluded from the package. It is not a supported subpath.
 
 ## Binding Modules
 

@@ -6,7 +6,7 @@ type CreateNxppModule = (options?: NxppModuleOptions) => Promise<unknown>;
 
 export const nodeRuntimeLoader: NxppRuntimeLoader = Object.freeze({
   async load(options: NxppModuleOptions): Promise<unknown> {
-    const module = await import("../../build/nxpp_node.mjs");
+    const module = await import("../../runtime/node.mjs");
     const createNxppModule = module.default as CreateNxppModule;
     return createNxppModule(options);
   },

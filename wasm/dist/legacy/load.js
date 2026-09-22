@@ -21,7 +21,7 @@ function assertRuntimeShape(runtime) {
 }
 let runtimePromise;
 async function loadCreateModule() {
-    const module = await import("../../build/nxpp_node.mjs");
+    const module = await import("../../runtime/node.mjs");
     return module.default;
 }
 export async function createNxpp(options = {}) {

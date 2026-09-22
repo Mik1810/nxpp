@@ -1,6 +1,7 @@
 import { performance } from "node:perf_hooks";
 
-import nxpp from "../dist/index.js";
+import { createNxpp } from "../dist/index.js";
+import createRawModule from "../runtime/node.mjs";
 
 function readIntArg(name, fallback) {
     const index = process.argv.indexOf(name);
@@ -147,6 +148,7 @@ function runLayer(layer, constructors) {
 }
 
 printHeader();
-const rawRuntime = await nxpp.createNxpp();
+const rawRuntime = await createRawModule();
+const nxpp = await createNxpp();
 runLayer("raw_wasm", rawRuntime);
 runLayer("facade_ts", nxpp);

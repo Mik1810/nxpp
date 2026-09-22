@@ -1,5 +1,7 @@
-import nxpp from "@mik1810/nxpp-wasm";
+import assert from "node:assert/strict";
+import { createNxpp } from "@mik1810/nxpp-wasm";
 
+const nxpp = await createNxpp();
 const g = new nxpp.DiGraphInt();
 g.addEdge(1, 2, 3);
 g.addEdge(2, 3, 4);
@@ -15,5 +17,17 @@ if (weight !== 3) {
 }
 
 g.dispose();
+
+await assert.rejects(
+  import("@mik1810/nxpp-wasm/runtime"),
+  (error) => error?.code === "ERR_PACKAGE_PATH_NOT_EXPORTED",
+  "legacy runtime shim must not be exported",
+);
+
+await assert.rejects(
+  import("@mik1810/nxpp-wasm/dist/internal/wasm_types.js"),
+  (error) => error?.code === "ERR_PACKAGE_PATH_NOT_EXPORTED",
+  "internal deep imports must not be exported",
+);
 
 console.log("[WASM-NPM-PACK] consumer-smoke-ok");

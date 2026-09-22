@@ -74,7 +74,7 @@ parity for the raw runtime or for the higher-level TypeScript facade.
 
 This path is intentionally not part of the published package contract:
 
-- it should use a browser-specific build artifact, not `build/nxpp_node.mjs`
+- it should use a browser-specific build artifact, not `runtime/node.mjs`
 - the current package entrypoint and TypeScript facade remain Node-oriented
 - browser loader behavior, bundler expectations, MIME serving, and asset paths
   are investigation details until CI starts covering them
@@ -498,7 +498,7 @@ The following are non-breaking for v0:
 | Spanning/centrality | Covered | Degree centrality, PageRank, and betweenness centrality score-entry wrappers | Keep contract tests aligned with future facade changes |
 | Flow/multigraph precision | Covered | Max-flow, min-cut, min-cost-flow, staged push-relabel/cycle-canceling, and multigraph edge-id flow DTOs | Keep contract tests aligned with native flow behavior |
 | TypeScript surface | Active | generic TS interfaces + explicit typed runtime class declarations (`wasm/dist/index.d.ts`) and facade source tree under `wasm/ts/` | Expand algorithm module typings and wrappers as new wasm exports land |
-| NPM packaging | Partial | installable package now exposes `dist/index.js` + `dist/index.d.ts` over prebuilt wasm artifacts | Keep release automation aligned with facade build/publish flow |
+| NPM packaging | Covered | root-only facade export, exact tarball allowlist, and internal Node assets under `runtime/` | Keep release automation aligned with facade build/publish flow |
 
 Keep this table updated whenever a new exported API family is merged.
 

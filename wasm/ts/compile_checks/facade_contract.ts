@@ -1,13 +1,4 @@
-import {
-  DiGraphInt,
-  DiGraphStr,
-  GraphInt,
-  GraphStr,
-  MultiDiGraphInt,
-  MultiDiGraphStr,
-  MultiGraphInt,
-  MultiGraphStr,
-} from "../index.js";
+import { createNxpp } from "../index.js";
 
 import type {
   AllPairsShortestPathSourceEntry,
@@ -314,23 +305,25 @@ function exerciseMultiGraphString(graph: MultiGraph<string>): void {
   void edgeNumericAttr;
 }
 
-const graphNumber: Graph<number> = new GraphInt();
-const graphString: Graph<string> = new GraphStr();
-const digraphNumber: DiGraph<number> = new DiGraphInt();
-const digraphString: DiGraph<string> = new DiGraphStr();
-const multigraphNumber: MultiGraph<number> = new MultiGraphInt();
-const multigraphString: MultiGraph<string> = new MultiGraphStr();
-const multidigraphNumber: MultiDiGraph<number> = new MultiDiGraphInt();
-const multidigraphString: MultiDiGraph<string> = new MultiDiGraphStr();
+async function exerciseFacadeContract(): Promise<void> {
+  const nxpp = await createNxpp();
+  const graphNumber: Graph<number> = new nxpp.GraphInt();
+  const graphString: Graph<string> = new nxpp.GraphStr();
+  const digraphNumber: DiGraph<number> = new nxpp.DiGraphInt();
+  const digraphString: DiGraph<string> = new nxpp.DiGraphStr();
+  const multigraphNumber: MultiGraph<number> = new nxpp.MultiGraphInt();
+  const multigraphString: MultiGraph<string> = new nxpp.MultiGraphStr();
+  const multidigraphNumber: MultiDiGraph<number> = new nxpp.MultiDiGraphInt();
+  const multidigraphString: MultiDiGraph<string> = new nxpp.MultiDiGraphStr();
 
-const connectedGraphNumber: ConnectedComponents<number> = new GraphInt();
-const connectedGraphString: ConnectedComponents<string> = new GraphStr();
-const connectedMultiGraphNumber: ConnectedComponents<number> = new MultiGraphInt();
-const connectedMultiGraphString: ConnectedComponents<string> = new MultiGraphStr();
-const stronglyConnectedGraphNumber: StronglyConnectedComponents<number> = new DiGraphInt();
-const stronglyConnectedGraphString: StronglyConnectedComponents<string> = new DiGraphStr();
-const stronglyConnectedMultiGraphNumber: StronglyConnectedComponents<number> = new MultiDiGraphInt();
-const stronglyConnectedMultiGraphString: StronglyConnectedComponents<string> = new MultiDiGraphStr();
+  const connectedGraphNumber: ConnectedComponents<number> = new nxpp.GraphInt();
+  const connectedGraphString: ConnectedComponents<string> = new nxpp.GraphStr();
+  const connectedMultiGraphNumber: ConnectedComponents<number> = new nxpp.MultiGraphInt();
+  const connectedMultiGraphString: ConnectedComponents<string> = new nxpp.MultiGraphStr();
+  const stronglyConnectedGraphNumber: StronglyConnectedComponents<number> = new nxpp.DiGraphInt();
+  const stronglyConnectedGraphString: StronglyConnectedComponents<string> = new nxpp.DiGraphStr();
+  const stronglyConnectedMultiGraphNumber: StronglyConnectedComponents<number> = new nxpp.MultiDiGraphInt();
+  const stronglyConnectedMultiGraphString: StronglyConnectedComponents<string> = new nxpp.MultiDiGraphStr();
 
 const graphNumberComponents: number[][] = connectedGraphNumber.connectedComponents();
 const graphStringComponents: string[][] = connectedGraphString.connectedComponents();
@@ -341,19 +334,22 @@ const diGraphStringComponents: string[][] = stronglyConnectedGraphString.strongl
 const multiDiGraphNumberComponents: number[][] = stronglyConnectedMultiGraphNumber.stronglyConnectedComponents();
 const multiDiGraphStringComponents: string[][] = stronglyConnectedMultiGraphString.stronglyConnectedComponents();
 
-exerciseGraphNumber(graphNumber);
-exerciseGraphString(graphString);
-exerciseGraphNumber(digraphNumber);
-exerciseGraphString(digraphString);
-exerciseMultiGraphNumber(multigraphNumber);
-exerciseMultiGraphString(multigraphString);
-exerciseMultiGraphNumber(multidigraphNumber);
-exerciseMultiGraphString(multidigraphString);
-void graphNumberComponents;
-void graphStringComponents;
-void multiGraphNumberComponents;
-void multiGraphStringComponents;
-void diGraphNumberComponents;
-void diGraphStringComponents;
-void multiDiGraphNumberComponents;
-void multiDiGraphStringComponents;
+  exerciseGraphNumber(graphNumber);
+  exerciseGraphString(graphString);
+  exerciseGraphNumber(digraphNumber);
+  exerciseGraphString(digraphString);
+  exerciseMultiGraphNumber(multigraphNumber);
+  exerciseMultiGraphString(multigraphString);
+  exerciseMultiGraphNumber(multidigraphNumber);
+  exerciseMultiGraphString(multidigraphString);
+  void graphNumberComponents;
+  void graphStringComponents;
+  void multiGraphNumberComponents;
+  void multiGraphStringComponents;
+  void diGraphNumberComponents;
+  void diGraphStringComponents;
+  void multiDiGraphNumberComponents;
+  void multiDiGraphStringComponents;
+}
+
+void exerciseFacadeContract;
