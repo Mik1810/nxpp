@@ -1,4 +1,5 @@
 import createNxppModule from "./nxpp_browser.mjs";
+import { createBrowserNxpp } from "../../dist/runtime/browser.js";
 
 const output = document.querySelector("#output");
 
@@ -35,11 +36,10 @@ function reconstructPath(predecessorEntries, source, target) {
 }
 
 try {
-  const nxpp = await createNxppModule({
-    locateFile(path) {
-      return path.endsWith(".wasm") ? "./nxpp_browser.wasm" : path;
-    },
-  });
+  const nxpp = await createBrowserNxpp(
+    createNxppModule,
+    new URL("./nxpp_browser.wasm", import.meta.url),
+  );
 
   const graph = new nxpp.DiGraphInt();
   try {
@@ -60,9 +60,7 @@ try {
       ].join("\n"),
     );
   } finally {
-    if (typeof graph.delete === "function") {
-      graph.delete();
-    }
+    graph.dispose();
   }
 } catch (error) {
   writeResult(`Browser WASM investigation failed:\n${error.message}`);

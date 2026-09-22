@@ -37,6 +37,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Separated runtime-neutral WASM facade construction from Node and browser
+  loaders, with a bounded browser facade smoke check that does not promote the
+  browser target to the supported npm surface.
 - Standardized active WASM bridge results as JavaScript primitives, arrays,
   and plain DTOs; only graph handles retain explicit Embind ownership.
 - Replaced temporary Embind edge-endpoint wrappers with plain raw DTOs while

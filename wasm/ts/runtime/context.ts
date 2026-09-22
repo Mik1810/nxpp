@@ -15,6 +15,12 @@ import type {
 } from "../core/multigraph.js";
 import type { RawRuntimeModule } from "../internal/wasm_types.js";
 
+export type NxppModuleOptions = Record<string, unknown>;
+
+export interface NxppRuntimeLoader {
+  load(options: NxppModuleOptions): Promise<unknown>;
+}
+
 const REQUIRED_RUNTIME_CLASSES = [
   "GraphInt",
   "GraphStr",
@@ -60,4 +66,24 @@ export function createNxppRuntime(runtime: unknown): NxppRuntime {
     ...createSimpleGraphClasses(rawRuntime),
     ...createMultiGraphClasses(rawRuntime),
   });
+}
+
+function initializationError(error: unknown): Error {
+  if (error instanceof Error && error.message.startsWith("nxpp wasm runtime initialization failed:")) {
+    return error;
+  }
+
+  const detail = error instanceof Error ? error.message : String(error);
+  return new Error(`nxpp wasm runtime initialization failed: ${detail}`, { cause: error });
+}
+
+export async function createNxppWithLoader(
+  loader: NxppRuntimeLoader,
+  options: NxppModuleOptions = {},
+): Promise<NxppRuntime> {
+  try {
+    return createNxppRuntime(await loader.load(options));
+  } catch (error) {
+    throw initializationError(error);
+  }
 }

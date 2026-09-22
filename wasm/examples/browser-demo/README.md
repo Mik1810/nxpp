@@ -36,6 +36,20 @@ python3 -m http.server 8080
 
 Then open `http://localhost:8080/`.
 
+The demo imports the shared runtime-neutral facade constructor from
+`wasm/dist/runtime/` and supplies a browser adapter that owns the browser WASM
+URL. It does not maintain a second graph facade or binding layer.
+
+CI exercises the same page in a headless browser. After building both the
+TypeScript output and browser module, the bounded check can be run with:
+
+```bash
+bash wasm/scripts/run_wasm_browser_smoke_test.sh
+```
+
+Set `BROWSER_BIN` when Chrome or Chromium is not available under a standard
+executable name.
+
 The demo intentionally exercises only a small smoke path:
 
 - load the WASM module
@@ -47,5 +61,6 @@ This successful browser demo should be read only as a load-and-execute smoke
 check. It does not yet prove behavioral parity with the Node-oriented runtime,
 TypeScript facade, or Node contract test lane.
 
-Browser bundler support, package exports, CI coverage, and TypeScript facade
-integration are out of scope for this investigation path.
+Browser bundler support and package exports remain out of scope for this
+investigation path. The smoke test covers only direct browser initialization
+through the shared facade and the small graph operation above.

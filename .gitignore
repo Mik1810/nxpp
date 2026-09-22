@@ -29,3 +29,5 @@ node_modules/
 wasm/build/*
 !wasm/build/nxpp_node.mjs
 !wasm/build/nxpp_node.wasm
+wasm/examples/browser-demo/nxpp_browser.mjs
+wasm/examples/browser-demo/nxpp_browser.wasm

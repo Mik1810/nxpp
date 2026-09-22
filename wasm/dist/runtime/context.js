@@ -29,3 +29,18 @@ export function createNxppRuntime(runtime) {
         ...createMultiGraphClasses(rawRuntime),
     });
 }
+function initializationError(error) {
+    if (error instanceof Error && error.message.startsWith("nxpp wasm runtime initialization failed:")) {
+        return error;
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    return new Error(`nxpp wasm runtime initialization failed: ${detail}`, { cause: error });
+}
+export async function createNxppWithLoader(loader, options = {}) {
+    try {
+        return createNxppRuntime(await loader.load(options));
+    }
+    catch (error) {
+        throw initializationError(error);
+    }
+}

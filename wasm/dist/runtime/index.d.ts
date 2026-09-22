@@ -1,4 +1,3 @@
-export { createNxppRuntime } from "./context.js";
-export { createNxpp } from "./node.js";
-export type { NxppRuntime } from "./context.js";
-export type { NxppModuleOptions } from "./node.js";
+export { createNxppRuntime, createNxppWithLoader } from "./context.js";
+export { createNxpp, nodeRuntimeLoader } from "./node.js";
+export type { NxppModuleOptions, NxppRuntime, NxppRuntimeLoader } from "./context.js";

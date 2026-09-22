@@ -1,6 +1,6 @@
-import { createNxpp, createNxppRuntime } from "../runtime/index.js";
+import { createNxpp, createNxppRuntime, createNxppWithLoader, nodeRuntimeLoader } from "../runtime/index.js";
 
-import type { NxppRuntime } from "../runtime/index.js";
+import type { NxppRuntime, NxppRuntimeLoader } from "../runtime/index.js";
 import type { DiGraph, MultiGraph } from "../types.js";
 
 async function exerciseRuntimeContext(): Promise<void> {
@@ -15,4 +15,8 @@ async function exerciseRuntimeContext(): Promise<void> {
 }
 
 void createNxppRuntime;
+void createNxppWithLoader;
+void nodeRuntimeLoader;
+const loader: NxppRuntimeLoader = nodeRuntimeLoader;
+void loader;
 void exerciseRuntimeContext;

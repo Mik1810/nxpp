@@ -1,4 +1,4 @@
-import { createNxpp, createNxppRuntime } from "../runtime/index.js";
+import { createNxpp, createNxppRuntime, createNxppWithLoader, nodeRuntimeLoader } from "../runtime/index.js";
 async function exerciseRuntimeContext() {
     const nxpp = await createNxpp();
     const graph = new nxpp.DiGraphInt();
@@ -9,4 +9,8 @@ async function exerciseRuntimeContext() {
     multigraph.dispose();
 }
 void createNxppRuntime;
+void createNxppWithLoader;
+void nodeRuntimeLoader;
+const loader = nodeRuntimeLoader;
+void loader;
 void exerciseRuntimeContext;

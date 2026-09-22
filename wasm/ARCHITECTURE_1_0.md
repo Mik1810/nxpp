@@ -207,6 +207,12 @@ multiple independent Node contexts internally. Making this the package-root
 API and removing the legacy singleton remain part of the declared 1.0 export
 transition.
 
+Runtime initialization now crosses the shared `NxppRuntimeLoader` contract.
+The Node adapter owns the packaged Emscripten module import, while the separate
+browser adapter owns browser WASM URL resolution and receives the experimental
+browser module factory. Both construct the same facade context. The browser
+adapter and demo remain outside the supported package export map.
+
 The `1.0.0` transition may intentionally remove or change:
 
 - direct constructors bound to an implicit global runtime
