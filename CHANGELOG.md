@@ -21,6 +21,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Fixed
 
+- Preserved native C++ exception messages across optimized Emscripten builds
+  and released caught exception objects after facade normalization.
 - Preserved staged min-cost-flow state after rejected and documented no-op
   graph mutations, while invalidating it after successful structural, weight,
   and attribute changes.
@@ -33,6 +35,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Removed facade-side staged-flow mutation tracking so the native graph is the
+  sole owner of min-cost-flow availability and invalidation semantics.
 - Added an internal explicit WASM runtime context with module-bound graph
   constructors and isolated multi-context lifecycle, while retaining the 0.6
   singleton facade at the package root.

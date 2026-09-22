@@ -1,6 +1,24 @@
 export const disposedGraphMessage = "WASM graph operation failed: graph has been disposed.";
 
-export function normalizeWasmGraphError(error: unknown): Error {
+export interface WasmExceptionRuntime {
+  getExceptionMessage(error: unknown): [string, string];
+  decrementExceptionRefcount(error: unknown): void;
+}
+
+function decodeCppException(error: unknown, runtime: WasmExceptionRuntime): string | null {
+  if (typeof error !== "object" || error === null || !("excPtr" in error)) {
+    return null;
+  }
+
+  try {
+    const [type, message] = runtime.getExceptionMessage(error);
+    return message || type || null;
+  } finally {
+    runtime.decrementExceptionRefcount(error);
+  }
+}
+
+export function normalizeWasmGraphError(error: unknown, runtime?: WasmExceptionRuntime): Error {
   if (error instanceof Error) {
     if (error.message.startsWith("WASM graph operation failed:")) {
       return error;
@@ -10,6 +28,13 @@ export function normalizeWasmGraphError(error: unknown): Error {
 
   if (typeof error === "string") {
     return new Error(`WASM graph operation failed: ${error}`);
+  }
+
+  if (runtime !== undefined) {
+    const message = decodeCppException(error, runtime);
+    if (message !== null) {
+      return new Error(`WASM graph operation failed: ${message}`);
+    }
   }
 
   if (typeof error === "object" && error !== null && "message" in error) {
@@ -29,7 +54,7 @@ export function normalizeWasmGraphError(error: unknown): Error {
   return new Error("WASM graph operation failed: unknown runtime error.");
 }
 
-export function wrapRawGraph<T extends object>(raw: T): T {
+export function wrapRawGraph<T extends object>(raw: T, runtime: WasmExceptionRuntime): T {
   return new Proxy(raw, {
     get(target, property, receiver) {
       const value = Reflect.get(target, property, receiver);
@@ -41,7 +66,7 @@ export function wrapRawGraph<T extends object>(raw: T): T {
         try {
           return value.apply(target, args);
         } catch (error) {
-          throw normalizeWasmGraphError(error);
+          throw normalizeWasmGraphError(error, runtime);
         }
       };
     },

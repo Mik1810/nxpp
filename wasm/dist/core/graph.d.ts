@@ -21,15 +21,10 @@ export interface SimpleGraphClasses {
 export declare abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGraph<T>> {
     private rawObject;
     protected readonly assertNode: (value: unknown, label: string) => asserts value is T;
-    private mutationVersion;
-    private stagedFlowMutationVersion;
-    constructor(factory: (() => RawGraph) | RawGraph, assertNode: (value: unknown, label: string) => asserts value is T);
+    constructor(factory: (() => RawGraph) | RawGraph, assertNode: (value: unknown, label: string) => asserts value is T, runtime: RawRuntimeModule);
     protected get raw(): RawGraph;
     protected abstract createFromRaw(raw: RawGraph): this;
     protected operationFailed(message: string): never;
-    protected markGraphMutation(): void;
-    private markStagedFlow;
-    private requireStagedFlow;
     private requireNodeExists;
     private requireEdgeExists;
     private requireWeightKey;

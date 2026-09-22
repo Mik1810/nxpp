@@ -33,8 +33,9 @@ The TypeScript facade layer is responsible for:
 - adapting raw Embind values into stable JavaScript result shapes
 - owning explicit graph lifetime management through `dispose()`
 
-The TypeScript facade must not reimplement graph algorithms. Algorithmic work
-belongs in the C++ library and the WASM binding layer.
+The TypeScript facade must not reimplement graph algorithms or mirror native
+semantic state. Algorithmic work and staged algorithm lifecycles belong in the
+C++ library and the WASM binding layer.
 
 ## Current Layout
 
@@ -176,6 +177,10 @@ instances with the prefix:
 ```text
 WASM graph operation failed:
 ```
+
+Optimized Emscripten builds export the runtime exception-message and reference-
+count helpers. The facade uses them to preserve `std::exception::what()` and
+release caught native exceptions without reproducing the failed semantic check.
 
 Facade-side validation errors may use `TypeError` when the caller passed an
 invalid JavaScript type before crossing into WASM.

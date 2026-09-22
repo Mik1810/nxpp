@@ -2,8 +2,8 @@ import { assertAttributeValue, assertEdgeId, assertFiniteNumber, assertIntNodeId
 import { toArray, toEdgeEndpoints } from "../internal/wrap.js";
 import { BaseGraph } from "./graph.js";
 class BaseMultiGraph extends BaseGraph {
-    constructor(factory, assertNode) {
-        super(factory, assertNode);
+    constructor(factory, assertNode, runtime) {
+        super(factory, assertNode, runtime);
     }
     requireEdgeIdExists(edgeId) {
         if (!this.raw.hasEdgeId(edgeId)) {
@@ -37,7 +37,6 @@ class BaseMultiGraph extends BaseGraph {
         assertFiniteNumber(weight, "weight");
         this.requireEdgeIdExists(edgeId);
         this.raw.setEdgeWeightById(edgeId, weight);
-        this.markGraphMutation();
     }
     hasEdgeAttrById(edgeId, key) {
         assertEdgeId(edgeId);
@@ -60,7 +59,6 @@ class BaseMultiGraph extends BaseGraph {
         assertAttributeValue(value, "value");
         this.requireEdgeIdExists(edgeId);
         this.raw.setEdgeAttrById(edgeId, key, value);
-        this.markGraphMutation();
     }
     getEdgeNumericAttrById(edgeId, key) {
         assertEdgeId(edgeId);
@@ -71,13 +69,12 @@ class BaseMultiGraph extends BaseGraph {
         assertEdgeId(edgeId);
         this.requireEdgeIdExists(edgeId);
         this.raw.removeEdgeById(edgeId);
-        this.markGraphMutation();
     }
 }
 export function createMultiGraphClasses(runtime) {
     class MultiGraphInt extends BaseMultiGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId);
+            super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId, runtime);
         }
         createFromRaw(raw) {
             return new MultiGraphInt(raw);
@@ -88,7 +85,7 @@ export function createMultiGraphClasses(runtime) {
     }
     class MultiGraphStr extends BaseMultiGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId);
+            super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId, runtime);
         }
         createFromRaw(raw) {
             return new MultiGraphStr(raw);
@@ -99,7 +96,7 @@ export function createMultiGraphClasses(runtime) {
     }
     class MultiDiGraphInt extends BaseMultiGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId);
+            super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId, runtime);
         }
         createFromRaw(raw) {
             return new MultiDiGraphInt(raw);
@@ -110,7 +107,7 @@ export function createMultiGraphClasses(runtime) {
     }
     class MultiDiGraphStr extends BaseMultiGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId);
+            super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId, runtime);
         }
         createFromRaw(raw) {
             return new MultiDiGraphStr(raw);

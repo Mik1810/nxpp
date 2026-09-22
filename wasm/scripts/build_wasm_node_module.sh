@@ -6,7 +6,7 @@ BUILD_DIR="$ROOT_DIR/wasm/build"
 mkdir -p "$BUILD_DIR"
 
 EMXX=${EMXX:-em++}
-EMXXFLAGS=${EMXXFLAGS:-"-std=c++20 -Wall -Wextra -pedantic -O1 -fexceptions -sDISABLE_EXCEPTION_CATCHING=0 -sENVIRONMENT=node -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXIT_RUNTIME=1"}
+EMXXFLAGS=${EMXXFLAGS:-"-std=c++20 -Wall -Wextra -pedantic -O1 -fexceptions -sDISABLE_EXCEPTION_CATCHING=0 -sEXPORTED_RUNTIME_METHODS=getExceptionMessage,decrementExceptionRefcount -sENVIRONMENT=node -sALLOW_MEMORY_GROWTH=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sEXIT_RUNTIME=1"}
 BOOST_INCLUDE=${BOOST_INCLUDE:-/usr/include}
 
 SOURCE_ROOT="$ROOT_DIR/wasm/src"

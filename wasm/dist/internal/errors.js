@@ -1,5 +1,17 @@
 export const disposedGraphMessage = "WASM graph operation failed: graph has been disposed.";
-export function normalizeWasmGraphError(error) {
+function decodeCppException(error, runtime) {
+    if (typeof error !== "object" || error === null || !("excPtr" in error)) {
+        return null;
+    }
+    try {
+        const [type, message] = runtime.getExceptionMessage(error);
+        return message || type || null;
+    }
+    finally {
+        runtime.decrementExceptionRefcount(error);
+    }
+}
+export function normalizeWasmGraphError(error, runtime) {
     if (error instanceof Error) {
         if (error.message.startsWith("WASM graph operation failed:")) {
             return error;
@@ -8,6 +20,12 @@ export function normalizeWasmGraphError(error) {
     }
     if (typeof error === "string") {
         return new Error(`WASM graph operation failed: ${error}`);
+    }
+    if (runtime !== undefined) {
+        const message = decodeCppException(error, runtime);
+        if (message !== null) {
+            return new Error(`WASM graph operation failed: ${message}`);
+        }
     }
     if (typeof error === "object" && error !== null && "message" in error) {
         const message = error.message;
@@ -23,7 +41,7 @@ export function normalizeWasmGraphError(error) {
     }
     return new Error("WASM graph operation failed: unknown runtime error.");
 }
-export function wrapRawGraph(raw) {
+export function wrapRawGraph(raw, runtime) {
     return new Proxy(raw, {
         get(target, property, receiver) {
             const value = Reflect.get(target, property, receiver);
@@ -35,7 +53,7 @@ export function wrapRawGraph(raw) {
                     return value.apply(target, args);
                 }
                 catch (error) {
-                    throw normalizeWasmGraphError(error);
+                    throw normalizeWasmGraphError(error, runtime);
                 }
             };
         },

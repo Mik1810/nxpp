@@ -8,10 +8,8 @@ const disposeSymbol = Symbol.dispose;
 export class BaseGraph {
     rawObject;
     assertNode;
-    mutationVersion = 0;
-    stagedFlowMutationVersion = null;
-    constructor(factory, assertNode) {
-        this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
+    constructor(factory, assertNode, runtime) {
+        this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory, runtime);
         this.assertNode = assertNode;
         if (disposeSymbol !== undefined) {
             Object.defineProperty(this, disposeSymbol, {
@@ -28,20 +26,6 @@ export class BaseGraph {
     }
     operationFailed(message) {
         throw new Error(`WASM graph operation failed: ${message}`);
-    }
-    markGraphMutation() {
-        this.mutationVersion += 1;
-    }
-    markStagedFlow() {
-        this.stagedFlowMutationVersion = this.mutationVersion;
-    }
-    requireStagedFlow() {
-        if (this.stagedFlowMutationVersion === null) {
-            this.operationFailed("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
-        }
-        if (this.stagedFlowMutationVersion !== this.mutationVersion) {
-            this.operationFailed("Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().");
-        }
     }
     requireNodeExists(id) {
         if (!this.raw.hasNode(id)) {
@@ -91,14 +75,12 @@ export class BaseGraph {
     addNode(id) {
         this.assertNode(id, "id");
         this.raw.addNode(id);
-        this.markGraphMutation();
     }
     addEdge(source, target, weight) {
         this.assertNode(source, "source");
         this.assertNode(target, "target");
         assertFiniteNumber(weight, "weight");
         this.raw.addEdge(source, target, weight);
-        this.markGraphMutation();
     }
     hasNode(id) {
         this.assertNode(id, "id");
@@ -121,14 +103,12 @@ export class BaseGraph {
         this.assertNode(id, "id");
         this.requireNodeExists(id);
         this.raw.removeNode(id);
-        this.markGraphMutation();
     }
     removeEdge(source, target) {
         this.assertNode(source, "source");
         this.assertNode(target, "target");
         this.requireEdgeExists(source, target);
         this.raw.removeEdge(source, target);
-        this.markGraphMutation();
     }
     getEdgeWeight(source, target) {
         this.assertNode(source, "source");
@@ -142,7 +122,6 @@ export class BaseGraph {
         assertFiniteNumber(weight, "weight");
         this.requireEdgeExists(source, target);
         this.raw.setEdgeWeight(source, target, weight);
-        this.markGraphMutation();
     }
     subgraph(nodes) {
         if (!Array.isArray(nodes)) {
@@ -174,7 +153,6 @@ export class BaseGraph {
         this.assertNode(id, "id");
         assertAttributeValue(value, "value");
         this.raw.setNodeAttr(id, key, value);
-        this.markGraphMutation();
     }
     hasEdgeAttr(source, target, key) {
         this.assertNode(source, "source");
@@ -200,7 +178,6 @@ export class BaseGraph {
         this.assertNode(target, "target");
         assertAttributeValue(value, "value");
         this.raw.setEdgeAttr(source, target, key, value);
-        this.markGraphMutation();
     }
     getEdgeNumericAttr(source, target, key) {
         this.assertNode(source, "source");
@@ -419,18 +396,14 @@ export class BaseGraph {
         this.requireAttributeKey(weightKey, "weightKey");
         this.requireNodeExists(source);
         this.requireNodeExists(target);
-        const flow = this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
-        this.markStagedFlow();
-        return flow;
+        return this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
     }
     cycleCanceling(weightKey = "weight") {
         this.requireAttributeKey(weightKey, "weightKey");
-        this.requireStagedFlow();
         return this.raw.cycleCanceling(weightKey);
     }
     clear() {
         this.raw.clear();
-        this.markGraphMutation();
     }
     dispose() {
         if (this.rawObject === null) {
@@ -443,7 +416,7 @@ export class BaseGraph {
 export function createSimpleGraphClasses(runtime) {
     class GraphInt extends BaseGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
+            super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId, runtime);
         }
         createFromRaw(raw) {
             return new GraphInt(raw);
@@ -454,7 +427,7 @@ export function createSimpleGraphClasses(runtime) {
     }
     class GraphStr extends BaseGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
+            super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId, runtime);
         }
         createFromRaw(raw) {
             return new GraphStr(raw);
@@ -465,7 +438,7 @@ export function createSimpleGraphClasses(runtime) {
     }
     class DiGraphInt extends BaseGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
+            super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId, runtime);
         }
         createFromRaw(raw) {
             return new DiGraphInt(raw);
@@ -476,7 +449,7 @@ export function createSimpleGraphClasses(runtime) {
     }
     class DiGraphStr extends BaseGraph {
         constructor(raw) {
-            super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
+            super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId, runtime);
         }
         createFromRaw(raw) {
             return new DiGraphStr(raw);

@@ -45,8 +45,9 @@ abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGra
   constructor(
     factory: (() => RawMultiGraph<T>) | RawMultiGraph<T>,
     assertNode: (value: unknown, label: string) => asserts value is T,
+    runtime: RawRuntimeModule,
   ) {
-    super(factory, assertNode);
+    super(factory, assertNode, runtime);
   }
 
   private requireEdgeIdExists(edgeId: number): void {
@@ -87,7 +88,6 @@ abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGra
     assertFiniteNumber(weight, "weight");
     this.requireEdgeIdExists(edgeId);
     this.raw.setEdgeWeightById(edgeId, weight);
-    this.markGraphMutation();
   }
 
   hasEdgeAttrById(edgeId: number, key: string): boolean {
@@ -114,7 +114,6 @@ abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGra
     assertAttributeValue(value, "value");
     this.requireEdgeIdExists(edgeId);
     this.raw.setEdgeAttrById(edgeId, key, value);
-    this.markGraphMutation();
   }
 
   getEdgeNumericAttrById(edgeId: number, key: string): number {
@@ -127,14 +126,13 @@ abstract class BaseMultiGraph<T extends NodeId> extends BaseGraph<T, RawMultiGra
     assertEdgeId(edgeId);
     this.requireEdgeIdExists(edgeId);
     this.raw.removeEdgeById(edgeId);
-    this.markGraphMutation();
   }
 }
 
 export function createMultiGraphClasses(runtime: RawRuntimeModule): MultiGraphClasses {
   class MultiGraphInt extends BaseMultiGraph<number> implements MultiGraph<number>, ConnectedComponents<number> {
     constructor(raw?: RawMultiGraph<number>) {
-      super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId);
+      super(raw ?? (() => new runtime.MultiGraphInt()), assertIntNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawMultiGraph<number>): this {
@@ -148,7 +146,7 @@ export function createMultiGraphClasses(runtime: RawRuntimeModule): MultiGraphCl
 
   class MultiGraphStr extends BaseMultiGraph<string> implements MultiGraph<string>, ConnectedComponents<string> {
     constructor(raw?: RawMultiGraph<string>) {
-      super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId);
+      super(raw ?? (() => new runtime.MultiGraphStr()), assertStringNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawMultiGraph<string>): this {
@@ -162,7 +160,7 @@ export function createMultiGraphClasses(runtime: RawRuntimeModule): MultiGraphCl
 
   class MultiDiGraphInt extends BaseMultiGraph<number> implements MultiDiGraph<number>, StronglyConnectedComponents<number> {
     constructor(raw?: RawMultiGraph<number>) {
-      super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId);
+      super(raw ?? (() => new runtime.MultiDiGraphInt()), assertIntNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawMultiGraph<number>): this {
@@ -176,7 +174,7 @@ export function createMultiGraphClasses(runtime: RawRuntimeModule): MultiGraphCl
 
   class MultiDiGraphStr extends BaseMultiGraph<string> implements MultiDiGraph<string>, StronglyConnectedComponents<string> {
     constructor(raw?: RawMultiGraph<string>) {
-      super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId);
+      super(raw ?? (() => new runtime.MultiDiGraphStr()), assertStringNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawMultiGraph<string>): this {

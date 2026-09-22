@@ -70,14 +70,13 @@ export interface SimpleGraphClasses {
 export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGraph<T>> {
   private rawObject: RawGraph | null;
   protected readonly assertNode: (value: unknown, label: string) => asserts value is T;
-  private mutationVersion = 0;
-  private stagedFlowMutationVersion: number | null = null;
 
   constructor(
     factory: (() => RawGraph) | RawGraph,
     assertNode: (value: unknown, label: string) => asserts value is T,
+    runtime: RawRuntimeModule,
   ) {
-    this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory);
+    this.rawObject = wrapRawGraph(typeof factory === "function" ? factory() : factory, runtime);
     this.assertNode = assertNode;
     if (disposeSymbol !== undefined) {
       Object.defineProperty(this, disposeSymbol, {
@@ -98,25 +97,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
 
   protected operationFailed(message: string): never {
     throw new Error(`WASM graph operation failed: ${message}`);
-  }
-
-  protected markGraphMutation(): void {
-    this.mutationVersion += 1;
-  }
-
-  private markStagedFlow(): void {
-    this.stagedFlowMutationVersion = this.mutationVersion;
-  }
-
-  private requireStagedFlow(): void {
-    if (this.stagedFlowMutationVersion === null) {
-      this.operationFailed("Min-cost-flow state unavailable: run push_relabel_maximum_flow(...) first.");
-    }
-    if (this.stagedFlowMutationVersion !== this.mutationVersion) {
-      this.operationFailed(
-        "Min-cost-flow state invalidated by graph mutation: rerun push_relabel_maximum_flow(...) before cycle_canceling().",
-      );
-    }
   }
 
   private requireNodeExists(id: T): void {
@@ -178,7 +158,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
   addNode(id: T): void {
     this.assertNode(id, "id");
     this.raw.addNode(id);
-    this.markGraphMutation();
   }
 
   addEdge(source: T, target: T, weight: number): void {
@@ -186,7 +165,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.assertNode(target, "target");
     assertFiniteNumber(weight, "weight");
     this.raw.addEdge(source, target, weight);
-    this.markGraphMutation();
   }
 
   hasNode(id: T): boolean {
@@ -214,7 +192,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.assertNode(id, "id");
     this.requireNodeExists(id);
     this.raw.removeNode(id);
-    this.markGraphMutation();
   }
 
   removeEdge(source: T, target: T): void {
@@ -222,7 +199,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.assertNode(target, "target");
     this.requireEdgeExists(source, target);
     this.raw.removeEdge(source, target);
-    this.markGraphMutation();
   }
 
   getEdgeWeight(source: T, target: T): number {
@@ -238,7 +214,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     assertFiniteNumber(weight, "weight");
     this.requireEdgeExists(source, target);
     this.raw.setEdgeWeight(source, target, weight);
-    this.markGraphMutation();
   }
 
   subgraph(nodes: T[]): this {
@@ -275,7 +250,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.assertNode(id, "id");
     assertAttributeValue(value, "value");
     this.raw.setNodeAttr(id, key, value);
-    this.markGraphMutation();
   }
 
   hasEdgeAttr(source: T, target: T, key: string): boolean {
@@ -305,7 +279,6 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.assertNode(target, "target");
     assertAttributeValue(value, "value");
     this.raw.setEdgeAttr(source, target, key, value);
-    this.markGraphMutation();
   }
 
   getEdgeNumericAttr(source: T, target: T, key: string): number {
@@ -565,20 +538,16 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
     this.requireAttributeKey(weightKey, "weightKey");
     this.requireNodeExists(source);
     this.requireNodeExists(target);
-    const flow = this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
-    this.markStagedFlow();
-    return flow;
+    return this.raw.pushRelabelMaximumFlow(source, target, capacityKey, weightKey);
   }
 
   cycleCanceling(weightKey = "weight"): number {
     this.requireAttributeKey(weightKey, "weightKey");
-    this.requireStagedFlow();
     return this.raw.cycleCanceling(weightKey);
   }
 
   clear(): void {
     this.raw.clear();
-    this.markGraphMutation();
   }
 
   dispose(): void {
@@ -593,7 +562,7 @@ export abstract class BaseGraph<T extends NodeId, RawGraph extends RawSimpleGrap
 export function createSimpleGraphClasses(runtime: RawRuntimeModule): SimpleGraphClasses {
   class GraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements Graph<number>, ConnectedComponents<number> {
     constructor(raw?: RawSimpleGraph<number>) {
-      super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId);
+      super(raw ?? (() => new runtime.GraphInt()), assertIntNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawSimpleGraph<number>): this {
@@ -607,7 +576,7 @@ export function createSimpleGraphClasses(runtime: RawRuntimeModule): SimpleGraph
 
   class GraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements Graph<string>, ConnectedComponents<string> {
     constructor(raw?: RawSimpleGraph<string>) {
-      super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId);
+      super(raw ?? (() => new runtime.GraphStr()), assertStringNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawSimpleGraph<string>): this {
@@ -621,7 +590,7 @@ export function createSimpleGraphClasses(runtime: RawRuntimeModule): SimpleGraph
 
   class DiGraphInt extends BaseGraph<number, RawSimpleGraph<number>> implements DiGraph<number>, StronglyConnectedComponents<number> {
     constructor(raw?: RawSimpleGraph<number>) {
-      super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId);
+      super(raw ?? (() => new runtime.DiGraphInt()), assertIntNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawSimpleGraph<number>): this {
@@ -635,7 +604,7 @@ export function createSimpleGraphClasses(runtime: RawRuntimeModule): SimpleGraph
 
   class DiGraphStr extends BaseGraph<string, RawSimpleGraph<string>> implements DiGraph<string>, StronglyConnectedComponents<string> {
     constructor(raw?: RawSimpleGraph<string>) {
-      super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId);
+      super(raw ?? (() => new runtime.DiGraphStr()), assertStringNodeId, runtime);
     }
 
     protected createFromRaw(raw: RawSimpleGraph<string>): this {

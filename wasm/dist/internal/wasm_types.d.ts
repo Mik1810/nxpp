@@ -92,6 +92,8 @@ export interface RawMultiGraph<T extends NodeId> extends RawSimpleGraph<T> {
 }
 export type Constructor<T> = new () => T;
 export interface RawRuntimeModule {
+    getExceptionMessage(error: unknown): [string, string];
+    decrementExceptionRefcount(error: unknown): void;
     GraphInt: Constructor<RawSimpleGraph<number>>;
     GraphStr: Constructor<RawSimpleGraph<string>>;
     DiGraphInt: Constructor<RawSimpleGraph<number>>;

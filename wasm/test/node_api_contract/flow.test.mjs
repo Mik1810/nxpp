@@ -19,6 +19,27 @@ function setCapacity(graph, source, target, capacity) {
     graph.setEdgeAttr(source, target, "capacity", capacity);
 }
 
+function createStagedGraph() {
+    const graph = new nxpp.DiGraphInt();
+    graph.addEdge(0, 1, 2);
+    graph.addEdge(1, 2, 1);
+    setCapacity(graph, 0, 1, 2);
+    setCapacity(graph, 1, 2, 2);
+    return graph;
+}
+
+function assertSuccessfulMutationInvalidates(mutate, message) {
+    const graph = createStagedGraph();
+    assert.equal(graph.pushRelabelMaximumFlow(0, 2), 2);
+    mutate(graph);
+    assertThrowsMessageIncludes(
+        () => graph.cycleCanceling(),
+        "Min-cost-flow state invalidated by graph mutation",
+        message,
+    );
+    graph.dispose();
+}
+
 const flowGraph = new nxpp.DiGraphInt();
 assertMethods(flowGraph, expectedSimpleMethods, "DiGraphInt");
 flowGraph.addEdge(0, 1, 1);
@@ -87,11 +108,7 @@ assertThrowsMessageIncludes(
     "cycleCanceling() must reject missing staged state",
 );
 
-const stagedGraph = new nxpp.DiGraphInt();
-stagedGraph.addEdge(0, 1, 2);
-stagedGraph.addEdge(1, 2, 1);
-setCapacity(stagedGraph, 0, 1, 2);
-setCapacity(stagedGraph, 1, 2, 2);
+const stagedGraph = createStagedGraph();
 assert.equal(stagedGraph.pushRelabelMaximumFlow(0, 2), 2, "pushRelabelMaximumFlow() must stage max-flow state");
 assert.equal(stagedGraph.cycleCanceling(), 6, "cycleCanceling() must consume staged state");
 assert.equal(stagedGraph.pushRelabelMaximumFlow(0, 2), 2, "pushRelabelMaximumFlow() must be rerunnable");
@@ -101,6 +118,50 @@ assertThrowsMessageIncludes(
     "Min-cost-flow state invalidated by graph mutation",
     "cycleCanceling() must reject invalidated staged state",
 );
+
+const preservedStagedGraph = createStagedGraph();
+assert.equal(preservedStagedGraph.pushRelabelMaximumFlow(0, 2), 2);
+preservedStagedGraph.addNode(0);
+assertThrowsMessageIncludes(
+    () => preservedStagedGraph.removeNode(99),
+    "Node lookup failed",
+    "rejected node removal must preserve native staged state",
+);
+assertThrowsMessageIncludes(
+    () => preservedStagedGraph.removeEdge(0, 2),
+    "Edge lookup failed",
+    "rejected edge removal must preserve native staged state",
+);
+assertThrowsMessageIncludes(
+    () => preservedStagedGraph.setEdgeWeight(0, 2, 4),
+    "Edge lookup failed",
+    "rejected weight mutation must preserve native staged state",
+);
+assertThrowsMessageIncludes(
+    () => preservedStagedGraph.setEdgeAttr(0, 1, "capacity", {}),
+    "value must be a string, finite number, or boolean",
+    "rejected attribute mutation must preserve native staged state",
+);
+assert.equal(
+    preservedStagedGraph.cycleCanceling(),
+    6,
+    "no-op and rejected facade mutations must preserve native staged state",
+);
+
+assertSuccessfulMutationInvalidates(
+    (graph) => graph.setEdgeWeight(0, 1, 4),
+    "successful weight mutation must invalidate native staged state",
+);
+assertSuccessfulMutationInvalidates(
+    (graph) => graph.setNodeAttr(0, "label", "source"),
+    "successful node-attribute mutation must invalidate native staged state",
+);
+assertSuccessfulMutationInvalidates(
+    (graph) => graph.setEdgeAttr(0, 1, "capacity", 2),
+    "successful edge-attribute mutation must invalidate native staged state",
+);
+
+preservedStagedGraph.dispose();
 
 const multiGraph = new nxpp.MultiDiGraphInt();
 assertMethods(multiGraph, expectedMultiMethods, "MultiDiGraphInt");
@@ -119,3 +180,10 @@ const multiEdgeFlows = edgeIdFlowMap(multiFlow.edgeFlowsById);
 assert.equal(multiFlow.value, 3, "MultiDiGraphInt maximumFlow() must aggregate parallel capacity");
 assert.equal(multiEdgeFlows.get(sourceEdgeIds[0]), 1, "MultiDiGraphInt maximumFlow() must preserve first source edge flow");
 assert.equal(multiEdgeFlows.get(sourceEdgeIds[1]), 2, "MultiDiGraphInt maximumFlow() must preserve second source edge flow");
+assert.equal(multiGraph.pushRelabelMaximumFlow(0, 2), 3);
+multiGraph.setEdgeAttrById(sourceEdgeIds[0], "capacity", 1);
+assertThrowsMessageIncludes(
+    () => multiGraph.cycleCanceling(),
+    "Min-cost-flow state invalidated by graph mutation",
+    "successful edge-ID attribute mutation must invalidate native staged state",
+);
