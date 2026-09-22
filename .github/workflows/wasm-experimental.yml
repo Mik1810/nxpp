@@ -98,6 +98,20 @@ jobs:
           bash wasm/scripts/build_wasm_browser_demo.sh
           bash wasm/scripts/run_wasm_browser_smoke_test.sh
 
+      - name: Pack verified Node package
+        working-directory: wasm
+        run: |
+          mkdir -p "$RUNNER_TEMP/nxpp-wasm-package"
+          tarball_name=$(npm pack --silent --pack-destination "$RUNNER_TEMP/nxpp-wasm-package")
+          mv "$RUNNER_TEMP/nxpp-wasm-package/$tarball_name" "$RUNNER_TEMP/nxpp-wasm-package/nxpp-wasm-package.tgz"
+
+      - name: Upload Node package for version checks
+        uses: actions/upload-artifact@v7
+        with:
+          name: nxpp-wasm-package
+          path: ${{ runner.temp }}/nxpp-wasm-package/nxpp-wasm-package.tgz
+          if-no-files-found: error
+
       - name: Publish wasm summary
         if: always()
         env:
@@ -179,3 +193,38 @@ jobs:
               echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  node-package-consumer:
+    name: packed consumer (Node ${{ matrix.node }})
+    needs: wasm-node
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+
+      - name: Install TypeScript for declaration check
+        working-directory: wasm
+        run: npm ci
+
+      - name: Download verified Node package
+        uses: actions/download-artifact@v8
+        with:
+          name: nxpp-wasm-package
+          path: ${{ runner.temp }}/nxpp-wasm-package
+
+      - name: Check installed package and public types
+        env:
+          NXPP_WASM_NPM_PACK_SKIP_BUILD: "1"
+          NXPP_WASM_NPM_PACK_TARBALL: ${{ runner.temp }}/nxpp-wasm-package/nxpp-wasm-package.tgz
+        run: bash wasm/scripts/run_npm_pack_consumer_test.sh

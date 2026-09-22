@@ -37,6 +37,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Aligned the experimental WASM package's Node engine range with packed
+  consumer checks on Node 22, 24, and 26 in CI and the release gate.
 - Removed the unused WASM singleton implementation and its generated output;
   the explicit `createNxpp()` context remains the sole facade path.
 - Retired the stale WASM task checklist in favor of the issue-backed roadmap

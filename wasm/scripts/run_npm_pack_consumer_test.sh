@@ -6,6 +6,7 @@ WASM_DIR="$ROOT_DIR/wasm"
 NODE_BIN=${NODE_BIN:-node}
 NPM_BIN=${NPM_BIN:-npm}
 NXPP_WASM_NPM_PACK_SKIP_BUILD=${NXPP_WASM_NPM_PACK_SKIP_BUILD:-0}
+NXPP_WASM_NPM_PACK_TARBALL=${NXPP_WASM_NPM_PACK_TARBALL:-}
 MODULE_PATH="$ROOT_DIR/wasm/runtime/node.mjs"
 WORK_DIR="$ROOT_DIR/.tmp/wasm-npm-pack-consumer"
 OUTPUT_FILE="$WORK_DIR/npm_pack_consumer_test.out"
@@ -32,11 +33,15 @@ fi
 rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR"
 
-PACK_TGZ_NAME=$(
-    cd "$WASM_DIR"
-    "$NPM_BIN" pack --silent --pack-destination "$WORK_DIR" | tail -n 1
-)
-PACK_TGZ_PATH="$WORK_DIR/$PACK_TGZ_NAME"
+if [ -n "$NXPP_WASM_NPM_PACK_TARBALL" ]; then
+    PACK_TGZ_PATH="$NXPP_WASM_NPM_PACK_TARBALL"
+else
+    PACK_TGZ_NAME=$(
+        cd "$WASM_DIR"
+        "$NPM_BIN" pack --silent --pack-destination "$WORK_DIR" | tail -n 1
+    )
+    PACK_TGZ_PATH="$WORK_DIR/$PACK_TGZ_NAME"
+fi
 
 if [ ! -f "$PACK_TGZ_PATH" ]; then
     echo "[WASM-NPM-PACK] expected tarball not found at $PACK_TGZ_PATH" >&2

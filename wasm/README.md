@@ -6,7 +6,8 @@ Experimental Node.js wasm package for `nxpp`.
 
 Current runtime support is intentionally split as follows:
 
-- Node.js: supported experimental target
+- Node.js 22, 24, and 26: supported experimental targets, verified against an
+  installed npm tarball in CI
 - Browser runtimes: not yet a supported target
 
 What this means in practice today:
@@ -128,8 +129,10 @@ npm run check:npm-pack-consumer
 ```
 
 This command builds the wasm module (unless skipped), packs the current
-package, installs that tarball in an isolated fixture consumer, and runs a
-smoke test through the published package entrypoint.
+package, installs that tarball in an isolated fixture consumer, checks the
+public TypeScript declarations, and runs a graph-operation smoke test through
+the published package entrypoint. CI reuses one packed tarball across the
+declared Node major versions.
 
 ## Local overhead benchmarks
 

@@ -11,9 +11,12 @@ permissions:
   packages: write
 
 jobs:
-  publish:
-    name: verify and publish wasm package
+  verify:
+    name: verify wasm package
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
 
     steps:
       - name: Checkout
@@ -44,19 +47,6 @@ jobs:
       - name: Install package dependencies
         working-directory: wasm
         run: npm ci
-
-      - name: Validate npm Trusted Publishing support
-        shell: bash
-        run: |
-          npm_version="$(npm --version)"
-          npm_major="${npm_version%%.*}"
-          npm_minor="${npm_version#*.}"
-          npm_minor="${npm_minor%%.*}"
-
-          if [ "$npm_major" -lt 11 ] || { [ "$npm_major" -eq 11 ] && [ "$npm_minor" -lt 5 ]; }; then
-            echo "npm 11.5.1 or newer is required for Trusted Publishing; found ${npm_version}." >&2
-            exit 1
-          fi
 
       - name: Validate release tag and package version
         id: version
@@ -115,10 +105,93 @@ jobs:
       - name: Run package smoke example
         run: node wasm/nxpp_example.js
 
+      - name: Pack verified Node package
+        working-directory: wasm
+        run: |
+          mkdir -p "$RUNNER_TEMP/nxpp-wasm-package"
+          tarball_name=$(npm pack --silent --pack-destination "$RUNNER_TEMP/nxpp-wasm-package")
+          mv "$RUNNER_TEMP/nxpp-wasm-package/$tarball_name" "$RUNNER_TEMP/nxpp-wasm-package/nxpp-wasm-package.tgz"
+
+      - name: Upload Node package for version checks
+        uses: actions/upload-artifact@v7
+        with:
+          name: nxpp-wasm-package
+          path: ${{ runner.temp }}/nxpp-wasm-package/nxpp-wasm-package.tgz
+          if-no-files-found: error
+
+  node-package-consumer:
+    name: packed consumer (Node ${{ matrix.node }})
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+
+      - name: Install TypeScript for declaration check
+        working-directory: wasm
+        run: npm ci
+
+      - name: Download verified Node package
+        uses: actions/download-artifact@v8
+        with:
+          name: nxpp-wasm-package
+          path: ${{ runner.temp }}/nxpp-wasm-package
+
+      - name: Check installed package and public types
+        env:
+          NXPP_WASM_NPM_PACK_SKIP_BUILD: "1"
+          NXPP_WASM_NPM_PACK_TARBALL: ${{ runner.temp }}/nxpp-wasm-package/nxpp-wasm-package.tgz
+        run: bash wasm/scripts/run_npm_pack_consumer_test.sh
+
+  publish:
+    name: publish verified wasm package
+    needs: [verify, node-package-consumer]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js for npmjs
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Download verified Node package
+        uses: actions/download-artifact@v8
+        with:
+          name: nxpp-wasm-package
+          path: ${{ runner.temp }}/nxpp-wasm-package
+
+      - name: Validate npm staged publishing support
+        shell: bash
+        run: |
+          npm_version="$(npm --version)"
+          npm_major="${npm_version%%.*}"
+          npm_minor="${npm_version#*.}"
+          npm_minor="${npm_minor%%.*}"
+
+          if [ "$npm_major" -lt 11 ] || { [ "$npm_major" -eq 11 ] && [ "$npm_minor" -lt 15 ]; }; then
+            echo "npm 11.15.0 or newer is required for staged publishing; found ${npm_version}." >&2
+            exit 1
+          fi
+
       - name: Stage package on npmjs
         id: npm_stage
-        working-directory: wasm
-        run: npm stage publish . --access public --registry=https://registry.npmjs.org/
+        run: npm stage publish "$RUNNER_TEMP/nxpp-wasm-package/nxpp-wasm-package.tgz" --access public --registry=https://registry.npmjs.org/
 
       - name: Set up Node.js for GitHub Packages
         uses: actions/setup-node@v6
@@ -130,10 +203,9 @@ jobs:
 
       - name: Publish package to GitHub Packages
         id: github_publish
-        working-directory: wasm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish --registry=https://npm.pkg.github.com/
+        run: npm publish "$RUNNER_TEMP/nxpp-wasm-package/nxpp-wasm-package.tgz" --registry=https://npm.pkg.github.com/
 
       - name: Publish release summary
         if: always()
@@ -142,8 +214,8 @@ jobs:
           {
             echo "## WASM Release"
             echo
-            echo "- Version: \`${{ steps.version.outputs.version }}\`"
-            echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
+            echo "- Version: \`${{ needs.verify.outputs.version }}\`"
+            echo "- Tag: \`${{ needs.verify.outputs.tag }}\`"
             echo "- Emscripten: \`6.0.9\`"
             echo "- npmjs staging outcome: \`${{ steps.npm_stage.outcome }}\`"
             echo "- GitHub Packages outcome: \`${{ steps.github_publish.outcome }}\`"
