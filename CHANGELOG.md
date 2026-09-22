@@ -37,6 +37,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
+- Removed the unused WASM singleton implementation and its generated output;
+  the explicit `createNxpp()` context remains the sole facade path.
 - Retired the stale WASM task checklist in favor of the issue-backed roadmap
   and aligned Node/browser support documentation with the current package and
   CI contracts.

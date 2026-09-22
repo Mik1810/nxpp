@@ -82,10 +82,6 @@ wasm/
     algorithms/
     core/
     internal/
-    legacy/
-      core/
-      index.ts
-      load.ts
     runtime/
     index.ts
     types.ts
@@ -136,8 +132,8 @@ entrypoint. It exports `createNxpp()` and public TypeScript contracts. The raw
 runtime under `runtime/` is an internal package asset used by the Node loader,
 not a public export.
 
-The `legacy` source directory is retained only as an internal migration
-reference and is excluded from the package. It is not a supported subpath.
+The former singleton implementation has been removed from the source tree and
+generated facade output. It is not a supported package subpath.
 
 ## Binding Modules
 

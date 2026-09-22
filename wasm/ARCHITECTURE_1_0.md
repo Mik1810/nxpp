@@ -199,8 +199,8 @@ shipping parallel compatibility layers.
 
 The explicit `NxppRuntime` implementation now lives under `wasm/ts/runtime/`,
 with runtime-neutral facade factories under `wasm/ts/core/`. It supports
-multiple independent Node contexts and is now the package-root API. Legacy
-source remains outside the published tarball and is not a supported subpath.
+multiple independent Node contexts and is now the package-root API. The
+unpublished legacy singleton source and generated output have been removed.
 
 Runtime initialization now crosses the shared `NxppRuntimeLoader` contract.
 The Node adapter owns the packaged Emscripten module import, while the separate
@@ -213,8 +213,7 @@ global runtime, `loadNxppRuntime()`, the raw return meaning of `createNxpp()`,
 the `./runtime` shim, and development files previously shipped in the tarball.
 
 The old and new initialization forms are documented in `wasm/README.md`.
-The unpublished legacy source and generated output will be removed in #180
-before the version changes to `1.0.0`.
+The unpublished legacy source and generated output were removed in #180.
 
 ## Implementation Roadmap
 
