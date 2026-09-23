@@ -2,7 +2,7 @@
 
 This document describes the current implementation and the decisions for the
 WASM package's `1.0.0` architecture. The completion gates below have been
-audited for the `1.0.0` release candidate; publication remains separate. The
+audited for the published `1.0.0` package. The
 [package README](README.md) covers usage, the [build guide](WASM.md) covers
 verification and release procedure, and the [API policy](API_POLICY.md)
 defines the public boundary. The [issue-backed roadmap](https://github.com/Mik1810/nxpp/issues/177)
@@ -159,7 +159,7 @@ short migration example.
 
 ## 1.0.0 completion gates
 
-The `1.0.0` candidate follows a final audit of these conditions:
+The `1.0.0` release followed a final audit of these conditions:
 
 - required roadmap issues are closed or explicitly rejected with rationale;
 - all eight graph families pass public parity and behavior contracts;
@@ -172,7 +172,6 @@ The `1.0.0` candidate follows a final audit of these conditions:
 - migration notes cover intentional breaking changes from the old 0.6 API;
 - Node and browser support claims match their actual verification coverage.
 
-The roadmap and this audit are separate from release preparation. Bumping the
-version, tagging, staging npm publication, and registry approval require
-their own explicit decisions. No C ABI rewrite or broad browser support
-promise is implied by these gates.
+The roadmap audit did not itself authorize publication; the independent
+release procedure is documented in [WASM.md](WASM.md). No C ABI rewrite or
+broad browser support promise is implied by these gates.

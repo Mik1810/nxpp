@@ -1,10 +1,10 @@
 # WASM package release notes
 
 The WASM package has its own version and release process, independent of the
-native C++ library. These notes describe the `1.0.0` release candidate; they
-do not indicate that the package has been published.
+native C++ library. Version `1.0.0` was published on 2026-09-23 from the
+`wasm-v1.0.0` tag.
 
-## 1.0.0 candidate
+## 1.0.0 - 2026-09-23
 
 This is the first major version of the experimental Node.js package. It
 completes the issue-backed architecture roadmap and makes the supported
@@ -33,5 +33,7 @@ package boundary explicit.
   selected graph classes and methods documented in the package README are
   exposed through WASM.
 
-See the [package README](README.md) for migration and usage examples and the
-[build guide](WASM.md) for verification and release gates.
+See the [package README](https://github.com/Mik1810/nxpp/blob/main/wasm/README.md)
+for migration and usage examples and the
+[build guide](https://github.com/Mik1810/nxpp/blob/main/wasm/WASM.md) for
+verification and release gates.

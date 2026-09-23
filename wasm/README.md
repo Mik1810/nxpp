@@ -2,8 +2,8 @@
 
 `@mik1810/nxpp-wasm` exposes selected native nxpp graph operations through a
 TypeScript facade over WebAssembly. The package is experimental. This README
-describes the current repository revision; a published npm version may differ
-until the next package release.
+describes the current repository revision. Version `1.0.0` is published on npm;
+future repository changes may differ from the latest published package.
 
 ## Runtime support
 

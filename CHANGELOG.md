@@ -37,8 +37,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Changed
 
-- Prepared `@mik1810/nxpp-wasm@1.0.0` as a separate package release candidate
-  after the architecture roadmap audit; no tag or registry publication yet.
+- Published `@mik1810/nxpp-wasm@1.0.0` through the independent
+  `wasm-v1.0.0` release path after the architecture roadmap audit.
 - Consolidated the WASM 1.0 architecture decisions into the current
   architecture guide, retired the obsolete refactor prompt, and reorganized
   package usage and maintainer documentation with verified API examples.
