@@ -49,7 +49,9 @@ if [ ! -f "$PACK_TGZ_PATH" ]; then
 fi
 
 expected_files=(
+    package/LICENSE
     package/README.md
+    package/THIRD_PARTY_NOTICES.md
     package/dist/algorithms/centrality.d.ts
     package/dist/algorithms/centrality.js
     package/dist/algorithms/components.d.ts
