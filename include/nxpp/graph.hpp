@@ -328,9 +328,15 @@ private:
     VertexNameMap vertex_name_map;
     VertexIndexMap vertex_index_map;
     EdgeIdMap edge_id_map;
+    // Live node IDs map to current descriptors; wrapper indices are dense and
+    // aligned with bgl_to_id. Descriptor-dependent maps must be rebuilt after
+    // copying, moving, or removing vertices.
     IdMap id_to_bgl;
     std::vector<NodeID> bgl_to_id;
     std::size_t next_edge_id = 0;
+    // Successful removals erase attributes for removed nodes and edges. Every
+    // live edge ID has one current descriptor in edge_id_to_desc, with no
+    // entries retained for removed edges.
     NodeAttrStorage node_properties;
     EdgeAttrStorage edge_properties;
     EdgeIdIndex edge_id_to_desc;
@@ -453,7 +459,8 @@ private:
         return edge_id;
     }
 
-    void erase_edge_id_index(std::size_t edge_id) {
+    void erase_edge_bookkeeping(std::size_t edge_id) {
+        edge_properties.erase(edge_id);
         edge_id_to_desc.erase(edge_id);
     }
 
@@ -462,6 +469,11 @@ private:
         for (auto [e, eend] = boost::edges(g); e != eend; ++e) {
             edge_id_to_desc[get_edge_id(*e)] = *e;
         }
+    }
+
+    void rebuild_descriptor_maps() {
+        rebuild_vertex_maps();
+        rebuild_edge_id_index();
     }
 
     std::optional<EdgeDesc> try_find_edge_desc_by_id(std::size_t edge_id) const {
@@ -501,7 +513,7 @@ private:
         return edge_ids;
     }
 
-    void erase_incident_edge_properties(VertexDesc v) {
+    void erase_incident_edge_bookkeeping(VertexDesc v) {
         std::vector<std::size_t> edge_ids;
         for (auto [e, eend] = boost::out_edges(v, g); e != eend; ++e) {
             edge_ids.push_back(get_edge_id(*e));
@@ -514,8 +526,7 @@ private:
             }
         }
         for (auto edge_id : edge_ids) {
-            edge_properties.erase(edge_id);
-            erase_edge_id_index(edge_id);
+            erase_edge_bookkeeping(edge_id);
         }
     }
 
@@ -569,8 +580,7 @@ private:
             if constexpr (Weighted) {
                 result.weight_map[new_edge] = weight_map[*edge];
             }
-            const auto new_edge_id = result.next_edge_id++;
-            result.set_edge_id(new_edge, new_edge_id);
+            const auto new_edge_id = result.assign_next_edge_id(new_edge);
 
             const auto old_edge_id = get_edge_id(*edge);
             const auto edge_attr_it = edge_properties.find(old_edge_id);
@@ -602,8 +612,7 @@ public:
           next_edge_id(other.next_edge_id),
           node_properties(other.node_properties),
           edge_properties(other.edge_properties) {
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
     }
 
     Graph(Graph&& other) noexcept
@@ -617,8 +626,7 @@ public:
           next_edge_id(other.next_edge_id),
           node_properties(std::move(other.node_properties)),
           edge_properties(std::move(other.edge_properties)) {
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
         other.clear_min_cost_flow_state();
         other.clear();
     }
@@ -634,8 +642,7 @@ public:
         next_edge_id = other.next_edge_id;
         node_properties = other.node_properties;
         edge_properties = other.edge_properties;
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
         return *this;
     }
 
@@ -650,8 +657,7 @@ public:
         next_edge_id = other.next_edge_id;
         node_properties = std::move(other.node_properties);
         edge_properties = std::move(other.edge_properties);
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
         other.clear_min_cost_flow_state();
         other.clear();
         return *this;
@@ -888,10 +894,8 @@ public:
         bgl_to_id.clear();
         node_properties.clear();
         edge_properties.clear();
-        weight_map = built_in_weight_traits<GraphType, Weighted>::get(g);
-        vertex_name_map = boost::get(boost::vertex_name, g);
-        vertex_index_map = boost::get(boost::vertex_wrapper_index, g);
-        edge_id_map = boost::get(boost::edge_index, g);
+        edge_id_to_desc.clear();
+        rebind_property_maps();
         next_edge_id = 0;
         invalidate_min_cost_flow_state();
     }
@@ -940,8 +944,7 @@ public:
             throw std::runtime_error("Edge lookup failed: edge not found.");
         }
         for (auto edge_id : collect_edge_ids_between(it_u->second, it_v->second)) {
-            edge_properties.erase(edge_id);
-            erase_edge_id_index(edge_id);
+            erase_edge_bookkeeping(edge_id);
         }
         if constexpr (!Directed && Multi) {
             const auto bu = it_u->second;
@@ -990,13 +993,12 @@ public:
         }
         VertexDesc v = it->second;
 
-        erase_incident_edge_properties(v);
+        erase_incident_edge_bookkeeping(v);
         boost::clear_vertex(v, g);
         boost::remove_vertex(v, g);
         
         node_properties.erase(u);
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
         invalidate_min_cost_flow_state();
     }
 
@@ -1036,14 +1038,13 @@ public:
                 continue;
             }
 
-            erase_incident_edge_properties(*vertex);
+            erase_incident_edge_bookkeeping(*vertex);
             boost::clear_vertex(*vertex, g);
             boost::remove_vertex(*vertex, g);
             node_properties.erase(node);
         }
 
-        rebuild_vertex_maps();
-        rebuild_edge_id_index();
+        rebuild_descriptor_maps();
         invalidate_min_cost_flow_state();
     }
 
@@ -2101,6 +2102,9 @@ public:
     [[nodiscard]] auto betweenness_centrality() const;
 
 private:
+    // The flow cache is external to Graph. Callers invalidate it after
+    // successful mutations, preserving the policy for rejected and guarded
+    // no-op operations.
     void invalidate_min_cost_flow_state() const {
         detail::MinCostFlowCacheHooks<Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, VertexSelector>>::invalidate(
             static_cast<const void*>(this)

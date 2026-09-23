@@ -23,6 +23,8 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Fixed
 
+- Cleared stale edge-ID lookups after graph reset and move operations, and
+  centralized the native graph's descriptor rebuild and edge cleanup paths.
 - Preserved native C++ exception messages across optimized Emscripten builds
   and released caught exception objects after facade normalization.
 - Preserved staged min-cost-flow state after rejected and documented no-op

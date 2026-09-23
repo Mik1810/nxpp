@@ -5,6 +5,7 @@ when resuming that specific work.
 
 ## Active and Recent
 
+- [2026-09-23 - Issue #167](sessions/2026-09-23-issue-167.md)
 - [2026-09-23 - WASM 1.0 release finalization](sessions/2026-09-23-wasm-1-0-release-finalization.md)
 - [2026-09-23 - WASM 1.0 release preparation](sessions/2026-09-23-wasm-1-0-release-preparation.md)
 - [2026-09-23 - Issue #177](sessions/2026-09-23-issue-177.md)

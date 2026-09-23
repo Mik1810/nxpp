@@ -96,8 +96,7 @@ void Graph<NodeID, EdgeWeight, Directed, Multi, Weighted, OutEdgeSelector, Verte
     if (!edge_desc.has_value()) {
         throw std::runtime_error("Edge lookup failed: edge not found.");
     }
-    edge_properties.erase(edge_id);
-    erase_edge_id_index(edge_id);
+    erase_edge_bookkeeping(edge_id);
     boost::remove_edge(*edge_desc, g);
     invalidate_min_cost_flow_state();
 }

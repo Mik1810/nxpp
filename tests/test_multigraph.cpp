@@ -232,14 +232,50 @@ void test_edge_id_index_survives_copy_move_and_subgraph() {
     expect(moved.has_edge_id(second), "moved graph should preserve edge id lookup");
     expect(moved.get_edge_attr<std::string>(second, "label") == "kept",
            "moved graph should preserve edge attributes by edge id");
+    expect(!assigned.has_edge_id(first) && !assigned.has_edge_id(second),
+           "moved-from graph should not retain stale edge ids");
 
-    auto subgraph = moved.subgraph(std::vector<std::string>{"B", "C"});
+    nxpp::MultiDiGraph move_assigned;
+    move_assigned.add_edge_with_id("X", "Y", 1.0);
+    move_assigned.add_edge_with_id("Y", "Z", 2.0);
+    const auto obsolete = move_assigned.add_edge_with_id("Z", "X", 3.0);
+    move_assigned = std::move(moved);
+    expect(move_assigned.has_edge_id(first) && move_assigned.has_edge_id(second),
+           "move assignment should rebuild edge id lookup for the new graph");
+    expect(!move_assigned.has_edge_id(obsolete),
+           "move assignment should discard edge ids from the previous graph");
+    expect(!moved.has_edge_id(first) && !moved.has_edge_id(second),
+           "move-assigned source should not retain stale edge ids");
+
+    auto subgraph = move_assigned.subgraph(std::vector<std::string>{"B", "C"});
     const auto subgraph_ids = subgraph.edge_ids("B", "C");
     expect(subgraph_ids.size() == 1, "subgraph should contain the selected internal edge");
     expect(subgraph.has_edge_id(subgraph_ids.front()),
            "subgraph should index its newly assigned edge id");
     expect(subgraph.get_edge_weight(subgraph_ids.front()) == 2.0,
            "subgraph edge id should support weight lookup");
+}
+
+void test_clear_resets_edge_id_bookkeeping() {
+    nxpp::MultiDiGraph graph;
+    const auto first = graph.add_edge_with_id("A", "B", 1.0);
+    const auto second = graph.add_edge_with_id("A", "B", 2.0);
+    graph.set_edge_attr(second, "label", "old");
+
+    graph.clear();
+
+    expect(graph.num_vertices() == 0 && graph.num_edges() == 0,
+           "clear should remove all vertices and edges");
+    expect(!graph.has_edge_id(first) && !graph.has_edge_id(second),
+           "clear should remove every edge id lookup");
+    expect(!graph.has_edge_attr(second, "label"),
+           "clear should remove edge attributes");
+
+    const auto new_id = graph.add_edge_with_id("C", "D", 3.0);
+    expect(new_id == 0, "clear should reset edge id allocation");
+    expect(graph.get_edge_endpoints(new_id) == std::pair<std::string, std::string>({"C", "D"}),
+           "new edge id should resolve to its live endpoints after clear");
+    expect(!graph.has_edge_id(second), "old non-reused edge ids should remain absent");
 }
 
 void test_multigraph_attr_bearing_endpoint_adds_throw() {
@@ -295,6 +331,7 @@ int main() {
         {"remove_node clears incident edge ids", test_remove_node_clears_incident_edge_ids},
         {"remove_nodes_from clears incident edge ids", test_remove_nodes_from_clears_incident_edge_ids},
         {"edge id index survives copy move and subgraph", test_edge_id_index_survives_copy_move_and_subgraph},
+        {"clear resets edge id bookkeeping", test_clear_resets_edge_id_bookkeeping},
         {"multigraph attr-bearing endpoint adds throw", test_multigraph_attr_bearing_endpoint_adds_throw},
         {"numeric edge attrs support unsigned edge IDs", test_numeric_edge_attrs_support_unsigned_edge_ids},
     });
