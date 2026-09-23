@@ -12,6 +12,8 @@
     }
   },
   "files": [
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
     "dist/index.js",
     "dist/index.d.ts",
     "dist/types.d.ts",
