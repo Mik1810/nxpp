@@ -389,6 +389,40 @@ void test_traversal_tree_preserves_edge_weight_type() {
     expect(dfs_tree.has_edge(1, 2), "dfs_tree should still materialize traversal edges");
 }
 
+template <typename GraphType>
+void check_generator_vertex_contract() {
+    for (const size_t n : {size_t{0}, size_t{1}, size_t{4}}) {
+        const auto complete = nxpp::complete_graph<GraphType>(n);
+        const auto path = nxpp::path_graph<GraphType>(n);
+        expect(static_cast<size_t>(complete.num_vertices()) == n,
+               "complete_graph should preserve all requested vertices");
+        expect(static_cast<size_t>(path.num_vertices()) == n,
+               "path_graph should preserve all requested vertices");
+        for (size_t i = 0; i < n; ++i) {
+            expect(complete.has_node(static_cast<int>(i)), "complete_graph should contain every requested node ID");
+            expect(path.has_node(static_cast<int>(i)), "path_graph should contain every requested node ID");
+            expect(!complete.has_edge(static_cast<int>(i), static_cast<int>(i)), "complete_graph should not add self loops");
+            if (i + 1 < n) {
+                expect(path.has_edge(static_cast<int>(i), static_cast<int>(i + 1)), "path_graph should connect consecutive nodes");
+            }
+        }
+        const size_t complete_edges = n < 2 ? 0 : n * (n - 1) / (GraphType::is_directed ? 1 : 2);
+        expect(complete.edges().size() == complete_edges, "complete_graph should preserve its edge-count contract");
+        expect(path.edges().size() == (n == 0 ? 0 : n - 1), "path_graph should preserve its edge-count contract");
+    }
+}
+
+void test_generators_preserve_vertex_contract() {
+    check_generator_vertex_contract<nxpp::WeightedGraphInt>();
+    check_generator_vertex_contract<nxpp::WeightedDiGraphInt>();
+    check_generator_vertex_contract<nxpp::WeightedMultiGraphInt>();
+    check_generator_vertex_contract<nxpp::WeightedMultiDiGraphInt>();
+    check_generator_vertex_contract<nxpp::UnweightedGraphInt>();
+    check_generator_vertex_contract<nxpp::UnweightedDiGraphInt>();
+    check_generator_vertex_contract<nxpp::UnweightedMultiGraphInt>();
+    check_generator_vertex_contract<nxpp::UnweightedMultiDiGraphInt>();
+}
+
 void test_path_graph_zero_is_empty() {
     const auto path = nxpp::path_graph<nxpp::GraphInt>(0);
 
@@ -530,6 +564,7 @@ int main() {
         {"disconnected component groups split graph correctly", test_disconnected_component_groups_split_graph_correctly},
         {"ordered-only node IDs work without hash support", test_ordered_only_node_ids_work_without_hash_support},
         {"integer generators still work", test_integer_generators_still_work},
+        {"generators preserve the vertex contract across presets", test_generators_preserve_vertex_contract},
         {"erdos_renyi_graph zero probability preserves isolated nodes", test_erdos_renyi_zero_probability_preserves_isolated_nodes},
         {"traversal tree preserves edge weight type", test_traversal_tree_preserves_edge_weight_type},
         {"path_graph(0) is empty", test_path_graph_zero_is_empty},

@@ -23,6 +23,9 @@ Repository releases follow the compatibility policy in [`VERSIONING.md`](VERSION
 
 ### Fixed
 
+- Preserve node 0 in `complete_graph(1)` and `path_graph(1)` across directed,
+  undirected, weighted, unweighted and multigraph presets, without adding edges.
+
 - Cleared stale edge-ID lookups after graph reset and move operations, and
   centralized the native graph's descriptor rebuild and edge cleanup paths.
 - Preserved native C++ exception messages across optimized Emscripten builds
