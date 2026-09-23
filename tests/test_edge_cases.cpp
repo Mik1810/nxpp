@@ -394,8 +394,10 @@ void check_generator_vertex_contract() {
     for (const size_t n : {size_t{0}, size_t{1}, size_t{4}}) {
         const auto complete = nxpp::complete_graph<GraphType>(n);
         const auto path = nxpp::path_graph<GraphType>(n);
-        expect(complete.num_vertices() == n, "complete_graph should preserve all requested vertices");
-        expect(path.num_vertices() == n, "path_graph should preserve all requested vertices");
+        expect(static_cast<size_t>(complete.num_vertices()) == n,
+               "complete_graph should preserve all requested vertices");
+        expect(static_cast<size_t>(path.num_vertices()) == n,
+               "path_graph should preserve all requested vertices");
         for (size_t i = 0; i < n; ++i) {
             expect(complete.has_node(static_cast<int>(i)), "complete_graph should contain every requested node ID");
             expect(path.has_node(static_cast<int>(i)), "path_graph should contain every requested node ID");
