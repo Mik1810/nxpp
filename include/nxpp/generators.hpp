@@ -22,12 +22,14 @@ template <typename GraphType = Graph<int>>
  * @brief Builds the complete graph on node IDs 0 through n - 1.
  *
  * @param n Number of nodes to generate.
- * @return A graph where every distinct node pair is connected.
+ * @return A graph where every distinct node pair is connected, including an
+ * isolated node 0 when n is 1.
  */
 GraphType complete_graph(size_t n) {
     GraphType G;
     using NodeID = typename GraphType::NodeType;
     for (size_t i = 0; i < n; ++i) {
+        G.add_node(static_cast<NodeID>(i));
         if constexpr (GraphType::is_directed) {
             for (size_t j = 0; j < n; ++j) {
                 if (i == j) continue;
@@ -48,7 +50,8 @@ template <typename GraphType = Graph<int>>
  * @brief Builds a simple path on node IDs 0 through n - 1.
  *
  * @param n Number of nodes to generate.
- * @return A graph containing the path 0-1-...-(n-1).
+ * @return A graph containing the path 0-1-...-(n-1), including an isolated
+ * node 0 when n is 1.
  */
 GraphType path_graph(size_t n) {
     GraphType G;
@@ -56,6 +59,7 @@ GraphType path_graph(size_t n) {
     if (n == 0) {
         return G;
     }
+    G.add_node(static_cast<NodeID>(0));
     for (size_t i = 0; i < n - 1; ++i) {
         G.add_edge(static_cast<NodeID>(i), static_cast<NodeID>(i + 1));
     }
